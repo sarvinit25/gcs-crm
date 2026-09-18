@@ -181,9 +181,10 @@ enum EmploymentType {
 }
 
 model Application {
-  id            String @id @default(cuid())
-  // Human-facing reference, e.g. GCS-2026-0042. Generated on create.
-  applicationNo String @unique
+  id String @id @default(cuid())
+  // Drives the human-facing reference (GCS-2026-0042), formatted on read.
+  // A sequence rather than a built string, so concurrent creates can't collide.
+  seq Int @unique @default(autoincrement())
 
   leadId String? @unique
   lead   Lead?   @relation(fields: [leadId], references: [id])

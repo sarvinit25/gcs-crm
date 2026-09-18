@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Link, useParams } from "@tanstack/react-router";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Loader2, Plus } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, Plus } from "lucide-react";
 import { api } from "../lib/api";
 import { formatAmount, formatDate, formatDateTime } from "../lib/format";
 import { LEAD_STATUSES, LEAD_STATUS_LABEL, type LeadDetail, type LeadStatus } from "../lib/types";
+
+type Product = { id: string; name: string; slug: string };
 import { PageHeader } from "../components/app-shell";
 import { LeadStatusBadge } from "../components/status-badge";
 
@@ -21,12 +23,18 @@ export function LeadDetailPage() {
   // Non-strict: the route sits under an id-based layout route, so its full id isn't "/leads/$leadId".
   const { leadId } = useParams({ strict: false }) as { leadId: string };
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [note, setNote] = useState("");
   const [dueAt, setDueAt] = useState("");
 
   const query = useQuery({
     queryKey: ["lead", leadId],
     queryFn: () => api<LeadDetail>(`/leads/${leadId}`),
+  });
+
+  const products = useQuery({
+    queryKey: ["loan-products"],
+    queryFn: () => api<Product[]>("/loan-products"),
   });
 
   const invalidate = () => {
@@ -38,6 +46,18 @@ export function LeadDetailPage() {
     mutationFn: (status: LeadStatus) =>
       api(`/leads/${leadId}`, { method: "PATCH", body: JSON.stringify({ status }) }),
     onSuccess: invalidate,
+  });
+
+  const raise = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      api<{ id: string }>("/applications", {
+        method: "POST",
+        body: JSON.stringify({ ...body, leadId }),
+      }),
+    onSuccess: (app) => {
+      invalidate();
+      void navigate({ to: "/applications/$applicationId", params: { applicationId: app.id } });
+    },
   });
 
   const addFollowUp = useMutation({
@@ -69,6 +89,7 @@ export function LeadDetailPage() {
   }
 
   const lead = query.data;
+  const raiseError = raise.isError ? (raise.error as Error).message : null;
 
   return (
     <>
@@ -125,13 +146,81 @@ export function LeadDetailPage() {
             <h2 className="text-sm font-bold text-navy">Application</h2>
             {lead.application ? (
               <p className="mt-2 text-[13px]">
-                <span className="font-semibold text-navy">{lead.application.applicationNo}</span>
+                <Link
+                  to="/applications/$applicationId"
+                  params={{ applicationId: lead.application.id }}
+                  className="font-semibold text-navy hover:text-gold-dark"
+                >
+                  {lead.application.applicationNo}
+                </Link>
                 <span className="text-muted"> · {lead.application.status}</span>
               </p>
             ) : (
-              <p className="mt-2 text-[13px] text-muted">
-                No application raised from this lead yet.
-              </p>
+              <>
+                <p className="mt-2 text-[13px] text-muted">
+                  No application raised from this lead yet. Raising one carries the enquiry over as
+                  the primary applicant.
+                </p>
+                {raiseError && (
+                  <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">
+                    {raiseError}
+                  </p>
+                )}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const f = new FormData(e.currentTarget);
+                    raise.mutate({
+                      loanProductId: f.get("loanProductId") as string,
+                      requestedAmount: Number(f.get("requestedAmount")),
+                      tenureMonths: f.get("tenureMonths")
+                        ? Number(f.get("tenureMonths"))
+                        : undefined,
+                    });
+                  }}
+                  className="mt-4 grid gap-2 sm:grid-cols-3"
+                >
+                  <select
+                    name="loanProductId"
+                    required
+                    defaultValue={lead.loanProduct?.id ?? ""}
+                    className="field sm:col-span-3"
+                  >
+                    <option value="" disabled>
+                      Select loan product
+                    </option>
+                    {products.data?.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    name="requestedAmount"
+                    type="number"
+                    required
+                    min={1}
+                    defaultValue={lead.amount ?? undefined}
+                    placeholder="Amount"
+                    className="field"
+                  />
+                  <input
+                    name="tenureMonths"
+                    type="number"
+                    min={1}
+                    placeholder="Tenure (months)"
+                    className="field"
+                  />
+                  <button type="submit" disabled={raise.isPending} className="btn-primary">
+                    {raise.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <FileText className="h-4 w-4" />
+                    )}
+                    Raise
+                  </button>
+                </form>
+              </>
             )}
           </section>
         </div>

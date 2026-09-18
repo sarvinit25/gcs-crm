@@ -12,6 +12,8 @@ import { LoginPage } from "./routes/login";
 import { DashboardPage } from "./routes/dashboard";
 import { LeadsPage } from "./routes/leads";
 import { LeadDetailPage } from "./routes/lead-detail";
+import { ApplicationsPage } from "./routes/applications";
+import { ApplicationDetailPage } from "./routes/application-detail";
 import { PlaceholderPage } from "./routes/placeholder";
 
 function RootLayout() {
@@ -69,11 +71,16 @@ const routeTree = rootRoute.addChildren([
       path: "/leads/$leadId",
       component: LeadDetailPage,
     }),
-    placeholder(
-      "/applications",
-      "Applications",
-      "The full case file per applicant — applicant and co-applicant details, loan terms, references, and bank login tracking.",
-    ),
+    createRoute({
+      getParentRoute: () => protectedRoute,
+      path: "/applications",
+      component: ApplicationsPage,
+    }),
+    createRoute({
+      getParentRoute: () => protectedRoute,
+      path: "/applications/$applicationId",
+      component: ApplicationDetailPage,
+    }),
     placeholder(
       "/sanctions",
       "Sanctions",

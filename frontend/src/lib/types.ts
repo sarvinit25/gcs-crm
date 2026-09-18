@@ -64,3 +64,83 @@ export type LeadDetail = Lead & {
 };
 
 export type Paginated<T> = { items: T[]; total: number; page: number; pageSize: number };
+
+export type ApplicationStatus =
+  | "DRAFT"
+  | "SUBMITTED"
+  | "BANK_LOGIN"
+  | "UNDER_REVIEW"
+  | "SANCTIONED"
+  | "DISBURSED"
+  | "REJECTED"
+  | "WITHDRAWN";
+
+export const APPLICATION_STATUSES: ApplicationStatus[] = [
+  "DRAFT",
+  "SUBMITTED",
+  "BANK_LOGIN",
+  "UNDER_REVIEW",
+  "SANCTIONED",
+  "DISBURSED",
+  "REJECTED",
+  "WITHDRAWN",
+];
+
+export const APPLICATION_STATUS_LABEL: Record<ApplicationStatus, string> = {
+  DRAFT: "Draft",
+  SUBMITTED: "Submitted",
+  BANK_LOGIN: "Bank login",
+  UNDER_REVIEW: "Under review",
+  SANCTIONED: "Sanctioned",
+  DISBURSED: "Disbursed",
+  REJECTED: "Rejected",
+  WITHDRAWN: "Withdrawn",
+};
+
+export type Applicant = {
+  id: string;
+  isPrimary: boolean;
+  name: string;
+  relation: string | null;
+  phone: string | null;
+  email: string | null;
+  pan: string | null;
+  city: string | null;
+  employmentType: string | null;
+  employerName: string | null;
+  monthlyIncome: string | null;
+  cibilScore: number | null;
+};
+
+export type Reference = {
+  id: string;
+  name: string;
+  phone: string;
+  relation: string | null;
+  address: string | null;
+};
+
+export type Application = {
+  id: string;
+  applicationNo: string;
+  status: ApplicationStatus;
+  requestedAmount: string;
+  tenureMonths: number | null;
+  purpose: string | null;
+  bankLoginAt: string | null;
+  bankReferenceNo: string | null;
+  createdAt: string;
+  loanProduct: { id: string; name: string; slug: string } | null;
+  lender: { id: string; name: string } | null;
+  owner: { id: string; name: string } | null;
+  applicants: Applicant[];
+};
+
+export type ApplicationDetail = Application & {
+  references: Reference[];
+  lead: { id: string; leadNo: number; name: string; source: string } | null;
+  sanction: unknown | null;
+  disbursements: unknown[];
+};
+
+export type Lender = { id: string; name: string; type: "BANK" | "NBFC" };

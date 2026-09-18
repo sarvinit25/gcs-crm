@@ -49,12 +49,12 @@ product automatically. Everything else on the API requires a bearer token.
 | Auth & roles | done | done (login, route guard, role-aware nav) |
 | Dashboard | done | done |
 | Leads (+ follow-ups, public intake) | done | done (list, filters, detail, status, follow-ups) |
-| Applications | — | placeholder |
+| Applications | done | done (list, detail, applicants, references, lender) |
 | Sanctions | — | placeholder |
 | Disbursements | — | placeholder |
 | Commissions | — | placeholder |
 | Documents | schema | — |
-| Lender Directory | schema + seed | placeholder |
+| Lender Directory | read-only list API | placeholder |
 | Loan Products / Settings | schema + seed | placeholder |
 | Team | schema | placeholder |
 | Sourcing Partners | schema | placeholder |

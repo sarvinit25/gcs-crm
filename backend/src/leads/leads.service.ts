@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
+import { formatApplicationNo } from "../applications/applications.service";
 import {
   CreateFollowUpDto,
   CreateLeadDto,
@@ -110,7 +111,7 @@ export class LeadsService {
       where: { id, ...this.scopeFor(user) },
       include: {
         ...LIST_INCLUDE,
-        application: { select: { id: true, applicationNo: true, status: true } },
+        application: { select: { id: true, seq: true, createdAt: true, status: true } },
         followUps: {
           include: { user: { select: { id: true, name: true } } },
           orderBy: { createdAt: "desc" },
@@ -118,7 +119,16 @@ export class LeadsService {
       },
     });
     if (!lead) throw new NotFoundException("Lead not found");
-    return lead;
+
+    const { application, ...rest } = lead;
+    return {
+      ...rest,
+      application: application && {
+        id: application.id,
+        status: application.status,
+        applicationNo: formatApplicationNo(application.seq, application.createdAt),
+      },
+    };
   }
 
   async update(id: string, dto: UpdateLeadDto, user: AuthUser) {
