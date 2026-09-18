@@ -3,6 +3,7 @@ import { AuditAction, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuthService } from "../auth/auth.service";
 import { AuditService, diff } from "../audit/audit.service";
+import { SettingsService } from "../settings/settings.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { CreateUserDto, UpdateUserDto } from "./dto/team.dto";
 
@@ -22,7 +23,15 @@ export class TeamService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private settings: SettingsService,
   ) {}
+
+  private assertPasswordPolicy(password: string) {
+    const min = this.settings.get<number>("security.minPasswordLength");
+    if (password.length < min) {
+      throw new BadRequestException(`Password must be at least ${min} characters`);
+    }
+  }
 
   /** Assignment dropdowns need this, so any signed-in user may read it. */
   findAssignable() {
@@ -42,6 +51,7 @@ export class TeamService {
   }
 
   async create(dto: CreateUserDto, actor: AuthUser, ip?: string) {
+    this.assertPasswordPolicy(dto.password);
     const email = dto.email.toLowerCase();
     if (await this.prisma.user.findUnique({ where: { email } })) {
       throw new ConflictException("A staff member with this email already exists");
@@ -105,6 +115,7 @@ export class TeamService {
   }
 
   async resetPassword(id: string, password: string, actor: AuthUser, ip?: string) {
+    this.assertPasswordPolicy(password);
     const user = await this.prisma.user.findUnique({ where: { id }, select: PUBLIC_FIELDS });
     if (!user) throw new NotFoundException("Staff member not found");
 

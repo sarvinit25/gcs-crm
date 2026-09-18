@@ -4,6 +4,7 @@ import * as bcrypt from "bcryptjs";
 import { AuditAction } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { SettingsService } from "../settings/settings.service";
 
 @Injectable()
 export class AuthService {
@@ -11,6 +12,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private audit: AuditService,
+    private settings: SettingsService,
   ) {}
 
   async login(email: string, password: string, ip?: string) {
@@ -29,7 +31,12 @@ export class AuthService {
     });
 
     return {
-      accessToken: await this.jwt.signAsync({ sub: user.id, role: user.role }),
+      accessToken: await this.jwt.signAsync(
+        { sub: user.id, role: user.role },
+        // Signed per request so a change to session length applies to new
+        // sign-ins immediately, without restarting the server.
+        { expiresIn: `${this.settings.get<number>("security.sessionHours")}h` },
+      ),
       user: { id: user.id, name: user.name, email: user.email, role: user.role },
     };
   }

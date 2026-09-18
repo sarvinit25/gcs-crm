@@ -3,7 +3,7 @@ import type { Response } from "express";
 import { Role } from "@prisma/client";
 import { CurrentUser, Roles, type AuthUser } from "../auth/auth.decorators";
 import { ReportsService, type ReportRange } from "./reports.service";
-import { formatApplicationNo } from "../applications/applications.service";
+import { SettingsService } from "../settings/settings.service";
 
 /** Escapes a value for CSV — quotes doubled, field wrapped when it needs it. */
 function csvCell(value: unknown) {
@@ -22,7 +22,10 @@ function toCsv(rows: Record<string, unknown>[]) {
 
 @Controller("reports")
 export class ReportsController {
-  constructor(private reports: ReportsService) {}
+  constructor(
+    private reports: ReportsService,
+    private settings: SettingsService,
+  ) {}
 
   @Get("funnel")
   funnel(@Query() range: ReportRange, @CurrentUser() user: AuthUser) {
@@ -55,7 +58,7 @@ export class ReportsController {
     const rows = await this.reports.stalled(user);
     return rows.map((r) => ({
       id: r.id,
-      applicationNo: formatApplicationNo(r.seq, r.createdAt),
+      applicationNo: this.settings.applicationNo(r.seq, r.createdAt),
       applicant: r.applicants[0]?.name ?? null,
       status: r.status,
       lender: r.lender?.name ?? null,

@@ -9,7 +9,7 @@ import {
 } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
-import { formatApplicationNo } from "../applications/applications.service";
+import { SettingsService } from "../settings/settings.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { CreateDisbursementDto, ListDisbursementsQuery } from "./dto/disbursement.dto";
 
@@ -31,6 +31,7 @@ export class DisbursementsService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private settings: SettingsService,
   ) {}
 
   private scopeFor(user: AuthUser): Prisma.ApplicationWhereInput {
@@ -42,7 +43,7 @@ export class DisbursementsService {
       ...row,
       application: {
         ...row.application,
-        applicationNo: formatApplicationNo(row.application.seq, row.application.createdAt),
+        applicationNo: this.settings.applicationNo(row.application.seq, row.application.createdAt),
       },
     };
   }
@@ -137,7 +138,7 @@ export class DisbursementsService {
       action: AuditAction.CREATE,
       entity: "Disbursement",
       entityId: disbursement.id,
-      entityLabel: formatApplicationNo(application.seq, application.createdAt),
+      entityLabel: this.settings.applicationNo(application.seq, application.createdAt),
       changes: {
         amount: { from: null, to: dto.amount },
         type: { from: null, to: type },
@@ -184,7 +185,7 @@ export class DisbursementsService {
       action: AuditAction.DELETE,
       entity: "Disbursement",
       entityId: id,
-      entityLabel: formatApplicationNo(application.seq, application.createdAt),
+      entityLabel: this.settings.applicationNo(application.seq, application.createdAt),
       changes: { amount: { from: disbursement.amount.toString(), to: null } },
       ip,
     });

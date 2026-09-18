@@ -62,7 +62,7 @@ export class StorageService implements OnModuleInit {
    * Short-lived link so the browser pulls the file straight from storage
    * instead of streaming it back through the VPS.
    */
-  signedDownloadUrl(key: string, fileName: string) {
+  signedDownloadUrl(key: string, fileName: string, expiresIn = 300) {
     return getSignedUrl(
       this.client,
       new GetObjectCommand({
@@ -70,7 +70,7 @@ export class StorageService implements OnModuleInit {
         Key: key,
         ResponseContentDisposition: `attachment; filename="${fileName.replace(/"/g, "")}"`,
       }),
-      { expiresIn: 300 },
+      { expiresIn },
     );
   }
 

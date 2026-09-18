@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
-import { formatApplicationNo } from "../applications/applications.service";
 import { AuditService, diff } from "../audit/audit.service";
+import { SettingsService } from "../settings/settings.service";
 import {
   CreateFollowUpDto,
   CreateLeadDto,
@@ -24,6 +24,7 @@ export class LeadsService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private settings: SettingsService,
   ) {}
 
   /** Advisors only ever see their own leads; managers and admins see everything. */
@@ -69,7 +70,10 @@ export class LeadsService {
         sourcingPartnerId: dto.sourcingPartnerId,
         // An advisor creating a lead owns it unless someone else is named.
         assignedOfficerId:
-          dto.assignedOfficerId ?? (user.role === Role.ADVISOR ? user.id : undefined),
+          dto.assignedOfficerId ??
+          (user.role === Role.ADVISOR && this.settings.get<boolean>("pipeline.autoAssignToCreator")
+            ? user.id
+            : undefined),
         assignedManagerId: dto.assignedManagerId,
         nextFollowUpAt: dto.nextFollowUpAt,
       },
@@ -130,7 +134,7 @@ export class LeadsService {
       application: application && {
         id: application.id,
         status: application.status,
-        applicationNo: formatApplicationNo(application.seq, application.createdAt),
+        applicationNo: this.settings.applicationNo(application.seq, application.createdAt),
       },
     };
   }

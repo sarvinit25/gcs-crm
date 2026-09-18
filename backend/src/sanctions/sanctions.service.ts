@@ -3,7 +3,7 @@ import { ApplicationStatus, AuditAction, Prisma, Role, SanctionStatus } from "@p
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { AuditService, diff } from "../audit/audit.service";
-import { formatApplicationNo } from "../applications/applications.service";
+import { SettingsService } from "../settings/settings.service";
 import { ListSanctionsQuery, UpsertSanctionDto } from "./dto/sanction.dto";
 
 const APPLICATION_SUMMARY = {
@@ -25,6 +25,7 @@ export class SanctionsService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private settings: SettingsService,
   ) {}
 
   private scopeFor(user: AuthUser): Prisma.ApplicationWhereInput {
@@ -36,7 +37,7 @@ export class SanctionsService {
       ...sanction,
       application: {
         ...sanction.application,
-        applicationNo: formatApplicationNo(
+        applicationNo: this.settings.applicationNo(
           sanction.application.seq,
           sanction.application.createdAt,
         ),
@@ -54,9 +55,13 @@ export class SanctionsService {
 
     const before = await this.prisma.sanction.findUnique({ where: { applicationId } });
 
-    if (dto.sanctionedAmount && dto.sanctionedAmount > Number(application.requestedAmount) * 2) {
+    const sanityMultiple = this.settings.get<number>("pipeline.sanctionSanityMultiple");
+    if (
+      dto.sanctionedAmount &&
+      dto.sanctionedAmount > Number(application.requestedAmount) * sanityMultiple
+    ) {
       throw new BadRequestException(
-        "Sanctioned amount is more than double the requested amount — check the figure",
+        `Sanctioned amount is more than ${sanityMultiple}x the requested amount — check the figure`,
       );
     }
 
@@ -97,7 +102,7 @@ export class SanctionsService {
       action: before ? AuditAction.UPDATE : AuditAction.CREATE,
       entity: "Sanction",
       entityId: sanction.id,
-      entityLabel: formatApplicationNo(application.seq, application.createdAt),
+      entityLabel: this.settings.applicationNo(application.seq, application.createdAt),
       changes: diff((before ?? {}) as Record<string, unknown>, dto as Record<string, unknown>),
       ip,
     });

@@ -3,6 +3,7 @@ import { AuditAction, LeadStatus, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { AuditService, diff } from "../audit/audit.service";
+import { SettingsService } from "../settings/settings.service";
 import {
   ApplicantDto,
   CreateApplicationDto,
@@ -11,9 +12,6 @@ import {
   UpdateApplicationDto,
 } from "./dto/application.dto";
 
-/** GCS-2026-0042 — the reference staff and lenders actually quote. */
-export const formatApplicationNo = (seq: number, createdAt: Date) =>
-  `GCS-${createdAt.getFullYear()}-${String(seq).padStart(4, "0")}`;
 
 const LIST_INCLUDE = {
   loanProduct: { select: { id: true, name: true, slug: true } },
@@ -29,11 +27,12 @@ export class ApplicationsService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private settings: SettingsService,
   ) {}
 
   /** Adds the derived applicationNo the UI and lenders refer to. */
   private decorate<T extends WithSeq>(app: T) {
-    return { ...app, applicationNo: formatApplicationNo(app.seq, app.createdAt) };
+    return { ...app, applicationNo: this.settings.applicationNo(app.seq, app.createdAt) };
   }
 
   private scopeFor(user: AuthUser): Prisma.ApplicationWhereInput {
@@ -93,7 +92,7 @@ export class ApplicationsService {
       action: AuditAction.CREATE,
       entity: "Application",
       entityId: created.id,
-      entityLabel: formatApplicationNo(created.seq, created.createdAt),
+      entityLabel: this.settings.applicationNo(created.seq, created.createdAt),
       changes: diff({}, { requestedAmount: dto.requestedAmount, leadId: dto.leadId }),
     });
 
@@ -166,7 +165,7 @@ export class ApplicationsService {
       actor: user,
       entity: "Application",
       entityId: id,
-      entityLabel: formatApplicationNo(app.seq, app.createdAt),
+      entityLabel: this.settings.applicationNo(app.seq, app.createdAt),
       changes: diff(before as unknown as Record<string, unknown>, dto as Record<string, unknown>),
       ip,
     });

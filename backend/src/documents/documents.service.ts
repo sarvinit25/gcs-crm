@@ -4,9 +4,11 @@ import { randomUUID } from "node:crypto";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { StorageService } from "./storage.service";
+import { SettingsService } from "../settings/settings.service";
 import type { AuthUser } from "../auth/auth.decorators";
 
-export const MAX_FILE_BYTES = 15 * 1024 * 1024;
+/** Hard ceiling for the multipart parser; the configured limit is checked below it. */
+export const MAX_FILE_BYTES = 100 * 1024 * 1024;
 
 /** KYC and loan files are scans and statements, not arbitrary uploads. */
 const ALLOWED_TYPES = new Set([
@@ -17,23 +19,18 @@ const ALLOWED_TYPES = new Set([
   "image/webp",
 ]);
 
-export const DOCUMENT_CATEGORIES = [
-  "KYC",
-  "Income proof",
-  "Bank statement",
-  "Property papers",
-  "Business proof",
-  "Sanction letter",
-  "Other",
-];
-
 @Injectable()
 export class DocumentsService {
   constructor(
     private prisma: PrismaService,
     private storage: StorageService,
     private audit: AuditService,
+    private settings: SettingsService,
   ) {}
+
+  categories() {
+    return this.settings.get<string[]>("documents.categories");
+  }
 
   private scopeFor(user: AuthUser): Prisma.ApplicationWhereInput {
     return user.role === Role.ADVISOR ? { ownerId: user.id } : {};
@@ -69,8 +66,9 @@ export class DocumentsService {
     if (!ALLOWED_TYPES.has(file.mimetype)) {
       throw new BadRequestException(`${file.mimetype} is not an accepted document type`);
     }
-    if (file.size > MAX_FILE_BYTES) {
-      throw new BadRequestException("File is larger than 15MB");
+    const maxMb = this.settings.get<number>("documents.maxUploadMb");
+    if (file.size > maxMb * 1024 * 1024) {
+      throw new BadRequestException(`File is larger than ${maxMb}MB`);
     }
 
     // Random key, not the filename — two applicants both uploading "pan.pdf"
@@ -115,7 +113,10 @@ export class DocumentsService {
     });
     if (!doc) throw new NotFoundException("Document not found");
 
-    return { url: await this.storage.signedDownloadUrl(doc.objectKey, doc.fileName) };
+    const minutes = this.settings.get<number>("documents.downloadLinkMinutes");
+    return {
+      url: await this.storage.signedDownloadUrl(doc.objectKey, doc.fileName, minutes * 60),
+    };
   }
 
   async remove(applicationId: string, documentId: string, user: AuthUser, ip?: string) {

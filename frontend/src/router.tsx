@@ -22,6 +22,7 @@ import { PartnersPage } from "./routes/partners";
 import { LendersPage } from "./routes/lenders";
 import { AttendancePage } from "./routes/attendance";
 import { ReportsPage } from "./routes/reports";
+import { SettingsPage } from "./routes/settings";
 import { PlaceholderPage } from "./routes/placeholder";
 
 function RootLayout() {
@@ -114,11 +115,7 @@ const routeTree = rootRoute.addChildren([
       component: AttendancePage,
     }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/reports", component: ReportsPage }),
-    placeholder(
-      "/settings",
-      "Settings",
-      "Master data for lenders and loan products, plus organisation configuration.",
-    ),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/settings", component: SettingsPage }),
   ]),
 ]);
 

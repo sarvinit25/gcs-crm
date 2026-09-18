@@ -42,7 +42,12 @@ POST /crm/api/public/leads
 `productSlug` matches the website's own product slugs, so intake resolves the loan
 product automatically. Everything else on the API requires a bearer token.
 
-The website's partner directory can also read the lender list without auth:
+The website can also read organisation details and the lender list without auth:
+
+```
+GET /crm/api/public/settings  ->  { org.name, org.phone, org.email, org.cities, ... }
+```
+
 
 ```
 GET /crm/api/public/lenders   ->  [{ name, type, logoUrl }]
@@ -70,7 +75,7 @@ every request as one client.
 | Commissions | — | placeholder |
 | Documents | done (S3/B2 upload, presigned download) | done (panel on application) |
 | Lender Directory | done (+ public feed) | done |
-| Loan Products / Settings | schema + seed | placeholder |
+| Settings (+ loan products) | done | done |
 | Team | done | done (create, roles, deactivate, reset password) |
 | Sourcing Partners | done | done (roster + referral stats) |
 | Attendance & Payroll | done | done (month grid + payroll) |
@@ -103,3 +108,25 @@ Uploads accept PDF and images up to 15MB. Object keys are random UUIDs, not
 filenames, so two applicants uploading `pan.pdf` cannot collide and keys do not
 leak applicant names. Downloads are 5-minute presigned URLs, so files stream
 from storage rather than through the API.
+
+## Settings
+
+Every configurable value lives in one registry (`backend/src/settings/settings.registry.ts`).
+Adding an entry there is the only step needed to make something editable — the
+API, validation and the settings screen are all generated from it.
+
+Settings are not decorative: each one replaces a value that was previously
+hardcoded, and changes take effect without a restart.
+
+| Setting | What it changes |
+| --- | --- |
+| `numbering.*` | Application reference format (prefix, digits, year) |
+| `pipeline.sanctionSanityMultiple` | Threshold above which a sanction is refused as a typo |
+| `pipeline.stalledAfterDays` | When Reports calls a case stalled |
+| `pipeline.autoAssignToCreator` | Whether an advisor owns leads they create |
+| `documents.categories` | The upload category list |
+| `documents.maxUploadMb` | Upload size limit |
+| `documents.downloadLinkMinutes` | Presigned link validity |
+| `security.sessionHours` | JWT lifetime, applied at sign-in |
+| `security.minPasswordLength` | Staff password policy |
+| `org.*` | Organisation details, some served to the website |

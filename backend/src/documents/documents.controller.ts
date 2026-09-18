@@ -11,7 +11,7 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { CurrentUser, type AuthUser } from "../auth/auth.decorators";
-import { DocumentsService, DOCUMENT_CATEGORIES, MAX_FILE_BYTES } from "./documents.service";
+import { DocumentsService, MAX_FILE_BYTES } from "./documents.service";
 
 @Controller("applications/:applicationId/documents")
 export class DocumentsController {
@@ -19,7 +19,7 @@ export class DocumentsController {
 
   @Get("categories")
   categories() {
-    return DOCUMENT_CATEGORIES;
+    return this.documents.categories();
   }
 
   @Get()

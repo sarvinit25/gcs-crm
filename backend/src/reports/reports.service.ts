@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { ApplicationStatus, LeadStatus, Prisma, Role, SanctionStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
+import { SettingsService } from "../settings/settings.service";
 
 export type ReportRange = { from?: string; to?: string };
 
@@ -19,7 +20,10 @@ const dateFilter = (range: ReportRange) =>
 
 @Injectable()
 export class ReportsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private settings: SettingsService,
+  ) {}
 
   private leadScope(user: AuthUser): Prisma.LeadWhereInput {
     return user.role === Role.ADVISOR ? { assignedOfficerId: user.id } : {};
@@ -273,13 +277,14 @@ export class ReportsService {
 
   /** Rejected and stalled cases — the ones worth chasing or learning from. */
   async stalled(user: AuthUser) {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const days = this.settings.get<number>("pipeline.stalledAfterDays");
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     return this.prisma.application.findMany({
       where: {
         ...this.appScope(user),
         status: { in: [ApplicationStatus.SUBMITTED, ApplicationStatus.BANK_LOGIN, ApplicationStatus.UNDER_REVIEW] },
-        updatedAt: { lt: thirtyDaysAgo },
+        updatedAt: { lt: cutoff },
       },
       select: {
         id: true,

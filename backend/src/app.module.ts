@@ -17,6 +17,7 @@ import { DisbursementsModule } from "./disbursements/disbursements.module";
 import { PartnersModule } from "./partners/partners.module";
 import { AttendanceModule } from "./attendance/attendance.module";
 import { ReportsModule } from "./reports/reports.module";
+import { SettingsModule } from "./settings/settings.module";
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ReportsModule } from "./reports/reports.module";
     PartnersModule,
     AttendanceModule,
     ReportsModule,
+    SettingsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
