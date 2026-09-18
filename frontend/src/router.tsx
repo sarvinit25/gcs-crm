@@ -7,8 +7,12 @@ import {
 } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { AppShell } from "./components/app-shell";
+import { PartnerShell } from "./components/partner-shell";
 import { useAuth } from "./lib/auth";
+import { usePartnerAuth } from "./lib/partner-auth";
 import { LoginPage } from "./routes/login";
+import { PartnerLoginPage } from "./routes/partner-login";
+import { PartnerDashboardPage } from "./routes/partner-dashboard";
 import { DashboardPage } from "./routes/dashboard";
 import { LeadsPage } from "./routes/leads";
 import { LeadDetailPage } from "./routes/lead-detail";
@@ -63,6 +67,38 @@ const protectedRoute = createRoute({
   component: ProtectedLayout,
 });
 
+const partnerLoginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/partner-login",
+  component: PartnerLoginPage,
+});
+
+/** Fully separate from the staff session — its own auth, its own shell. */
+function PartnerProtectedLayout() {
+  const { partner, ready } = usePartnerAuth();
+
+  if (!ready) {
+    return (
+      <div className="grid h-full place-items-center">
+        <Loader2 className="h-5 w-5 animate-spin text-navy" />
+      </div>
+    );
+  }
+  if (!partner) return <Navigate to="/partner-login" />;
+
+  return (
+    <PartnerShell>
+      <Outlet />
+    </PartnerShell>
+  );
+}
+
+const partnerProtectedRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: "partner-protected",
+  component: PartnerProtectedLayout,
+});
+
 const placeholder = (path: string, title: string, description: string) =>
   createRoute({
     getParentRoute: () => protectedRoute,
@@ -72,6 +108,14 @@ const placeholder = (path: string, title: string, description: string) =>
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
+  partnerLoginRoute,
+  partnerProtectedRoute.addChildren([
+    createRoute({
+      getParentRoute: () => partnerProtectedRoute,
+      path: "/partner",
+      component: PartnerDashboardPage,
+    }),
+  ]),
   protectedRoute.addChildren([
     createRoute({ getParentRoute: () => protectedRoute, path: "/", component: DashboardPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/leads", component: LeadsPage }),

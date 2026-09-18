@@ -38,12 +38,17 @@ model User {
   payroll          PayrollRecord[]
   commissionSplits CommissionSplit[]
   followUps        FollowUp[]
-  auditLogs        AuditLog[]
 
   @@index([role, active])
 }
 
 // ─── Audit trail ────────────────────────────────────────────
+
+enum AuditActorType {
+  STAFF
+  PARTNER
+  CLIENT
+}
 
 enum AuditAction {
   CREATE
@@ -61,9 +66,11 @@ model AuditLog {
   id String @id @default(cuid())
 
   // Actor name is denormalised so history stays readable if the staff record
-  // is later deactivated or renamed.
+  // is later deactivated or renamed. No FK: actorId can point into User,
+  // SourcingPartner, or (later) a client table, so actorType disambiguates
+  // which one instead of three nullable relations.
   actorId   String?
-  actor     User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorType AuditActorType @default(STAFF)
   actorName String
 
   action AuditAction
@@ -122,15 +129,37 @@ model SourcingPartner {
   id             String   @id @default(cuid())
   name           String
   firm           String?
-  phone          String
+  phone          String   @unique
   email          String?
   city           String?
   commissionRate Decimal  @db.Decimal(5, 2)
+  // Null until an admin sets one — a partner created before the portal
+  // existed, or one not yet given access, simply can't sign in.
+  passwordHash   String?
   active         Boolean  @default(true)
   createdAt      DateTime @default(now())
 
   leads            Lead[]
   commissionSplits CommissionSplit[]
+}
+
+/**
+ * The published rate card shown to partners — per loan-product commission
+ * range and typical earning, independent of any one partner's own negotiated
+ * commissionRate above. Admin-managed; read by the partner portal and the
+ * public website.
+ */
+model CommissionRateCard {
+  id             String   @id @default(cuid())
+  label          String
+  minRate        Decimal  @db.Decimal(5, 2)
+  maxRate        Decimal  @db.Decimal(5, 2)
+  avgAmountLabel String
+  earningLabel   String
+  sortOrder      Int      @default(0)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Setting {

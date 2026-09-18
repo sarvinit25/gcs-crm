@@ -1,16 +1,45 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { AuditAction, LeadStatus } from "@prisma/client";
+import * as bcrypt from "bcryptjs";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService, diff } from "../audit/audit.service";
+import { SettingsService } from "../settings/settings.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { CreatePartnerDto, UpdatePartnerDto } from "./dto/partner.dto";
+
+const ROSTER_SELECT = {
+  id: true,
+  name: true,
+  firm: true,
+  phone: true,
+  email: true,
+  city: true,
+  commissionRate: true,
+  active: true,
+  createdAt: true,
+  passwordHash: true,
+} as const;
+
+/** Never send the hash to the client — only whether portal access is set up. */
+const withPortalFlag = <T extends { passwordHash: string | null }>({
+  passwordHash,
+  ...rest
+}: T) => ({ ...rest, hasPortalAccess: passwordHash !== null });
 
 @Injectable()
 export class PartnersService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private settings: SettingsService,
   ) {}
+
+  private assertPasswordPolicy(password: string) {
+    const min = this.settings.get<number>("security.minPasswordLength");
+    if (password.length < min) {
+      throw new BadRequestException(`Password must be at least ${min} characters`);
+    }
+  }
 
   /** Names for the referral dropdown on a lead — any signed-in user may read it. */
   findAssignable() {
@@ -29,6 +58,7 @@ export class PartnersService {
     const partners = await this.prisma.sourcingPartner.findMany({
       where: includeInactive ? {} : { active: true },
       orderBy: [{ active: "desc" }, { name: "asc" }],
+      select: ROSTER_SELECT,
     });
 
     const [leadCounts, convertedCounts] = await this.prisma.$transaction([
@@ -50,7 +80,7 @@ export class PartnersService {
     const converted = new Map(convertedCounts.map((r) => [r.sourcingPartnerId, r._count]));
 
     return partners.map((p) => ({
-      ...p,
+      ...withPortalFlag(p),
       leadCount: leads.get(p.id) ?? 0,
       convertedCount: converted.get(p.id) ?? 0,
     }));
@@ -62,7 +92,13 @@ export class PartnersService {
       throw new BadRequestException(`${existing.name} is already registered on this number`);
     }
 
-    const partner = await this.prisma.sourcingPartner.create({ data: { ...dto } });
+    const { password, ...rest } = dto;
+    if (password) this.assertPasswordPolicy(password);
+
+    const partner = await this.prisma.sourcingPartner.create({
+      data: { ...rest, passwordHash: password ? await bcrypt.hash(password, 10) : undefined },
+      select: ROSTER_SELECT,
+    });
 
     await this.audit.record({
       actor,
@@ -70,18 +106,49 @@ export class PartnersService {
       entity: "SourcingPartner",
       entityId: partner.id,
       entityLabel: partner.name,
-      changes: { commissionRate: { from: null, to: dto.commissionRate } },
+      changes: {
+        commissionRate: { from: null, to: dto.commissionRate },
+        portalAccess: { from: null, to: Boolean(password) },
+      },
       ip,
     });
 
-    return partner;
+    return withPortalFlag(partner);
+  }
+
+  async setPassword(id: string, password: string, actor: AuthUser, ip?: string) {
+    this.assertPasswordPolicy(password);
+    const partner = await this.prisma.sourcingPartner.findUnique({ where: { id } });
+    if (!partner) throw new NotFoundException("Sourcing partner not found");
+
+    await this.prisma.sourcingPartner.update({
+      where: { id },
+      data: { passwordHash: await bcrypt.hash(password, 10) },
+    });
+
+    // The password itself is never recorded — only that portal access was set.
+    await this.audit.record({
+      actor,
+      action: AuditAction.UPDATE,
+      entity: "SourcingPartner",
+      entityId: id,
+      entityLabel: partner.name,
+      changes: { portalAccess: { from: partner.passwordHash !== null, to: true } },
+      ip,
+    });
+
+    return { ok: true };
   }
 
   async update(id: string, dto: UpdatePartnerDto, actor: AuthUser, ip?: string) {
     const before = await this.prisma.sourcingPartner.findUnique({ where: { id } });
     if (!before) throw new NotFoundException("Sourcing partner not found");
 
-    const partner = await this.prisma.sourcingPartner.update({ where: { id }, data: { ...dto } });
+    const partner = await this.prisma.sourcingPartner.update({
+      where: { id },
+      data: { ...dto },
+      select: ROSTER_SELECT,
+    });
 
     // A rate change decides what this partner is paid on every case that follows.
     await this.audit.recordUpdate({
@@ -93,7 +160,7 @@ export class PartnersService {
       ip,
     });
 
-    return partner;
+    return withPortalFlag(partner);
   }
 
   async findOne(id: string) {
@@ -115,6 +182,7 @@ export class PartnersService {
       },
     });
     if (!partner) throw new NotFoundException("Sourcing partner not found");
-    return partner;
+    const { passwordHash, ...rest } = partner;
+    return { ...rest, hasPortalAccess: passwordHash !== null };
   }
 }

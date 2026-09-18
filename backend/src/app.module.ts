@@ -18,6 +18,7 @@ import { PartnersModule } from "./partners/partners.module";
 import { AttendanceModule } from "./attendance/attendance.module";
 import { ReportsModule } from "./reports/reports.module";
 import { SettingsModule } from "./settings/settings.module";
+import { PartnerPortalModule } from "./partner-portal/partner-portal.module";
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { SettingsModule } from "./settings/settings.module";
     AttendanceModule,
     ReportsModule,
     SettingsModule,
+    PartnerPortalModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

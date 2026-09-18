@@ -73,6 +73,18 @@ const LENDERS: [name: string, type: LenderType, logo: string][] = [
   ["Aadhar Housing", LenderType.NBFC, "/banks/aadhar-housing.png"],
 ];
 
+
+// Published rate card — the exact figures from GCS's DSA partner recruitment sheet.
+const RATE_CARDS: [label: string, min: number, max: number, avg: string, earning: string][] = [
+  ["Home Loan", 0.2, 0.5, "\u20b930L \u2013 \u20b91Cr", "\u20b96,000 \u2013 \u20b950,000"],
+  ["Loan Against Property", 0.5, 1.0, "\u20b920L \u2013 \u20b975L", "\u20b910,000 \u2013 \u20b975,000"],
+  ["Business Loan", 1.0, 2.0, "\u20b910L \u2013 \u20b950L", "\u20b910,000 \u2013 \u20b91,00,000"],
+  ["Personal Loan", 1.0, 2.5, "\u20b92L \u2013 \u20b925L", "\u20b92,000 \u2013 \u20b962,500"],
+  ["Working Capital Loan", 0.5, 1.5, "\u20b910L \u2013 \u20b91Cr", "\u20b95,000 \u2013 \u20b91,50,000"],
+  ["Loan Against Securities", 0.3, 0.8, "\u20b910L \u2013 \u20b95Cr", "\u20b93,000 \u2013 \u20b94,00,000"],
+  ["Project Funding", 0.5, 1.0, "\u20b950L \u2013 \u20b910Cr", "\u20b925,000 \u2013 \u20b910,00,000"],
+];
+
 async function main() {
   for (const [i, [slug, name, category]] of PRODUCTS.entries()) {
     await prisma.loanProduct.upsert({
@@ -87,6 +99,22 @@ async function main() {
       where: { name },
       update: { type, logoUrl, sortOrder: i },
       create: { name, type, logoUrl, sortOrder: i },
+    });
+  }
+
+  for (const [i, [label, min, max, avg, earning]] of RATE_CARDS.entries()) {
+    await prisma.commissionRateCard.upsert({
+      where: { id: `seed-rate-card-${i}` },
+      update: { label, minRate: min, maxRate: max, avgAmountLabel: avg, earningLabel: earning, sortOrder: i },
+      create: {
+        id: `seed-rate-card-${i}`,
+        label,
+        minRate: min,
+        maxRate: max,
+        avgAmountLabel: avg,
+        earningLabel: earning,
+        sortOrder: i,
+      },
     });
   }
 
@@ -105,7 +133,7 @@ async function main() {
   });
 
   console.log(
-    `Seeded ${PRODUCTS.length} products, ${LENDERS.length} lenders, admin ${email} / ${password}`,
+    `Seeded ${PRODUCTS.length} products, ${LENDERS.length} lenders, ${RATE_CARDS.length} rate cards, admin ${email} / ${password}`,
   );
 }
 

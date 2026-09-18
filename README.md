@@ -66,7 +66,7 @@ every request as one client.
 
 | Module | Backend | Frontend |
 | --- | --- | --- |
-| Auth & roles | done | done (login, route guard, role-aware nav) |
+| Auth & roles | done | done (login, route guard, role-aware nav) — labels: Super Admin (ADMIN), Admin (MANAGER), Staff (ADVISOR); DB values unchanged |
 | Dashboard | done | done |
 | Leads (+ follow-ups, public intake) | done | done (list, filters, detail, status, follow-ups) |
 | Applications | done | done (list, detail, applicants, references, lender) |
@@ -130,3 +130,50 @@ hardcoded, and changes take effect without a restart.
 | `security.sessionHours` | JWT lifetime, applied at sign-in |
 | `security.minPasswordLength` | Staff password policy |
 | `org.*` | Organisation details, some served to the website |
+
+## Partner Portal
+
+A separate, real login for sourcing partners at `/crm/partner-login` — distinct
+session (own localStorage key, own JWT `type: "partner"` claim, own Passport
+strategy) so a partner token and a staff token are never interchangeable, and
+a partner and a staff member can be signed in from the same browser at once
+without either session evicting the other.
+
+A partner sees only their own referrals, stats and commission structure —
+never another partner's data, and never anything from the internal CRM.
+Portal access is opt-in per partner: Super Admin sets a password for a partner
+(`Set password` on the Sourcing Partners page); until then the phone number
+simply can't sign in.
+
+```
+POST /crm/api/partner/auth/login   { phone, password } -> { accessToken, partner }
+GET  /crm/api/partner/me
+GET  /crm/api/partner/stats
+GET  /crm/api/partner/leads
+GET  /crm/api/partner/commission-structure
+```
+
+The commission-structure rate card (per loan-product commission range, avg
+loan size, potential earning) is admin-managed master data — `CommissionRateCard`
+— separate from a partner's own negotiated `commissionRate`. It's also public
+at `/crm/api/public/commission-structure` for the website's partner-recruitment
+page.
+
+**Not built yet:** the Client Portal (the loan applicant's own login to track
+their application) — noted as a future portal, same pattern, different data
+shape.
+
+## Role labels
+
+The three staff roles are unchanged in the database (`ADMIN`, `MANAGER`,
+`ADVISOR`) — only their on-screen names changed, to match how GCS actually
+talks about the hierarchy:
+
+| DB value | Displayed as |
+| --- | --- |
+| `ADMIN` | Super Admin |
+| `MANAGER` | Admin |
+| `ADVISOR` | Staff |
+
+Staff (ADVISOR) keeps its existing restriction — sees only leads and
+applications assigned to them.

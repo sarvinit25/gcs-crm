@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, Ip, Param, Patch, Post, Put } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, Get, Ip, Param, Patch, Post, Put } from "@nestjs/common";
 import { AuditAction, Role } from "@prisma/client";
-import { Allow, IsBoolean, IsInt, IsOptional, IsString, Length, Min } from "class-validator";
+import { Allow, IsBoolean, IsInt, IsNumber, IsOptional, IsString, Length, Min } from "class-validator";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService, diff } from "../audit/audit.service";
 import { CurrentUser, Public, Roles, type AuthUser } from "../auth/auth.decorators";
@@ -28,6 +28,25 @@ class UpdateProductDto {
   @IsOptional() @IsInt() @Min(0) sortOrder?: number;
 }
 
+class CreateRateCardDto {
+  @IsString() @Length(2, 80) label: string;
+  @IsNumber() @Min(0) minRate: number;
+  @IsNumber() @Min(0) maxRate: number;
+  @IsString() @Length(1, 60) avgAmountLabel: string;
+  @IsString() @Length(1, 60) earningLabel: string;
+  @IsOptional() @IsInt() @Min(0) sortOrder?: number;
+}
+
+class UpdateRateCardDto {
+  @IsOptional() @IsString() @Length(2, 80) label?: string;
+  @IsOptional() @IsNumber() @Min(0) minRate?: number;
+  @IsOptional() @IsNumber() @Min(0) maxRate?: number;
+  @IsOptional() @IsString() @Length(1, 60) avgAmountLabel?: string;
+  @IsOptional() @IsString() @Length(1, 60) earningLabel?: string;
+  @IsOptional() @IsInt() @Min(0) sortOrder?: number;
+  @IsOptional() @IsBoolean() active?: boolean;
+}
+
 /** Organisation details the public website may read. */
 @Controller("public/settings")
 export class PublicSettingsController {
@@ -37,6 +56,21 @@ export class PublicSettingsController {
   @Get()
   publicValues() {
     return this.settings.publicValues();
+  }
+}
+
+/** The published rate card — not sensitive, so open to the marketing site too. */
+@Controller("public/commission-structure")
+export class PublicRateCardController {
+  constructor(private prisma: PrismaService) {}
+
+  @Public()
+  @Get()
+  findAll() {
+    return this.prisma.commissionRateCard.findMany({
+      where: { active: true },
+      orderBy: { sortOrder: "asc" },
+    });
   }
 }
 
@@ -127,5 +161,78 @@ export class LoanProductsAdminController {
       ip,
     });
     return product;
+  }
+}
+
+/** Admin management of the published commission rate card. */
+@Controller("settings/commission-rate-cards")
+export class RateCardAdminController {
+  constructor(
+    private prisma: PrismaService,
+    private audit: AuditService,
+  ) {}
+
+  @Get()
+  @Roles(Role.ADMIN)
+  findAll() {
+    return this.prisma.commissionRateCard.findMany({ orderBy: { sortOrder: "asc" } });
+  }
+
+  @Post()
+  @Roles(Role.ADMIN)
+  async create(@Body() dto: CreateRateCardDto, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    if (dto.maxRate < dto.minRate) {
+      throw new BadRequestException("Max rate cannot be below the min rate");
+    }
+    const card = await this.prisma.commissionRateCard.create({ data: { ...dto } });
+    await this.audit.record({
+      actor: user,
+      action: AuditAction.CREATE,
+      entity: "CommissionRateCard",
+      entityId: card.id,
+      entityLabel: card.label,
+      ip,
+    });
+    return card;
+  }
+
+  @Patch(":id")
+  @Roles(Role.ADMIN)
+  async update(
+    @Param("id") id: string,
+    @Body() dto: UpdateRateCardDto,
+    @CurrentUser() user: AuthUser,
+    @Ip() ip: string,
+  ) {
+    const before = await this.prisma.commissionRateCard.findUniqueOrThrow({ where: { id } });
+    const min = dto.minRate ?? Number(before.minRate);
+    const max = dto.maxRate ?? Number(before.maxRate);
+    if (max < min) throw new BadRequestException("Max rate cannot be below the min rate");
+
+    const card = await this.prisma.commissionRateCard.update({ where: { id }, data: { ...dto } });
+    await this.audit.recordUpdate({
+      actor: user,
+      entity: "CommissionRateCard",
+      entityId: id,
+      entityLabel: card.label,
+      changes: diff(before as unknown as Record<string, unknown>, dto as Record<string, unknown>),
+      ip,
+    });
+    return card;
+  }
+
+  @Delete(":id")
+  @Roles(Role.ADMIN)
+  async remove(@Param("id") id: string, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    const card = await this.prisma.commissionRateCard.delete({ where: { id } });
+    await this.audit.record({
+      actor: user,
+      action: AuditAction.DELETE,
+      entity: "CommissionRateCard",
+      entityId: id,
+      entityLabel: card.label,
+      ip,
+    });
+    return { ok: true };
   }
 }

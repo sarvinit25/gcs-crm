@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Pencil, UserPlus } from "lucide-react";
+import { KeyRound, Loader2, Pencil, UserPlus } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
 import { PageHeader } from "../components/app-shell";
@@ -14,6 +14,7 @@ type Partner = {
   city: string | null;
   commissionRate: string;
   active: boolean;
+  hasPortalAccess: boolean;
   leadCount: number;
   convertedCount: number;
 };
@@ -22,6 +23,7 @@ export function PartnersPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Partner | null>(null);
+  const [settingPassword, setSettingPassword] = useState<Partner | null>(null);
   const [includeInactive, setIncludeInactive] = useState(false);
 
   const query = useQuery({
@@ -49,7 +51,16 @@ export function PartnersPage() {
     },
   });
 
-  const error = [create, update].find((m) => m.isError)?.error;
+  const setPassword = useMutation({
+    mutationFn: ({ id, password }: { id: string; password: string }) =>
+      api(`/partners/${id}/set-password`, { method: "POST", body: JSON.stringify({ password }) }),
+    onSuccess: () => {
+      setSettingPassword(null);
+      void invalidate();
+    },
+  });
+
+  const error = [create, update, setPassword].find((m) => m.isError)?.error;
 
   return (
     <>
@@ -82,6 +93,7 @@ export function PartnersPage() {
                 email: f.get("email") || undefined,
                 city: f.get("city") || undefined,
                 commissionRate: Number(f.get("commissionRate")),
+                password: f.get("password") || undefined,
               });
             }}
             className="card mb-4 grid gap-2 p-4 sm:grid-cols-3"
@@ -101,7 +113,13 @@ export function PartnersPage() {
               placeholder="Commission rate %"
               className="field"
             />
-            <button type="submit" disabled={create.isPending} className="btn-primary sm:col-span-3">
+            <input
+              name="password"
+              type="text"
+              placeholder="Portal password (optional — set later if left blank)"
+              className="field sm:col-span-2"
+            />
+            <button type="submit" disabled={create.isPending} className="btn-primary">
               {create.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
@@ -109,6 +127,10 @@ export function PartnersPage() {
               )}
               Add partner
             </button>
+            <p className="text-[12px] text-muted sm:col-span-3">
+              A phone number and password let the partner sign in to the Partner Portal to see
+              their own referrals and commission structure.
+            </p>
           </form>
         )}
 
@@ -137,6 +159,7 @@ export function PartnersPage() {
                   <th className="px-4 py-2.5 font-bold">Rate</th>
                   <th className="px-4 py-2.5 font-bold">Referred</th>
                   <th className="px-4 py-2.5 font-bold">Converted</th>
+                  <th className="px-4 py-2.5 font-bold">Portal</th>
                   <th className="px-4 py-2.5 font-bold">Actions</th>
                 </tr>
               </thead>
@@ -168,6 +191,18 @@ export function PartnersPage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
+                      <span
+                        className={clsx(
+                          "rounded-full px-2 py-0.5 text-[11px] font-bold",
+                          p.hasPortalAccess
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-slate-100 text-slate-500",
+                        )}
+                      >
+                        {p.hasPortalAccess ? "Active" : "No access"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => setEditing(p)}
@@ -175,6 +210,13 @@ export function PartnersPage() {
                         >
                           <Pencil className="mr-1 inline h-3 w-3" />
                           Edit
+                        </button>
+                        <button
+                          onClick={() => setSettingPassword(p)}
+                          className="text-[12px] font-semibold text-navy hover:text-gold-dark"
+                        >
+                          <KeyRound className="mr-1 inline h-3 w-3" />
+                          {p.hasPortalAccess ? "Reset password" : "Set password"}
                         </button>
                         <button
                           onClick={() => update.mutate({ id: p.id, active: !p.active })}
@@ -236,6 +278,49 @@ export function PartnersPage() {
                   Save
                 </button>
                 <button type="button" onClick={() => setEditing(null)} className="btn-ghost">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {settingPassword && (
+          <div className="fixed inset-0 z-50 grid place-items-center bg-navy/40 p-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const f = new FormData(e.currentTarget);
+                setPassword.mutate({
+                  id: settingPassword.id,
+                  password: f.get("password") as string,
+                });
+              }}
+              className="card w-full max-w-sm p-5"
+            >
+              <h2 className="text-sm font-bold text-navy">Partner Portal password</h2>
+              <p className="mt-1 text-[13px] text-muted">
+                Setting a new password for {settingPassword.name}. They sign in at the Partner
+                Portal with their phone number ({settingPassword.phone}) and this password.
+              </p>
+              <input
+                name="password"
+                type="text"
+                required
+                minLength={10}
+                placeholder="New password (min 10 chars)"
+                className="field mt-4"
+              />
+              <div className="mt-4 flex gap-2">
+                <button type="submit" disabled={setPassword.isPending} className="btn-primary">
+                  {setPassword.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Set password
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettingPassword(null)}
+                  className="btn-ghost"
+                >
                   Cancel
                 </button>
               </div>

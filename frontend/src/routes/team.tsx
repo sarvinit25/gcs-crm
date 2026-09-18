@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { api } from "../lib/api";
 import { formatDate } from "../lib/format";
 import { useAuth } from "../lib/auth";
-import type { Role } from "../lib/types";
+import { ROLE_LABEL, type Role } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
 
 type Staff = {
@@ -105,7 +105,7 @@ export function TeamPage() {
             <select name="role" defaultValue="ADVISOR" className="field">
               {ROLES.map((r) => (
                 <option key={r} value={r}>
-                  {r.charAt(0) + r.slice(1).toLowerCase()}
+                  {ROLE_LABEL[r]}
                 </option>
               ))}
             </select>
@@ -193,7 +193,7 @@ export function TeamPage() {
                       >
                         {ROLES.map((r) => (
                           <option key={r} value={r}>
-                            {r.charAt(0) + r.slice(1).toLowerCase()}
+                            {ROLE_LABEL[r]}
                           </option>
                         ))}
                       </select>

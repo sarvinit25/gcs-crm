@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Download, Loader2 } from "lucide-react";
 import { api, qs, tokenStore } from "../lib/api";
 import { formatAmount, formatDate } from "../lib/format";
+import { ROLE_LABEL, type Role } from "../lib/types";
 import { useAuth } from "../lib/auth";
 import { PageHeader } from "../components/app-shell";
 
@@ -233,7 +234,9 @@ export function ReportsPage() {
                           ? formatAmount(row[c])
                           : c === "conversionRate"
                             ? `${row[c]}%`
-                            : (row[c] ?? "—")}
+                            : c === "role" && typeof row[c] === "string"
+                              ? ROLE_LABEL[row[c] as Role]
+                              : (row[c] ?? "—")}
                       </td>
                     ))}
                   </tr>

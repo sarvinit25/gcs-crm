@@ -13,6 +13,13 @@ export class CreatePartnerDto {
 
   /** Percentage of GCS's commission this partner takes on a referred case. */
   @IsNumber() @Min(0) @Max(100) commissionRate: number;
+
+  /** Optional: sets the partner up with portal access immediately. */
+  @IsOptional() @IsString() @Length(1, 128) password?: string;
+}
+
+export class SetPartnerPasswordDto {
+  @IsString() @Length(1, 128) password: string;
 }
 
 export class UpdatePartnerDto {

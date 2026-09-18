@@ -2,7 +2,7 @@ import { Body, Controller, Get, Ip, Param, Patch, Post, Query } from "@nestjs/co
 import { Role } from "@prisma/client";
 import { CurrentUser, Roles, type AuthUser } from "../auth/auth.decorators";
 import { PartnersService } from "./partners.service";
-import { CreatePartnerDto, UpdatePartnerDto } from "./dto/partner.dto";
+import { CreatePartnerDto, SetPartnerPasswordDto, UpdatePartnerDto } from "./dto/partner.dto";
 
 @Controller("partners")
 export class PartnersController {
@@ -41,5 +41,16 @@ export class PartnersController {
     @Ip() ip: string,
   ) {
     return this.partners.update(id, dto, user, ip);
+  }
+
+  @Post(":id/set-password")
+  @Roles(Role.ADMIN)
+  setPassword(
+    @Param("id") id: string,
+    @Body() dto: SetPartnerPasswordDto,
+    @CurrentUser() user: AuthUser,
+    @Ip() ip: string,
+  ) {
+    return this.partners.setPassword(id, dto.password, user, ip);
   }
 }

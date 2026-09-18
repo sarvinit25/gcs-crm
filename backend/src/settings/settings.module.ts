@@ -1,7 +1,9 @@
 import { Global, Module } from "@nestjs/common";
 import {
   LoanProductsAdminController,
+  PublicRateCardController,
   PublicSettingsController,
+  RateCardAdminController,
   SettingsController,
 } from "./settings.controller";
 import { SettingsService } from "./settings.service";
@@ -10,7 +12,13 @@ import { SettingsService } from "./settings.service";
 // every module's imports adds noise without adding clarity.
 @Global()
 @Module({
-  controllers: [SettingsController, PublicSettingsController, LoanProductsAdminController],
+  controllers: [
+    SettingsController,
+    PublicSettingsController,
+    PublicRateCardController,
+    LoanProductsAdminController,
+    RateCardAdminController,
+  ],
   providers: [SettingsService],
   exports: [SettingsService],
 })

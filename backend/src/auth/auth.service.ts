@@ -32,7 +32,7 @@ export class AuthService {
 
     return {
       accessToken: await this.jwt.signAsync(
-        { sub: user.id, role: user.role },
+        { sub: user.id, role: user.role, type: "staff" },
         // Signed per request so a change to session length applies to new
         // sign-ins immediately, without restarting the server.
         { expiresIn: `${this.settings.get<number>("security.sessionHours")}h` },

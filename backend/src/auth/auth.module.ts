@@ -21,6 +21,8 @@ import { JwtStrategy } from "./jwt.strategy";
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  // JwtModule exported so the partner-portal module can sign tokens with the
+  // same secret/config without repeating the registerAsync setup.
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

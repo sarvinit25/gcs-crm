@@ -1,5 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { AuditAction, Prisma } from "@prisma/client";
+import { AuditAction, AuditActorType, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
 
@@ -7,6 +7,8 @@ export type FieldChanges = Record<string, { from: unknown; to: unknown }>;
 
 type RecordArgs = {
   actor: AuthUser | { id?: string; name: string };
+  /** Which id-space `actor.id` lives in — a staff User, a SourcingPartner, or (later) a client. */
+  actorType?: AuditActorType;
   action: AuditAction;
   entity: string;
   entityId: string;
@@ -57,11 +59,21 @@ export class AuditService {
    * Writes an audit row. Deliberately never throws — an audit failure must not
    * roll back or block the business action the user actually asked for.
    */
-  async record({ actor, action, entity, entityId, entityLabel, changes, ip }: RecordArgs) {
+  async record({
+    actor,
+    actorType = AuditActorType.STAFF,
+    action,
+    entity,
+    entityId,
+    entityLabel,
+    changes,
+    ip,
+  }: RecordArgs) {
     try {
       await this.prisma.auditLog.create({
         data: {
           actorId: actor.id,
+          actorType,
           actorName: actor.name,
           action,
           entity,

@@ -18,7 +18,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import clsx from "clsx";
 import { useAuth } from "../lib/auth";
-import type { Role } from "../lib/types";
+import { ROLE_LABEL, type Role } from "../lib/types";
 
 type NavItem = { to: string; label: string; icon: LucideIcon; roles?: Role[] };
 
@@ -132,7 +132,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
             <div className="min-w-0 flex-1 leading-tight">
               <p className="truncate text-[13px] font-semibold">{user.name}</p>
-              <p className="text-[11px] text-white/45 capitalize">{user.role.toLowerCase()}</p>
+              <p className="text-[11px] text-white/45">{ROLE_LABEL[user.role]}</p>
             </div>
             <button
               onClick={logout}

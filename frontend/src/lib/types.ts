@@ -28,6 +28,14 @@ export const LEAD_STATUS_LABEL: Record<LeadStatus, string> = {
 
 export type AuthUser = { id: string; name: string; email: string; role: Role };
 
+/** Display names only — the underlying Role values (ADMIN/MANAGER/ADVISOR)
+ * are unchanged in the database and in every permission check. */
+export const ROLE_LABEL: Record<Role, string> = {
+  ADMIN: "Super Admin",
+  MANAGER: "Admin",
+  ADVISOR: "Staff",
+};
+
 type Named = { id: string; name: string };
 
 export type Lead = {
