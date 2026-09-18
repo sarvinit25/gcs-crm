@@ -42,7 +42,16 @@ POST /crm/api/public/leads
 `productSlug` matches the website's own product slugs, so intake resolves the loan
 product automatically. Everything else on the API requires a bearer token.
 
-The endpoint is protected by a Cloudflare Turnstile captcha and a 5-per-minute
+The website's partner directory can also read the lender list without auth:
+
+```
+GET /crm/api/public/lenders   ->  [{ name, type, logoUrl }]
+```
+
+Only lenders flagged visible and active are served, so an internal-only lender
+can be worked with without appearing on a public page.
+
+The lead intake endpoint is protected by a Cloudflare Turnstile captcha and a 5-per-minute
 per-IP rate limit. Set `TURNSTILE_SECRET` from the Turnstile dashboard and pass
 the widget's token as `captchaToken`; the app refuses to boot in production
 without it. Behind Nginx, set `TRUST_PROXY_HOPS=1` or rate limiting will see
@@ -60,10 +69,10 @@ every request as one client.
 | Disbursements | done | done (register + per-application panel) |
 | Commissions | — | placeholder |
 | Documents | done (S3/B2 upload, presigned download) | done (panel on application) |
-| Lender Directory | read-only list API | placeholder |
+| Lender Directory | done (+ public feed) | done |
 | Loan Products / Settings | schema + seed | placeholder |
 | Team | done | done (create, roles, deactivate, reset password) |
-| Sourcing Partners | schema | placeholder |
+| Sourcing Partners | done | done (roster + referral stats) |
 | Attendance & Payroll | schema | placeholder |
 | Reports | — | placeholder |
 | Audit log | done | done (admin only) |

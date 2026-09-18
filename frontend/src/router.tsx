@@ -18,6 +18,8 @@ import { SanctionsPage } from "./routes/sanctions";
 import { TeamPage } from "./routes/team";
 import { AuditPage } from "./routes/audit";
 import { DisbursementsPage } from "./routes/disbursements";
+import { PartnersPage } from "./routes/partners";
+import { LendersPage } from "./routes/lenders";
 import { PlaceholderPage } from "./routes/placeholder";
 
 function RootLayout() {
@@ -100,16 +102,8 @@ const routeTree = rootRoute.addChildren([
       "Commissions",
       "Commission ledger per disbursed case, split across every stakeholder, with payout status.",
     ),
-    placeholder(
-      "/lenders",
-      "Lender Directory",
-      "Master list of partner banks and NBFCs — the same list that feeds the website's lender directory.",
-    ),
-    placeholder(
-      "/partners",
-      "Sourcing Partners",
-      "Roster of external referral partners, each with their own commission rate.",
-    ),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/lenders", component: LendersPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/partners", component: PartnersPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/team", component: TeamPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/audit", component: AuditPage }),
     placeholder(

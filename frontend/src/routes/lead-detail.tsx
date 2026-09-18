@@ -6,9 +6,12 @@ import { api } from "../lib/api";
 import { formatAmount, formatDate, formatDateTime } from "../lib/format";
 import { LEAD_STATUSES, LEAD_STATUS_LABEL, type LeadDetail, type LeadStatus } from "../lib/types";
 
-type Product = { id: string; name: string; slug: string };
 import { PageHeader } from "../components/app-shell";
 import { LeadStatusBadge } from "../components/status-badge";
+
+type Product = { id: string; name: string; slug: string };
+type AssignablePartner = { id: string; name: string; firm: string | null; commissionRate: string };
+type AssignableUser = { id: string; name: string; role: string };
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -37,6 +40,16 @@ export function LeadDetailPage() {
     queryFn: () => api<Product[]>("/loan-products"),
   });
 
+  const partners = useQuery({
+    queryKey: ["partners-assignable"],
+    queryFn: () => api<AssignablePartner[]>("/partners/assignable"),
+  });
+
+  const staff = useQuery({
+    queryKey: ["team-assignable"],
+    queryFn: () => api<AssignableUser[]>("/team/assignable"),
+  });
+
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: ["lead", leadId] });
     void queryClient.invalidateQueries({ queryKey: ["leads"] });
@@ -45,6 +58,12 @@ export function LeadDetailPage() {
   const setStatus = useMutation({
     mutationFn: (status: LeadStatus) =>
       api(`/leads/${leadId}`, { method: "PATCH", body: JSON.stringify({ status }) }),
+    onSuccess: invalidate,
+  });
+
+  const assign = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      api(`/leads/${leadId}`, { method: "PATCH", body: JSON.stringify(body) }),
     onSuccess: invalidate,
   });
 
@@ -131,9 +150,60 @@ export function LeadDetailPage() {
               <Field label="Product" value={lead.loanProduct?.name} />
               <Field label="Amount" value={formatAmount(lead.amount)} />
               <Field label="Source" value={lead.source} />
-              <Field label="Relationship Officer" value={lead.assignedOfficer?.name} />
-              <Field label="Sales Manager" value={lead.assignedManager?.name} />
-              <Field label="Sourcing Partner" value={lead.sourcingPartner?.name} />
+            </div>
+
+            <div className="mt-5 grid gap-3 border-t border-line pt-4 sm:grid-cols-3">
+              <label className="text-[11px] font-bold tracking-wide text-muted uppercase">
+                Relationship Officer
+                <select
+                  value={lead.assignedOfficer?.id ?? ""}
+                  disabled={setStatus.isPending}
+                  onChange={(e) => assign.mutate({ assignedOfficerId: e.target.value || null })}
+                  className="field mt-1.5 font-normal tracking-normal normal-case"
+                >
+                  <option value="">Unassigned</option>
+                  {staff.data?.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="text-[11px] font-bold tracking-wide text-muted uppercase">
+                Sales Manager
+                <select
+                  value={lead.assignedManager?.id ?? ""}
+                  onChange={(e) => assign.mutate({ assignedManagerId: e.target.value || null })}
+                  className="field mt-1.5 font-normal tracking-normal normal-case"
+                >
+                  <option value="">Unassigned</option>
+                  {staff.data
+                    ?.filter((u) => u.role !== "ADVISOR")
+                    .map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+
+              <label className="text-[11px] font-bold tracking-wide text-muted uppercase">
+                Sourcing Partner
+                <select
+                  value={lead.sourcingPartner?.id ?? ""}
+                  onChange={(e) => assign.mutate({ sourcingPartnerId: e.target.value || null })}
+                  className="field mt-1.5 font-normal tracking-normal normal-case"
+                >
+                  <option value="">Direct — no referrer</option>
+                  {partners.data?.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                      {p.firm ? ` (${p.firm})` : ""} — {p.commissionRate}%
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
             {lead.notes && (
               <p className="mt-5 rounded-md bg-bg-light px-3 py-2.5 text-[13px] whitespace-pre-wrap text-muted">
