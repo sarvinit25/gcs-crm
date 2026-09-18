@@ -14,6 +14,7 @@ import {
 import { PageHeader } from "../components/app-shell";
 import { ApplicationStatusBadge } from "../components/status-badge";
 import { SanctionPanel } from "../components/sanction-panel";
+import { DocumentsPanel } from "../components/documents-panel";
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -302,6 +303,8 @@ export function ApplicationDetailPage() {
                 <p className="mt-2 text-[13px] text-muted">Raised directly, not from a lead.</p>
               )}
             </section>
+
+            <DocumentsPanel applicationId={applicationId} />
 
             <section className="card p-5">
               <div className="mb-3 flex items-center justify-between">

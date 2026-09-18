@@ -12,12 +12,12 @@ Contabo VPS, served by Nginx at `growthcapitalservices.in/crm`.
 | ORM | Prisma |
 | Frontend | React (Vite SPA) |
 | Auth | JWT bearer + role guards (ADMIN / MANAGER / ADVISOR) |
-| Documents | Backblaze B2 (S3-compatible) — keys only in Postgres |
+| Documents | Backblaze B2 (S3-compatible) — keys only in Postgres; MinIO stands in locally |
 
 ## Local setup
 
 ```bash
-docker compose up -d                 # Postgres on host port 5433
+docker compose up -d                 # Postgres on 5433, MinIO on 9000/9001
 cd backend
 cp .env.example .env
 npm install
@@ -59,7 +59,7 @@ every request as one client.
 | Sanctions | done | done (register + per-application panel) |
 | Disbursements | — | placeholder |
 | Commissions | — | placeholder |
-| Documents | schema | — |
+| Documents | done (S3/B2 upload, presigned download) | done (panel on application) |
 | Lender Directory | read-only list API | placeholder |
 | Loan Products / Settings | schema + seed | placeholder |
 | Team | done | done (create, roles, deactivate, reset password) |
@@ -75,3 +75,22 @@ cd frontend
 npm install
 npm run dev     # http://localhost:5173/crm/ — proxies /crm/api to port 4000
 ```
+
+## Document storage
+
+Files live in object storage, never on the VPS disk — Postgres holds only the
+object key. Production uses Backblaze B2; local dev uses the MinIO container,
+which speaks the same S3 API so the code path is identical.
+
+First-time local setup creates the bucket:
+
+```bash
+docker run --rm --network host --entrypoint sh quay.io/minio/minio:latest -c \
+  "mc alias set local http://localhost:9000 gcsminio gcsminio123 && \
+   mc mb --ignore-existing local/gcs-crm-docs"
+```
+
+Uploads accept PDF and images up to 15MB. Object keys are random UUIDs, not
+filenames, so two applicants uploading `pan.pdf` cannot collide and keys do not
+leak applicant names. Downloads are 5-minute presigned URLs, so files stream
+from storage rather than through the API.
