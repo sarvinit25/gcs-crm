@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: gcs-crm-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gcs
+      POSTGRES_PASSWORD: gcs
+      POSTGRES_DB: gcs_crm
+    # 5433 on the host — 5432 is taken by another project's container.
+    ports:
+      - "5433:5432"
+    volumes:
+      - gcs-crm-pgdata:/var/lib/postgresql/data
+
+volumes:
+  gcs-crm-pgdata:

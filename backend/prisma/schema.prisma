@@ -1,0 +1,440 @@
+// Growth Capital Services — CRM data model.
+// Pipeline: Lead -> Application -> Sanction -> Disbursement -> Commission.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Team & access ──────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  MANAGER
+  ADVISOR
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  phone        String?
+  passwordHash String
+  role         Role      @default(ADVISOR)
+  designation  String?
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  leadsAsOfficer   Lead[]             @relation("LeadOfficer")
+  leadsAsManager   Lead[]             @relation("LeadManager")
+  applications     Application[]      @relation("ApplicationOwner")
+  documents        Document[]
+  attendance       Attendance[]
+  payroll          PayrollRecord[]
+  commissionSplits CommissionSplit[]
+  followUps        FollowUp[]
+
+  @@index([role, active])
+}
+
+// ─── Master data (Settings + Lender Directory) ──────────────
+
+enum LenderType {
+  BANK
+  NBFC
+}
+
+model Lender {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  type      LenderType
+  logoUrl   String?
+  // Lenders flagged public feed the website's partner directory.
+  isPublic  Boolean    @default(true)
+  sortOrder Int        @default(0)
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+
+  applications Application[]
+
+  @@index([active, isPublic])
+}
+
+model LoanProduct {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  category  String?
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+
+  leads        Lead[]
+  applications Application[]
+}
+
+model SourcingPartner {
+  id             String   @id @default(cuid())
+  name           String
+  firm           String?
+  phone          String
+  email          String?
+  city           String?
+  commissionRate Decimal  @db.Decimal(5, 2)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  leads            Lead[]
+  commissionSplits CommissionSplit[]
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Leads ──────────────────────────────────────────────────
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  DOCS_PENDING
+  CONVERTED
+  LOST
+}
+
+model Lead {
+  id       String @id @default(cuid())
+  leadNo   Int    @unique @default(autoincrement())
+  name     String
+  phone    String
+  email    String?
+  city     String?
+
+  loanProductId String?
+  loanProduct   LoanProduct? @relation(fields: [loanProductId], references: [id])
+  amount        Decimal?     @db.Decimal(14, 2)
+
+  // Free-text so website forms, WhatsApp and the AI telecaller can all tag themselves.
+  source            String
+  sourcingPartnerId String?
+  sourcingPartner   SourcingPartner? @relation(fields: [sourcingPartnerId], references: [id])
+
+  assignedOfficerId String?
+  assignedOfficer   User?   @relation("LeadOfficer", fields: [assignedOfficerId], references: [id])
+  assignedManagerId String?
+  assignedManager   User?   @relation("LeadManager", fields: [assignedManagerId], references: [id])
+
+  status         LeadStatus @default(NEW)
+  nextFollowUpAt DateTime?
+  notes          String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  application Application?
+  followUps   FollowUp[]
+
+  @@index([status, nextFollowUpAt])
+  @@index([assignedOfficerId])
+  @@index([phone])
+}
+
+model FollowUp {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  note      String
+  dueAt     DateTime?
+  doneAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+}
+
+// ─── Applications ───────────────────────────────────────────
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  BANK_LOGIN
+  UNDER_REVIEW
+  SANCTIONED
+  DISBURSED
+  REJECTED
+  WITHDRAWN
+}
+
+enum EmploymentType {
+  SALARIED
+  SELF_EMPLOYED
+  PROFESSIONAL
+  BUSINESS
+  OTHER
+}
+
+model Application {
+  id            String @id @default(cuid())
+  // Human-facing reference, e.g. GCS-2026-0042. Generated on create.
+  applicationNo String @unique
+
+  leadId String? @unique
+  lead   Lead?   @relation(fields: [leadId], references: [id])
+
+  loanProductId String
+  loanProduct   LoanProduct @relation(fields: [loanProductId], references: [id])
+
+  lenderId String?
+  lender   Lender? @relation(fields: [lenderId], references: [id])
+
+  ownerId String?
+  owner   User?   @relation("ApplicationOwner", fields: [ownerId], references: [id])
+
+  requestedAmount Decimal  @db.Decimal(14, 2)
+  tenureMonths    Int?
+  purpose         String?
+  bankLoginAt     DateTime?
+  bankReferenceNo String?
+
+  status    ApplicationStatus @default(DRAFT)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  applicants     Applicant[]
+  references     Reference[]
+  documents      Document[]
+  sanction       Sanction?
+  disbursements  Disbursement[]
+  statementScans BankStatementAnalysis[]
+
+  @@index([status])
+  @@index([ownerId])
+}
+
+model Applicant {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  // First applicant per application is the primary; the rest are co-applicants.
+  isPrimary      Boolean        @default(false)
+  name           String
+  relation       String?
+  dateOfBirth    DateTime?
+  phone          String?
+  email          String?
+  pan            String?
+  aadhaarLast4   String?
+  address        String?
+  city           String?
+  pincode        String?
+  employmentType EmploymentType?
+  employerName   String?
+  monthlyIncome  Decimal?        @db.Decimal(14, 2)
+  cibilScore     Int?
+
+  @@index([applicationId])
+}
+
+model Reference {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  name          String
+  phone         String
+  relation      String?
+  address       String?
+
+  @@index([applicationId])
+}
+
+// ─── Documents (stored in Backblaze B2, only keys held here) ─
+
+model Document {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  category     String
+  fileName     String
+  objectKey    String   @unique
+  mimeType     String
+  sizeBytes    Int
+  uploadedById String?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([applicationId])
+}
+
+// ─── Sanctions ──────────────────────────────────────────────
+
+enum SanctionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Sanction {
+  id            String      @id @default(cuid())
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  // Technical and financial sanction move independently and are tracked separately.
+  technicalStatus SanctionStatus @default(PENDING)
+  technicalAt     DateTime?
+  technicalNote   String?
+
+  financialStatus SanctionStatus @default(PENDING)
+  financialAt     DateTime?
+  financialNote   String?
+
+  sanctionedAmount Decimal? @db.Decimal(14, 2)
+  interestRate     Decimal? @db.Decimal(5, 2)
+  tenureMonths     Int?
+  sanctionLetterNo String?
+  validTill        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Disbursements ──────────────────────────────────────────
+
+enum DisbursementType {
+  FULL
+  PART
+}
+
+model Disbursement {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  type           DisbursementType @default(FULL)
+  amount         Decimal          @db.Decimal(14, 2)
+  disbursedAt    DateTime
+  interestRate   Decimal?         @db.Decimal(5, 2)
+  // Sanctioned amount still undrawn after this payout.
+  runningBalance Decimal?         @db.Decimal(14, 2)
+  utrNo          String?
+  note           String?
+  createdAt      DateTime         @default(now())
+
+  commission Commission?
+
+  @@index([applicationId])
+  @@index([disbursedAt])
+}
+
+// ─── Commissions ────────────────────────────────────────────
+
+enum PayoutStatus {
+  PENDING
+  PARTIAL
+  PAID
+}
+
+model Commission {
+  id             String       @id @default(cuid())
+  disbursementId String       @unique
+  disbursement   Disbursement @relation(fields: [disbursementId], references: [id], onDelete: Cascade)
+
+  // What the lender pays GCS on this disbursement.
+  grossRate   Decimal      @db.Decimal(5, 2)
+  grossAmount Decimal      @db.Decimal(14, 2)
+  status      PayoutStatus @default(PENDING)
+  receivedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  splits CommissionSplit[]
+}
+
+// One row per stakeholder taking a cut of a commission — staff or sourcing partner.
+model CommissionSplit {
+  id           String     @id @default(cuid())
+  commissionId String
+  commission   Commission @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+
+  userId            String?
+  user              User?            @relation(fields: [userId], references: [id])
+  sourcingPartnerId String?
+  sourcingPartner   SourcingPartner? @relation(fields: [sourcingPartnerId], references: [id])
+
+  sharePercent Decimal      @db.Decimal(5, 2)
+  amount       Decimal      @db.Decimal(14, 2)
+  status       PayoutStatus @default(PENDING)
+  paidAt       DateTime?
+
+  @@index([commissionId])
+}
+
+// ─── Attendance & Payroll ───────────────────────────────────
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LEAVE
+  HALF_DAY
+  HOLIDAY
+}
+
+model Attendance {
+  id     String           @id @default(cuid())
+  userId String
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date   DateTime         @db.Date
+  status AttendanceStatus @default(PRESENT)
+  note   String?
+
+  @@unique([userId, date])
+  @@index([date])
+}
+
+model PayrollRecord {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  month       Int
+  year        Int
+  baseSalary  Decimal      @db.Decimal(12, 2)
+  incentives  Decimal      @default(0) @db.Decimal(12, 2)
+  deductions  Decimal      @default(0) @db.Decimal(12, 2)
+  netPay      Decimal      @db.Decimal(12, 2)
+  status      PayoutStatus @default(PENDING)
+  paidAt      DateTime?
+
+  @@unique([userId, month, year])
+}
+
+// ─── Bank Statement Analyzer (optional add-on) ──────────────
+
+model BankStatementAnalysis {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  documentId     String?
+  averageBalance Decimal? @db.Decimal(14, 2)
+  totalCredits   Decimal? @db.Decimal(14, 2)
+  totalDebits    Decimal? @db.Decimal(14, 2)
+  salaryCredits  Json?
+  bounceCount    Int      @default(0)
+  periodFrom     DateTime?
+  periodTo       DateTime?
+  // Flagged when parsed from a scan, so the RO double-checks before relying on it.
+  needsReview    Boolean  @default(true)
+  raw            Json?
+  createdAt      DateTime @default(now())
+
+  @@index([applicationId])
+}
