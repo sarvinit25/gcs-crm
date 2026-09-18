@@ -73,8 +73,8 @@ every request as one client.
 | Loan Products / Settings | schema + seed | placeholder |
 | Team | done | done (create, roles, deactivate, reset password) |
 | Sourcing Partners | done | done (roster + referral stats) |
-| Attendance & Payroll | schema | placeholder |
-| Reports | — | placeholder |
+| Attendance & Payroll | done | done (month grid + payroll) |
+| Reports | done (+ CSV export) | done |
 | Audit log | done | done (admin only) |
 
 ## Frontend

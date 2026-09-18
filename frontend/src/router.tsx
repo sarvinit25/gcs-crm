@@ -20,6 +20,8 @@ import { AuditPage } from "./routes/audit";
 import { DisbursementsPage } from "./routes/disbursements";
 import { PartnersPage } from "./routes/partners";
 import { LendersPage } from "./routes/lenders";
+import { AttendancePage } from "./routes/attendance";
+import { ReportsPage } from "./routes/reports";
 import { PlaceholderPage } from "./routes/placeholder";
 
 function RootLayout() {
@@ -106,12 +108,12 @@ const routeTree = rootRoute.addChildren([
     createRoute({ getParentRoute: () => protectedRoute, path: "/partners", component: PartnersPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/team", component: TeamPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/audit", component: AuditPage }),
-    placeholder(
-      "/attendance",
-      "Attendance & Payroll",
-      "Daily attendance for staff with manual present, leave and absent overrides.",
-    ),
-    placeholder("/reports", "Reports", "Filterable, exportable reporting across every module."),
+    createRoute({
+      getParentRoute: () => protectedRoute,
+      path: "/attendance",
+      component: AttendancePage,
+    }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/reports", component: ReportsPage }),
     placeholder(
       "/settings",
       "Settings",

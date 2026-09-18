@@ -145,7 +145,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main className="flex-1 lg:pl-60">{children}</main>
+      {/* min-w-0: a flex item defaults to min-width:auto, so a wide table would
+          push the whole page sideways instead of scrolling inside its own card. */}
+      <main className="min-w-0 flex-1 lg:pl-60">{children}</main>
     </div>
   );
 }

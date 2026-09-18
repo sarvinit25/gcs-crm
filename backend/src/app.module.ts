@@ -15,6 +15,8 @@ import { TeamModule } from "./team/team.module";
 import { DocumentsModule } from "./documents/documents.module";
 import { DisbursementsModule } from "./disbursements/disbursements.module";
 import { PartnersModule } from "./partners/partners.module";
+import { AttendanceModule } from "./attendance/attendance.module";
+import { ReportsModule } from "./reports/reports.module";
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { PartnersModule } from "./partners/partners.module";
     DocumentsModule,
     DisbursementsModule,
     PartnersModule,
+    AttendanceModule,
+    ReportsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
