@@ -17,6 +17,7 @@ import { ApplicationDetailPage } from "./routes/application-detail";
 import { SanctionsPage } from "./routes/sanctions";
 import { TeamPage } from "./routes/team";
 import { AuditPage } from "./routes/audit";
+import { DisbursementsPage } from "./routes/disbursements";
 import { PlaceholderPage } from "./routes/placeholder";
 
 function RootLayout() {
@@ -89,11 +90,11 @@ const routeTree = rootRoute.addChildren([
       path: "/sanctions",
       component: SanctionsPage,
     }),
-    placeholder(
-      "/disbursements",
-      "Disbursements",
-      "Full and part disbursements, multiple payouts per case, interest rate and running balance.",
-    ),
+    createRoute({
+      getParentRoute: () => protectedRoute,
+      path: "/disbursements",
+      component: DisbursementsPage,
+    }),
     placeholder(
       "/commissions",
       "Commissions",

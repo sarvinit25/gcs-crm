@@ -13,6 +13,7 @@ import { SanctionsModule } from "./sanctions/sanctions.module";
 import { AuditModule } from "./audit/audit.module";
 import { TeamModule } from "./team/team.module";
 import { DocumentsModule } from "./documents/documents.module";
+import { DisbursementsModule } from "./disbursements/disbursements.module";
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { DocumentsModule } from "./documents/documents.module";
     AuditModule,
     TeamModule,
     DocumentsModule,
+    DisbursementsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

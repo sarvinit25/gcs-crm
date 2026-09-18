@@ -15,6 +15,7 @@ import { PageHeader } from "../components/app-shell";
 import { ApplicationStatusBadge } from "../components/status-badge";
 import { SanctionPanel } from "../components/sanction-panel";
 import { DocumentsPanel } from "../components/documents-panel";
+import { DisbursementPanel } from "../components/disbursement-panel";
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -194,6 +195,8 @@ export function ApplicationDetailPage() {
             </section>
 
             <SanctionPanel applicationId={applicationId} />
+
+            <DisbursementPanel applicationId={applicationId} />
 
             <section className="card p-5">
               <div className="mb-4 flex items-center justify-between">

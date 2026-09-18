@@ -57,7 +57,7 @@ every request as one client.
 | Leads (+ follow-ups, public intake) | done | done (list, filters, detail, status, follow-ups) |
 | Applications | done | done (list, detail, applicants, references, lender) |
 | Sanctions | done | done (register + per-application panel) |
-| Disbursements | — | placeholder |
+| Disbursements | done | done (register + per-application panel) |
 | Commissions | — | placeholder |
 | Documents | done (S3/B2 upload, presigned download) | done (panel on application) |
 | Lender Directory | read-only list API | placeholder |

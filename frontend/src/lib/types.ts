@@ -180,3 +180,36 @@ export type Sanction = {
     applicants: { name: string; phone: string | null }[];
   };
 };
+
+export type DisbursementType = "FULL" | "PART";
+
+export type Disbursement = {
+  id: string;
+  type: DisbursementType;
+  amount: string;
+  disbursedAt: string;
+  interestRate: string | null;
+  runningBalance: string | null;
+  utrNo: string | null;
+  note: string | null;
+  createdAt: string;
+};
+
+export type DisbursementSummary = {
+  items: Disbursement[];
+  sanctionedAmount: number;
+  drawn: number;
+  undrawn: number;
+};
+
+export type DisbursementRow = Disbursement & {
+  application: {
+    id: string;
+    applicationNo: string;
+    status: ApplicationStatus;
+    loanProduct: { id: string; name: string } | null;
+    lender: { id: string; name: string } | null;
+    owner: { id: string; name: string } | null;
+    applicants: { name: string }[];
+  };
+};
