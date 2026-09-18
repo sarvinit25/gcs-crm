@@ -15,6 +15,8 @@ import { LeadDetailPage } from "./routes/lead-detail";
 import { ApplicationsPage } from "./routes/applications";
 import { ApplicationDetailPage } from "./routes/application-detail";
 import { SanctionsPage } from "./routes/sanctions";
+import { TeamPage } from "./routes/team";
+import { AuditPage } from "./routes/audit";
 import { PlaceholderPage } from "./routes/placeholder";
 
 function RootLayout() {
@@ -107,7 +109,8 @@ const routeTree = rootRoute.addChildren([
       "Sourcing Partners",
       "Roster of external referral partners, each with their own commission rate.",
     ),
-    placeholder("/team", "Team", "Internal staff directory with role-based access."),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/team", component: TeamPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/audit", component: AuditPage }),
     placeholder(
       "/attendance",
       "Attendance & Payroll",

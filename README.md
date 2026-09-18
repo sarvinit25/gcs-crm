@@ -62,10 +62,11 @@ every request as one client.
 | Documents | schema | — |
 | Lender Directory | read-only list API | placeholder |
 | Loan Products / Settings | schema + seed | placeholder |
-| Team | schema | placeholder |
+| Team | done | done (create, roles, deactivate, reset password) |
 | Sourcing Partners | schema | placeholder |
 | Attendance & Payroll | schema | placeholder |
 | Reports | — | placeholder |
+| Audit log | done | done (admin only) |
 
 ## Frontend
 

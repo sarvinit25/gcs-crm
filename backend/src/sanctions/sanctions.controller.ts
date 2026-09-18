@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put, Query } from "@nestjs/common";
+import { Body, Controller, Get, Ip, Param, Put, Query } from "@nestjs/common";
 import { CurrentUser, type AuthUser } from "../auth/auth.decorators";
 import { SanctionsService } from "./sanctions.service";
 import { ListSanctionsQuery, UpsertSanctionDto } from "./dto/sanction.dto";
@@ -27,7 +27,8 @@ export class ApplicationSanctionController {
     @Param("applicationId") applicationId: string,
     @Body() dto: UpsertSanctionDto,
     @CurrentUser() user: AuthUser,
+    @Ip() ip: string,
   ) {
-    return this.sanctions.upsert(applicationId, dto, user);
+    return this.sanctions.upsert(applicationId, dto, user, ip);
   }
 }

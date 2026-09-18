@@ -10,6 +10,8 @@ import { DashboardModule } from "./dashboard/dashboard.module";
 import { ApplicationsModule } from "./applications/applications.module";
 import { LendersModule } from "./lenders/lenders.module";
 import { SanctionsModule } from "./sanctions/sanctions.module";
+import { AuditModule } from "./audit/audit.module";
+import { TeamModule } from "./team/team.module";
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { SanctionsModule } from "./sanctions/sanctions.module";
     ApplicationsModule,
     LendersModule,
     SanctionsModule,
+    AuditModule,
+    TeamModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

@@ -38,8 +38,49 @@ model User {
   payroll          PayrollRecord[]
   commissionSplits CommissionSplit[]
   followUps        FollowUp[]
+  auditLogs        AuditLog[]
 
   @@index([role, active])
+}
+
+// ─── Audit trail ────────────────────────────────────────────
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+}
+
+/**
+ * Append-only record of who changed what. Money-bearing fields (sanctioned
+ * amounts, rates, disbursements, commissions) and status moves are recorded so
+ * a figure can always be traced back to a person and a time.
+ */
+model AuditLog {
+  id String @id @default(cuid())
+
+  // Actor name is denormalised so history stays readable if the staff record
+  // is later deactivated or renamed.
+  actorId   String?
+  actor     User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorName String
+
+  action AuditAction
+  entity String
+  entityId String
+  /** Human-facing reference, e.g. GCS-2026-0042 or a lead's name. */
+  entityLabel String?
+
+  /** Field-level diff: { field: { from, to } }. */
+  changes Json?
+  ip      String?
+
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@index([actorId])
 }
 
 // ─── Master data (Settings + Lender Directory) ──────────────

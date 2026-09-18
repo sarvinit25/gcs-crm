@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { LeadStatus, Prisma, Role } from "@prisma/client";
+import { AuditAction, LeadStatus, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
+import { AuditService, diff } from "../audit/audit.service";
 import {
   ApplicantDto,
   CreateApplicationDto,
@@ -25,7 +26,10 @@ type WithSeq = { seq: number; createdAt: Date };
 
 @Injectable()
 export class ApplicationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private audit: AuditService,
+  ) {}
 
   /** Adds the derived applicationNo the UI and lenders refer to. */
   private decorate<T extends WithSeq>(app: T) {
@@ -82,6 +86,15 @@ export class ApplicationsService {
         });
       }
       return app;
+    });
+
+    await this.audit.record({
+      actor: user,
+      action: AuditAction.CREATE,
+      entity: "Application",
+      entityId: created.id,
+      entityLabel: formatApplicationNo(created.seq, created.createdAt),
+      changes: diff({}, { requestedAmount: dto.requestedAmount, leadId: dto.leadId }),
     });
 
     return this.decorate(created);
@@ -141,13 +154,23 @@ export class ApplicationsService {
     return this.decorate(app);
   }
 
-  async update(id: string, dto: UpdateApplicationDto, user: AuthUser) {
-    await this.findOne(id, user);
+  async update(id: string, dto: UpdateApplicationDto, user: AuthUser, ip?: string) {
+    const before = await this.findOne(id, user);
     const app = await this.prisma.application.update({
       where: { id },
       data: { ...dto },
       include: LIST_INCLUDE,
     });
+
+    await this.audit.recordUpdate({
+      actor: user,
+      entity: "Application",
+      entityId: id,
+      entityLabel: formatApplicationNo(app.seq, app.createdAt),
+      changes: diff(before as unknown as Record<string, unknown>, dto as Record<string, unknown>),
+      ip,
+    });
+
     return this.decorate(app);
   }
 

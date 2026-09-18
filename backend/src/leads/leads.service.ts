@@ -3,6 +3,7 @@ import { Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { formatApplicationNo } from "../applications/applications.service";
+import { AuditService, diff } from "../audit/audit.service";
 import {
   CreateFollowUpDto,
   CreateLeadDto,
@@ -20,7 +21,10 @@ const LIST_INCLUDE = {
 
 @Injectable()
 export class LeadsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private audit: AuditService,
+  ) {}
 
   /** Advisors only ever see their own leads; managers and admins see everything. */
   private scopeFor(user: AuthUser): Prisma.LeadWhereInput {
@@ -131,13 +135,24 @@ export class LeadsService {
     };
   }
 
-  async update(id: string, dto: UpdateLeadDto, user: AuthUser) {
-    await this.findOne(id, user);
-    return this.prisma.lead.update({
+  async update(id: string, dto: UpdateLeadDto, user: AuthUser, ip?: string) {
+    const before = await this.findOne(id, user);
+    const lead = await this.prisma.lead.update({
       where: { id },
       data: { ...dto },
       include: LIST_INCLUDE,
     });
+
+    await this.audit.recordUpdate({
+      actor: user,
+      entity: "Lead",
+      entityId: id,
+      entityLabel: `#${lead.leadNo} ${lead.name}`,
+      changes: diff(before as unknown as Record<string, unknown>, dto as Record<string, unknown>),
+      ip,
+    });
+
+    return lead;
   }
 
   async addFollowUp(id: string, dto: CreateFollowUpDto, user: AuthUser) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Ip, Param, Patch, Post, Query } from "@nestjs/common";
 import { CurrentUser, type AuthUser } from "../auth/auth.decorators";
 import { ApplicationsService } from "./applications.service";
 import {
@@ -33,8 +33,9 @@ export class ApplicationsController {
     @Param("id") id: string,
     @Body() dto: UpdateApplicationDto,
     @CurrentUser() user: AuthUser,
+    @Ip() ip: string,
   ) {
-    return this.applications.update(id, dto, user);
+    return this.applications.update(id, dto, user, ip);
   }
 
   @Post(":id/applicants")

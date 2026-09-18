@@ -49,8 +49,13 @@ export class LeadsController {
   }
 
   @Patch(":id")
-  update(@Param("id") id: string, @Body() dto: UpdateLeadDto, @CurrentUser() user: AuthUser) {
-    return this.leads.update(id, dto, user);
+  update(
+    @Param("id") id: string,
+    @Body() dto: UpdateLeadDto,
+    @CurrentUser() user: AuthUser,
+    @Ip() ip: string,
+  ) {
+    return this.leads.update(id, dto, user, ip);
   }
 
   @Post(":id/follow-ups")

@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { ApplicationStatus, Prisma, Role, SanctionStatus } from "@prisma/client";
+import { ApplicationStatus, AuditAction, Prisma, Role, SanctionStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
+import { AuditService, diff } from "../audit/audit.service";
 import { formatApplicationNo } from "../applications/applications.service";
 import { ListSanctionsQuery, UpsertSanctionDto } from "./dto/sanction.dto";
 
@@ -21,7 +22,10 @@ const APPLICATION_SUMMARY = {
 
 @Injectable()
 export class SanctionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private audit: AuditService,
+  ) {}
 
   private scopeFor(user: AuthUser): Prisma.ApplicationWhereInput {
     return user.role === Role.ADVISOR ? { ownerId: user.id } : {};
@@ -41,12 +45,14 @@ export class SanctionsService {
   }
 
   /** One sanction per application, so saving either creates or updates it. */
-  async upsert(applicationId: string, dto: UpsertSanctionDto, user: AuthUser) {
+  async upsert(applicationId: string, dto: UpsertSanctionDto, user: AuthUser, ip?: string) {
     const application = await this.prisma.application.findFirst({
       where: { id: applicationId, ...this.scopeFor(user) },
-      select: { id: true, requestedAmount: true, status: true },
+      select: { id: true, seq: true, createdAt: true, requestedAmount: true, status: true },
     });
     if (!application) throw new NotFoundException("Application not found");
+
+    const before = await this.prisma.sanction.findUnique({ where: { applicationId } });
 
     if (dto.sanctionedAmount && dto.sanctionedAmount > Number(application.requestedAmount) * 2) {
       throw new BadRequestException(
@@ -83,6 +89,17 @@ export class SanctionsService {
         where: { id: saved.id },
         include: { application: APPLICATION_SUMMARY },
       });
+    });
+
+    // Sanctioned amounts and rates decide real money — record who set them.
+    await this.audit.record({
+      actor: user,
+      action: before ? AuditAction.UPDATE : AuditAction.CREATE,
+      entity: "Sanction",
+      entityId: sanction.id,
+      entityLabel: formatApplicationNo(application.seq, application.createdAt),
+      changes: diff((before ?? {}) as Record<string, unknown>, dto as Record<string, unknown>),
+      ip,
     });
 
     return this.decorate(sanction);
