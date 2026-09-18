@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Ip, Param, Patch, Post, Query } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { CurrentUser, Public, type AuthUser } from "../auth/auth.decorators";
 import { LeadsService } from "./leads.service";
+import { TurnstileService } from "./turnstile.service";
 import {
   CreateFollowUpDto,
   CreateLeadDto,
@@ -12,11 +14,17 @@ import {
 /** Open intake endpoint the public website posts to. */
 @Controller("public/leads")
 export class PublicLeadsController {
-  constructor(private leads: LeadsService) {}
+  constructor(
+    private leads: LeadsService,
+    private turnstile: TurnstileService,
+  ) {}
 
+  // Tight cap: a genuine enquirer submits once, a script would not.
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post()
-  intake(@Body() dto: PublicLeadDto) {
+  async intake(@Body() dto: PublicLeadDto, @Ip() ip: string) {
+    await this.turnstile.verify(dto.captchaToken, ip);
     return this.leads.intake(dto);
   }
 }

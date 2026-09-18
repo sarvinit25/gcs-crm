@@ -54,6 +54,12 @@ export class PublicLeadDto {
   @IsString()
   @Length(0, 2000)
   detail?: string;
+
+  /** Cloudflare Turnstile token from the website form. */
+  @IsOptional()
+  @IsString()
+  @Length(0, 4096)
+  captchaToken?: string;
 }
 
 export class CreateLeadDto extends PublicLeadDto {

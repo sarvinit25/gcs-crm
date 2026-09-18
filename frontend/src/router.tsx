@@ -14,6 +14,7 @@ import { LeadsPage } from "./routes/leads";
 import { LeadDetailPage } from "./routes/lead-detail";
 import { ApplicationsPage } from "./routes/applications";
 import { ApplicationDetailPage } from "./routes/application-detail";
+import { SanctionsPage } from "./routes/sanctions";
 import { PlaceholderPage } from "./routes/placeholder";
 
 function RootLayout() {
@@ -81,11 +82,11 @@ const routeTree = rootRoute.addChildren([
       path: "/applications/$applicationId",
       component: ApplicationDetailPage,
     }),
-    placeholder(
-      "/sanctions",
-      "Sanctions",
-      "Register of sanctioned loans, with technical and financial sanction tracked separately.",
-    ),
+    createRoute({
+      getParentRoute: () => protectedRoute,
+      path: "/sanctions",
+      component: SanctionsPage,
+    }),
     placeholder(
       "/disbursements",
       "Disbursements",

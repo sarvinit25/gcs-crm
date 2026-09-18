@@ -144,3 +144,39 @@ export type ApplicationDetail = Application & {
 };
 
 export type Lender = { id: string; name: string; type: "BANK" | "NBFC" };
+
+export type SanctionStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export const SANCTION_STATUSES: SanctionStatus[] = ["PENDING", "APPROVED", "REJECTED"];
+
+export const SANCTION_STATUS_LABEL: Record<SanctionStatus, string> = {
+  PENDING: "Pending",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
+};
+
+export type Sanction = {
+  id: string;
+  technicalStatus: SanctionStatus;
+  technicalAt: string | null;
+  technicalNote: string | null;
+  financialStatus: SanctionStatus;
+  financialAt: string | null;
+  financialNote: string | null;
+  sanctionedAmount: string | null;
+  interestRate: string | null;
+  tenureMonths: number | null;
+  sanctionLetterNo: string | null;
+  validTill: string | null;
+  updatedAt: string;
+  application: {
+    id: string;
+    applicationNo: string;
+    status: ApplicationStatus;
+    requestedAmount: string;
+    loanProduct: { id: string; name: string } | null;
+    lender: { id: string; name: string } | null;
+    owner: { id: string; name: string } | null;
+    applicants: { name: string; phone: string | null }[];
+  };
+};

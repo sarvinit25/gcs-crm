@@ -42,6 +42,12 @@ POST /crm/api/public/leads
 `productSlug` matches the website's own product slugs, so intake resolves the loan
 product automatically. Everything else on the API requires a bearer token.
 
+The endpoint is protected by a Cloudflare Turnstile captcha and a 5-per-minute
+per-IP rate limit. Set `TURNSTILE_SECRET` from the Turnstile dashboard and pass
+the widget's token as `captchaToken`; the app refuses to boot in production
+without it. Behind Nginx, set `TRUST_PROXY_HOPS=1` or rate limiting will see
+every request as one client.
+
 ## Module status
 
 | Module | Backend | Frontend |
@@ -50,7 +56,7 @@ product automatically. Everything else on the API requires a bearer token.
 | Dashboard | done | done |
 | Leads (+ follow-ups, public intake) | done | done (list, filters, detail, status, follow-ups) |
 | Applications | done | done (list, detail, applicants, references, lender) |
-| Sanctions | — | placeholder |
+| Sanctions | done | done (register + per-application panel) |
 | Disbursements | — | placeholder |
 | Commissions | — | placeholder |
 | Documents | schema | — |

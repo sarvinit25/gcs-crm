@@ -2,8 +2,10 @@ import clsx from "clsx";
 import {
   APPLICATION_STATUS_LABEL,
   LEAD_STATUS_LABEL,
+  SANCTION_STATUS_LABEL,
   type ApplicationStatus,
   type LeadStatus,
+  type SanctionStatus,
 } from "../lib/types";
 
 const TONE: Record<LeadStatus, string> = {
@@ -48,6 +50,32 @@ export function ApplicationStatusBadge({ status }: { status: ApplicationStatus }
       )}
     >
       {APPLICATION_STATUS_LABEL[status]}
+    </span>
+  );
+}
+
+const SANCTION_TONE: Record<SanctionStatus, string> = {
+  PENDING: "bg-amber-50 text-amber-700",
+  APPROVED: "bg-emerald-50 text-emerald-700",
+  REJECTED: "bg-red-50 text-red-700",
+};
+
+export function SanctionStatusBadge({
+  status,
+  label,
+}: {
+  status: SanctionStatus;
+  label?: string;
+}) {
+  return (
+    <span
+      className={clsx(
+        "inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap",
+        SANCTION_TONE[status],
+      )}
+    >
+      {label ? `${label}: ` : ""}
+      {SANCTION_STATUS_LABEL[status]}
     </span>
   );
 }

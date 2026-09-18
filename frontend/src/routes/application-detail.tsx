@@ -13,6 +13,7 @@ import {
 } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
 import { ApplicationStatusBadge } from "../components/status-badge";
+import { SanctionPanel } from "../components/sanction-panel";
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -190,6 +191,8 @@ export function ApplicationDetailPage() {
                 </label>
               </div>
             </section>
+
+            <SanctionPanel applicationId={applicationId} />
 
             <section className="card p-5">
               <div className="mb-4 flex items-center justify-between">
