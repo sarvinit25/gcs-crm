@@ -4,6 +4,7 @@ import { CurrentUser, Public, type AuthUser } from "../auth/auth.decorators";
 import { LeadsService } from "./leads.service";
 import { TurnstileService } from "./turnstile.service";
 import {
+  BulkLeadsDto,
   CreateFollowUpDto,
   CreateLeadDto,
   ListLeadsQuery,
@@ -46,6 +47,11 @@ export class LeadsController {
   @Post()
   create(@Body() dto: CreateLeadDto, @CurrentUser() user: AuthUser) {
     return this.leads.create(dto, user);
+  }
+
+  @Post("bulk")
+  bulk(@Body() dto: BulkLeadsDto, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.leads.bulkCreate(dto, user, ip);
   }
 
   @Patch(":id")

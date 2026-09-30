@@ -9,6 +9,9 @@ import { CreatePartnerDto, UpdatePartnerDto } from "./dto/partner.dto";
 
 const ROSTER_SELECT = {
   id: true,
+  code: true,
+  managerId: true,
+  manager: { select: { id: true, name: true } },
   name: true,
   firm: true,
   phone: true,
@@ -86,6 +89,15 @@ export class PartnersService {
     }));
   }
 
+  private async nextCode() {
+    const rows = await this.prisma.sourcingPartner.findMany({
+      where: { code: { not: null } },
+      select: { code: true },
+    });
+    const max = rows.reduce((m, r) => Math.max(m, Number(r.code!.split("-").pop()) || 0), 0);
+    return `GCS-BSA-${String(max + 1).padStart(3, "0")}`;
+  }
+
   async create(dto: CreatePartnerDto, actor: AuthUser, ip?: string) {
     const existing = await this.prisma.sourcingPartner.findFirst({ where: { phone: dto.phone } });
     if (existing) {
@@ -96,7 +108,12 @@ export class PartnersService {
     if (password) this.assertPasswordPolicy(password);
 
     const partner = await this.prisma.sourcingPartner.create({
-      data: { ...rest, passwordHash: password ? await bcrypt.hash(password, 10) : undefined },
+      data: {
+        ...rest,
+        managerId: rest.managerId || undefined,
+        code: await this.nextCode(),
+        passwordHash: password ? await bcrypt.hash(password, 10) : undefined,
+      },
       select: ROSTER_SELECT,
     });
 
@@ -146,7 +163,7 @@ export class PartnersService {
 
     const partner = await this.prisma.sourcingPartner.update({
       where: { id },
-      data: { ...dto },
+      data: { ...dto, ...(dto.managerId !== undefined && { managerId: dto.managerId || null }) },
       select: ROSTER_SELECT,
     });
 

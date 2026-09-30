@@ -1,16 +1,19 @@
+import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   BadgeIndianRupee,
   Banknote,
   BarChart3,
   Building2,
-  CalendarCheck,
+  Calendar,
   FileText,
   History,
   Handshake,
   LayoutDashboard,
   LogOut,
+  Menu,
   Settings,
+  X,
   ShieldCheck,
   Users,
   UserSquare,
@@ -19,6 +22,8 @@ import type { LucideIcon } from "lucide-react";
 import clsx from "clsx";
 import { useAuth } from "../lib/auth";
 import { ROLE_LABEL, type Role } from "../lib/types";
+import { GlobalSearch } from "./global-search";
+import { useScrollToHash } from "../lib/use-scroll-to-hash";
 
 type NavItem = { to: string; label: string; icon: LucideIcon; roles?: Role[] };
 
@@ -53,7 +58,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       {
         to: "/attendance",
         label: "Attendance & Payroll",
-        icon: CalendarCheck,
+        icon: Calendar,
         roles: ["ADMIN", "MANAGER"],
       },
       { to: "/reports", label: "Reports", icon: BarChart3 },
@@ -72,15 +77,13 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const { user, logout } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-
   if (!user) return null;
 
   return (
-    <div className="flex min-h-full">
-      <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col bg-navy text-white lg:flex">
+    <>
         <div className="flex h-16 items-center gap-2.5 border-b border-white/10 px-5">
           <span className="grid h-8 w-8 place-items-center rounded-md bg-gold font-bold text-navy">
             G
@@ -108,14 +111,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <Link
                       key={item.to}
                       to={item.to}
+                      onClick={onNavigate}
                       className={clsx(
-                        "mb-0.5 flex items-center gap-2.5 rounded-md px-2 py-2 text-[13px] font-medium transition",
+                        "mb-0.5 flex items-center gap-2.5 rounded-full px-3 py-2 text-[13px] font-semibold transition",
                         active
-                          ? "bg-white/10 text-white"
+                          ? "bg-gold text-navy shadow-sm"
                           : "text-white/65 hover:bg-white/5 hover:text-white",
                       )}
                     >
-                      <item.icon className={clsx("h-4 w-4", active && "text-gold")} />
+                      <item.icon className={clsx("h-4 w-4", !active && "text-white/45")} />
                       {item.label}
                     </Link>
                   );
@@ -143,11 +147,67 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </div>
+    </>
+  );
+}
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  useScrollToHash();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Navigating by any route (search result, in-page link) should close the drawer.
+  useEffect(() => setMenuOpen(false), [pathname]);
+
+  if (!user) return null;
+
+  return (
+    <div className="flex min-h-full">
+      <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col bg-navy text-white lg:flex">
+        <SidebarContent />
       </aside>
+
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-navy/50" onClick={() => setMenuOpen(false)} />
+          <aside className="absolute inset-y-0 left-0 flex w-64 flex-col bg-navy text-white shadow-xl">
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="absolute top-4 right-3 rounded p-1.5 text-white/60 hover:bg-white/10 hover:text-white"
+              aria-label="Close menu"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <SidebarContent onNavigate={() => setMenuOpen(false)} />
+          </aside>
+        </div>
+      )}
 
       {/* min-w-0: a flex item defaults to min-width:auto, so a wide table would
           push the whole page sideways instead of scrolling inside its own card. */}
-      <main className="min-w-0 flex-1 lg:pl-60">{children}</main>
+      <main className="min-w-0 flex-1 lg:pl-60">
+        <div className="no-print sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-white/90 px-4 backdrop-blur lg:px-6">
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="rounded p-1.5 text-navy hover:bg-bg-light lg:hidden"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <GlobalSearch />
+          <div className="ml-auto hidden shrink-0 items-center gap-2.5 whitespace-nowrap md:flex">
+            <div className="text-right leading-tight">
+              <p className="text-[13px] font-semibold text-navy">{user.name}</p>
+              <p className="text-[11px] text-muted">{ROLE_LABEL[user.role]}</p>
+            </div>
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-navy text-[11px] font-bold text-white">
+              {initials(user.name)}
+            </span>
+          </div>
+        </div>
+        {children}
+      </main>
     </div>
   );
 }
@@ -162,7 +222,7 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-bg-light/85 backdrop-blur">
+    <header className="no-print sticky top-14 z-20 border-b border-line bg-bg-light/85 backdrop-blur">
       <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
         <div>
           <h1 className="text-lg font-bold text-navy">{title}</h1>

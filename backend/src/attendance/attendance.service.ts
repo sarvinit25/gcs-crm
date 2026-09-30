@@ -2,6 +2,8 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { AttendanceStatus, AuditAction, PayoutStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { SettingsService } from "../settings/settings.service";
+import { istParts, ymd } from "../common/date.util";
 import type { AuthUser } from "../auth/auth.decorators";
 import {
   MarkAttendanceDto,
@@ -9,6 +11,18 @@ import {
   PayrollStatusDto,
   UpsertPayrollDto,
 } from "./dto/attendance.dto";
+
+/** Today's India date (YYYY-MM-DD) and minutes since local midnight. */
+function istNow(now = new Date()) {
+  const p = istParts(now);
+  const shifted = new Date(now.getTime() + 330 * 60_000);
+  return { dateStr: ymd(p), minutes: shifted.getUTCHours() * 60 + shifted.getUTCMinutes() };
+}
+
+const toMinutes = (hhmm: string) => {
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+};
 
 /** Days counted as worked when tallying a month. */
 const WORKED = new Set<AttendanceStatus>([AttendanceStatus.PRESENT, AttendanceStatus.HALF_DAY]);
@@ -24,7 +38,85 @@ export class AttendanceService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private settings: SettingsService,
   ) {}
+
+  /** The signed-in user's record for today, plus the rules the punch card needs. */
+  async today(user: AuthUser) {
+    const { dateStr } = istNow();
+    const record = await this.prisma.attendance.findUnique({
+      where: { userId_date: { userId: user.id, date: new Date(dateStr) } },
+    });
+    return {
+      date: dateStr,
+      selfCheckIn: this.settings.get<boolean>("attendance.selfCheckIn"),
+      halfDayCutoff: this.settings.get<string>("attendance.halfDayCutoff"),
+      workStart: this.settings.get<string>("attendance.workStart"),
+      status: record?.status ?? null,
+      checkInAt: record?.checkInAt ?? null,
+      checkOutAt: record?.checkOutAt ?? null,
+    };
+  }
+
+  async checkIn(user: AuthUser, ip?: string) {
+    if (!this.settings.get<boolean>("attendance.selfCheckIn")) {
+      throw new BadRequestException("Self check-in is turned off — ask an admin to mark your attendance");
+    }
+    const { dateStr, minutes } = istNow();
+    const day = new Date(dateStr);
+    const existing = await this.prisma.attendance.findUnique({
+      where: { userId_date: { userId: user.id, date: day } },
+    });
+    if (existing?.checkInAt) throw new BadRequestException("You have already checked in today");
+    // An admin may have pre-marked leave/holiday; don't silently overturn that.
+    if (existing && (existing.status === AttendanceStatus.LEAVE || existing.status === AttendanceStatus.HOLIDAY)) {
+      throw new BadRequestException(`Today is marked as ${existing.status.toLowerCase().replace("_", " ")}`);
+    }
+
+    const late = minutes > toMinutes(this.settings.get<string>("attendance.halfDayCutoff"));
+    const status = late ? AttendanceStatus.HALF_DAY : AttendanceStatus.PRESENT;
+    const record = await this.prisma.attendance.upsert({
+      where: { userId_date: { userId: user.id, date: day } },
+      create: { userId: user.id, date: day, status, checkInAt: new Date() },
+      update: { status, checkInAt: new Date() },
+    });
+
+    await this.audit.record({
+      actor: user,
+      action: existing ? AuditAction.UPDATE : AuditAction.CREATE,
+      entity: "Attendance",
+      entityId: record.id,
+      entityLabel: `${user.name} · ${dateStr}`,
+      changes: { status: { from: existing?.status ?? null, to: status }, checkIn: { from: null, to: "self" } },
+      ip,
+    });
+    return this.today(user);
+  }
+
+  async checkOut(user: AuthUser, ip?: string) {
+    const { dateStr } = istNow();
+    const day = new Date(dateStr);
+    const existing = await this.prisma.attendance.findUnique({
+      where: { userId_date: { userId: user.id, date: day } },
+    });
+    if (!existing?.checkInAt) throw new BadRequestException("Check in first");
+    if (existing.checkOutAt) throw new BadRequestException("You have already checked out today");
+
+    await this.prisma.attendance.update({
+      where: { id: existing.id },
+      data: { checkOutAt: new Date() },
+    });
+    await this.audit.record({
+      actor: user,
+      action: AuditAction.UPDATE,
+      entity: "Attendance",
+      entityId: existing.id,
+      entityLabel: `${user.name} · ${dateStr}`,
+      changes: { checkOut: { from: null, to: "self" } },
+      ip,
+    });
+    return this.today(user);
+  }
 
   /** Every active staff member with their marks for the month, for the grid. */
   async month(query: MonthQuery) {
@@ -52,6 +144,8 @@ export class AttendanceService {
     return {
       month: query.month,
       year: query.year,
+      // Earliest year worth offering in the picker — the year the firm was founded.
+      firstYear: Math.min(this.settings.get<number>("org.establishedYear") || query.year, query.year),
       daysInMonth: new Date(Date.UTC(query.year, query.month, 0)).getUTCDate(),
       staff: staff.map((s) => {
         const own = byUser.get(s.id) ?? [];

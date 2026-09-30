@@ -67,19 +67,21 @@ every request as one client.
 | Module | Backend | Frontend |
 | --- | --- | --- |
 | Auth & roles | done | done (login, route guard, role-aware nav) — labels: Super Admin (ADMIN), Admin (MANAGER), Staff (ADVISOR); DB values unchanged |
-| Dashboard | done | done |
-| Leads (+ follow-ups, public intake) | done | done (list, filters, detail, status, follow-ups) |
-| Applications | done | done (list, detail, applicants, references, lender) |
+| Dashboard | done (time range, conversion metrics, loan distribution) | done (range filter, CSV export, punch card) |
+| Leads (+ follow-ups, public intake) | done (+ bulk CSV import, lost reasons) | done (list, filters by loan type / time, detail, status, follow-ups, import/export) |
+| Applications | done | done (Application and Login Status tabs, filters, detail, applicants, references, lender) |
 | Sanctions | done | done (register + per-application panel) |
 | Disbursements | done | done (register + per-application panel) |
-| Commissions | — | placeholder |
+| Commissions | done | done (register + per-disbursement recording, splits, payout status, CSV export) |
 | Documents | done (S3/B2 upload, presigned download) | done (panel on application) |
+| Document Checklist | done (per product + applicant profile, Given/Pending gap view) | done (panel on application, admin editor in Settings) |
 | Lender Directory | done (+ public feed) | done |
 | Settings (+ loan products) | done | done |
-| Team | done | done (create, roles, deactivate, reset password) |
-| Sourcing Partners | done | done (roster + referral stats) |
-| Attendance & Payroll | done | done (month grid + payroll) |
-| Reports | done (+ CSV export) | done |
+| Team | done (employee code, DOB, joined date, reports-to hierarchy, commission %) | done (create/edit modal, roles, deactivate, reset password) |
+| Sourcing Partners | done (partner code, reporting manager) | done (roster + referral stats) |
+| Attendance & Payroll | done (+ self check-in/out, half-day cutoff) | done (punch card, today's headcount, month grid + payroll) |
+| Reports | done (+ record-level report builder, CSV export) | done (Summary and Records views, column picker) |
+| Client (Borrower) Portal | done | done (phone + access code login, status tracker) |
 | Audit log | done | done (admin only) |
 
 ## Frontend
@@ -108,6 +110,27 @@ Uploads accept PDF and images up to 15MB. Object keys are random UUIDs, not
 filenames, so two applicants uploading `pan.pdf` cannot collide and keys do not
 leak applicant names. Downloads are 5-minute presigned URLs, so files stream
 from storage rather than through the API.
+
+## Document Checklist
+
+Real lender checklists don't vary by loan product alone — they branch by the
+applicant's profile (Salaried, Proprietorship, Partnership, Private Limited,
+NRI, ...), with a shared KYC/photo core underneath. `ChecklistItem` models
+this as master data: each row is optionally scoped to a `loanProductId` (null
+= every product) and a `ChecklistApplicantType` (null = every profile).
+
+An application's required list is resolved by `ChecklistService.resolveChecklistBucket`,
+which reads the primary applicant's `isNRI` / `employmentType` / `constitution`
+fields — NRI overrides everything else, then employment type, then business
+constitution for the self-employed/business case — and pulls every
+`ChecklistItem` matching that bucket or product. Each item is then checked
+against the application's uploaded `Document`s by category (not by exact item
+— a coarser match, since `Document` doesn't reference a specific checklist
+row) to render as Given or Pending.
+
+`GET /applications/:id/checklist` serves the per-application gap view; the
+master `ChecklistItem` rows are admin-managed the same way as loan products,
+under Settings → Document checklist.
 
 ## Settings
 
@@ -159,9 +182,99 @@ loan size, potential earning) is admin-managed master data — `CommissionRateCa
 at `/crm/api/public/commission-structure` for the website's partner-recruitment
 page.
 
-**Not built yet:** the Client Portal (the loan applicant's own login to track
-their application) — noted as a future portal, same pattern, different data
-shape.
+## Client (Borrower) Portal
+
+A third, fully separate session at `/crm/track-login` for the loan applicant —
+own token key, own JWT `type: "borrower"` claim, own Passport strategy. A
+borrower signs in with the primary applicant's phone number plus an
+8-character access code generated on the application (Application detail →
+Borrower Portal Access, where staff can copy or regenerate it). They see only
+their own file: stage tracker, bank login, sanction legs and disbursements —
+never internal notes, commission data or other applicants.
+
+```
+POST /crm/api/borrower/auth/login   { phone, accessCode } -> { accessToken }
+GET  /crm/api/borrower/me
+POST /crm/api/applications/:id/portal-access-code   (staff — issues a fresh code)
+```
+
+## Bulk lead import and lead outcomes
+
+`POST /crm/api/leads/bulk` takes up to 500 rows (`name`, `phone`, optional
+`email`, `city`, `product`, `amount`, `notes`), validates each independently,
+skips phones that already exist, and returns per-row outcomes. The Leads page
+has an Import button with a CSV template. Marking a lead **Lost** requires a
+reason (not interested, not eligible, non-contactable, wrong number, …), which
+is kept on the lead and shown in the leads report.
+
+## Report builder
+
+`GET /crm/api/reports/records?type=leads|applications|sanctions|disbursements|commissions`
+returns flat rows with `from`, `to`, `status`, `loanProductId` and `q` filters;
+`/reports/records/export` downloads it as a print-ready Excel workbook
+(`format=xlsx`, the default) or a CSV with the same letterhead (`format=csv`),
+honouring the column picker. Both carry the company letterhead (from Settings →
+Organisation), report title, generated date and user, filters applied, summary
+totals, the table with real dates and ₹ formatting, and a totals row. The
+Records view shows the same header on screen and has a Print / PDF button.
+Staff (ADVISOR) only ever get their own records.
+
+## Attendance
+
+Anyone signed in can check themselves in and out (`/attendance/me/*`), in India
+time. Checking in after the half-day cutoff (Settings → Attendance) is recorded
+as a half day; Super Admin and Admin can still mark or correct any day from the
+month grid. Self check-in can be switched off in Settings.
+
+## Search
+
+The search box in the top bar (focus it with `/` or Ctrl/⌘+K) searches the whole
+CRM with `GET /crm/api/search?q=`: leads (name, phone, email, city, notes,
+follow-up notes, lead no. like `L-12`), applications (application no., every
+applicant and co-applicant's name/phone/email/PAN/city/employer, bank reference,
+banker, sanction letter no., UTR, loan account, references, document file
+names, borrower access code), lenders, sourcing partners, team, loan products,
+required documents, rate cards, pages, settings and the audit log. Several
+words must all match (`sneha bajaj`), phone numbers match however they are
+typed (`+91 98220 44556`), and results are role-scoped — Staff only ever find
+their own leads and applications. Each result shows which field matched and a
+breadcrumb, and opens the exact section (`/applications/:id#sanction`,
+`#disbursement`, `#documents`, a settings tab, a directory row) with a
+highlight. `/crm/search?q=` is the full results page. Add a new searchable
+thing in `backend/src/search/search.service.ts`.
+
+## Dates, periods and long-term use
+
+This is meant to run for decades, so nothing assumes a particular year:
+
+- **India time everywhere.** "Today", attendance days, report periods and
+  application-number years are all IST, whatever the server or browser timezone.
+  Use `backend/src/common/date.util.ts` and `frontend/src/lib/date.ts`; do not
+  call `toISOString().slice(0, 10)` or `setHours` for calendar-day logic.
+- **Financial year (April–March).** Every list, report and the dashboard accept
+  `range=` (`today`, `7d`, `30d`, `month`, `last_month`, `quarter`, `fy`,
+  `last_fy`, `year`, `all`) or a custom `from`/`to`. Financial quarters and the
+  "2026-27" labels roll over on their own; the picker's options come from
+  `GET /dashboard/periods`.
+- **Application numbers** can use the calendar year or the financial year
+  (Settings → Numbering). The counter is one continuous sequence, so numbers
+  stay unique forever; padding only sets the minimum width.
+- **History stays reachable**: the attendance year picker runs from the founding
+  year (Settings → Organisation) to next year, and report exports are not
+  capped (the on-screen preview shows the first 1,000 rows).
+- **Date pickers.** Use `DatePicker` / `MonthPicker` (`frontend/src/components/date-picker.tsx`)
+  instead of `<input type="date">`: click the month title for a month grid, then
+  the year for a year grid, so any date is a few clicks away. Values are plain
+  `YYYY-MM-DD` strings, so no timezone can shift a day.
+- **Indexes** cover the created-date, loan-type, lender and partner columns the
+  filters use, so lists stay fast as records accumulate.
+
+## Document checklist data
+
+`backend/prisma/checklist-data.ts` is generated from the website's per-product
+checklist PDFs (`public/checklists/*.pdf`) and holds the product-specific
+items; universal KYC and the per-profile income sets stay in `seed.ts`.
+Re-run the seed after editing either.
 
 ## Role labels
 

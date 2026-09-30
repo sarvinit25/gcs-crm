@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
-import { formatDateTime } from "../lib/format";
+import { formatDateTime, humanizeKey } from "../lib/format";
 import type { Paginated } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
 
@@ -68,7 +68,7 @@ export function AuditPage() {
           ))}
         </select>
 
-        <div className="card overflow-hidden">
+        <div className="card overflow-x-auto">
           {query.isPending ? (
             <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
               <Loader2 className="h-4 w-4 animate-spin" /> Loading…
@@ -110,14 +110,14 @@ export function AuditPage() {
                     </td>
                     <td className="px-4 py-3">
                       <p className="font-medium text-navy">{e.entityLabel ?? e.entityId}</p>
-                      <p className="text-[12px] text-muted">{e.entity}</p>
+                      <p className="text-[12px] text-muted">{humanizeKey(e.entity)}</p>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="wrap px-4 py-3">
                       {e.changes ? (
                         <ul className="space-y-0.5">
                           {Object.entries(e.changes).map(([field, { from, to }]) => (
                             <li key={field} className="text-[12px]">
-                              <span className="font-semibold text-navy">{field}</span>{" "}
+                              <span className="font-semibold text-navy">{humanizeKey(field)}</span>{" "}
                               <span className="text-muted line-through">{show(from)}</span>{" "}
                               <span className="text-muted">→</span>{" "}
                               <span className="text-emerald-700">{show(to)}</span>

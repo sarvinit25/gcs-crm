@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Search } from "lucide-react";
+import { Download, Loader2, Search } from "lucide-react";
 import { api, qs } from "../lib/api";
+import { downloadReport } from "../lib/download-report";
 import { formatAmount, formatDate } from "../lib/format";
 import {
   SANCTION_STATUSES,
@@ -31,6 +32,14 @@ export function SanctionsPage() {
             ? `${query.data.total} on the register`
             : "Technical and financial sanction, tracked separately"
         }
+        actions={
+          <button
+            onClick={() => void downloadReport("sanctions", { q: search, status: financialStatus || undefined })}
+            className="btn-ghost"
+          >
+            <Download className="h-4 w-4" /> Export
+          </button>
+        }
       />
 
       <div className="px-6 py-5">
@@ -58,7 +67,7 @@ export function SanctionsPage() {
           </select>
         </div>
 
-        <div className="card overflow-hidden">
+        <div className="card overflow-x-auto">
           {query.isPending ? (
             <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
               <Loader2 className="h-4 w-4 animate-spin" /> Loading sanctions…

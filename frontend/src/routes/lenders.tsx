@@ -146,7 +146,7 @@ export function LendersPage() {
           </label>
         </div>
 
-        <div className="card overflow-hidden">
+        <div className="card overflow-x-auto">
           {query.isPending ? (
             <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
               <Loader2 className="h-4 w-4 animate-spin" /> Loading…
@@ -165,6 +165,7 @@ export function LendersPage() {
               <tbody>
                 {visible.map((l) => (
                   <tr
+                    id={`row-${l.id}`}
                     key={l.id}
                     className={clsx(
                       "border-b border-line/70 last:border-0",

@@ -10,6 +10,27 @@ import {
   UpsertPayrollDto,
 } from "./dto/attendance.dto";
 
+/** Any signed-in staff member can punch their own attendance. */
+@Controller("attendance/me")
+export class MyAttendanceController {
+  constructor(private attendance: AttendanceService) {}
+
+  @Get("today")
+  today(@CurrentUser() user: AuthUser) {
+    return this.attendance.today(user);
+  }
+
+  @Post("check-in")
+  checkIn(@CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.attendance.checkIn(user, ip);
+  }
+
+  @Post("check-out")
+  checkOut(@CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.attendance.checkOut(user, ip);
+  }
+}
+
 @Controller("attendance")
 @Roles(Role.ADMIN, Role.MANAGER)
 export class AttendanceController {

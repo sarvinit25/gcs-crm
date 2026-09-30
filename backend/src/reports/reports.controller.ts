@@ -2,23 +2,12 @@ import { Controller, Get, Query, Res } from "@nestjs/common";
 import type { Response } from "express";
 import { Role } from "@prisma/client";
 import { CurrentUser, Roles, type AuthUser } from "../auth/auth.decorators";
-import { ReportsService, type ReportRange } from "./reports.service";
+import { EXPORT_LIMIT, RECORD_TYPES, ReportsService, type RecordFilters, type RecordType, type ReportRange } from "./reports.service";
+import { BadRequestException } from "@nestjs/common";
 import { SettingsService } from "../settings/settings.service";
-
-/** Escapes a value for CSV — quotes doubled, field wrapped when it needs it. */
-function csvCell(value: unknown) {
-  const text = value === null || value === undefined ? "" : String(value);
-  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
-
-function toCsv(rows: Record<string, unknown>[]) {
-  if (!rows.length) return "";
-  const headers = Object.keys(rows[0]);
-  return [
-    headers.join(","),
-    ...rows.map((row) => headers.map((h) => csvCell(row[h])).join(",")),
-  ].join("\n");
-}
+import { toCsv } from "../common/csv.util";
+import { istToday } from "../common/date.util";
+import { buildReportCsv, buildReportWorkbook } from "./report-workbook";
 
 @Controller("reports")
 export class ReportsController {
@@ -53,6 +42,45 @@ export class ReportsController {
     return this.reports.byOfficer(range);
   }
 
+  /** Record-level rows for the report builder, plus the letterhead/summary shown above them. */
+  @Get("records")
+  async records(@Query("type") type: string, @Query() filters: RecordFilters, @CurrentUser() user: AuthUser) {
+    const result = await this.reports.records(this.recordType(type), filters, user);
+    return { ...result, meta: await this.reports.reportMeta(result.type, filters, result, user) };
+  }
+
+  /** The same report as a formatted Excel workbook (default) or a CSV with the same letterhead. */
+  @Get("records/export")
+  async exportRecords(
+    @Query("type") type: string,
+    @Query("columns") columns: string | undefined,
+    @Query("format") format: string | undefined,
+    @Query() filters: RecordFilters,
+    @CurrentUser() user: AuthUser,
+    @Res() res: Response,
+  ) {
+    const result = await this.reports.records(this.recordType(type), filters, user, EXPORT_LIMIT);
+    const wanted = columns ? new Set(columns.split(",")) : null;
+    const picked = result.columns.filter((c) => !wanted || wanted.has(c.key));
+    const meta = await this.reports.reportMeta(result.type, filters, result, user);
+    const stamp = istToday();
+
+    if (format === "csv") {
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="gcs-${result.type}-${stamp}.csv"`);
+      res.send(buildReportCsv(meta, picked, result.rows));
+      return;
+    }
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="gcs-${result.type}-report-${stamp}.xlsx"`);
+    res.send(await buildReportWorkbook(meta, picked, result.rows));
+  }
+
+  private recordType(type: string): RecordType {
+    if (!RECORD_TYPES.includes(type as RecordType)) throw new BadRequestException("Unknown report type");
+    return type as RecordType;
+  }
+
   @Get("stalled")
   async stalled(@CurrentUser() user: AuthUser) {
     const rows = await this.reports.stalled(user);
@@ -77,7 +105,7 @@ export class ReportsController {
     @Res() res: Response,
   ) {
     const rows = await this.rowsFor(report, range, user);
-    const stamp = new Date().toISOString().slice(0, 10);
+    const stamp = istToday();
 
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
     res.setHeader("Content-Disposition", `attachment; filename="gcs-${report}-${stamp}.csv"`);

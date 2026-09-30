@@ -8,11 +8,15 @@ import {
 import { Loader2 } from "lucide-react";
 import { AppShell } from "./components/app-shell";
 import { PartnerShell } from "./components/partner-shell";
+import { TrackShell } from "./components/track-shell";
 import { useAuth } from "./lib/auth";
 import { usePartnerAuth } from "./lib/partner-auth";
+import { useBorrowerAuth } from "./lib/borrower-auth";
 import { LoginPage } from "./routes/login";
 import { PartnerLoginPage } from "./routes/partner-login";
 import { PartnerDashboardPage } from "./routes/partner-dashboard";
+import { TrackLoginPage } from "./routes/track-login";
+import { TrackDashboardPage } from "./routes/track-dashboard";
 import { DashboardPage } from "./routes/dashboard";
 import { LeadsPage } from "./routes/leads";
 import { LeadDetailPage } from "./routes/lead-detail";
@@ -23,11 +27,12 @@ import { TeamPage } from "./routes/team";
 import { AuditPage } from "./routes/audit";
 import { DisbursementsPage } from "./routes/disbursements";
 import { PartnersPage } from "./routes/partners";
+import { CommissionsPage } from "./routes/commissions";
 import { LendersPage } from "./routes/lenders";
 import { AttendancePage } from "./routes/attendance";
 import { ReportsPage } from "./routes/reports";
 import { SettingsPage } from "./routes/settings";
-import { PlaceholderPage } from "./routes/placeholder";
+import { SearchPage } from "./routes/search";
 
 function RootLayout() {
   return <Outlet />;
@@ -99,21 +104,54 @@ const partnerProtectedRoute = createRoute({
   component: PartnerProtectedLayout,
 });
 
-const placeholder = (path: string, title: string, description: string) =>
-  createRoute({
-    getParentRoute: () => protectedRoute,
-    path,
-    component: () => <PlaceholderPage title={title} description={description} />,
-  });
+const trackLoginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/track-login",
+  component: TrackLoginPage,
+});
+
+/** A borrower's own session — its own auth, its own shell, one application only. */
+function TrackProtectedLayout() {
+  const { borrower, ready } = useBorrowerAuth();
+
+  if (!ready) {
+    return (
+      <div className="grid h-full place-items-center">
+        <Loader2 className="h-5 w-5 animate-spin text-navy" />
+      </div>
+    );
+  }
+  if (!borrower) return <Navigate to="/track-login" />;
+
+  return (
+    <TrackShell>
+      <Outlet />
+    </TrackShell>
+  );
+}
+
+const trackProtectedRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: "track-protected",
+  component: TrackProtectedLayout,
+});
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
   partnerLoginRoute,
+  trackLoginRoute,
   partnerProtectedRoute.addChildren([
     createRoute({
       getParentRoute: () => partnerProtectedRoute,
       path: "/partner",
       component: PartnerDashboardPage,
+    }),
+  ]),
+  trackProtectedRoute.addChildren([
+    createRoute({
+      getParentRoute: () => trackProtectedRoute,
+      path: "/track",
+      component: TrackDashboardPage,
     }),
   ]),
   protectedRoute.addChildren([
@@ -144,11 +182,11 @@ const routeTree = rootRoute.addChildren([
       path: "/disbursements",
       component: DisbursementsPage,
     }),
-    placeholder(
-      "/commissions",
-      "Commissions",
-      "Commission ledger per disbursed case, split across every stakeholder, with payout status.",
-    ),
+    createRoute({
+      getParentRoute: () => protectedRoute,
+      path: "/commissions",
+      component: CommissionsPage,
+    }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/lenders", component: LendersPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/partners", component: PartnersPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/team", component: TeamPage }),
@@ -160,6 +198,12 @@ const routeTree = rootRoute.addChildren([
     }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/reports", component: ReportsPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/settings", component: SettingsPage }),
+    createRoute({
+      getParentRoute: () => protectedRoute,
+      path: "/search",
+      component: SearchPage,
+      validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
+    }),
   ]),
 ]);
 

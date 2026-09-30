@@ -26,6 +26,16 @@ export const LEAD_STATUS_LABEL: Record<LeadStatus, string> = {
   LOST: "Lost",
 };
 
+export const LOST_REASONS = [
+  "Not interested",
+  "Not eligible",
+  "Non-contactable",
+  "Wrong number",
+  "Went with another lender",
+  "Loan no longer needed",
+  "Other",
+];
+
 export type AuthUser = { id: string; name: string; email: string; role: Role };
 
 /** Display names only — the underlying Role values (ADMIN/MANAGER/ADVISOR)
@@ -50,6 +60,11 @@ export type Lead = {
   status: LeadStatus;
   nextFollowUpAt: string | null;
   notes: string | null;
+  lostReason: string | null;
+  employmentType: EmploymentType | null;
+  monthlyIncome: string | null;
+  meetingMode: string | null;
+  meetingPlace: string | null;
   createdAt: string;
   loanProduct: (Named & { slug: string }) | null;
   assignedOfficer: Named | null;
@@ -105,6 +120,26 @@ export const APPLICATION_STATUS_LABEL: Record<ApplicationStatus, string> = {
   WITHDRAWN: "Withdrawn",
 };
 
+export type EmploymentType = "SALARIED" | "SELF_EMPLOYED" | "PROFESSIONAL" | "BUSINESS" | "OTHER";
+
+export const EMPLOYMENT_TYPE_LABEL: Record<EmploymentType, string> = {
+  SALARIED: "Salaried",
+  SELF_EMPLOYED: "Self-employed",
+  PROFESSIONAL: "Professional",
+  BUSINESS: "Business",
+  OTHER: "Other",
+};
+
+export type ApplicantConstitution = "PROPRIETORSHIP" | "PARTNERSHIP" | "PRIVATE_LIMITED" | "LLP" | "OTHER";
+
+export const CONSTITUTION_LABEL: Record<ApplicantConstitution, string> = {
+  PROPRIETORSHIP: "Proprietorship",
+  PARTNERSHIP: "Partnership",
+  PRIVATE_LIMITED: "Private Limited",
+  LLP: "LLP",
+  OTHER: "Other",
+};
+
 export type Applicant = {
   id: string;
   isPrimary: boolean;
@@ -114,10 +149,51 @@ export type Applicant = {
   email: string | null;
   pan: string | null;
   city: string | null;
-  employmentType: string | null;
+  employmentType: EmploymentType | null;
+  constitution: ApplicantConstitution | null;
+  isNRI: boolean;
   employerName: string | null;
   monthlyIncome: string | null;
   cibilScore: number | null;
+};
+
+export type ChecklistApplicantType =
+  | "SALARIED"
+  | "PROFESSIONAL"
+  | "PROPRIETORSHIP"
+  | "PARTNERSHIP"
+  | "PRIVATE_LIMITED"
+  | "LLP"
+  | "NRI";
+
+export const CHECKLIST_APPLICANT_TYPE_LABEL: Record<ChecklistApplicantType, string> = {
+  SALARIED: "Salaried",
+  PROFESSIONAL: "Professional",
+  PROPRIETORSHIP: "Proprietorship",
+  PARTNERSHIP: "Partnership",
+  PRIVATE_LIMITED: "Private Limited",
+  LLP: "LLP",
+  NRI: "NRI",
+};
+
+export type ChecklistItemStatus = "GIVEN" | "PENDING";
+
+export type ApplicationChecklist = {
+  bucket: ChecklistApplicantType | null;
+  items: { id: string; label: string; category: string; status: ChecklistItemStatus }[];
+  total: number;
+  given: number;
+};
+
+export type ChecklistItem = {
+  id: string;
+  loanProductId: string | null;
+  loanProduct: { id: string; name: string } | null;
+  applicantType: ChecklistApplicantType | null;
+  label: string;
+  category: string;
+  sortOrder: number;
+  active: boolean;
 };
 
 export type Reference = {
@@ -137,6 +213,11 @@ export type Application = {
   purpose: string | null;
   bankLoginAt: string | null;
   bankReferenceNo: string | null;
+  bankerName: string | null;
+  bankerMobile: string | null;
+  loginFees: string | null;
+  dsaChannel: string | null;
+  portalAccessCode: string | null;
   createdAt: string;
   loanProduct: { id: string; name: string; slug: string } | null;
   lender: { id: string; name: string } | null;
@@ -171,6 +252,9 @@ export type Sanction = {
   financialStatus: SanctionStatus;
   financialAt: string | null;
   financialNote: string | null;
+  legalStatus: SanctionStatus;
+  legalAt: string | null;
+  legalNote: string | null;
   sanctionedAmount: string | null;
   interestRate: string | null;
   tenureMonths: number | null;
@@ -191,16 +275,51 @@ export type Sanction = {
 
 export type DisbursementType = "FULL" | "PART";
 
+export type PayoutStatus = "PENDING" | "PARTIAL" | "PAID";
+
+export type CommissionSplit = {
+  id: string;
+  stakeholderRole: string | null;
+  sharePercent: string;
+  amount: string;
+  status: PayoutStatus;
+  paidAt: string | null;
+  user: Named | null;
+  sourcingPartner: Named | null;
+};
+
+export type Commission = {
+  id: string;
+  disbursementId: string;
+  grossRate: string;
+  grossAmount: string;
+  status: PayoutStatus;
+  receivedAt: string | null;
+  createdAt: string;
+  splits: CommissionSplit[];
+};
+
+export type RoiType = "FIXED" | "FLOATING";
+
+export const ROI_TYPE_LABEL: Record<RoiType, string> = { FIXED: "Fixed Rate", FLOATING: "Floating Rate" };
+
 export type Disbursement = {
   id: string;
   type: DisbursementType;
   amount: string;
   disbursedAt: string;
   interestRate: string | null;
+  roiType: RoiType | null;
+  loanAccountNo: string | null;
   runningBalance: string | null;
   utrNo: string | null;
+  processingFee: string | null;
+  insuranceAmount: string | null;
+  documentationCharges: string | null;
+  stampDuty: string | null;
   note: string | null;
   createdAt: string;
+  commission?: Commission | null;
 };
 
 export type DisbursementSummary = {
@@ -221,3 +340,67 @@ export type DisbursementRow = Disbursement & {
     applicants: { name: string }[];
   };
 };
+
+export type CommissionRow = Omit<Commission, "disbursementId"> & {
+  disbursement: {
+    id: string;
+    amount: string;
+    disbursedAt: string;
+    application: {
+      id: string;
+      applicationNo: string;
+      status: ApplicationStatus;
+      loanProduct: { id: string; name: string } | null;
+      lender: { id: string; name: string } | null;
+      owner: { id: string; name: string } | null;
+      applicants: { name: string }[];
+    };
+  };
+};
+
+export type EducationLoanParent = {
+  contactIndia?: string;
+  contactAbroad?: string;
+  currentAddress?: string;
+  permanentAddress?: string;
+  yearsAtCurrentAddress?: number;
+  personalEmail?: string;
+  qualification?: string;
+  officeName?: string;
+  officeAddress?: string;
+  designation?: string;
+  officeEmail?: string;
+  totalExpYears?: number;
+  currentCompanyExpYears?: number;
+};
+
+export type EducationLoanFriendReference = { name?: string; address?: string; phone?: string };
+
+export type EducationLoanDetails = {
+  student?: {
+    email?: string;
+    currentAddress?: string;
+    permanentAddress?: string;
+    yearsAtCurrentAddress?: number;
+  };
+  father?: EducationLoanParent;
+  mother?: EducationLoanParent;
+  paternalGrandmotherName?: string;
+  maternalGrandmotherName?: string;
+  friendReferences?: EducationLoanFriendReference[];
+  course?: {
+    loanAmount?: number;
+    courseName?: string;
+    courseDuration?: string;
+    courseStartDate?: string;
+    universityName?: string;
+    country?: string;
+  };
+};
+
+export type EducationLoanDetailRecord = {
+  id: string;
+  applicationId: string;
+  details: EducationLoanDetails;
+  updatedAt: string;
+} | null;

@@ -1,4 +1,5 @@
-import { LenderType, PrismaClient, Role } from "@prisma/client";
+import { ChecklistApplicantType, LenderType, PrismaClient, Role } from "@prisma/client";
+import { PRODUCT_CHECKLIST_ITEMS } from "./checklist-data";
 import * as bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -85,6 +86,90 @@ const RATE_CARDS: [label: string, min: number, max: number, avg: string, earning
   ["Project Funding", 0.5, 1.0, "\u20b950L \u2013 \u20b910Cr", "\u20b925,000 \u2013 \u20b910,00,000"],
 ];
 
+// Document checklist master data, distilled from real lender checklists
+// (BOM, ICICI, IndusInd, L&T, Kotak) the client shared for reference.
+// [applicantType | null = any profile, productSlug | null = any product, label, category]
+const CHECKLIST_ITEMS: [ChecklistApplicantType | null, string | null, string, string][] = [
+  // Universal — every applicant, every product
+  [null, null, "PAN card", "KYC"],
+  [null, null, "Aadhaar card", "KYC"],
+  [null, null, "Address proof (passport / electricity bill / voter ID)", "KYC"],
+  [null, null, "Passport-size photograph", "KYC"],
+
+  // Salaried
+  ["SALARIED", null, "Latest 3 months' salary slips", "Income proof"],
+  ["SALARIED", null, "Form 16 / ITR — last 2 years", "Income proof"],
+  ["SALARIED", null, "Last 6 months' salary bank statement", "Bank statement"],
+  ["SALARIED", null, "Employment confirmation / appointment letter", "Income proof"],
+
+  // Self-employed professional (doctor, CA, architect, consultant...)
+  ["PROFESSIONAL", null, "Professional degree certificate", "Business proof"],
+  ["PROFESSIONAL", null, "Last 2 years ITR with computation of income", "Income proof"],
+  ["PROFESSIONAL", null, "Last 2 years P&L, balance sheet, audit report", "Income proof"],
+  ["PROFESSIONAL", null, "Shop Act / tax registration copy", "Business proof"],
+  ["PROFESSIONAL", null, "Last 1 year bank statement (current + savings)", "Bank statement"],
+
+  // Proprietorship
+  ["PROPRIETORSHIP", null, "Last 3 years ITR (individual, audited if applicable)", "Income proof"],
+  ["PROPRIETORSHIP", null, "Last 1 year current + savings account statements", "Bank statement"],
+  [
+    "PROPRIETORSHIP",
+    null,
+    "Business proof — Shop Act / Gram Panchayat certificate / Udyog Aadhaar / GST certificate",
+    "Business proof",
+  ],
+  ["PROPRIETORSHIP", null, "Debtor & creditor list — last 2 years", "Business proof"],
+
+  // Partnership
+  ["PARTNERSHIP", null, "Registered partnership deed", "Business proof"],
+  ["PARTNERSHIP", null, "Last 3 years ITR — firm and all partners", "Income proof"],
+  ["PARTNERSHIP", null, "Last 1 year current + savings account statements", "Bank statement"],
+  ["PARTNERSHIP", null, "Debtor & creditor list — last 2 years", "Business proof"],
+
+  // Private limited company
+  ["PRIVATE_LIMITED", null, "MOA & AOA", "Business proof"],
+  ["PRIVATE_LIMITED", null, "Shareholding pattern / list of directors", "Business proof"],
+  ["PRIVATE_LIMITED", null, "Last 3 years ITR — company and all directors", "Income proof"],
+  ["PRIVATE_LIMITED", null, "Last 3 years audit report and directors' report", "Income proof"],
+  ["PRIVATE_LIMITED", null, "Last 1 year current account bank statement", "Bank statement"],
+  ["PRIVATE_LIMITED", null, "Debtor & creditor list — last 2 years", "Business proof"],
+
+  // LLP
+  ["LLP", null, "LLP agreement", "Business proof"],
+  ["LLP", null, "Last 3 years ITR — LLP and all partners", "Income proof"],
+  ["LLP", null, "Last 1 year bank statement", "Bank statement"],
+
+  // NRI
+  ["NRI", null, "Valid visa copy, stamped on passport", "KYC"],
+  ["NRI", null, "Employment contract copy", "Income proof"],
+  ["NRI", null, "Latest salary slips / Form 16 / P60 / W2 (per country)", "Income proof"],
+  ["NRI", null, "Last 6–12 months NRE/NRO bank statement", "Bank statement"],
+  ["NRI", null, "Credit bureau report of country of residence", "KYC"],
+  ["NRI", null, "Resident-Indian co-applicant's PAN & address proof", "KYC"],
+
+  // Car loan add-ons
+  [null, "new-car-loan", "Vehicle quotation from dealer", "Asset proof"],
+  [null, "new-car-loan", "Down payment receipt from dealer", "Asset proof"],
+  [null, "used-car-loan", "Vehicle quotation from dealer", "Asset proof"],
+  [null, "used-car-loan", "Down payment receipt from dealer", "Asset proof"],
+  [null, "car-refinance", "Existing vehicle RC book copy", "Asset proof"],
+
+  // Home loan / LAP / LRD add-ons
+  [null, "home-loan", "Property title papers and chain of agreements", "Property papers"],
+  [null, "home-loan", "Occupancy certificate / sanctioned plan copy", "Property papers"],
+  [null, "home-loan", "Society share certificate (front & back)", "Property papers"],
+  [
+    null,
+    "loan-against-property",
+    "Property title papers and chain of agreements",
+    "Property papers",
+  ],
+  [null, "loan-against-property", "Occupancy certificate / sanctioned plan copy", "Property papers"],
+  [null, "loan-against-property", "Society share certificate (front & back)", "Property papers"],
+  [null, "lease-rental-discounting", "Registered lease/leave-and-license agreement", "Property papers"],
+  [null, "lease-rental-discounting", "Property title papers and chain of agreements", "Property papers"],
+];
+
 async function main() {
   for (const [i, [slug, name, category]] of PRODUCTS.entries()) {
     await prisma.loanProduct.upsert({
@@ -92,6 +177,38 @@ async function main() {
       update: { name, category, sortOrder: i },
       create: { slug, name, category, sortOrder: i },
     });
+  }
+
+  const productIdBySlug = new Map(
+    (await prisma.loanProduct.findMany({ select: { id: true, slug: true } })).map((p) => [
+      p.slug,
+      p.id,
+    ]),
+  );
+
+  for (const [i, [applicantType, productSlug, label, category]] of CHECKLIST_ITEMS.entries()) {
+    const id = `seed-checklist-${i}`;
+    const data = {
+      applicantType: applicantType ?? null,
+      loanProductId: (productSlug ? productIdBySlug.get(productSlug) : null) ?? null,
+      label,
+      category,
+      sortOrder: i,
+    };
+    await prisma.checklistItem.upsert({ where: { id }, update: data, create: { id, ...data } });
+  }
+
+  // Product-specific items start after the hand-curated ones so existing ids stay stable.
+  for (const [j, [productSlug, label, category]] of PRODUCT_CHECKLIST_ITEMS.entries()) {
+    const id = `seed-checklist-pdf-${j}`;
+    const data = {
+      applicantType: null,
+      loanProductId: productIdBySlug.get(productSlug) ?? null,
+      label,
+      category,
+      sortOrder: CHECKLIST_ITEMS.length + j,
+    };
+    await prisma.checklistItem.upsert({ where: { id }, update: data, create: { id, ...data } });
   }
 
   for (const [i, [name, type, logoUrl]] of LENDERS.entries()) {
@@ -133,7 +250,7 @@ async function main() {
   });
 
   console.log(
-    `Seeded ${PRODUCTS.length} products, ${LENDERS.length} lenders, ${RATE_CARDS.length} rate cards, admin ${email} / ${password}`,
+    `Seeded ${PRODUCTS.length} products, ${LENDERS.length} lenders, ${RATE_CARDS.length} rate cards, ${CHECKLIST_ITEMS.length + PRODUCT_CHECKLIST_ITEMS.length} checklist items, admin ${email} / ${password}`,
   );
 }
 

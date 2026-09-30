@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarCheck, Loader2 } from "lucide-react";
+import { Loader2, UserCheck } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
 import { formatAmount } from "../lib/format";
 import { useAuth } from "../lib/auth";
 import { PageHeader } from "../components/app-shell";
+import { PunchCard } from "../components/punch-card";
+import { MonthPicker } from "../components/date-picker";
+import { isFutureDay, nowParts, todayIST } from "../lib/date";
 
 type Status = "PRESENT" | "ABSENT" | "LEAVE" | "HALF_DAY" | "HOLIDAY";
 
@@ -21,7 +24,7 @@ type StaffMonth = {
   worked: number;
 };
 
-type MonthData = { month: number; year: number; daysInMonth: number; staff: StaffMonth[] };
+type MonthData = { month: number; year: number; firstYear: number; daysInMonth: number; staff: StaffMonth[] };
 
 type PayrollRow = {
   id: string;
@@ -61,12 +64,48 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
+const TILES: { status: Status; label: string; tone: string }[] = [
+  { status: "PRESENT", label: "Present", tone: "bg-emerald-50 text-emerald-700" },
+  { status: "ABSENT", label: "Absent", tone: "bg-red-50 text-red-700" },
+  { status: "HALF_DAY", label: "Half day", tone: "bg-sky-50 text-sky-700" },
+  { status: "LEAVE", label: "On leave", tone: "bg-amber-50 text-amber-700" },
+  { status: "HOLIDAY", label: "Holiday", tone: "bg-slate-100 text-slate-600" },
+];
+
+/** Today's headcount by status, from the month grid already loaded. */
+function TodayTiles({ data }: { data: MonthData | undefined }) {
+  if (!data) return null;
+  const today = todayIST();
+  // "Today" only means something while looking at the current month.
+  if (data.year !== Number(today.slice(0, 4)) || data.month !== Number(today.slice(5, 7))) return null;
+  const counts = new Map<Status, number>();
+  for (const s of data.staff) {
+    const mark = s.days.find((d) => d.date === today);
+    if (mark) counts.set(mark.status, (counts.get(mark.status) ?? 0) + 1);
+  }
+  const unmarked = data.staff.length - [...counts.values()].reduce((a, b) => a + b, 0);
+  return (
+    <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+      {TILES.map((t) => (
+        <div key={t.status} className={clsx("rounded-xl px-4 py-3", t.tone)}>
+          <p className="text-2xl font-bold">{counts.get(t.status) ?? 0}</p>
+          <p className="text-[11px] font-bold tracking-wide uppercase">{t.label} today</p>
+        </div>
+      ))}
+      <div className="rounded-xl bg-bg-light px-4 py-3 text-muted ring-1 ring-line">
+        <p className="text-2xl font-bold">{unmarked}</p>
+        <p className="text-[11px] font-bold tracking-wide uppercase">Not marked</p>
+      </div>
+    </div>
+  );
+}
+
 export function AttendancePage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const now = new Date();
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
+  const now = nowParts();
+  const [month, setMonth] = useState(now.month);
+  const [year, setYear] = useState(now.year);
   const [tab, setTab] = useState<"attendance" | "payroll">("attendance");
 
   const isAdmin = user?.role === "ADMIN";
@@ -113,6 +152,9 @@ export function AttendancePage() {
     ? Array.from({ length: attendance.data.daysInMonth }, (_, i) => i + 1)
     : [];
 
+  // Every year since the firm was founded, through next year — so old months stay reachable.
+  const firstYear = Math.min(attendance.data?.firstYear ?? now.year - 1, year);
+
   const dateFor = (day: number) =>
     `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
@@ -124,14 +166,14 @@ export function AttendancePage() {
         actions={
           tab === "attendance" && (
             <button
-              onClick={() => bulkPresent.mutate(new Date().toISOString().slice(0, 10))}
+              onClick={() => bulkPresent.mutate(todayIST())}
               disabled={bulkPresent.isPending}
               className="btn-primary"
             >
               {bulkPresent.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <CalendarCheck className="h-4 w-4" />
+                <UserCheck className="h-4 w-4" />
               )}
               Mark all present today
             </button>
@@ -140,29 +182,20 @@ export function AttendancePage() {
       />
 
       <div className="px-6 py-5">
+        <div className="mb-4">
+          <PunchCard />
+        </div>
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <select
-            value={month}
-            onChange={(e) => setMonth(Number(e.target.value))}
-            className="field w-40"
-          >
-            {MONTHS.map((m, i) => (
-              <option key={m} value={i + 1}>
-                {m}
-              </option>
-            ))}
-          </select>
-          <select
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-            className="field w-28"
-          >
-            {[year - 1, year, year + 1].map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
+          <MonthPicker
+            month={month}
+            year={year}
+            minYear={firstYear}
+            maxYear={now.year + 1}
+            onChange={(m, y) => {
+              setMonth(m);
+              setYear(y);
+            }}
+          />
 
           <div className="ml-auto flex gap-1 rounded-md border border-line bg-white p-1">
             {(["attendance", ...(isAdmin ? (["payroll"] as const) : [])] as const).map((t) => (
@@ -188,6 +221,7 @@ export function AttendancePage() {
 
         {tab === "attendance" ? (
           <>
+            <TodayTiles data={attendance.data} />
             <div className="card overflow-x-auto">
               {attendance.isPending ? (
                 <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
@@ -221,7 +255,7 @@ export function AttendancePage() {
                           </td>
                           {days.map((d) => {
                             const entry = byDate.get(dateFor(d));
-                            const isFuture = new Date(dateFor(d)) > new Date();
+                            const isFuture = isFutureDay(dateFor(d));
                             return (
                               <td key={d} className="p-0.5 text-center">
                                 <button
@@ -264,7 +298,7 @@ export function AttendancePage() {
             </p>
           </>
         ) : (
-          <div className="card overflow-hidden">
+          <div className="card overflow-x-auto">
             {payroll.isPending ? (
               <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
                 <Loader2 className="h-4 w-4 animate-spin" /> Loading…

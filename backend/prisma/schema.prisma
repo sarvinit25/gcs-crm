@@ -30,6 +30,15 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  employeeCode      String?  @unique
+  dateOfBirth       DateTime? @db.Date
+  joinedAt          DateTime? @db.Date
+  commissionPercent Decimal?  @db.Decimal(5, 2)
+  reportsToId       String?
+  reportsTo         User?    @relation("Reporting", fields: [reportsToId], references: [id], onDelete: SetNull)
+  reports           User[]   @relation("Reporting")
+  managedPartners   SourcingPartner[] @relation("PartnerManager")
+
   leadsAsOfficer   Lead[]             @relation("LeadOfficer")
   leadsAsManager   Lead[]             @relation("LeadManager")
   applications     Application[]      @relation("ApplicationOwner")
@@ -121,12 +130,15 @@ model LoanProduct {
   active    Boolean  @default(true)
   sortOrder Int      @default(0)
 
-  leads        Lead[]
-  applications Application[]
+  leads          Lead[]
+  applications   Application[]
+  checklistItems ChecklistItem[]
 }
 
 model SourcingPartner {
   id             String   @id @default(cuid())
+  // Human-facing reference, e.g. GCS-BSA-001.
+  code           String?  @unique
   name           String
   firm           String?
   phone          String   @unique
@@ -138,6 +150,10 @@ model SourcingPartner {
   passwordHash   String?
   active         Boolean  @default(true)
   createdAt      DateTime @default(now())
+
+  // The staff member who looks after this partner.
+  managerId String?
+  manager   User?   @relation("PartnerManager", fields: [managerId], references: [id], onDelete: SetNull)
 
   leads            Lead[]
   commissionSplits CommissionSplit[]
@@ -204,6 +220,13 @@ model Lead {
   status         LeadStatus @default(NEW)
   nextFollowUpAt DateTime?
   notes          String?
+
+  // Why a lead was closed out — set when status becomes LOST, cleared if it is reopened.
+  lostReason     String?
+  employmentType EmploymentType?
+  monthlyIncome  Decimal?        @db.Decimal(14, 2)
+  meetingMode    String?
+  meetingPlace   String?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
@@ -213,6 +236,9 @@ model Lead {
   @@index([status, nextFollowUpAt])
   @@index([assignedOfficerId])
   @@index([phone])
+  @@index([createdAt])
+  @@index([loanProductId])
+  @@index([sourcingPartnerId])
 }
 
 model FollowUp {
@@ -250,6 +276,17 @@ enum EmploymentType {
   OTHER
 }
 
+// Only meaningful when employmentType is SELF_EMPLOYED or BUSINESS — how the
+// business is constituted, which is what actually drives which business-proof
+// documents a lender asks for (Shop Act vs Partnership Deed vs MOA/AOA...).
+enum ApplicantConstitution {
+  PROPRIETORSHIP
+  PARTNERSHIP
+  PRIVATE_LIMITED
+  LLP
+  OTHER
+}
+
 model Application {
   id String @id @default(cuid())
   // Drives the human-facing reference (GCS-2026-0042), formatted on read.
@@ -272,21 +309,39 @@ model Application {
   tenureMonths    Int?
   purpose         String?
   bankLoginAt     DateTime?
+  // The bank's own reference for this file, once logged in — distinct from
+  // our applicationNo.
   bankReferenceNo String?
+  // Who at the bank is handling it, and what it cost to log in — and which
+  // channel/DSA the file was routed through, when it's not a direct login.
+  bankerName    String?
+  bankerMobile  String?
+  loginFees     Decimal? @db.Decimal(12, 2)
+  dsaChannel    String?
+
+  // Shared secret (with the primary applicant's phone) for the borrower
+  // portal login — never the same value as the human-facing applicationNo,
+  // which is sequential and guessable.
+  portalAccessCode String? @unique
 
   status    ApplicationStatus @default(DRAFT)
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
-  applicants     Applicant[]
-  references     Reference[]
-  documents      Document[]
-  sanction       Sanction?
-  disbursements  Disbursement[]
-  statementScans BankStatementAnalysis[]
+  applicants          Applicant[]
+  references          Reference[]
+  documents           Document[]
+  sanction            Sanction?
+  disbursements       Disbursement[]
+  statementScans      BankStatementAnalysis[]
+  educationLoanDetail EducationLoanDetail?
 
   @@index([status])
   @@index([ownerId])
+  @@index([createdAt])
+  @@index([loanProductId])
+  @@index([lenderId])
+  @@index([bankLoginAt])
 }
 
 model Applicant {
@@ -307,8 +362,10 @@ model Applicant {
   city           String?
   pincode        String?
   employmentType EmploymentType?
+  constitution   ApplicantConstitution?
+  isNRI          Boolean                @default(false)
   employerName   String?
-  monthlyIncome  Decimal?        @db.Decimal(14, 2)
+  monthlyIncome  Decimal?               @db.Decimal(14, 2)
   cibilScore     Int?
 
   @@index([applicationId])
@@ -367,6 +424,11 @@ model Sanction {
   financialAt     DateTime?
   financialNote   String?
 
+  // A third, independent leg — the legal team's title/document review.
+  legalStatus SanctionStatus @default(PENDING)
+  legalAt     DateTime?
+  legalNote   String?
+
   sanctionedAmount Decimal? @db.Decimal(14, 2)
   interestRate     Decimal? @db.Decimal(5, 2)
   tenureMonths     Int?
@@ -375,6 +437,7 @@ model Sanction {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([updatedAt])
 }
 
 // ─── Disbursements ──────────────────────────────────────────
@@ -382,6 +445,11 @@ model Sanction {
 enum DisbursementType {
   FULL
   PART
+}
+
+enum RoiType {
+  FIXED
+  FLOATING
 }
 
 model Disbursement {
@@ -393,11 +461,21 @@ model Disbursement {
   amount         Decimal          @db.Decimal(14, 2)
   disbursedAt    DateTime
   interestRate   Decimal?         @db.Decimal(5, 2)
+  roiType        RoiType?
+  loanAccountNo  String?
   // Sanctioned amount still undrawn after this payout.
   runningBalance Decimal?         @db.Decimal(14, 2)
   utrNo          String?
-  note           String?
-  createdAt      DateTime         @default(now())
+
+  // Deducted-at-disbursal charges — kept separate from `amount` (the net
+  // payout) so the gross breakdown stays visible on the file.
+  processingFee        Decimal? @db.Decimal(14, 2)
+  insuranceAmount      Decimal? @db.Decimal(14, 2)
+  documentationCharges Decimal? @db.Decimal(14, 2)
+  stampDuty            Decimal? @db.Decimal(14, 2)
+
+  note      String?
+  createdAt DateTime @default(now())
 
   commission Commission?
 
@@ -427,6 +505,7 @@ model Commission {
   updatedAt   DateTime     @updatedAt
 
   splits CommissionSplit[]
+  @@index([createdAt])
 }
 
 // One row per stakeholder taking a cut of a commission — staff or sourcing partner.
@@ -439,6 +518,11 @@ model CommissionSplit {
   user              User?            @relation(fields: [userId], references: [id])
   sourcingPartnerId String?
   sourcingPartner   SourcingPartner? @relation(fields: [sourcingPartnerId], references: [id])
+
+  // Free-text tag for why this stakeholder gets a cut on this deal specifically
+  // (e.g. "Lead Creator", "RO", "Sales Manager") — distinct from their
+  // permanent staff Role, and organisation-specific enough not to be an enum.
+  stakeholderRole String?
 
   sharePercent Decimal      @db.Decimal(5, 2)
   amount       Decimal      @db.Decimal(14, 2)
@@ -465,6 +549,8 @@ model Attendance {
   date   DateTime         @db.Date
   status AttendanceStatus @default(PRESENT)
   note   String?
+  checkInAt  DateTime?
+  checkOutAt DateTime?
 
   @@unique([userId, date])
   @@index([date])
@@ -508,4 +594,63 @@ model BankStatementAnalysis {
   createdAt      DateTime @default(now())
 
   @@index([applicationId])
+}
+
+// ─── Document checklist ─────────────────────────────────────
+
+// The applicant-profile branch a checklist item applies to. Distinct from
+// EmploymentType/ApplicantConstitution on Applicant — this is what a
+// ChecklistItem is tagged with; the checklist service resolves which bucket
+// an applicant falls into (NRI overrides everything else, then employment
+// type, then business constitution) and matches items against it.
+enum ChecklistApplicantType {
+  SALARIED
+  PROFESSIONAL
+  PROPRIETORSHIP
+  PARTNERSHIP
+  PRIVATE_LIMITED
+  LLP
+  NRI
+}
+
+/**
+ * Master reference data for "what documents does this case need" — not
+ * per-application state. A null loanProductId means the item applies to every
+ * product; a null applicantType means it applies regardless of the primary
+ * applicant's profile (e.g. PAN card). The application-level checklist view
+ * resolves the applicable rows and cross-checks them against uploaded
+ * Documents by category to show Given/Pending.
+ */
+model ChecklistItem {
+  id            String                  @id @default(cuid())
+  loanProductId String?
+  loanProduct   LoanProduct?            @relation(fields: [loanProductId], references: [id], onDelete: Cascade)
+  applicantType ChecklistApplicantType?
+  label         String
+  category      String
+  sortOrder     Int                     @default(0)
+  active        Boolean                 @default(true)
+  createdAt     DateTime                @default(now())
+
+  @@index([loanProductId, applicantType])
+}
+
+// ─── Education Loan case intake ─────────────────────────────
+
+/**
+ * Education Loan's own intake sheet — family and course details that don't
+ * fit any other loan product and aren't worth adding narrow columns for
+ * everywhere else. `details` is validated at the API boundary
+ * (EducationLoanDetailsDto) even though it's stored as one JSON blob, the
+ * same way BankStatementAnalysis.raw holds a validated shape.
+ */
+model EducationLoanDetail {
+  id            String      @id @default(cuid())
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  details Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -6,6 +6,7 @@ import {
   CreateApplicationDto,
   ListApplicationsQuery,
   ReferenceDto,
+  UpdateApplicantDto,
   UpdateApplicationDto,
 } from "./dto/application.dto";
 
@@ -38,6 +39,15 @@ export class ApplicationsController {
     return this.applications.update(id, dto, user, ip);
   }
 
+  @Post(":id/portal-access-code")
+  regeneratePortalAccessCode(
+    @Param("id") id: string,
+    @CurrentUser() user: AuthUser,
+    @Ip() ip: string,
+  ) {
+    return this.applications.regeneratePortalAccessCode(id, user, ip);
+  }
+
   @Post(":id/applicants")
   addApplicant(@Param("id") id: string, @Body() dto: ApplicantDto, @CurrentUser() user: AuthUser) {
     return this.applications.addApplicant(id, dto, user);
@@ -47,7 +57,7 @@ export class ApplicationsController {
   updateApplicant(
     @Param("id") id: string,
     @Param("applicantId") applicantId: string,
-    @Body() dto: ApplicantDto,
+    @Body() dto: UpdateApplicantDto,
     @CurrentUser() user: AuthUser,
   ) {
     return this.applications.updateApplicant(id, applicantId, dto, user);

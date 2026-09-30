@@ -1,21 +1,32 @@
 import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Loader2, Plus, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Plus, Trash2, UserPlus } from "lucide-react";
 import { api } from "../lib/api";
-import { formatAmount, formatDate } from "../lib/format";
+import { formatAmount, formatDate, humanize } from "../lib/format";
 import {
   APPLICATION_STATUSES,
   APPLICATION_STATUS_LABEL,
+  CONSTITUTION_LABEL,
+  EMPLOYMENT_TYPE_LABEL,
+  type ApplicantConstitution,
   type ApplicationDetail,
   type ApplicationStatus,
+  type EmploymentType,
   type Lender,
 } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
 import { ApplicationStatusBadge } from "../components/status-badge";
 import { SanctionPanel } from "../components/sanction-panel";
+import { EducationLoanDetailPanel } from "../components/education-loan-detail-panel";
+import { LoginStatusPanel } from "../components/login-status-panel";
+import { BorrowerPortalPanel } from "../components/borrower-portal-panel";
 import { DocumentsPanel } from "../components/documents-panel";
 import { DisbursementPanel } from "../components/disbursement-panel";
+import { ChecklistPanel } from "../components/checklist-panel";
+
+const EMPLOYMENT_TYPES = Object.keys(EMPLOYMENT_TYPE_LABEL) as EmploymentType[];
+const CONSTITUTIONS = Object.keys(CONSTITUTION_LABEL) as ApplicantConstitution[];
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -31,6 +42,7 @@ export function ApplicationDetailPage() {
   const queryClient = useQueryClient();
   const [showApplicant, setShowApplicant] = useState(false);
   const [showReference, setShowReference] = useState(false);
+  const [editingApplicantId, setEditingApplicantId] = useState<string | null>(null);
 
   const query = useQuery({
     queryKey: ["application", applicationId],
@@ -59,6 +71,19 @@ export function ApplicationDetailPage() {
     onSuccess: () => {
       setShowApplicant(false);
       invalidate();
+    },
+  });
+
+  const updateApplicant = useMutation({
+    mutationFn: ({ id, ...body }: { id: string } & Record<string, unknown>) =>
+      api(`/applications/${applicationId}/applicants/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      }),
+    onSuccess: () => {
+      setEditingApplicantId(null);
+      invalidate();
+      void queryClient.invalidateQueries({ queryKey: ["checklist", applicationId] });
     },
   });
 
@@ -102,7 +127,9 @@ export function ApplicationDetailPage() {
   const app = query.data;
   const primary = app.applicants.find((a) => a.isPrimary);
   const coApplicants = app.applicants.filter((a) => !a.isPrimary);
-  const mutationError = [patch, addApplicant, addReference].find((m) => m.isError)?.error;
+  const mutationError = [patch, addApplicant, updateApplicant, addReference].find(
+    (m) => m.isError,
+  )?.error;
 
   return (
     <>
@@ -152,8 +179,6 @@ export function ApplicationDetailPage() {
                   value={app.tenureMonths ? `${app.tenureMonths} months` : null}
                 />
                 <Field label="Owner" value={app.owner?.name} />
-                <Field label="Bank login" value={formatDate(app.bankLoginAt)} />
-                <Field label="Bank ref" value={app.bankReferenceNo} />
               </div>
               {app.purpose && (
                 <p className="mt-5 rounded-md bg-bg-light px-3 py-2.5 text-[13px] text-muted">
@@ -178,27 +203,22 @@ export function ApplicationDetailPage() {
                     ))}
                   </select>
                 </label>
-
-                <label className="text-[11px] font-bold tracking-wide text-muted uppercase">
-                  Bank login date
-                  <input
-                    type="date"
-                    defaultValue={app.bankLoginAt?.slice(0, 10) ?? ""}
-                    onBlur={(e) =>
-                      e.target.value &&
-                      patch.mutate({ bankLoginAt: new Date(e.target.value).toISOString() })
-                    }
-                    className="field mt-1.5 font-normal tracking-normal normal-case"
-                  />
-                </label>
               </div>
             </section>
 
-            <SanctionPanel applicationId={applicationId} />
+            <div id="login"><LoginStatusPanel applicationId={applicationId} /></div>
 
-            <DisbursementPanel applicationId={applicationId} />
+            <div id="portal"><BorrowerPortalPanel applicationId={applicationId} /></div>
 
-            <section className="card p-5">
+            <div id="sanction"><SanctionPanel applicationId={applicationId} /></div>
+
+            {app.loanProduct?.slug === "education-loan" && (
+              <EducationLoanDetailPanel applicationId={applicationId} />
+            )}
+
+            <div id="disbursement"><DisbursementPanel applicationId={applicationId} /></div>
+
+            <section id="applicants" className="card p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-sm font-bold text-navy">
                   Applicants <span className="text-muted">({app.applicants.length})</span>
@@ -222,6 +242,9 @@ export function ApplicationDetailPage() {
                         ? Number(f.get("monthlyIncome"))
                         : undefined,
                       cibilScore: f.get("cibilScore") ? Number(f.get("cibilScore")) : undefined,
+                      employmentType: f.get("employmentType") || undefined,
+                      constitution: f.get("constitution") || undefined,
+                      isNRI: f.get("isNRI") === "on",
                     });
                   }}
                   className="mb-4 grid gap-2 rounded-lg bg-bg-light p-3 sm:grid-cols-3"
@@ -237,6 +260,26 @@ export function ApplicationDetailPage() {
                     className="field"
                   />
                   <input name="cibilScore" type="number" placeholder="CIBIL" className="field" />
+                  <select name="employmentType" defaultValue="" className="field">
+                    <option value="">Employment type</option>
+                    {EMPLOYMENT_TYPES.map((t) => (
+                      <option key={t} value={t}>
+                        {EMPLOYMENT_TYPE_LABEL[t]}
+                      </option>
+                    ))}
+                  </select>
+                  <select name="constitution" defaultValue="" className="field">
+                    <option value="">Business constitution (if self-employed)</option>
+                    {CONSTITUTIONS.map((c) => (
+                      <option key={c} value={c}>
+                        {CONSTITUTION_LABEL[c]}
+                      </option>
+                    ))}
+                  </select>
+                  <label className="flex items-center gap-2 text-[13px] text-muted">
+                    <input name="isNRI" type="checkbox" className="h-4 w-4" />
+                    NRI
+                  </label>
                   <button
                     type="submit"
                     disabled={addApplicant.isPending}
@@ -267,21 +310,95 @@ export function ApplicationDetailPage() {
                           {[a!.phone, a!.pan, a!.city].filter(Boolean).join(" · ") || "—"}
                         </p>
                       </div>
-                      {!a!.isPrimary && (
+                      <div className="flex items-center gap-1">
                         <button
-                          onClick={() => removeApplicant.mutate(a!.id)}
-                          className="rounded p-1 text-muted transition hover:bg-red-50 hover:text-red-600"
-                          title="Remove co-applicant"
+                          onClick={() =>
+                            setEditingApplicantId(editingApplicantId === a!.id ? null : a!.id)
+                          }
+                          className="rounded p-1 text-muted transition hover:bg-bg-light hover:text-navy"
+                          title="Edit profile"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Pencil className="h-3.5 w-3.5" />
                         </button>
-                      )}
+                        {!a!.isPrimary && (
+                          <button
+                            onClick={() => removeApplicant.mutate(a!.id)}
+                            className="rounded p-1 text-muted transition hover:bg-red-50 hover:text-red-600"
+                            title="Remove co-applicant"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[12px] text-muted">
                       {a!.monthlyIncome && <span>Income {formatAmount(a!.monthlyIncome)}/mo</span>}
                       {a!.cibilScore && <span>CIBIL {a!.cibilScore}</span>}
                       {a!.employerName && <span>{a!.employerName}</span>}
+                      {a!.employmentType && <span>{EMPLOYMENT_TYPE_LABEL[a!.employmentType]}</span>}
+                      {a!.constitution && <span>{CONSTITUTION_LABEL[a!.constitution]}</span>}
+                      {a!.isNRI && <span className="font-semibold text-gold-dark">NRI</span>}
                     </div>
+
+                    {editingApplicantId === a!.id && (
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const f = new FormData(e.currentTarget);
+                          updateApplicant.mutate({
+                            id: a!.id,
+                            employmentType: f.get("employmentType") || undefined,
+                            constitution: f.get("constitution") || undefined,
+                            isNRI: f.get("isNRI") === "on",
+                          });
+                        }}
+                        className="mt-3 grid gap-2 rounded-lg bg-bg-light p-3 sm:grid-cols-3"
+                      >
+                        <select
+                          name="employmentType"
+                          defaultValue={a!.employmentType ?? ""}
+                          className="field"
+                        >
+                          <option value="">Employment type</option>
+                          {EMPLOYMENT_TYPES.map((t) => (
+                            <option key={t} value={t}>
+                              {EMPLOYMENT_TYPE_LABEL[t]}
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          name="constitution"
+                          defaultValue={a!.constitution ?? ""}
+                          className="field"
+                        >
+                          <option value="">Business constitution (if self-employed)</option>
+                          {CONSTITUTIONS.map((c) => (
+                            <option key={c} value={c}>
+                              {CONSTITUTION_LABEL[c]}
+                            </option>
+                          ))}
+                        </select>
+                        <label className="flex items-center gap-2 text-[13px] text-muted">
+                          <input
+                            name="isNRI"
+                            type="checkbox"
+                            defaultChecked={a!.isNRI}
+                            className="h-4 w-4"
+                          />
+                          NRI
+                        </label>
+                        <button
+                          type="submit"
+                          disabled={updateApplicant.isPending}
+                          className="btn-primary sm:col-span-3"
+                        >
+                          {updateApplicant.isPending && (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          )}
+                          Save profile
+                        </button>
+                      </form>
+                    )}
                   </div>
                 ))}
               </div>
@@ -300,16 +417,18 @@ export function ApplicationDetailPage() {
                   >
                     Lead #{app.lead.leadNo}
                   </Link>
-                  <span className="text-muted"> · {app.lead.source}</span>
+                  <span className="text-muted"> · {humanize(app.lead.source)}</span>
                 </p>
               ) : (
                 <p className="mt-2 text-[13px] text-muted">Raised directly, not from a lead.</p>
               )}
             </section>
 
-            <DocumentsPanel applicationId={applicationId} />
+            <div id="checklist"><ChecklistPanel applicationId={applicationId} /></div>
 
-            <section className="card p-5">
+            <div id="documents"><DocumentsPanel applicationId={applicationId} /></div>
+
+            <section id="references" className="card p-5">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-sm font-bold text-navy">
                   References <span className="text-muted">({app.references.length})</span>

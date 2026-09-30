@@ -9,7 +9,7 @@ import {
   Length,
   Min,
 } from "class-validator";
-import { DisbursementType } from "@prisma/client";
+import { DisbursementType, RoiType } from "@prisma/client";
 
 export class CreateDisbursementDto {
   @IsOptional() @IsEnum(DisbursementType) type?: DisbursementType;
@@ -19,15 +19,24 @@ export class CreateDisbursementDto {
   @IsDateString() disbursedAt: string;
 
   @IsOptional() @IsNumber() @Min(0) interestRate?: number;
+  @IsOptional() @IsEnum(RoiType) roiType?: RoiType;
+  @IsOptional() @IsString() @Length(0, 60) loanAccountNo?: string;
   @IsOptional() @IsString() @Length(0, 40) utrNo?: string;
+
+  @IsOptional() @IsNumber() @Min(0) processingFee?: number;
+  @IsOptional() @IsNumber() @Min(0) insuranceAmount?: number;
+  @IsOptional() @IsNumber() @Min(0) documentationCharges?: number;
+  @IsOptional() @IsNumber() @Min(0) stampDuty?: number;
+
   @IsOptional() @IsString() @Length(0, 500) note?: string;
 }
 
 export class ListDisbursementsQuery {
   @IsOptional() @IsString() search?: string;
   @IsOptional() @IsString() lenderId?: string;
-  @IsOptional() @IsDateString() from?: string;
-  @IsOptional() @IsDateString() to?: string;
+  @IsOptional() @IsString() range?: string;
+  @IsOptional() @IsString() from?: string;
+  @IsOptional() @IsString() to?: string;
 
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) pageSize?: number;

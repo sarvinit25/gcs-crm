@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Search } from "lucide-react";
+import { Download, Loader2, Search } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
+import { downloadReport } from "../lib/download-report";
 import { formatAmount, formatDate } from "../lib/format";
 import type { DisbursementRow, Paginated } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
+import { DatePicker } from "../components/date-picker";
 
 type Result = Paginated<DisbursementRow> & { totalAmount: string | number };
 
@@ -21,8 +23,8 @@ export function DisbursementsPage() {
       api<Result>(
         `/disbursements${qs({
           search,
-          from: from ? new Date(from).toISOString() : undefined,
-          to: to ? new Date(to).toISOString() : undefined,
+          from: from || undefined,
+          to: to || undefined,
         })}`,
       ),
   });
@@ -35,6 +37,14 @@ export function DisbursementsPage() {
           query.data
             ? `${query.data.total} payouts · ${formatAmount(query.data.totalAmount)} released`
             : "Every payout, full and part"
+        }
+        actions={
+          <button
+            onClick={() => void downloadReport("disbursements", { q: search, from: from || undefined, to: to || undefined })}
+            className="btn-ghost"
+          >
+            <Download className="h-4 w-4" /> Export
+          </button>
         }
       />
 
@@ -49,23 +59,11 @@ export function DisbursementsPage() {
               className="field w-64 pl-9"
             />
           </div>
-          <input
-            type="date"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="field w-40"
-            title="From"
-          />
-          <input
-            type="date"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="field w-40"
-            title="To"
-          />
+          <DatePicker value={from} onChange={setFrom} max={to || undefined} className="w-44" title="From" placeholder="From date" />
+          <DatePicker value={to} onChange={setTo} min={from || undefined} className="w-44" title="To" placeholder="To date" />
         </div>
 
-        <div className="card overflow-hidden">
+        <div className="card overflow-x-auto">
           {query.isPending ? (
             <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
               <Loader2 className="h-4 w-4 animate-spin" /> Loading…

@@ -6,6 +6,7 @@ import { AuditService, diff } from "../audit/audit.service";
 import { SettingsService } from "../settings/settings.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { CreateUserDto, UpdateUserDto } from "./dto/team.dto";
+import { istToday } from "../common/date.util";
 
 const PUBLIC_FIELDS = {
   id: true,
@@ -16,6 +17,12 @@ const PUBLIC_FIELDS = {
   designation: true,
   active: true,
   createdAt: true,
+  employeeCode: true,
+  dateOfBirth: true,
+  joinedAt: true,
+  commissionPercent: true,
+  reportsToId: true,
+  reportsTo: { select: { id: true, name: true } },
 } satisfies Prisma.UserSelect;
 
 @Injectable()
@@ -50,6 +57,29 @@ export class TeamService {
     });
   }
 
+  private async nextEmployeeCode() {
+    const codes = await this.prisma.user.findMany({
+      where: { employeeCode: { not: null } },
+      select: { employeeCode: true },
+    });
+    const max = codes.reduce((m, c) => Math.max(m, Number(c.employeeCode!.split("-").pop()) || 0), 0);
+    return `GCS-EMP-${String(max + 1).padStart(3, "0")}`;
+  }
+
+  /** A reporting line that loops back on itself would make the hierarchy unresolvable. */
+  private async assertNoReportingLoop(id: string, reportsToId: string) {
+    if (reportsToId === id) throw new BadRequestException("A staff member cannot report to themselves");
+    let cursor: string | null = reportsToId;
+    for (let hops = 0; cursor && hops < 50; hops++) {
+      if (cursor === id) throw new BadRequestException("That reporting line would create a loop");
+      const next: { reportsToId: string | null } | null = await this.prisma.user.findUnique({
+        where: { id: cursor },
+        select: { reportsToId: true },
+      });
+      cursor = next?.reportsToId ?? null;
+    }
+  }
+
   async create(dto: CreateUserDto, actor: AuthUser, ip?: string) {
     this.assertPasswordPolicy(dto.password);
     const email = dto.email.toLowerCase();
@@ -64,6 +94,11 @@ export class TeamService {
         phone: dto.phone,
         role: dto.role,
         designation: dto.designation,
+        employeeCode: await this.nextEmployeeCode(),
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+        joinedAt: new Date(dto.joinedAt ?? istToday()),
+        commissionPercent: dto.commissionPercent,
+        reportsToId: dto.reportsToId || undefined,
         passwordHash: await AuthService.hashPassword(dto.password),
       },
       select: PUBLIC_FIELDS,
@@ -99,7 +134,16 @@ export class TeamService {
       if (clash) throw new ConflictException("A staff member with this email already exists");
     }
 
-    const data = { ...dto, ...(dto.email && { email: dto.email.toLowerCase() }) };
+    if (dto.reportsToId) await this.assertNoReportingLoop(id, dto.reportsToId);
+
+    const { dateOfBirth, joinedAt, reportsToId, ...rest } = dto;
+    const data = {
+      ...rest,
+      ...(dto.email && { email: dto.email.toLowerCase() }),
+      ...(dateOfBirth !== undefined && { dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null }),
+      ...(joinedAt !== undefined && { joinedAt: joinedAt ? new Date(joinedAt) : null }),
+      ...(reportsToId !== undefined && { reportsToId: reportsToId || null }),
+    };
     const user = await this.prisma.user.update({ where: { id }, data, select: PUBLIC_FIELDS });
 
     await this.audit.recordUpdate({

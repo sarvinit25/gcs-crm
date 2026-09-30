@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, Length, Matches } from "class-validator";
+import { IsBoolean, IsDateString, IsEmail, IsEnum, IsNumber, IsOptional, IsString, Length, Matches, Max, Min } from "class-validator";
 import { Role } from "@prisma/client";
 
 export class CreateUserDto {
@@ -13,6 +13,11 @@ export class CreateUserDto {
 
   @IsOptional() @IsString() @Length(0, 80) designation?: string;
 
+  @IsOptional() @IsDateString() dateOfBirth?: string;
+  @IsOptional() @IsDateString() joinedAt?: string;
+  @IsOptional() @IsString() reportsToId?: string;
+  @IsOptional() @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) @Max(100) commissionPercent?: number;
+
   @IsString()
   @Length(10, 128, { message: "password must be at least 10 characters" })
   password: string;
@@ -25,6 +30,11 @@ export class UpdateUserDto {
   @IsOptional() @IsEnum(Role) role?: Role;
   @IsOptional() @IsString() @Length(0, 80) designation?: string;
   @IsOptional() @IsBoolean() active?: boolean;
+
+  @IsOptional() @IsDateString() dateOfBirth?: string;
+  @IsOptional() @IsDateString() joinedAt?: string;
+  @IsOptional() @IsString() reportsToId?: string;
+  @IsOptional() @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) @Max(100) commissionPercent?: number;
 }
 
 export class ResetPasswordDto {

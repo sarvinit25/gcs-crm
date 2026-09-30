@@ -4,11 +4,14 @@ import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { AuditService, diff } from "../audit/audit.service";
 import { SettingsService } from "../settings/settings.service";
+import { rangeFilter, resolveRange } from "../common/date.util";
+import { generatePortalAccessCode } from "../common/access-code.util";
 import {
   ApplicantDto,
   CreateApplicationDto,
   ListApplicationsQuery,
   ReferenceDto,
+  UpdateApplicantDto,
   UpdateApplicationDto,
 } from "./dto/application.dto";
 
@@ -67,6 +70,7 @@ export class ApplicationsService {
           purpose: dto.purpose,
           lenderId: dto.lenderId,
           ownerId: dto.ownerId ?? user.id,
+          portalAccessCode: generatePortalAccessCode(),
           applicants: {
             create: applicants.map((a, i) => ({
               ...this.applicantData(a),
@@ -111,6 +115,9 @@ export class ApplicationsService {
       ...(query.status && { status: query.status }),
       ...(query.lenderId && { lenderId: query.lenderId }),
       ...(query.ownerId && { ownerId: query.ownerId }),
+      ...(query.loanProductId && { loanProductId: query.loanProductId }),
+      ...(query.loggedIn === "true" && { bankLoginAt: { not: null } }),
+      ...(rangeFilter(resolveRange(query)) && { createdAt: rangeFilter(resolveRange(query)) }),
       ...(query.search && {
         OR: [
           ...(Number.isFinite(seqFromSearch) ? [{ seq: seqFromSearch }] : []),
@@ -173,6 +180,24 @@ export class ApplicationsService {
     return this.decorate(app);
   }
 
+  /** Issues a fresh borrower-portal code — e.g. if the old one was shared too widely. */
+  async regeneratePortalAccessCode(id: string, user: AuthUser, ip?: string) {
+    await this.findOne(id, user);
+    const portalAccessCode = generatePortalAccessCode();
+    await this.prisma.application.update({ where: { id }, data: { portalAccessCode } });
+
+    await this.audit.record({
+      actor: user,
+      action: AuditAction.UPDATE,
+      entity: "Application",
+      entityId: id,
+      entityLabel: "Portal access code",
+      ip,
+    });
+
+    return { portalAccessCode };
+  }
+
   async addApplicant(id: string, dto: ApplicantDto, user: AuthUser) {
     await this.findOne(id, user);
     return this.prisma.applicant.create({
@@ -180,11 +205,11 @@ export class ApplicationsService {
     });
   }
 
-  async updateApplicant(id: string, applicantId: string, dto: ApplicantDto, user: AuthUser) {
+  async updateApplicant(id: string, applicantId: string, dto: UpdateApplicantDto, user: AuthUser) {
     await this.findOne(id, user);
     return this.prisma.applicant.update({
       where: { id: applicantId },
-      data: this.applicantData(dto),
+      data: { ...dto },
     });
   }
 

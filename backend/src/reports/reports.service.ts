@@ -3,20 +3,127 @@ import { ApplicationStatus, LeadStatus, Prisma, Role, SanctionStatus } from "@pr
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { SettingsService } from "../settings/settings.service";
+import { describeRange, istParts, rangeFilter, resolveRange, ymd } from "../common/date.util";
 
-export type ReportRange = { from?: string; to?: string };
+export type ReportRange = { range?: string; from?: string; to?: string };
+
+export const RECORD_TYPES = ["leads", "applications", "sanctions", "disbursements", "commissions"] as const;
+export type RecordType = (typeof RECORD_TYPES)[number];
+
+export type RecordFilters = ReportRange & {
+  status?: string;
+  loanProductId?: string;
+  q?: string;
+};
+
+export type ColumnType = "text" | "amount" | "date" | "percent" | "number";
+export type RecordColumn = { key: string; label: string; type: ColumnType };
+
+/** On-screen preview cap; exports pass a far higher limit so nothing is silently dropped. */
+export const PREVIEW_LIMIT = 1000;
+export const EXPORT_LIMIT = 100_000;
+
+const TITLES: Record<RecordType, string> = {
+  leads: "Leads Report",
+  applications: "Applications Report",
+  sanctions: "Sanctions Report",
+  disbursements: "Disbursements Report",
+  commissions: "Commissions Report",
+};
+
+// The field whose values are worth tallying per report ("12 converted, 3 lost…").
+const TALLY_KEY: Record<RecordType, string> = {
+  leads: "status",
+  applications: "status",
+  sanctions: "financial",
+  disbursements: "type",
+  commissions: "status",
+};
+
+export const prettify = (v: unknown) =>
+  typeof v === "string" && /^[A-Z_]+$/.test(v)
+    ? v.charAt(0) + v.slice(1).toLowerCase().replace(/_/g, " ")
+    : v;
+
+const COLUMNS: Record<RecordType, RecordColumn[]> = {
+  leads: [
+    { key: "leadNo", label: "Lead ID", type: "text" },
+    { key: "date", label: "Lead date", type: "date" },
+    { key: "customer", label: "Customer", type: "text" },
+    { key: "phone", label: "Mobile", type: "text" },
+    { key: "email", label: "Email", type: "text" },
+    { key: "city", label: "City", type: "text" },
+    { key: "loanType", label: "Loan type", type: "text" },
+    { key: "amount", label: "Loan amount", type: "amount" },
+    { key: "source", label: "Source", type: "text" },
+    { key: "partner", label: "Sourcing partner", type: "text" },
+    { key: "officer", label: "Assigned to", type: "text" },
+    { key: "status", label: "Status", type: "text" },
+    { key: "lostReason", label: "Lost reason", type: "text" },
+  ],
+  applications: [
+    { key: "applicationNo", label: "Application no.", type: "text" },
+    { key: "date", label: "Created", type: "date" },
+    { key: "customer", label: "Customer", type: "text" },
+    { key: "phone", label: "Mobile", type: "text" },
+    { key: "loanType", label: "Loan type", type: "text" },
+    { key: "lender", label: "Lender", type: "text" },
+    { key: "amount", label: "Requested amount", type: "amount" },
+    { key: "tenure", label: "Tenure (months)", type: "number" },
+    { key: "bankReferenceNo", label: "Bank reference", type: "text" },
+    { key: "loginDate", label: "Bank login", type: "date" },
+    { key: "owner", label: "Owner", type: "text" },
+    { key: "status", label: "Status", type: "text" },
+  ],
+  sanctions: [
+    { key: "applicationNo", label: "Application no.", type: "text" },
+    { key: "date", label: "Updated", type: "date" },
+    { key: "customer", label: "Customer", type: "text" },
+    { key: "loanType", label: "Loan type", type: "text" },
+    { key: "lender", label: "Lender", type: "text" },
+    { key: "technical", label: "Technical", type: "text" },
+    { key: "financial", label: "Financial", type: "text" },
+    { key: "legal", label: "Legal", type: "text" },
+    { key: "amount", label: "Sanctioned amount", type: "amount" },
+    { key: "rate", label: "Interest rate %", type: "percent" },
+    { key: "validTill", label: "Valid till", type: "date" },
+    { key: "letterNo", label: "Sanction letter", type: "text" },
+  ],
+  disbursements: [
+    { key: "applicationNo", label: "Application no.", type: "text" },
+    { key: "date", label: "Disbursed on", type: "date" },
+    { key: "customer", label: "Customer", type: "text" },
+    { key: "loanType", label: "Loan type", type: "text" },
+    { key: "lender", label: "Lender", type: "text" },
+    { key: "type", label: "Type", type: "text" },
+    { key: "amount", label: "Amount", type: "amount" },
+    { key: "rate", label: "ROI %", type: "percent" },
+    { key: "roiType", label: "ROI type", type: "text" },
+    { key: "loanAccountNo", label: "Loan account", type: "text" },
+    { key: "utrNo", label: "UTR", type: "text" },
+    { key: "processingFee", label: "Processing fee", type: "amount" },
+  ],
+  commissions: [
+    { key: "applicationNo", label: "Application no.", type: "text" },
+    { key: "date", label: "Disbursed on", type: "date" },
+    { key: "customer", label: "Customer", type: "text" },
+    { key: "loanType", label: "Loan type", type: "text" },
+    { key: "lender", label: "Lender", type: "text" },
+    { key: "owner", label: "Owner", type: "text" },
+    { key: "disbursed", label: "Disbursed amount", type: "amount" },
+    { key: "rate", label: "Gross rate %", type: "percent" },
+    { key: "amount", label: "Gross commission", type: "amount" },
+    { key: "status", label: "Payout status", type: "text" },
+    { key: "receivedAt", label: "Received on", type: "date" },
+    { key: "splits", label: "Split between", type: "text" },
+  ],
+};
 
 /** groupBy's _count widens to a union under these query shapes; narrow it once. */
 const countOf = (count: unknown): number =>
   typeof count === "object" && count !== null ? ((count as { _all?: number })._all ?? 0) : 0;
 
-const dateFilter = (range: ReportRange) =>
-  range.from || range.to
-    ? {
-        ...(range.from && { gte: new Date(range.from) }),
-        ...(range.to && { lte: new Date(range.to) }),
-      }
-    : undefined;
+const dateFilter = (range: ReportRange) => rangeFilter(resolveRange(range));
 
 @Injectable()
 export class ReportsService {
@@ -31,6 +138,264 @@ export class ReportsService {
 
   private appScope(user: AuthUser): Prisma.ApplicationWhereInput {
     return user.role === Role.ADVISOR ? { ownerId: user.id } : {};
+  }
+
+  /** Flat, record-level rows for the report builder: one of five registers, filtered. */
+  async records(type: RecordType, f: RecordFilters, user: AuthUser, limit = PREVIEW_LIMIT) {
+    const created = dateFilter(f);
+    const q = f.q?.trim();
+    const day = (d: Date | null | undefined) => (d ? ymd(istParts(d)) : null);
+    const num = (v: Prisma.Decimal | null | undefined) => (v == null ? null : Number(v));
+
+    const appSearch = (): Prisma.ApplicationWhereInput =>
+      q
+        ? {
+            OR: [
+              { bankReferenceNo: { contains: q, mode: "insensitive" } },
+              { applicants: { some: { name: { contains: q, mode: "insensitive" } } } },
+              { applicants: { some: { phone: { contains: q } } } },
+              ...(/^\d+$/.test(q) ? [{ seq: Number(q) }] : []),
+            ],
+          }
+        : {};
+    const appWhere = (): Prisma.ApplicationWhereInput => ({
+      ...this.appScope(user),
+      ...(f.loanProductId && { loanProductId: f.loanProductId }),
+      ...appSearch(),
+    });
+    const appLabel = (a: { seq: number; createdAt: Date }) => this.settings.applicationNo(a.seq, a.createdAt);
+    const appInclude = {
+      loanProduct: { select: { name: true } },
+      lender: { select: { name: true } },
+      applicants: { where: { isPrimary: true }, take: 1, select: { name: true, phone: true } },
+    } satisfies Prisma.ApplicationInclude;
+
+    let rows: Record<string, unknown>[] = [];
+
+    switch (type) {
+      case "leads": {
+        const data = await this.prisma.lead.findMany({
+          where: {
+            ...this.leadScope(user),
+            ...(created && { createdAt: created }),
+            ...(f.status && { status: f.status as LeadStatus }),
+            ...(f.loanProductId && { loanProductId: f.loanProductId }),
+            ...(q && {
+              OR: [
+                { name: { contains: q, mode: "insensitive" } },
+                { phone: { contains: q } },
+                { email: { contains: q, mode: "insensitive" } },
+              ],
+            }),
+          },
+          include: {
+            loanProduct: { select: { name: true } },
+            assignedOfficer: { select: { name: true } },
+            sourcingPartner: { select: { name: true } },
+          },
+          orderBy: { createdAt: "desc" },
+          take: limit,
+        });
+        rows = data.map((l) => ({
+          leadNo: `L-${l.leadNo}`,
+          date: day(l.createdAt),
+          customer: l.name,
+          phone: l.phone,
+          email: l.email,
+          city: l.city,
+          loanType: l.loanProduct?.name ?? null,
+          amount: num(l.amount),
+          source: l.source,
+          partner: l.sourcingPartner?.name ?? null,
+          officer: l.assignedOfficer?.name ?? null,
+          status: l.status,
+          lostReason: l.lostReason,
+        }));
+        break;
+      }
+      case "applications": {
+        const data = await this.prisma.application.findMany({
+          where: {
+            ...appWhere(),
+            ...(created && { createdAt: created }),
+            ...(f.status && { status: f.status as ApplicationStatus }),
+          },
+          include: { ...appInclude, owner: { select: { name: true } } },
+          orderBy: { createdAt: "desc" },
+          take: limit,
+        });
+        rows = data.map((a) => ({
+          applicationNo: appLabel(a),
+          date: day(a.createdAt),
+          customer: a.applicants[0]?.name ?? null,
+          phone: a.applicants[0]?.phone ?? null,
+          loanType: a.loanProduct.name,
+          lender: a.lender?.name ?? null,
+          amount: num(a.requestedAmount),
+          tenure: a.tenureMonths,
+          bankReferenceNo: a.bankReferenceNo,
+          loginDate: day(a.bankLoginAt),
+          owner: a.owner?.name ?? null,
+          status: a.status,
+        }));
+        break;
+      }
+      case "sanctions": {
+        const data = await this.prisma.sanction.findMany({
+          where: {
+            application: appWhere(),
+            ...(created && { updatedAt: created }),
+            ...(f.status && { financialStatus: f.status as SanctionStatus }),
+          },
+          include: { application: { include: appInclude } },
+          orderBy: { updatedAt: "desc" },
+          take: limit,
+        });
+        rows = data.map((s) => ({
+          applicationNo: appLabel(s.application),
+          date: day(s.updatedAt),
+          customer: s.application.applicants[0]?.name ?? null,
+          loanType: s.application.loanProduct.name,
+          lender: s.application.lender?.name ?? null,
+          technical: s.technicalStatus,
+          financial: s.financialStatus,
+          legal: s.legalStatus,
+          amount: num(s.sanctionedAmount),
+          rate: num(s.interestRate),
+          validTill: day(s.validTill),
+          letterNo: s.sanctionLetterNo,
+        }));
+        break;
+      }
+      case "disbursements": {
+        const data = await this.prisma.disbursement.findMany({
+          where: {
+            application: appWhere(),
+            ...(created && { disbursedAt: created }),
+            ...(f.status && { type: f.status as never }),
+          },
+          include: { application: { include: appInclude } },
+          orderBy: { disbursedAt: "desc" },
+          take: limit,
+        });
+        rows = data.map((d) => ({
+          applicationNo: appLabel(d.application),
+          date: day(d.disbursedAt),
+          customer: d.application.applicants[0]?.name ?? null,
+          loanType: d.application.loanProduct.name,
+          lender: d.application.lender?.name ?? null,
+          type: d.type,
+          amount: num(d.amount),
+          rate: num(d.interestRate),
+          roiType: d.roiType,
+          loanAccountNo: d.loanAccountNo,
+          utrNo: d.utrNo,
+          processingFee: num(d.processingFee),
+        }));
+        break;
+      }
+      case "commissions": {
+        // Dated by disbursement, like the commission register itself.
+        const data = await this.prisma.commission.findMany({
+          where: {
+            disbursement: { application: appWhere(), ...(created && { disbursedAt: created }) },
+            ...(f.status && { status: f.status as never }),
+          },
+          include: {
+            disbursement: {
+              include: { application: { include: { ...appInclude, owner: { select: { name: true } } } } },
+            },
+            splits: {
+              include: { user: { select: { name: true } }, sourcingPartner: { select: { name: true } } },
+            },
+          },
+          orderBy: { disbursement: { disbursedAt: "desc" } },
+          take: limit,
+        });
+        rows = data.map((c) => ({
+          applicationNo: appLabel(c.disbursement.application),
+          date: day(c.disbursement.disbursedAt),
+          customer: c.disbursement.application.applicants[0]?.name ?? null,
+          loanType: c.disbursement.application.loanProduct.name,
+          lender: c.disbursement.application.lender?.name ?? null,
+          owner: c.disbursement.application.owner?.name ?? null,
+          disbursed: num(c.disbursement.amount),
+          rate: num(c.grossRate),
+          amount: num(c.grossAmount),
+          status: c.status,
+          receivedAt: day(c.receivedAt),
+          splits:
+            c.splits
+              .map((x) => {
+                const who = x.user?.name ?? x.sourcingPartner?.name ?? "—";
+                const role = x.stakeholderRole ? ` (${x.stakeholderRole})` : "";
+                return `${who}${role} ${Number(x.sharePercent)}% = ₹${Number(x.amount).toLocaleString("en-IN")} [${String(prettify(x.status))}]`;
+              })
+              .join("; ") || null,
+        }));
+        break;
+      }
+    }
+
+    return { type, columns: COLUMNS[type], rows, truncated: rows.length >= limit };
+  }
+
+  /**
+   * Everything a printed report needs around the rows: who the company is, what
+   * was asked for, when, and the headline numbers. Shown on screen and used as
+   * the letterhead of the Excel and CSV exports, so all three always agree.
+   */
+  async reportMeta(
+    type: RecordType,
+    f: RecordFilters,
+    result: { columns: RecordColumn[]; rows: Record<string, unknown>[]; truncated: boolean },
+    user: AuthUser,
+  ) {
+    const org = (key: string) => this.settings.get<string>(`org.${key}`) || "";
+
+    const filters: { label: string; value: string }[] = [];
+    filters.push({ label: "Period", value: describeRange(resolveRange(f), f.range) });
+    if (f.status) filters.push({ label: "Status", value: String(prettify(f.status)) });
+    if (f.loanProductId) {
+      const p = await this.prisma.loanProduct.findUnique({ where: { id: f.loanProductId }, select: { name: true } });
+      filters.push({ label: "Loan type", value: p?.name ?? "Unknown" });
+    }
+    if (f.q?.trim()) filters.push({ label: "Search", value: f.q.trim() });
+    if (user.role === Role.ADVISOR) filters.push({ label: "Scope", value: "Your own records only" });
+
+    const summary: { label: string; value: number; kind: "count" | "amount" }[] = [
+      { label: "Total records", value: result.rows.length, kind: "count" },
+    ];
+    for (const col of result.columns.filter((c) => c.type === "amount")) {
+      const total = result.rows.reduce((sum, r) => sum + (typeof r[col.key] === "number" ? (r[col.key] as number) : 0), 0);
+      summary.push({ label: `Total — ${col.label}`, value: total, kind: "amount" });
+    }
+    const tally = new Map<string, number>();
+    for (const r of result.rows) {
+      const k = String(prettify(r[TALLY_KEY[type]] ?? "—"));
+      tally.set(k, (tally.get(k) ?? 0) + 1);
+    }
+    for (const [label, value] of [...tally.entries()].sort((a, b) => b[1] - a[1])) {
+      summary.push({ label, value, kind: "count" });
+    }
+
+    return {
+      title: TITLES[type],
+      generatedAt: new Date().toISOString(),
+      generatedBy: user.name,
+      company: {
+        name: org("name"),
+        legalName: org("legalName"),
+        address: org("address"),
+        phone: org("phone"),
+        email: org("email"),
+        gstin: org("gstin"),
+        pan: org("pan"),
+      },
+      filters,
+      summary,
+      truncated: result.truncated,
+    };
   }
 
   /**

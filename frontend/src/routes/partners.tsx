@@ -7,6 +7,9 @@ import { PageHeader } from "../components/app-shell";
 
 type Partner = {
   id: string;
+  code: string | null;
+  managerId: string | null;
+  manager: { id: string; name: string } | null;
   name: string;
   firm: string | null;
   phone: string;
@@ -29,6 +32,11 @@ export function PartnersPage() {
   const query = useQuery({
     queryKey: ["partners", { includeInactive }],
     queryFn: () => api<Partner[]>(`/partners?includeInactive=${includeInactive}`),
+  });
+
+  const staff = useQuery({
+    queryKey: ["team-assignable"],
+    queryFn: () => api<{ id: string; name: string }[]>("/team/assignable"),
   });
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["partners"] });
@@ -93,6 +101,7 @@ export function PartnersPage() {
                 email: f.get("email") || undefined,
                 city: f.get("city") || undefined,
                 commissionRate: Number(f.get("commissionRate")),
+                managerId: f.get("managerId") || undefined,
                 password: f.get("password") || undefined,
               });
             }}
@@ -103,6 +112,14 @@ export function PartnersPage() {
             <input name="phone" required placeholder="10-digit phone" className="field" />
             <input name="email" type="email" placeholder="Email" className="field" />
             <input name="city" placeholder="City" className="field" />
+            <select name="managerId" defaultValue="" className="field" title="Reports to">
+              <option value="">Reports to — nobody yet</option>
+              {staff.data?.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
             <input
               name="commissionRate"
               type="number"
@@ -143,7 +160,7 @@ export function PartnersPage() {
           Show inactive partners
         </label>
 
-        <div className="card overflow-hidden">
+        <div className="card overflow-x-auto">
           {query.isPending ? (
             <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
               <Loader2 className="h-4 w-4 animate-spin" /> Loading…
@@ -154,8 +171,10 @@ export function PartnersPage() {
             <table className="w-full text-left text-[13px]">
               <thead className="border-b border-line bg-bg-light/60 text-[11px] tracking-wide text-muted uppercase">
                 <tr>
+                  <th className="px-4 py-2.5 font-bold">Code</th>
                   <th className="px-4 py-2.5 font-bold">Partner</th>
                   <th className="px-4 py-2.5 font-bold">Contact</th>
+                  <th className="px-4 py-2.5 font-bold">Reports to</th>
                   <th className="px-4 py-2.5 font-bold">Rate</th>
                   <th className="px-4 py-2.5 font-bold">Referred</th>
                   <th className="px-4 py-2.5 font-bold">Converted</th>
@@ -166,12 +185,14 @@ export function PartnersPage() {
               <tbody>
                 {query.data.map((p) => (
                   <tr
+                    id={`row-${p.id}`}
                     key={p.id}
                     className={clsx(
                       "border-b border-line/70 last:border-0",
                       !p.active && "opacity-50",
                     )}
                   >
+                    <td className="px-4 py-3 font-mono text-[12px] text-navy">{p.code ?? "—"}</td>
                     <td className="px-4 py-3">
                       <p className="font-semibold text-navy">{p.name}</p>
                       <p className="text-[12px] text-muted">{p.firm ?? "—"}</p>
@@ -180,6 +201,7 @@ export function PartnersPage() {
                       {p.phone}
                       {p.city && <p className="text-[12px]">{p.city}</p>}
                     </td>
+                    <td className="px-4 py-3 text-muted">{p.manager?.name ?? "—"}</td>
                     <td className="px-4 py-3 font-semibold text-gold-dark">{p.commissionRate}%</td>
                     <td className="px-4 py-3">{p.leadCount}</td>
                     <td className="px-4 py-3">
@@ -247,6 +269,7 @@ export function PartnersPage() {
                   email: (f.get("email") as string) || undefined,
                   city: (f.get("city") as string) || undefined,
                   commissionRate: Number(f.get("commissionRate")),
+                  managerId: (f.get("managerId") as string) || "",
                 });
               }}
               className="card w-full max-w-md p-5"
@@ -261,6 +284,14 @@ export function PartnersPage() {
                 <input name="phone" defaultValue={editing.phone} required className="field" />
                 <input name="email" type="email" defaultValue={editing.email ?? ""} placeholder="Email" className="field" />
                 <input name="city" defaultValue={editing.city ?? ""} placeholder="City" className="field" />
+                <select name="managerId" defaultValue={editing.managerId ?? ""} className="field" title="Reports to">
+                  <option value="">Reports to — nobody</option>
+                  {staff.data?.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
                 <input
                   name="commissionRate"
                   type="number"

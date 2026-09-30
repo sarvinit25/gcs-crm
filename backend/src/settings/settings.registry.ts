@@ -5,7 +5,7 @@
  * from this registry.
  */
 
-export type SettingType = "string" | "text" | "number" | "boolean" | "list" | "email" | "phone";
+export type SettingType = "string" | "text" | "number" | "boolean" | "list" | "email" | "phone" | "time";
 
 export type SettingDef = {
   key: string;
@@ -26,6 +26,7 @@ export const SETTING_GROUPS = [
   "Documents",
   "Numbering",
   "Commissions",
+  "Attendance",
   "Security",
 ] as const;
 
@@ -63,14 +64,14 @@ export const SETTINGS: SettingDef[] = [
     group: "Organisation",
     label: "Registered address",
     type: "text",
-    default: "",
+    default: "CCTV Towers, Andheri–Ghatkopar Rd, Ghatkopar West, Mumbai 400084",
   },
   {
     key: "org.phone",
     group: "Organisation",
     label: "Primary phone",
     type: "phone",
-    default: "",
+    default: "8828001700",
     publicFacing: true,
   },
   {
@@ -78,7 +79,7 @@ export const SETTINGS: SettingDef[] = [
     group: "Organisation",
     label: "Primary email",
     type: "email",
-    default: "",
+    default: "growthcs17@gmail.com",
     publicFacing: true,
   },
   {
@@ -166,6 +167,7 @@ export const SETTINGS: SettingDef[] = [
       "Bank statement",
       "Property papers",
       "Business proof",
+      "Asset proof",
       "Sanction letter",
       "Other",
     ],
@@ -215,6 +217,14 @@ export const SETTINGS: SettingDef[] = [
     type: "boolean",
     default: true,
   },
+  {
+    key: "numbering.financialYear",
+    group: "Numbering",
+    label: "Use the financial year (2026-27) instead of the calendar year",
+    help: "April–March, as used for accounts and tax. Applies to new files only; existing numbers never change.",
+    type: "boolean",
+    default: false,
+  },
 
   // ── Commissions ───────────────────────────────────────────
   {
@@ -236,6 +246,31 @@ export const SETTINGS: SettingDef[] = [
     default: 20,
     min: 0,
     max: 100,
+  },
+
+  // ── Attendance ────────────────────────────────────────────
+  {
+    key: "attendance.selfCheckIn",
+    group: "Attendance",
+    label: "Staff can check themselves in",
+    help: "When off, only Super Admin and Admin can mark attendance.",
+    type: "boolean",
+    default: true,
+  },
+  {
+    key: "attendance.workStart",
+    group: "Attendance",
+    label: "Workday starts",
+    type: "time",
+    default: "10:00",
+  },
+  {
+    key: "attendance.halfDayCutoff",
+    group: "Attendance",
+    label: "Half-day cutoff",
+    help: "Checking in after this time (India time) is recorded as a half day.",
+    type: "time",
+    default: "12:00",
   },
 
   // ── Security ──────────────────────────────────────────────

@@ -12,6 +12,7 @@ import { AuditService } from "../audit/audit.service";
 import { SettingsService } from "../settings/settings.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { CreateDisbursementDto, ListDisbursementsQuery } from "./dto/disbursement.dto";
+import { rangeFilter, resolveRange } from "../common/date.util";
 
 const APPLICATION_SUMMARY = {
   select: {
@@ -58,6 +59,18 @@ export class DisbursementsService {
     const items = await this.prisma.disbursement.findMany({
       where: { applicationId },
       orderBy: { disbursedAt: "asc" },
+      include: {
+        commission: {
+          include: {
+            splits: {
+              include: {
+                user: { select: { id: true, name: true } },
+                sourcingPartner: { select: { id: true, name: true } },
+              },
+            },
+          },
+        },
+      },
     });
 
     const sanctioned = Number(application.sanction?.sanctionedAmount ?? 0);
@@ -117,8 +130,14 @@ export class DisbursementsService {
           amount: dto.amount,
           disbursedAt: dto.disbursedAt,
           interestRate: dto.interestRate,
+          roiType: dto.roiType,
+          loanAccountNo: dto.loanAccountNo,
           runningBalance,
           utrNo: dto.utrNo,
+          processingFee: dto.processingFee,
+          insuranceAmount: dto.insuranceAmount,
+          documentationCharges: dto.documentationCharges,
+          stampDuty: dto.stampDuty,
           note: dto.note,
         },
       });
@@ -200,12 +219,7 @@ export class DisbursementsService {
     const seqFromSearch = query.search ? Number(query.search.replace(/^.*-/, "")) : NaN;
 
     const where: Prisma.DisbursementWhereInput = {
-      ...((query.from || query.to) && {
-        disbursedAt: {
-          ...(query.from && { gte: new Date(query.from) }),
-          ...(query.to && { lte: new Date(query.to) }),
-        },
-      }),
+      ...(rangeFilter(resolveRange(query)) && { disbursedAt: rangeFilter(resolveRange(query)) }),
       application: {
         ...this.scopeFor(user),
         ...(query.lenderId && { lenderId: query.lenderId }),

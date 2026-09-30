@@ -4,6 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { DEFAULTS, SETTINGS, SETTINGS_BY_KEY, type SettingDef } from "./settings.registry";
+import { fyLabel, fyStartYear, istParts } from "../common/date.util";
 
 @Injectable()
 export class SettingsService implements OnModuleInit {
@@ -43,7 +44,11 @@ export class SettingsService implements OnModuleInit {
    */
   applicationNo(seq: number, createdAt: Date) {
     const parts = [this.get<string>("numbering.applicationPrefix") || "GCS"];
-    if (this.get<boolean>("numbering.includeYear")) parts.push(String(createdAt.getFullYear()));
+    if (this.get<boolean>("numbering.includeYear")) {
+      // India-time year, so a file raised just after midnight on 1 Jan or 1 Apr is numbered into the right period.
+      const p = istParts(createdAt);
+      parts.push(this.get<boolean>("numbering.financialYear") ? fyLabel(fyStartYear(p)) : String(p.year));
+    }
     parts.push(String(seq).padStart(this.get<number>("numbering.applicationPadding"), "0"));
     return parts.join("-");
   }
@@ -92,6 +97,13 @@ export class SettingsService implements OnModuleInit {
         const text = String(raw ?? "").trim();
         if (text && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
           throw new BadRequestException(`${def.label} must be a valid email address`);
+        }
+        return text;
+      }
+      case "time": {
+        const text = String(raw ?? "").trim();
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(text)) {
+          throw new BadRequestException(`${def.label} must be a time like 09:30`);
         }
         return text;
       }

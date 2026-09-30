@@ -3,13 +3,23 @@ import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, FileText, Loader2, Plus } from "lucide-react";
 import { api } from "../lib/api";
-import { formatAmount, formatDate, formatDateTime } from "../lib/format";
-import { LEAD_STATUSES, LEAD_STATUS_LABEL, type LeadDetail, type LeadStatus } from "../lib/types";
+import { formatAmount, formatDate, formatDateTime, humanize } from "../lib/format";
+import {
+  EMPLOYMENT_TYPE_LABEL,
+  LEAD_STATUSES,
+  LEAD_STATUS_LABEL,
+  LOST_REASONS,
+  type LeadDetail,
+  type LeadStatus,
+} from "../lib/types";
 
 import { PageHeader } from "../components/app-shell";
 import { LeadStatusBadge } from "../components/status-badge";
+import { NewApplicationWizard } from "../components/new-application-wizard";
+import { Modal } from "../components/modal";
+import { todayIST } from "../lib/date";
+import { DatePicker } from "../components/date-picker";
 
-type Product = { id: string; name: string; slug: string };
 type AssignablePartner = { id: string; name: string; firm: string | null; commissionRate: string };
 type AssignableUser = { id: string; name: string; role: string };
 
@@ -29,15 +39,11 @@ export function LeadDetailPage() {
   const navigate = useNavigate();
   const [note, setNote] = useState("");
   const [dueAt, setDueAt] = useState("");
+  const [showWizard, setShowWizard] = useState(false);
 
   const query = useQuery({
     queryKey: ["lead", leadId],
     queryFn: () => api<LeadDetail>(`/leads/${leadId}`),
-  });
-
-  const products = useQuery({
-    queryKey: ["loan-products"],
-    queryFn: () => api<Product[]>("/loan-products"),
   });
 
   const partners = useQuery({
@@ -55,10 +61,14 @@ export function LeadDetailPage() {
     void queryClient.invalidateQueries({ queryKey: ["leads"] });
   };
 
+  const [askingReason, setAskingReason] = useState(false);
   const setStatus = useMutation({
-    mutationFn: (status: LeadStatus) =>
-      api(`/leads/${leadId}`, { method: "PATCH", body: JSON.stringify({ status }) }),
-    onSuccess: invalidate,
+    mutationFn: (body: { status: LeadStatus; lostReason?: string }) =>
+      api(`/leads/${leadId}`, { method: "PATCH", body: JSON.stringify(body) }),
+    onSuccess: () => {
+      setAskingReason(false);
+      invalidate();
+    },
   });
 
   const assign = useMutation({
@@ -67,25 +77,13 @@ export function LeadDetailPage() {
     onSuccess: invalidate,
   });
 
-  const raise = useMutation({
-    mutationFn: (body: Record<string, unknown>) =>
-      api<{ id: string }>("/applications", {
-        method: "POST",
-        body: JSON.stringify({ ...body, leadId }),
-      }),
-    onSuccess: (app) => {
-      invalidate();
-      void navigate({ to: "/applications/$applicationId", params: { applicationId: app.id } });
-    },
-  });
-
   const addFollowUp = useMutation({
     mutationFn: () =>
       api(`/leads/${leadId}/follow-ups`, {
         method: "POST",
         body: JSON.stringify({
           note,
-          ...(dueAt && { dueAt: new Date(dueAt).toISOString() }),
+          ...(dueAt && { dueAt: new Date(`${dueAt}T00:00:00+05:30`).toISOString() }),
         }),
       }),
     onSuccess: () => {
@@ -108,7 +106,6 @@ export function LeadDetailPage() {
   }
 
   const lead = query.data;
-  const raiseError = raise.isError ? (raise.error as Error).message : null;
 
   return (
     <>
@@ -120,7 +117,12 @@ export function LeadDetailPage() {
             <select
               value={lead.status}
               disabled={setStatus.isPending}
-              onChange={(e) => setStatus.mutate(e.target.value as LeadStatus)}
+              onChange={(e) => {
+                const next = e.target.value as LeadStatus;
+                // Closing a lead out needs a reason, so ask before sending anything.
+                if (next === "LOST") setAskingReason(true);
+                else setStatus.mutate({ status: next });
+              }}
               className="field w-44"
             >
               {LEAD_STATUSES.map((s) => (
@@ -136,6 +138,43 @@ export function LeadDetailPage() {
         }
       />
 
+      {askingReason && (
+        <Modal title="Why was this lead lost?" subtitle="This is kept on the lead and shows in reports" onClose={() => setAskingReason(false)}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const f = new FormData(e.currentTarget);
+              const other = (f.get("other") as string).trim();
+              const choice = f.get("reason") as string;
+              setStatus.mutate({ status: "LOST", lostReason: choice === "Other" && other ? other : choice });
+            }}
+            className="space-y-3"
+          >
+            <select name="reason" required defaultValue="" className="field w-full">
+              <option value="" disabled>
+                Select a reason
+              </option>
+              {LOST_REASONS.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+            <input name="other" placeholder="Details (used when reason is Other)" className="field w-full" />
+            {setStatus.isError && <p className="text-[13px] text-red-600">{(setStatus.error as Error).message}</p>}
+            <div className="flex gap-2">
+              <button type="submit" disabled={setStatus.isPending} className="btn-primary">
+                {setStatus.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Mark as lost
+              </button>
+              <button type="button" onClick={() => setAskingReason(false)} className="btn-ghost">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
       <div className="grid gap-5 px-6 py-5 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-5">
           <section className="card p-5">
@@ -149,7 +188,17 @@ export function LeadDetailPage() {
               <Field label="City" value={lead.city} />
               <Field label="Product" value={lead.loanProduct?.name} />
               <Field label="Amount" value={formatAmount(lead.amount)} />
-              <Field label="Source" value={lead.source} />
+              <Field label="Source" value={humanize(lead.source)} />
+              {lead.status === "LOST" && <Field label="Lost because" value={lead.lostReason} />}
+              <Field
+                label="Employment"
+                value={lead.employmentType ? EMPLOYMENT_TYPE_LABEL[lead.employmentType] : null}
+              />
+              <Field label="Monthly income" value={lead.monthlyIncome ? formatAmount(lead.monthlyIncome) : null} />
+              <Field
+                label="Meeting"
+                value={[lead.meetingMode, lead.meetingPlace].filter(Boolean).join(" · ") || null}
+              />
             </div>
 
             <div className="mt-5 grid gap-3 border-t border-line pt-4 sm:grid-cols-3">
@@ -223,7 +272,7 @@ export function LeadDetailPage() {
                 >
                   {lead.application.applicationNo}
                 </Link>
-                <span className="text-muted"> · {lead.application.status}</span>
+                <span className="text-muted"> · {humanize(lead.application.status)}</span>
               </p>
             ) : (
               <>
@@ -231,71 +280,35 @@ export function LeadDetailPage() {
                   No application raised from this lead yet. Raising one carries the enquiry over as
                   the primary applicant.
                 </p>
-                {raiseError && (
-                  <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">
-                    {raiseError}
-                  </p>
-                )}
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const f = new FormData(e.currentTarget);
-                    raise.mutate({
-                      loanProductId: f.get("loanProductId") as string,
-                      requestedAmount: Number(f.get("requestedAmount")),
-                      tenureMonths: f.get("tenureMonths")
-                        ? Number(f.get("tenureMonths"))
-                        : undefined,
-                    });
-                  }}
-                  className="mt-4 grid gap-2 sm:grid-cols-3"
-                >
-                  <select
-                    name="loanProductId"
-                    required
-                    defaultValue={lead.loanProduct?.id ?? ""}
-                    className="field sm:col-span-3"
-                  >
-                    <option value="" disabled>
-                      Select loan product
-                    </option>
-                    {products.data?.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    name="requestedAmount"
-                    type="number"
-                    required
-                    min={1}
-                    defaultValue={lead.amount ?? undefined}
-                    placeholder="Amount"
-                    className="field"
-                  />
-                  <input
-                    name="tenureMonths"
-                    type="number"
-                    min={1}
-                    placeholder="Tenure (months)"
-                    className="field"
-                  />
-                  <button type="submit" disabled={raise.isPending} className="btn-primary">
-                    {raise.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <FileText className="h-4 w-4" />
-                    )}
-                    Raise
-                  </button>
-                </form>
+                <button onClick={() => setShowWizard(true)} className="btn-primary mt-4">
+                  <FileText className="h-4 w-4" /> Raise Application
+                </button>
               </>
+            )}
+
+            {showWizard && (
+              <NewApplicationWizard
+                leadId={leadId}
+                prefill={{
+                  name: lead.name,
+                  phone: lead.phone,
+                  email: lead.email ?? undefined,
+                  city: lead.city ?? undefined,
+                  loanProductId: lead.loanProduct?.id,
+                  requestedAmount: lead.amount ?? undefined,
+                }}
+                onClose={() => setShowWizard(false)}
+                onCreated={(applicationId) => {
+                  setShowWizard(false);
+                  invalidate();
+                  void navigate({ to: "/applications/$applicationId", params: { applicationId } });
+                }}
+              />
             )}
           </section>
         </div>
 
-        <section className="card p-5">
+        <section id="followups" className="card p-5">
           <h2 className="text-sm font-bold text-navy">Follow-ups</h2>
 
           <form
@@ -314,12 +327,13 @@ export function LeadDetailPage() {
               className="field resize-none"
             />
             <div className="mt-2 flex items-center gap-2">
-              <input
-                type="datetime-local"
+              <DatePicker
                 value={dueAt}
-                onChange={(e) => setDueAt(e.target.value)}
-                className="field flex-1"
+                onChange={setDueAt}
+                min={todayIST()}
+                className="flex-1"
                 title="Next follow-up"
+                placeholder="Next follow-up date"
               />
               <button type="submit" disabled={addFollowUp.isPending} className="btn-primary">
                 {addFollowUp.isPending ? (

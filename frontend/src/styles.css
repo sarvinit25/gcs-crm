@@ -51,4 +51,59 @@ body {
   .card {
     @apply rounded-xl border border-line bg-white;
   }
+
+  /* Register tables scroll sideways rather than squeezing; identifiers and names stay on one line. */
+  .card table td,
+  .card table th {
+    white-space: nowrap;
+  }
+  .card table td.wrap,
+  .card table th.wrap {
+    white-space: normal;
+    min-width: 14rem;
+  }
+}
+
+@media print {
+  .no-print,
+  aside {
+    display: none !important;
+  }
+  main {
+    padding-left: 0 !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  .card {
+    box-shadow: none !important;
+  }
+  header.sticky,
+  div.sticky {
+    position: static !important;
+  }
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+}
+
+/* Landing on a section from search: leave room for the sticky bars, and flash it. */
+main [id] {
+  scroll-margin-top: 9rem;
+}
+@keyframes flash-target {
+  0%,
+  60% {
+    box-shadow: 0 0 0 3px rgba(228, 176, 40, 0.75);
+    background-color: rgba(243, 227, 184, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 3px rgba(228, 176, 40, 0);
+    background-color: transparent;
+  }
+}
+.flash-target {
+  animation: flash-target 2.4s ease-out;
+  border-radius: 0.75rem;
 }
