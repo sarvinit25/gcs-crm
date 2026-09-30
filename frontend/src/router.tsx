@@ -33,6 +33,7 @@ import { AttendancePage } from "./routes/attendance";
 import { ReportsPage } from "./routes/reports";
 import { SettingsPage } from "./routes/settings";
 import { SearchPage } from "./routes/search";
+import { AccountPage, ForcePasswordChange } from "./routes/account";
 
 function RootLayout() {
   return <Outlet />;
@@ -58,6 +59,7 @@ function ProtectedLayout() {
     );
   }
   if (!user) return <Navigate to="/login" />;
+  if (user.mustChangePassword) return <ForcePasswordChange />;
 
   return (
     <AppShell>
@@ -198,6 +200,7 @@ const routeTree = rootRoute.addChildren([
     }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/reports", component: ReportsPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/settings", component: SettingsPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/account", component: AccountPage }),
     createRoute({
       getParentRoute: () => protectedRoute,
       path: "/search",

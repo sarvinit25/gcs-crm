@@ -53,7 +53,11 @@ function Stepper({ status }: { status: string }) {
       {STAGES.map((s, i) => {
         const done = i <= currentIndex;
         return (
-          <li key={s.key} className="flex flex-col items-center gap-1.5 text-center">
+          <li
+            key={s.key}
+            className="fade-enter flex flex-col items-center gap-1.5 text-center"
+            style={{ animationDelay: `${i * 90}ms` }}
+          >
             <span
               className={clsx(
                 "flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold",

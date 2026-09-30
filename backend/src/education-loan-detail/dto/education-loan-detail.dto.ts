@@ -1,7 +1,6 @@
 import { Type } from "class-transformer";
 import {
   IsArray,
-  IsDateString,
   IsEmail,
   IsNumber,
   IsOptional,
@@ -10,6 +9,7 @@ import {
   Min,
   ValidateNested,
 } from "class-validator";
+import { DateInput } from "../../common/date-input.decorator";
 
 /** Shared shape for Father and Mother — the two "financial co-applicant" parents. */
 export class EducationLoanParentDto {
@@ -45,7 +45,7 @@ export class EducationLoanCourseDto {
   @IsOptional() @IsNumber() @Min(0) loanAmount?: number;
   @IsOptional() @IsString() @Length(0, 200) courseName?: string;
   @IsOptional() @IsString() @Length(0, 60) courseDuration?: string;
-  @IsOptional() @IsDateString() courseStartDate?: string;
+  @IsOptional() @DateInput() courseStartDate?: string;
   @IsOptional() @IsString() @Length(0, 200) universityName?: string;
   @IsOptional() @IsString() @Length(0, 80) country?: string;
 }

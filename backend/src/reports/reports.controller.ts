@@ -3,7 +3,7 @@ import type { Response } from "express";
 import { Role } from "@prisma/client";
 import { CurrentUser, Roles, type AuthUser } from "../auth/auth.decorators";
 import { EXPORT_LIMIT, RECORD_TYPES, ReportsService, type RecordFilters, type RecordType, type ReportRange } from "./reports.service";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { SettingsService } from "../settings/settings.service";
 import { toCsv } from "../common/csv.util";
 import { istToday } from "../common/date.util";
@@ -45,7 +45,7 @@ export class ReportsController {
   /** Record-level rows for the report builder, plus the letterhead/summary shown above them. */
   @Get("records")
   async records(@Query("type") type: string, @Query() filters: RecordFilters, @CurrentUser() user: AuthUser) {
-    const result = await this.reports.records(this.recordType(type), filters, user);
+    const result = await this.reports.records(this.recordType(type, user), filters, user);
     return { ...result, meta: await this.reports.reportMeta(result.type, filters, result, user) };
   }
 
@@ -59,7 +59,7 @@ export class ReportsController {
     @CurrentUser() user: AuthUser,
     @Res() res: Response,
   ) {
-    const result = await this.reports.records(this.recordType(type), filters, user, EXPORT_LIMIT);
+    const result = await this.reports.records(this.recordType(type, user), filters, user, EXPORT_LIMIT);
     const wanted = columns ? new Set(columns.split(",")) : null;
     const picked = result.columns.filter((c) => !wanted || wanted.has(c.key));
     const meta = await this.reports.reportMeta(result.type, filters, result, user);
@@ -76,8 +76,11 @@ export class ReportsController {
     res.send(await buildReportWorkbook(meta, picked, result.rows));
   }
 
-  private recordType(type: string): RecordType {
+  private recordType(type: string, user: AuthUser): RecordType {
     if (!RECORD_TYPES.includes(type as RecordType)) throw new BadRequestException("Unknown report type");
+    if (type === "commissions" && user.role === Role.ADVISOR) {
+      throw new ForbiddenException("Commission reports are for Admin and Super Admin");
+    }
     return type as RecordType;
   }
 

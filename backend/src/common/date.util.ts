@@ -178,11 +178,38 @@ export function rangeFilter(range: Range): { gte?: Date; lte?: Date } | undefine
   return { ...(range.from && { gte: range.from }), ...(range.to && { lte: range.to }) };
 }
 
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * "30 Sep 2026" in India time. Built by hand rather than with toLocaleDateString,
+ * whose month abbreviations ("Sep" vs "Sept") differ between Node/ICU versions —
+ * a report should read the same in ten years as it does today.
+ */
+export function formatDateIST(d: Date): string {
+  const p = istParts(d);
+  return `${pad(p.day)} ${MONTHS_SHORT[p.month - 1]} ${p.year}`;
+}
+
+/** "30 Sep 2026, 3:30 pm" in India time. */
+export function formatDateTimeIST(d: Date): string {
+  const shifted = new Date(d.getTime() + IST_OFFSET_MIN * 60_000);
+  const h = shifted.getUTCHours();
+  const hour12 = h % 12 === 0 ? 12 : h % 12;
+  return `${formatDateIST(d)}, ${hour12}:${pad(shifted.getUTCMinutes())} ${h < 12 ? "am" : "pm"}`;
+}
+
+/** Indian digit grouping without Intl: 1234567 → "12,34,567". */
+export function formatIndianNumber(n: number): string {
+  const [int, frac] = Math.abs(n).toFixed(2).replace(/\.00$/, "").split(".");
+  const last3 = int.slice(-3);
+  const rest = int.slice(0, -3).replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+  return `${n < 0 ? "-" : ""}${rest ? `${rest},` : ""}${last3}${frac ? `.${frac}` : ""}`;
+}
+
 /** Text for a report header, e.g. "01 Apr 2026 to 31 Mar 2027". */
 export function describeRange(range: Range, period?: string): string {
   if (!range.from && !range.to) return "All time";
-  const fmt = (d?: Date) =>
-    d ? d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }) : "…";
+  const fmt = (d?: Date) => (d ? formatDateIST(d) : "…");
   const span = `${fmt(range.from)} to ${fmt(range.to)}`;
   const label = periodOptions().find((o) => o.value === period)?.label;
   return label && period !== "all" ? `${label} · ${span}` : span;

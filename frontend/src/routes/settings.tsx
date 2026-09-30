@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
+import { LendersPanel } from "./lenders";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
 import clsx from "clsx";
@@ -679,11 +680,13 @@ export function SettingsPage() {
   // A link like /settings#setting-numbering.financialYear (from search) opens the right tab first.
   useEffect(() => {
     const named: Record<string, string> = {
+      lenders: "Banks & NBFCs",
       products: "Loan products",
       checklist: "Document checklist",
       ratecards: "Commission rate cards",
     };
     if (named[hash]) setGroup(named[hash]);
+    else if (hash.startsWith("lender-")) setGroup("Banks & NBFCs");
     else if (hash.startsWith("setting-")) {
       const found = query.data?.settings.find((s) => `setting-${s.key}` === hash);
       if (found) setGroup(found.group);
@@ -701,12 +704,8 @@ export function SettingsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["settings"] }),
   });
 
-  const tabs = [
-    ...(query.data?.groups ?? []),
-    "Loan products",
-    "Document checklist",
-    "Commission rate cards",
-  ];
+  const masters = ["Banks & NBFCs", "Loan products", "Document checklist", "Commission rate cards"];
+  const preferences = [...(query.data?.groups ?? []), "Archive"];
   const inGroup = (query.data?.settings ?? []).filter((s) => s.group === group);
   const changed = (query.data?.settings ?? []).filter((s) => !s.isDefault).length;
 
@@ -726,24 +725,36 @@ export function SettingsPage() {
           </p>
         )}
 
-        <div className="mb-4 flex flex-wrap gap-1">
-          {tabs.map((g) => (
-            <button
-              key={g}
-              onClick={() => setGroup(g)}
-              className={
-                group === g
-                  ? "rounded-md bg-navy px-3 py-1.5 text-[13px] font-semibold text-white"
-                  : "rounded-md border border-line bg-white px-3 py-1.5 text-[13px] font-semibold text-muted hover:text-navy"
-              }
-            >
-              {g}
-            </button>
-          ))}
-        </div>
+        {([
+          ["Preferences", preferences],
+          ["Masters — lists that rarely change", masters],
+        ] as const).map(([caption, list]) => (
+          <div key={caption} className="mb-3">
+            <p className="mb-1.5 text-[10px] font-bold tracking-[0.14em] text-muted uppercase">{caption}</p>
+            <div className="flex flex-wrap gap-1">
+              {list.map((g) => (
+                <button
+                  key={g}
+                  onClick={() => setGroup(g)}
+                  className={
+                    group === g
+                      ? "rounded-md bg-navy px-3 py-1.5 text-[13px] font-semibold text-white"
+                      : "rounded-md border border-line bg-white px-3 py-1.5 text-[13px] font-semibold text-muted hover:text-navy"
+                  }
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
 
-        <div className="card p-5">
-          {group === "Loan products" ? (
+        <div key={group} className="card fade-enter p-5">
+          {group === "Archive" ? (
+            <ArchivePanel />
+          ) : group === "Banks & NBFCs" ? (
+            <LendersPanel embedded />
+          ) : group === "Loan products" ? (
             <LoanProducts />
           ) : group === "Document checklist" ? (
             <ChecklistItems />
@@ -782,5 +793,78 @@ export function SettingsPage() {
         )}
       </div>
     </>
+  );
+}
+
+/** Yearly tidy-up: hide finished files from the working lists. Nothing is deleted. */
+function ArchivePanel() {
+  const queryClient = useQueryClient();
+  const [months, setMonths] = useState(12);
+  const preview = useQuery({
+    queryKey: ["archive-preview", months],
+    queryFn: () => api<{ leads: number; applications: number }>(`/maintenance/archive-preview?months=${months}`),
+    enabled: months >= 3,
+  });
+  const run = useMutation({
+    mutationFn: () => api<{ leads: number; applications: number }>("/maintenance/archive", { method: "POST", body: JSON.stringify({ months }) }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["archive-preview"] });
+      void queryClient.invalidateQueries({ queryKey: ["leads"] });
+      void queryClient.invalidateQueries({ queryKey: ["applications"] });
+    },
+  });
+  const total = (preview.data?.leads ?? 0) + (preview.data?.applications ?? 0);
+
+  return (
+    <div className="max-w-xl">
+      <h2 className="text-sm font-bold text-navy">Archive finished files</h2>
+      <p className="mt-1 text-[13px] text-muted">
+        Converted or lost leads, and disbursed, rejected or withdrawn applications, are hidden from the working lists once
+        they have been untouched for a while. <strong>Nothing is deleted</strong> — archived files stay searchable, in every
+        report and in the audit trail, and can be restored one by one. Do this once a year to keep the lists quick.
+      </p>
+
+      <label className="mt-4 block text-[12px] font-semibold text-muted">
+        Archive files untouched for at least (months)
+        <input
+          type="number"
+          min={3}
+          max={240}
+          value={months}
+          onChange={(e) => setMonths(Number(e.target.value))}
+          className="field mt-1 w-32"
+        />
+      </label>
+
+      <div className="mt-4 rounded-lg border border-line bg-bg-light px-4 py-3 text-[13px]">
+        {preview.isPending ? (
+          "Counting…"
+        ) : (
+          <>
+            This would archive <strong>{preview.data?.leads ?? 0}</strong> lead{preview.data?.leads === 1 ? "" : "s"} and{" "}
+            <strong>{preview.data?.applications ?? 0}</strong> application{preview.data?.applications === 1 ? "" : "s"}.
+          </>
+        )}
+      </div>
+
+      {run.isSuccess && (
+        <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-[13px] text-emerald-800">
+          Archived {run.data.leads} lead{run.data.leads === 1 ? "" : "s"} and {run.data.applications} application
+          {run.data.applications === 1 ? "" : "s"}. It is recorded in the audit log.
+        </p>
+      )}
+      {run.isError && <p className="mt-3 text-[13px] text-red-600">{(run.error as Error).message}</p>}
+
+      <button
+        onClick={() => {
+          if (window.confirm(`Archive ${total} file${total === 1 ? "" : "s"}? You can restore any of them later.`)) run.mutate();
+        }}
+        disabled={run.isPending || total === 0 || months < 3}
+        className="btn-primary mt-4"
+      >
+        {run.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+        Archive {total || ""} file{total === 1 ? "" : "s"}
+      </button>
+    </div>
   );
 }

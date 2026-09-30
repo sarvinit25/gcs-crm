@@ -30,6 +30,12 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  // Set when an admin issues a password (new account, reset): the person must choose their own before doing anything else.
+  mustChangePassword Boolean  @default(false)
+  // Authenticator-app two-step login. The secret exists from setup; it only counts once totpEnabledAt is set.
+  totpSecret        String?
+  totpEnabledAt     DateTime?
+
   employeeCode      String?  @unique
   dateOfBirth       DateTime? @db.Date
   joinedAt          DateTime? @db.Date
@@ -223,6 +229,8 @@ model Lead {
 
   // Why a lead was closed out — set when status becomes LOST, cleared if it is reopened.
   lostReason     String?
+  // Closed files are archived, never deleted: hidden from working lists, still searchable and in reports.
+  archivedAt     DateTime?
   employmentType EmploymentType?
   monthlyIncome  Decimal?        @db.Decimal(14, 2)
   meetingMode    String?
@@ -239,6 +247,7 @@ model Lead {
   @@index([createdAt])
   @@index([loanProductId])
   @@index([sourcingPartnerId])
+  @@index([archivedAt])
 }
 
 model FollowUp {
@@ -325,6 +334,7 @@ model Application {
   portalAccessCode String? @unique
 
   status    ApplicationStatus @default(DRAFT)
+  archivedAt DateTime?
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
@@ -342,6 +352,7 @@ model Application {
   @@index([loanProductId])
   @@index([lenderId])
   @@index([bankLoginAt])
+  @@index([archivedAt])
 }
 
 model Applicant {

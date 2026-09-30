@@ -4,7 +4,6 @@ import {
   ArrayMinSize,
   IsArray,
   IsBooleanString,
-  IsDateString,
   IsEnum,
   IsInt,
   IsNumber,
@@ -16,6 +15,7 @@ import {
   ValidateNested,
 } from "class-validator";
 import { EmploymentType, LeadStatus } from "@prisma/client";
+import { DateInput } from "../../common/date-input.decorator";
 
 const PHONE = /^[6-9]\d{9}$/;
 
@@ -80,7 +80,7 @@ export class CreateLeadDto extends PublicLeadDto {
   sourcingPartnerId?: string;
 
   @IsOptional()
-  @IsDateString()
+  @DateInput()
   nextFollowUpAt?: string;
 
   @IsOptional() @IsEnum(EmploymentType) employmentType?: EmploymentType;
@@ -101,7 +101,7 @@ export class UpdateLeadDto {
   @IsOptional() @IsString() assignedOfficerId?: string;
   @IsOptional() @IsString() assignedManagerId?: string;
   @IsOptional() @IsString() sourcingPartnerId?: string;
-  @IsOptional() @IsDateString() nextFollowUpAt?: string;
+  @IsOptional() @DateInput() nextFollowUpAt?: string;
   @IsOptional() @IsString() @Length(0, 4000) notes?: string;
   @IsOptional() @IsEnum(EmploymentType) employmentType?: EmploymentType;
   @IsOptional() @IsNumber() @Min(0) monthlyIncome?: number;
@@ -116,6 +116,8 @@ export class ListLeadsQuery {
   @IsOptional() @IsString() source?: string;
   @IsOptional() @IsBooleanString() dueOnly?: string;
   @IsOptional() @IsString() loanProductId?: string;
+  /** "true" lists archived leads instead of the working set. */
+  @IsOptional() @IsBooleanString() archived?: string;
   @IsOptional() @IsString() range?: string;
   @IsOptional() @IsString() from?: string;
   @IsOptional() @IsString() to?: string;
@@ -130,7 +132,7 @@ export class CreateFollowUpDto {
   note: string;
 
   @IsOptional()
-  @IsDateString()
+  @DateInput()
   dueAt?: string;
 }
 

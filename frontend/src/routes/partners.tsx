@@ -4,6 +4,7 @@ import { KeyRound, Loader2, Pencil, UserPlus } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
 import { PageHeader } from "../components/app-shell";
+import { TableSkeleton } from "../components/skeleton";
 
 type Partner = {
   id: string;
@@ -162,9 +163,7 @@ export function PartnersPage() {
 
         <div className="card overflow-x-auto">
           {query.isPending ? (
-            <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading…
-            </div>
+            <TableSkeleton />
           ) : !query.data?.length ? (
             <p className="py-16 text-center text-sm text-muted">No sourcing partners yet.</p>
           ) : (
@@ -256,7 +255,7 @@ export function PartnersPage() {
         </div>
 
         {editing && (
-          <div className="fixed inset-0 z-50 grid place-items-center bg-navy/40 p-4">
+          <div className="overlay-enter fixed inset-0 z-50 grid place-items-center bg-navy/40 p-4">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -272,7 +271,7 @@ export function PartnersPage() {
                   managerId: (f.get("managerId") as string) || "",
                 });
               }}
-              className="card w-full max-w-md p-5"
+              className="card dialog-enter w-full max-w-md p-5"
             >
               <h2 className="text-sm font-bold text-navy">Edit {editing.name}</h2>
               <p className="mt-1 text-[13px] text-muted">
@@ -317,7 +316,7 @@ export function PartnersPage() {
         )}
 
         {settingPassword && (
-          <div className="fixed inset-0 z-50 grid place-items-center bg-navy/40 p-4">
+          <div className="overlay-enter fixed inset-0 z-50 grid place-items-center bg-navy/40 p-4">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -327,7 +326,7 @@ export function PartnersPage() {
                   password: f.get("password") as string,
                 });
               }}
-              className="card w-full max-w-sm p-5"
+              className="card dialog-enter w-full max-w-sm p-5"
             >
               <h2 className="text-sm font-bold text-navy">Partner Portal password</h2>
               <p className="mt-1 text-[13px] text-muted">

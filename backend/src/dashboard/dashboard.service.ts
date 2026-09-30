@@ -97,7 +97,7 @@ export class DashboardService {
       applications,
       sanctions,
       disbursements: { count: disbursedAgg._count, amount: disbursedAgg._sum.amount ?? 0 },
-      commissionEarned: commissionAgg._sum.grossAmount ?? 0,
+      commissionEarned: user.role === Role.ADVISOR ? null : (commissionAgg._sum.grossAmount ?? 0),
       loanDistribution,
       performance: {
         leadToApplicationPct: pct(Number(statusCount.CONVERTED ?? 0), totalLeads),

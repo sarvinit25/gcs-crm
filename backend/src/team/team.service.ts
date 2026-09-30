@@ -23,6 +23,7 @@ const PUBLIC_FIELDS = {
   commissionPercent: true,
   reportsToId: true,
   reportsTo: { select: { id: true, name: true } },
+  totpEnabledAt: true,
 } satisfies Prisma.UserSelect;
 
 @Injectable()
@@ -100,6 +101,7 @@ export class TeamService {
         commissionPercent: dto.commissionPercent,
         reportsToId: dto.reportsToId || undefined,
         passwordHash: await AuthService.hashPassword(dto.password),
+        mustChangePassword: true,
       },
       select: PUBLIC_FIELDS,
     });
@@ -158,6 +160,23 @@ export class TeamService {
     return user;
   }
 
+  /** For a lost or replaced phone: turns two-step login off so the person can sign in and set it up again. */
+  async resetTwoFactor(id: string, actor: AuthUser, ip?: string) {
+    const user = await this.prisma.user.findUnique({ where: { id }, select: PUBLIC_FIELDS });
+    if (!user) throw new NotFoundException("Staff member not found");
+    await this.prisma.user.update({ where: { id }, data: { totpSecret: null, totpEnabledAt: null } });
+    await this.audit.record({
+      actor,
+      action: AuditAction.UPDATE,
+      entity: "User",
+      entityId: id,
+      entityLabel: user.name,
+      changes: { twoStepLogin: { from: Boolean(user.totpEnabledAt), to: false } },
+      ip,
+    });
+    return { ok: true };
+  }
+
   async resetPassword(id: string, password: string, actor: AuthUser, ip?: string) {
     this.assertPasswordPolicy(password);
     const user = await this.prisma.user.findUnique({ where: { id }, select: PUBLIC_FIELDS });
@@ -165,7 +184,7 @@ export class TeamService {
 
     await this.prisma.user.update({
       where: { id },
-      data: { passwordHash: await AuthService.hashPassword(password) },
+      data: { passwordHash: await AuthService.hashPassword(password), mustChangePassword: true },
     });
 
     // The new password is never recorded — only the fact that it was reset.

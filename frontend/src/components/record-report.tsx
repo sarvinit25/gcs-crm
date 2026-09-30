@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Columns, Download, FileSpreadsheet, Loader2, Printer, Search } from "lucide-react";
 import { api, qs } from "../lib/api";
 import { downloadReport } from "../lib/download-report";
-import { formatAmount, formatDate } from "../lib/format";
+import { formatAmount, formatDate, formatIndianNumber } from "../lib/format";
+import { formatDateTimeFullIST } from "../lib/date";
 import { PeriodSelect } from "./period-select";
 import { DatePicker } from "./date-picker";
 
@@ -81,16 +82,7 @@ const cell = (type: ColumnType, value: string | number | null) => {
   }
 };
 
-const stamp = (iso: string) =>
-  new Date(iso).toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-    timeZone: "Asia/Kolkata",
-  });
+const stamp = (iso: string) => formatDateTimeFullIST(new Date(iso));
 
 export function RecordReport() {
   const [type, setType] = useState<ReportType>("leads");
@@ -236,7 +228,7 @@ export function RecordReport() {
             <Columns className="h-4 w-4" /> Columns
           </button>
           {colMenu && (
-            <div className="card absolute right-0 z-30 mt-1 max-h-72 w-52 overflow-y-auto p-2 shadow-lg">
+            <div className="card pop-enter absolute right-0 z-30 mt-1 max-h-72 w-52 overflow-y-auto p-2 shadow-lg">
               {(result.data?.columns ?? []).map((c) => (
                 <label key={c.key} className="flex items-center gap-2 rounded px-2 py-1.5 text-[13px] hover:bg-bg-light">
                   <input type="checkbox" checked={!hiddenNow.has(c.key)} onChange={() => toggle(c.key)} />
@@ -364,7 +356,7 @@ function ReportHeader({ meta }: { meta: ReportMeta }) {
                 {s.label}
               </p>
               <p className="mt-0.5 text-lg font-bold text-navy">
-                {s.kind === "amount" ? formatAmount(s.value) : s.value.toLocaleString("en-IN")}
+                {s.kind === "amount" ? formatAmount(s.value) : formatIndianNumber(s.value)}
               </p>
             </div>
           ))}

@@ -60,16 +60,20 @@ export class DisbursementsService {
       where: { applicationId },
       orderBy: { disbursedAt: "asc" },
       include: {
-        commission: {
-          include: {
-            splits: {
-              include: {
-                user: { select: { id: true, name: true } },
-                sourcingPartner: { select: { id: true, name: true } },
+        // Commission economics belong to Admin and Manager; Staff only need to know one exists.
+        commission:
+          user.role === Role.ADVISOR
+            ? { select: { id: true } }
+            : {
+                include: {
+                  splits: {
+                    include: {
+                      user: { select: { id: true, name: true } },
+                      sourcingPartner: { select: { id: true, name: true } },
+                    },
+                  },
+                },
               },
-            },
-          },
-        },
       },
     });
 

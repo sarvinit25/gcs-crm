@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -6,7 +5,6 @@ import {
   Banknote,
   Download,
   FileText,
-  Loader2,
   ShieldCheck,
   Users,
   type LucideIcon,
@@ -17,6 +15,10 @@ import { LEAD_STATUSES, LEAD_STATUS_LABEL } from "../lib/types";
 import { useAuth } from "../lib/auth";
 import { PageHeader } from "../components/app-shell";
 import { PunchCard } from "../components/punch-card";
+import { CountUp } from "../components/count-up";
+import { TodayList } from "../components/today-list";
+import { Link } from "@tanstack/react-router";
+import { DashboardSkeleton } from "../components/skeleton";
 import { PeriodSelect } from "../components/period-select";
 import { todayIST } from "../lib/date";
 
@@ -37,7 +39,7 @@ type Summary = {
   applications: number;
   sanctions: number;
   disbursements: { count: number; amount: string | number };
-  commissionEarned: string | number;
+  commissionEarned: string | number | null;
 };
 
 function Stat({
@@ -49,7 +51,7 @@ function Stat({
   className = "",
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   /** Full figure, for when the displayed value is abbreviated. */
   title?: string;
   icon: LucideIcon;
@@ -57,7 +59,7 @@ function Stat({
   className?: string;
 }) {
   return (
-    <div className={`card flex items-center gap-3.5 p-4 ${className}`} title={title}>
+    <div className={`card lift flex items-center gap-3.5 p-4 ${className}`} title={title}>
       <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${tint}`}>
         <Icon className="h-5 w-5" />
       </span>
@@ -110,7 +112,7 @@ function Meter({ label, pct, hint }: { label: string; pct: number; hint?: string
         <span className="font-semibold text-navy">{pct}%</span>
       </div>
       <div className="mt-1 h-2 overflow-hidden rounded-full bg-bg-light">
-        <div className="h-full rounded-full bg-teal-500 transition-all" style={{ width: `${Math.min(pct, 100)}%` }} />
+        <div className="bar-grow h-full rounded-full bg-teal-500 transition-all" style={{ width: `${Math.min(pct, 100)}%` }} />
       </div>
       {hint && <p className="mt-0.5 text-[11px] text-muted">{hint}</p>}
     </div>
@@ -148,51 +150,65 @@ export function DashboardPage() {
       />
 
       <div className="px-6 py-5">
+        {user?.role === "ADMIN" && user.twoFactorEnabled === false && (
+          <Link
+            to={"/account" as never}
+            className="lift mb-5 flex items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900"
+          >
+            <ShieldCheck className="h-5 w-5 shrink-0" />
+            <span>
+              <strong>Protect your account.</strong> You can see everything in the firm — turn on two-step login so a stolen
+              password isn't enough.
+            </span>
+          </Link>
+        )}
         <div className="mb-5">
           <PunchCard />
         </div>
         {query.isPending ? (
-          <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading…
-          </div>
+          <DashboardSkeleton />
         ) : query.isError ? (
           <p className="py-16 text-center text-sm text-red-600">{(query.error as Error).message}</p>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-5">
+            <div
+              className={`grid grid-cols-2 gap-3 lg:grid-cols-3 ${query.data.commissionEarned === null ? "xl:grid-cols-4" : "xl:grid-cols-5"}`}
+            >
               <Stat
                 label="Leads"
-                value={String(query.data.leads.total)}
+                value={<CountUp value={query.data.leads.total} />}
                 icon={Users}
                 tint="bg-sky-50 text-sky-600"
               />
               <Stat
                 label="Applications"
-                value={String(query.data.applications)}
+                value={<CountUp value={query.data.applications} />}
                 icon={FileText}
                 tint="bg-violet-50 text-violet-600"
               />
               <Stat
                 label="Sanctions"
-                value={String(query.data.sanctions)}
+                value={<CountUp value={query.data.sanctions} />}
                 icon={ShieldCheck}
                 tint="bg-amber-50 text-amber-600"
               />
               <Stat
                 label="Disbursed"
-                value={formatCompact(query.data.disbursements.amount)}
+                value={<CountUp value={Number(query.data.disbursements.amount)} format={formatCompact} />}
                 title={formatAmount(query.data.disbursements.amount)}
                 icon={Banknote}
                 tint="bg-emerald-50 text-emerald-600"
               />
+              {query.data.commissionEarned !== null && (
               <Stat
-                label="Commission"
-                value={formatCompact(query.data.commissionEarned)}
-                title={formatAmount(query.data.commissionEarned)}
-                className="col-span-2 lg:col-span-1"
-                icon={BadgeIndianRupee}
-                tint="bg-gold-pale/60 text-gold-dark"
-              />
+                  label="Commission"
+                  value={<CountUp value={Number(query.data.commissionEarned)} format={formatCompact} />}
+                  title={formatAmount(query.data.commissionEarned)}
+                  className="col-span-2 lg:col-span-1"
+                  icon={BadgeIndianRupee}
+                  tint="bg-gold-pale/60 text-gold-dark"
+                />
+              )}
             </div>
 
             <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_320px]">
@@ -211,7 +227,7 @@ export function DashboardPage() {
                         </span>
                         <div className="h-2 flex-1 overflow-hidden rounded-full bg-bg-light">
                           <div
-                            className="h-full rounded-full bg-navy transition-all"
+                            className="bar-grow h-full rounded-full bg-navy transition-all"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
@@ -224,16 +240,7 @@ export function DashboardPage() {
                 </div>
               </section>
 
-              <section className="card p-5">
-                <h2 className="text-sm font-bold text-navy">Needs attention</h2>
-                <p className="mt-3 text-3xl font-bold text-red-600">
-                  {query.data.leads.dueFollowUps}
-                </p>
-                <p className="text-[13px] text-muted">follow-ups due or overdue</p>
-                <Link to="/leads" className="btn-ghost mt-4 w-full">
-                  Open leads
-                </Link>
-              </section>
+              <TodayList title={user?.role === "ADVISOR" ? "My day" : "Needs attention"} />
             </div>
 
             <div className="mt-5 grid gap-5 lg:grid-cols-2">
@@ -281,7 +288,7 @@ export function DashboardPage() {
                           </span>
                           <div className="h-2 flex-1 overflow-hidden rounded-full bg-bg-light">
                             <div
-                              className="h-full rounded-full bg-violet-500 transition-all"
+                              className="bar-grow h-full rounded-full bg-violet-500 transition-all"
                               style={{ width: `${(l.count / max) * 100}%` }}
                             />
                           </div>

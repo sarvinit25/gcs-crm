@@ -1,5 +1,6 @@
-import { IsBoolean, IsDateString, IsEmail, IsEnum, IsNumber, IsOptional, IsString, Length, Matches, Max, Min } from "class-validator";
+import { IsBoolean, IsEmail, IsEnum, IsNumber, IsOptional, IsString, Length, Matches, Max, Min } from "class-validator";
 import { Role } from "@prisma/client";
+import { DateInput } from "../../common/date-input.decorator";
 
 export class CreateUserDto {
   @IsString() @Length(2, 120) name: string;
@@ -13,8 +14,8 @@ export class CreateUserDto {
 
   @IsOptional() @IsString() @Length(0, 80) designation?: string;
 
-  @IsOptional() @IsDateString() dateOfBirth?: string;
-  @IsOptional() @IsDateString() joinedAt?: string;
+  @IsOptional() @DateInput() dateOfBirth?: string;
+  @IsOptional() @DateInput() joinedAt?: string;
   @IsOptional() @IsString() reportsToId?: string;
   @IsOptional() @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) @Max(100) commissionPercent?: number;
 
@@ -31,8 +32,8 @@ export class UpdateUserDto {
   @IsOptional() @IsString() @Length(0, 80) designation?: string;
   @IsOptional() @IsBoolean() active?: boolean;
 
-  @IsOptional() @IsDateString() dateOfBirth?: string;
-  @IsOptional() @IsDateString() joinedAt?: string;
+  @IsOptional() @DateInput() dateOfBirth?: string;
+  @IsOptional() @DateInput() joinedAt?: string;
   @IsOptional() @IsString() reportsToId?: string;
   @IsOptional() @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) @Max(100) commissionPercent?: number;
 }

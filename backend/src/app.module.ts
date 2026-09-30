@@ -4,7 +4,7 @@ import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { PrismaModule } from "./prisma/prisma.module";
 import { AuthModule } from "./auth/auth.module";
-import { JwtAuthGuard, RolesGuard } from "./auth/auth.guards";
+import { JwtAuthGuard, PasswordChangeGuard, RolesGuard } from "./auth/auth.guards";
 import { LeadsModule } from "./leads/leads.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { ApplicationsModule } from "./applications/applications.module";
@@ -24,16 +24,26 @@ import { SettingsModule } from "./settings/settings.module";
 import { PartnerPortalModule } from "./partner-portal/partner-portal.module";
 import { BorrowerPortalModule } from "./borrower-portal/borrower-portal.module";
 import { SearchModule } from "./search/search.module";
+import { NotificationsModule } from "./notifications/notifications.module";
+import { MaintenanceModule } from "./maintenance/maintenance.module";
+import { HealthModule } from "./health/health.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     // Headroom for staff browsing; public intake and login tighten this per-route.
-    ThrottlerModule.forRoot({ throttlers: [{ ttl: 60_000, limit: 120 }] }),
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60_000, limit: 120 }],
+      // Test runs sign in dozens of times a minute; the one test about throttling turns it back on.
+      skipIf: () => process.env.NODE_ENV === "test" && process.env.ENABLE_THROTTLE_IN_TESTS !== "true",
+    }),
     PrismaModule,
     AuthModule,
     LeadsModule,
     SearchModule,
+    NotificationsModule,
+    MaintenanceModule,
+    HealthModule,
     DashboardModule,
     ApplicationsModule,
     LendersModule,
@@ -56,6 +66,7 @@ import { SearchModule } from "./search/search.module";
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     // Everything is authenticated unless a route opts out with @Public().
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: PasswordChangeGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })

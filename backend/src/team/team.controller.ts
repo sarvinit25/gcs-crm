@@ -37,6 +37,12 @@ export class TeamController {
     return this.team.update(id, dto, user, ip);
   }
 
+  @Post(":id/reset-2fa")
+  @Roles(Role.ADMIN)
+  resetTwoFactor(@Param("id") id: string, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.team.resetTwoFactor(id, user, ip);
+  }
+
   @Post(":id/reset-password")
   @Roles(Role.ADMIN)
   resetPassword(

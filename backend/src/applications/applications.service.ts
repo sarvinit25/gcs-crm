@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { AuditAction, LeadStatus, Prisma, Role } from "@prisma/client";
+import { ApplicationStatus, AuditAction, LeadStatus, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { AuditService, diff } from "../audit/audit.service";
@@ -112,6 +112,7 @@ export class ApplicationsService {
 
     const where: Prisma.ApplicationWhereInput = {
       ...this.scopeFor(user),
+      archivedAt: query.archived === "true" ? { not: null } : null,
       ...(query.status && { status: query.status }),
       ...(query.lenderId && { lenderId: query.lenderId }),
       ...(query.ownerId && { ownerId: query.ownerId }),
@@ -181,6 +182,30 @@ export class ApplicationsService {
   }
 
   /** Issues a fresh borrower-portal code — e.g. if the old one was shared too widely. */
+  /** Only finished files (disbursed, rejected, withdrawn) may be archived. */
+  async setArchived(id: string, archived: boolean, user: AuthUser, ip?: string) {
+    const app = await this.prisma.application.findFirst({
+      where: { id, ...this.scopeFor(user) },
+      select: { id: true, seq: true, createdAt: true, status: true },
+    });
+    if (!app) throw new NotFoundException("Application not found");
+    const finished: ApplicationStatus[] = [ApplicationStatus.DISBURSED, ApplicationStatus.REJECTED, ApplicationStatus.WITHDRAWN];
+    if (archived && !finished.includes(app.status)) {
+      throw new BadRequestException("Only disbursed, rejected or withdrawn applications can be archived");
+    }
+    await this.prisma.application.update({ where: { id }, data: { archivedAt: archived ? new Date() : null } });
+    await this.audit.record({
+      actor: user,
+      action: AuditAction.UPDATE,
+      entity: "Application",
+      entityId: id,
+      entityLabel: this.settings.applicationNo(app.seq, app.createdAt),
+      changes: { archived: { from: !archived, to: archived } },
+      ip,
+    });
+    return { id, archived };
+  }
+
   async regeneratePortalAccessCode(id: string, user: AuthUser, ip?: string) {
     await this.findOne(id, user);
     const portalAccessCode = generatePortalAccessCode();

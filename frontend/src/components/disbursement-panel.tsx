@@ -8,10 +8,12 @@ import { ROI_TYPE_LABEL, type DisbursementSummary, type RoiType } from "../lib/t
 import { CommissionBlock } from "./commission-block";
 import { Modal } from "./modal";
 import { DatePicker } from "./date-picker";
+import { useAuth } from "../lib/auth";
 
 const ROI_TYPES = Object.keys(ROI_TYPE_LABEL) as RoiType[];
 
 export function DisbursementPanel({ applicationId }: { applicationId: string }) {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
 
@@ -261,12 +263,14 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
                       </button>
                     )}
                   </div>
-                  <CommissionBlock
-                    applicationId={applicationId}
-                    disbursementId={d.id}
-                    amount={d.amount}
-                    commission={d.commission}
-                  />
+                  {user?.role !== "ADVISOR" && (
+                    <CommissionBlock
+                      applicationId={applicationId}
+                      disbursementId={d.id}
+                      amount={d.amount}
+                      commission={d.commission}
+                    />
+                  )}
                 </li>
               );
             })}

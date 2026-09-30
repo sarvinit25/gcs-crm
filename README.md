@@ -226,6 +226,58 @@ time. Checking in after the half-day cutoff (Settings → Attendance) is recorde
 as a half day; Super Admin and Admin can still mark or correct any day from the
 month grid. Self check-in can be switched off in Settings.
 
+## Reminders and "my day"
+
+`GET /crm/api/notifications` works out what needs attention right now — overdue and due-today follow-ups, files
+gone quiet (`pipeline.stalledAfterDays`), sanctions about to expire (`pipeline.sanctionExpiryWarnDays`), submitted
+files with no bank login (`pipeline.loginPendingDays`), and for managers unowned leads and commissions not received
+after 30 days. Nothing is stored: an item disappears the moment the problem is fixed. It feeds the bell in the top bar
+and the dashboard's "My day" / "Needs attention" list. Staff see only their own files.
+
+## Masters, archive and duplicates
+
+Lists that rarely change — banks & NBFCs, loan products, document checklists, rate cards — live under
+**Settings → Masters**, not in the daily menu (the old `/lenders` page still works for direct links and search).
+Finished files are archived, never deleted: Settings → **Archive** hides converted/lost leads and
+disbursed/rejected/withdrawn applications older than N months from the working lists (`Show archived` brings them
+back; search and reports always include them). The New Lead form warns when the phone number is already in the CRM.
+
+## Security
+
+- Staff accounts made or reset by an admin must choose their own password before anything else works
+  (server-enforced, not just a screen). The seeded admin is forced to change the documented default.
+- Two-step login with any authenticator app (My account → Two-step login). Implemented to RFC 6238 with Node's crypto
+  and checked against the RFC's test vectors. A Super Admin can reset a lost phone from the Team page.
+- Commission economics (ledger, splits, commission reports, the dashboard total) are Admin/Super Admin only —
+  enforced on the API, not just hidden in the menu.
+- Login and code entry are rate-limited; the API refuses to start in production with a weak secret or missing keys.
+
+## Tests
+
+```bash
+cd backend && npm test            # unit tests: dates/financial year, numbering, reports, search, TOTP, config checks
+cd backend && npm run test:e2e    # permissions, portals' token isolation, archiving, security (builds a throwaway database)
+cd frontend && npm test           # formatting, India-time helpers, CSV import
+```
+The end-to-end suite needs the development Postgres running; it creates and drops its own database
+(`gcs_crm_e2e`), so it never touches real data. Run all three before deploying a change.
+
+## Going live and backups
+
+See `ops/DEPLOY.md` (server setup, Nginx, systemd, B2, uptime monitor) and `ops/backup.sh` / `ops/restore-check.sh`
+(nightly verified dumps, and a monthly proof that one restores). `GET /crm/api/health` is the uptime-monitor endpoint.
+
+## Motion
+
+All animation is plain CSS in `frontend/src/styles.css` (no animation library) and
+is switched off for `prefers-reduced-motion` and in print. Use the existing
+classes rather than adding new ones: `page-enter` (route changes, applied once in
+the shell), `pop-enter` (dropdowns and popovers), `overlay-enter` + `dialog-enter`
+(dialogs; use the shared `Modal` for the exit animation and Escape-to-close),
+`bar-grow` (progress bars), `fade-enter`, `lift` (hover tiles) and `skeleton`
+(`TableSkeleton` / `DashboardSkeleton` while a register loads). Table rows
+stagger in automatically. `CountUp` animates dashboard figures.
+
 ## Search
 
 The search box in the top bar (focus it with `/` or Ctrl/⌘+K) searches the whole

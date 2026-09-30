@@ -10,6 +10,7 @@ import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
 import { todayIST } from "../lib/date";
 import { DatePicker } from "../components/date-picker";
+import { TableSkeleton } from "../components/skeleton";
 
 type Staff = {
   id: string;
@@ -26,6 +27,7 @@ type Staff = {
   commissionPercent: string | null;
   reportsToId: string | null;
   reportsTo: { id: string; name: string } | null;
+  totpEnabledAt: string | null;
 };
 
 const ROLES: Role[] = ["ADMIN", "MANAGER", "ADVISOR"];
@@ -68,13 +70,18 @@ export function TeamPage() {
     },
   });
 
+  const resetTwoFactor = useMutation({
+    mutationFn: (id: string) => api(`/team/${id}/reset-2fa`, { method: "POST" }),
+    onSuccess: () => void invalidate(),
+  });
+
   const resetPassword = useMutation({
     mutationFn: ({ id, password }: { id: string; password: string }) =>
       api(`/team/${id}/reset-password`, { method: "POST", body: JSON.stringify({ password }) }),
     onSuccess: () => setResetting(null),
   });
 
-  const error = [create, update, resetPassword].find((m) => m.isError)?.error;
+  const error = [create, update, resetPassword, resetTwoFactor].find((m) => m.isError)?.error;
 
   return (
     <>
@@ -106,9 +113,7 @@ export function TeamPage() {
 
         <div className="card overflow-x-auto">
           {query.isPending ? (
-            <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading team…
-            </div>
+            <TableSkeleton />
           ) : (
             <table className="w-full text-left text-[13px]">
               <thead className="border-b border-line bg-bg-light/60 text-[11px] tracking-wide text-muted uppercase">
@@ -144,6 +149,11 @@ export function TeamPage() {
                             {s.name}
                             {s.id === user?.id && (
                               <span className="ml-2 text-[11px] font-bold text-gold-dark">YOU</span>
+                            )}
+                            {s.totpEnabledAt && (
+                              <span title="Two-step login is on" className="ml-2 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                                2FA
+                              </span>
                             )}
                           </p>
                           <p className="text-[12px] text-muted">{s.designation ?? "—"}</p>
@@ -187,6 +197,16 @@ export function TeamPage() {
                           <Pencil className="mr-1 inline h-3 w-3" />
                           Edit
                         </button>
+                        {s.totpEnabledAt && s.id !== user?.id && (
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Turn off two-step login for ${s.name}? Use this when they've lost or replaced their phone.`)) resetTwoFactor.mutate(s.id);
+                            }}
+                            className="text-[12px] font-semibold text-muted hover:text-red-600"
+                          >
+                            Reset 2FA
+                          </button>
+                        )}
                         <button
                           onClick={() => setResetting(s)}
                           className="text-[12px] font-semibold text-navy hover:text-gold-dark"
@@ -225,7 +245,7 @@ export function TeamPage() {
         )}
 
         {resetting && (
-          <div className="fixed inset-0 z-50 grid place-items-center bg-navy/40 p-4">
+          <div className="overlay-enter fixed inset-0 z-50 grid place-items-center bg-navy/40 p-4">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -235,7 +255,7 @@ export function TeamPage() {
                   password: f.get("password") as string,
                 });
               }}
-              className="card w-full max-w-sm p-5"
+              className="card dialog-enter w-full max-w-sm p-5"
             >
               <h2 className="text-sm font-bold text-navy">Reset password</h2>
               <p className="mt-1 text-[13px] text-muted">

@@ -1,11 +1,12 @@
 import { Type } from "class-transformer";
-import { IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, Length, Max, Min } from "class-validator";
+import { IsEnum, IsInt, IsNumber, IsOptional, IsString, Length, Max, Min } from "class-validator";
 import { AttendanceStatus, PayoutStatus } from "@prisma/client";
+import { DateInput } from "../../common/date-input.decorator";
 
 export class MarkAttendanceDto {
   @IsString() userId: string;
 
-  @IsDateString() date: string;
+  @DateInput() date: string;
 
   @IsEnum(AttendanceStatus) status: AttendanceStatus;
 
@@ -18,7 +19,7 @@ export class MonthQuery {
 }
 
 export class BulkPresentDto {
-  @IsDateString() date: string;
+  @DateInput() date: string;
 }
 
 export class UpsertPayrollDto {
@@ -36,5 +37,5 @@ export class UpsertPayrollDto {
 export class PayrollStatusDto {
   @IsEnum(PayoutStatus) status: PayoutStatus;
 
-  @IsOptional() @IsDateString() paidAt?: string;
+  @IsOptional() @DateInput() paidAt?: string;
 }

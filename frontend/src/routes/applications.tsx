@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Loader2, Plus, Search } from "lucide-react";
+import { Download, Plus, Search } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
 import { downloadReport } from "../lib/download-report";
@@ -16,6 +16,8 @@ import { PageHeader } from "../components/app-shell";
 import { ApplicationStatusBadge } from "../components/status-badge";
 import { NewApplicationWizard } from "../components/new-application-wizard";
 import { PeriodSelect } from "../components/period-select";
+import { TableSkeleton } from "../components/skeleton";
+import { ArchivedBadge } from "../components/archive-button";
 
 export function ApplicationsPage() {
   const navigate = useNavigate();
@@ -26,6 +28,7 @@ export function ApplicationsPage() {
   const [showWizard, setShowWizard] = useState(false);
   const [tab, setTab] = useState<"application" | "login">("application");
   const [loanProductId, setLoanProductId] = useState("");
+  const [archived, setArchived] = useState(false);
   const [timeRange, setTimeRange] = useState("all");
   const loggedIn = tab === "login" ? "true" : undefined;
 
@@ -35,10 +38,10 @@ export function ApplicationsPage() {
   });
 
   const query = useQuery({
-    queryKey: ["applications", { search, status, page, loanProductId, timeRange, tab }],
+    queryKey: ["applications", { search, status, page, loanProductId, timeRange, tab, archived }],
     queryFn: () =>
       api<Paginated<Application>>(
-        `/applications${qs({ search, status, page, loanProductId, range: timeRange, loggedIn })}`,
+        `/applications${qs({ search, status, page, loanProductId, range: timeRange, loggedIn, archived: archived ? "true" : undefined })}`,
       ),
   });
 
@@ -138,13 +141,15 @@ export function ApplicationsPage() {
             ))}
           </select>
           <PeriodSelect value={timeRange} onChange={(v) => reset(() => setTimeRange(v))} className="field w-56" />
+          <label className="flex items-center gap-2 text-[13px] text-muted">
+            <input type="checkbox" checked={archived} onChange={(e) => reset(() => setArchived(e.target.checked))} />
+            Archived
+          </label>
         </div>
 
         <div className="card overflow-x-auto">
           {query.isPending ? (
-            <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading applications…
-            </div>
+            <TableSkeleton />
           ) : query.isError ? (
             <p className="py-16 text-center text-sm text-red-600">
               {(query.error as Error).message}
@@ -191,6 +196,7 @@ export function ApplicationsPage() {
                       >
                         {app.applicationNo}
                       </Link>
+                      {app.archivedAt && <ArchivedBadge />}
                       <p className="text-[12px] text-muted">{formatDate(app.createdAt)}</p>
                     </td>
                     <td className="px-4 py-3">{app.applicants[0]?.name ?? "—"}</td>

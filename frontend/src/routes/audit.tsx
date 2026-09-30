@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import {  } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
 import { formatDateTime, humanizeKey } from "../lib/format";
 import type { Paginated } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
+import { TableSkeleton } from "../components/skeleton";
 
 type AuditAction = "CREATE" | "UPDATE" | "DELETE" | "LOGIN";
 
@@ -70,9 +71,7 @@ export function AuditPage() {
 
         <div className="card overflow-x-auto">
           {query.isPending ? (
-            <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading…
-            </div>
+            <TableSkeleton />
           ) : query.isError ? (
             <p className="py-16 text-center text-sm text-red-600">
               {(query.error as Error).message}

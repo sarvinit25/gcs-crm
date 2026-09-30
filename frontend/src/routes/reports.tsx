@@ -55,16 +55,23 @@ const HEADING: Record<string, string> = {
   type: "Type",
   sanctions: "Sanctions",
   sanctionedAmount: "Sanctioned",
+  rejected: "Rejected",
+  approvalRate: "Approval %",
+  avgDaysToSanction: "Days to sanction",
+  avgRate: "Avg. rate",
+  avgSanction: "Avg. sanction",
   officer: "Officer",
   role: "Role",
 };
 
-const AMOUNT_KEYS = new Set(["requestedAmount", "disbursedAmount", "sanctionedAmount"]);
+const AMOUNT_KEYS = new Set(["requestedAmount", "disbursedAmount", "sanctionedAmount", "avgSanction"]);
 
 function cellText(row: Row, col: string): string {
   const v = row[col];
   if (AMOUNT_KEYS.has(col)) return formatAmount(v);
-  if (col === "conversionRate") return `${v}%`;
+  if (col === "conversionRate" || col === "approvalRate") return v == null ? "—" : `${v}%`;
+  if (col === "avgRate") return v == null ? "—" : `${v}%`;
+  if (col === "avgDaysToSanction") return v == null ? "—" : `${v} d`;
   if (col === "role" && typeof v === "string") return ROLE_LABEL[v as Role];
   if (col === "source" && typeof v === "string") return humanize(v);
   return v == null ? "—" : String(v);

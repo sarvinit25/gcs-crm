@@ -93,6 +93,7 @@ export class LeadsService {
 
     const where: Prisma.LeadWhereInput = {
       ...this.scopeFor(user),
+      archivedAt: query.archived === "true" ? { not: null } : null,
       ...(query.status && { status: query.status }),
       ...(query.source && { source: query.source }),
       ...(query.assignedOfficerId && { assignedOfficerId: query.assignedOfficerId }),
@@ -176,6 +177,80 @@ export class LeadsService {
     });
 
     return lead;
+  }
+
+  /** Only closed leads may be archived — an open lead still needs working. */
+  async setArchived(id: string, archived: boolean, user: AuthUser, ip?: string) {
+    const lead = await this.findOne(id, user);
+    if (archived && lead.status !== LeadStatus.CONVERTED && lead.status !== LeadStatus.LOST) {
+      throw new BadRequestException("Only converted or lost leads can be archived");
+    }
+    const updated = await this.prisma.lead.update({
+      where: { id },
+      data: { archivedAt: archived ? new Date() : null },
+      include: LIST_INCLUDE,
+    });
+    await this.audit.record({
+      actor: user,
+      action: AuditAction.UPDATE,
+      entity: "Lead",
+      entityId: id,
+      entityLabel: `#${lead.leadNo} ${lead.name}`,
+      changes: { archived: { from: !archived, to: archived } },
+      ip,
+    });
+    return updated;
+  }
+
+  /**
+   * Who already has this phone number? Shown as a warning while a lead is being
+   * typed in — details are limited to what is safe to reveal to the caller.
+   */
+  async findDuplicates(rawPhone: string, user: AuthUser) {
+    const phone = rawPhone.replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
+    if (!/^[6-9]\d{9}$/.test(phone)) return [];
+    const staff = user.role === Role.ADVISOR;
+
+    const [leads, applicants] = await Promise.all([
+      this.prisma.lead.findMany({
+        where: { phone },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: { id: true, leadNo: true, name: true, status: true, createdAt: true, archivedAt: true, assignedOfficerId: true, assignedOfficer: { select: { name: true } } },
+      }),
+      this.prisma.applicant.findMany({
+        where: { phone, isPrimary: true },
+        take: 5,
+        select: {
+          name: true,
+          application: { select: { id: true, seq: true, createdAt: true, status: true, ownerId: true, owner: { select: { name: true } } } },
+        },
+      }),
+    ]);
+
+    return [
+      ...leads.map((l) => ({
+        kind: "lead" as const,
+        id: l.id,
+        title: `${l.name} · lead #${l.leadNo}`,
+        status: l.status,
+        owner: l.assignedOfficer?.name ?? null,
+        createdAt: l.createdAt,
+        archived: l.archivedAt !== null,
+        // Staff can only open their own records; for the rest they just learn it exists.
+        canOpen: !staff || l.assignedOfficerId === user.id,
+      })),
+      ...applicants.map((a) => ({
+        kind: "application" as const,
+        id: a.application.id,
+        title: `${a.name} · ${this.settings.applicationNo(a.application.seq, a.application.createdAt)}`,
+        status: a.application.status,
+        owner: a.application.owner?.name ?? null,
+        createdAt: a.application.createdAt,
+        archived: false,
+        canOpen: !staff || a.application.ownerId === user.id,
+      })),
+    ];
   }
 
   /**

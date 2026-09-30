@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { PageHeader } from "../components/app-shell";
+import { TableSkeleton } from "../components/skeleton";
 
 type Lender = {
   id: string;
@@ -17,7 +18,8 @@ type Lender = {
   applicationCount: number;
 };
 
-export function LendersPage() {
+/** The lender list and its editor. Shown as a page, or embedded as a Settings tab. */
+export function LendersPanel({ embedded = false }: { embedded?: boolean }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const isAdmin = user?.role === "ADMIN";
@@ -60,25 +62,30 @@ export function LendersPage() {
   );
   const publicCount = (query.data ?? []).filter((l) => l.isPublic && l.active).length;
 
+  const subtitle = query.data
+    ? `${query.data.length} lenders · ${publicCount} shown on the website`
+    : "Partner banks and NBFCs";
+  const addButton = isAdmin && (
+    <button onClick={() => setShowForm(!showForm)} className="btn-primary">
+      <Plus className="h-4 w-4" /> Add lender
+    </button>
+  );
+
   return (
     <>
-      <PageHeader
-        title="Lender Directory"
-        subtitle={
-          query.data
-            ? `${query.data.length} lenders · ${publicCount} shown on the website`
-            : "Partner banks and NBFCs"
-        }
-        actions={
-          isAdmin && (
-            <button onClick={() => setShowForm(!showForm)} className="btn-primary">
-              <Plus className="h-4 w-4" /> Add lender
-            </button>
-          )
-        }
-      />
+      {!embedded && <PageHeader title="Lender Directory" subtitle={subtitle} actions={addButton} />}
 
-      <div className="px-6 py-5">
+      <div className={embedded ? "" : "px-6 py-5"}>
+        {embedded && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-bold text-navy">Banks &amp; NBFCs</h2>
+              <p className="text-[13px] text-muted">{subtitle}</p>
+            </div>
+            {addButton}
+          </div>
+        )}
+
         {error && (
           <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">
             {(error as Error).message}
@@ -148,9 +155,7 @@ export function LendersPage() {
 
         <div className="card overflow-x-auto">
           {query.isPending ? (
-            <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading…
-            </div>
+            <TableSkeleton />
           ) : (
             <table className="w-full text-left text-[13px]">
               <thead className="border-b border-line bg-bg-light/60 text-[11px] tracking-wide text-muted uppercase">
@@ -165,7 +170,7 @@ export function LendersPage() {
               <tbody>
                 {visible.map((l) => (
                   <tr
-                    id={`row-${l.id}`}
+                    id={`lender-${l.id}`}
                     key={l.id}
                     className={clsx(
                       "border-b border-line/70 last:border-0",
@@ -244,3 +249,5 @@ export function LendersPage() {
     </>
   );
 }
+
+export const LendersPage = () => <LendersPanel />;

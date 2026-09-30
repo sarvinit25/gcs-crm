@@ -16,7 +16,7 @@ const HEADERS = ["name", "phone", "email", "city", "product", "amount", "notes"]
 const TEMPLATE = `${HEADERS.join(",")}\nAsha Patil,9876500001,asha@example.com,Pune,home-loan,4500000,Referred by existing client\n`;
 
 /** Minimal RFC 4180 reader: quoted fields, doubled quotes, CRLF. */
-function parseCsv(text: string): string[][] {
+export function parseCsv(text: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";
@@ -47,7 +47,7 @@ function parseCsv(text: string): string[][] {
   return rows;
 }
 
-function toRows(text: string): { rows: Row[]; error?: string } {
+export function toRows(text: string): { rows: Row[]; error?: string } {
   const table = parseCsv(text);
   if (table.length < 2) return { rows: [], error: "The file has no data rows." };
   const header = table[0].map((h) => h.trim().toLowerCase());

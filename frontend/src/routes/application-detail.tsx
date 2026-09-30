@@ -24,6 +24,7 @@ import { BorrowerPortalPanel } from "../components/borrower-portal-panel";
 import { DocumentsPanel } from "../components/documents-panel";
 import { DisbursementPanel } from "../components/disbursement-panel";
 import { ChecklistPanel } from "../components/checklist-panel";
+import { ArchiveButton } from "../components/archive-button";
 
 const EMPLOYMENT_TYPES = Object.keys(EMPLOYMENT_TYPE_LABEL) as EmploymentType[];
 const CONSTITUTIONS = Object.keys(CONSTITUTION_LABEL) as ApplicantConstitution[];
@@ -138,6 +139,13 @@ export function ApplicationDetailPage() {
         subtitle={`${primary?.name ?? "No applicant"} · raised ${formatDate(app.createdAt)}`}
         actions={
           <div className="flex items-center gap-2">
+            <ArchiveButton
+              kind="applications"
+              id={app.id}
+              archived={app.archivedAt !== null}
+              closed={["DISBURSED", "REJECTED", "WITHDRAWN"].includes(app.status)}
+              refresh={[["application", applicationId], ["applications"]]}
+            />
             <select
               value={app.status}
               disabled={patch.isPending}

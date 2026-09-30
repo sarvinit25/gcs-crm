@@ -3,7 +3,6 @@ import {
   IsArray,
   IsBoolean,
   IsBooleanString,
-  IsDateString,
   IsEnum,
   IsInt,
   IsNumber,
@@ -15,6 +14,7 @@ import {
   ValidateNested,
 } from "class-validator";
 import { ApplicantConstitution, ApplicationStatus, EmploymentType } from "@prisma/client";
+import { DateInput } from "../../common/date-input.decorator";
 
 const PHONE = /^[6-9]\d{9}$/;
 
@@ -25,7 +25,7 @@ export class ApplicantDto {
   @IsString() @Length(2, 120) name: string;
 
   @IsOptional() @IsString() @Length(1, 60) relation?: string;
-  @IsOptional() @IsDateString() dateOfBirth?: string;
+  @IsOptional() @DateInput() dateOfBirth?: string;
   @IsOptional() @Matches(PHONE) phone?: string;
   @IsOptional() @IsString() email?: string;
   @IsOptional() @Matches(/^[A-Z]{5}\d{4}[A-Z]$/, { message: "pan must look like ABCDE1234F" })
@@ -47,7 +47,7 @@ export class UpdateApplicantDto {
   @IsOptional() @IsString() @Length(2, 120) name?: string;
 
   @IsOptional() @IsString() @Length(1, 60) relation?: string;
-  @IsOptional() @IsDateString() dateOfBirth?: string;
+  @IsOptional() @DateInput() dateOfBirth?: string;
   @IsOptional() @Matches(PHONE) phone?: string;
   @IsOptional() @IsString() email?: string;
   @IsOptional() @Matches(/^[A-Z]{5}\d{4}[A-Z]$/, { message: "pan must look like ABCDE1234F" })
@@ -106,7 +106,7 @@ export class UpdateApplicationDto {
   @IsOptional() @IsString() lenderId?: string;
   @IsOptional() @IsString() ownerId?: string;
   @IsOptional() @IsEnum(ApplicationStatus) status?: ApplicationStatus;
-  @IsOptional() @IsDateString() bankLoginAt?: string;
+  @IsOptional() @DateInput() bankLoginAt?: string;
   @IsOptional() @IsString() @Length(0, 80) bankReferenceNo?: string;
   @IsOptional() @IsString() @Length(0, 120) bankerName?: string;
   @IsOptional() @IsString() @Length(0, 20) bankerMobile?: string;
@@ -120,6 +120,8 @@ export class ListApplicationsQuery {
   @IsOptional() @IsString() lenderId?: string;
   @IsOptional() @IsString() ownerId?: string;
   @IsOptional() @IsString() loanProductId?: string;
+  /** "true" lists archived applications instead of the working set. */
+  @IsOptional() @IsBooleanString() archived?: string;
   @IsOptional() @IsString() range?: string;
   @IsOptional() @IsString() from?: string;
   @IsOptional() @IsString() to?: string;

@@ -246,6 +246,8 @@ async function main() {
       role: Role.ADMIN,
       designation: "Administrator",
       passwordHash: await bcrypt.hash(password, 10),
+      // The documented default must never survive first use. Tests set SEED_ADMIN_FORCE_CHANGE=false.
+      mustChangePassword: process.env.SEED_ADMIN_FORCE_CHANGE !== "false",
     },
   });
 

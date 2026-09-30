@@ -4,7 +4,6 @@ import {
   BadgeIndianRupee,
   Banknote,
   BarChart3,
-  Building2,
   Calendar,
   FileText,
   History,
@@ -23,6 +22,7 @@ import clsx from "clsx";
 import { useAuth } from "../lib/auth";
 import { ROLE_LABEL, type Role } from "../lib/types";
 import { GlobalSearch } from "./global-search";
+import { NotificationsBell } from "./notifications-bell";
 import { useScrollToHash } from "../lib/use-scroll-to-hash";
 
 type NavItem = { to: string; label: string; icon: LucideIcon; roles?: Role[] };
@@ -45,9 +45,8 @@ const NAV: { section: string; items: NavItem[] }[] = [
     ],
   },
   {
-    section: "Directory",
+    section: "People",
     items: [
-      { to: "/lenders", label: "Lender Directory", icon: Building2 },
       { to: "/partners", label: "Sourcing Partners", icon: Handshake, roles: ["ADMIN", "MANAGER"] },
       { to: "/team", label: "Team", icon: UserSquare, roles: ["ADMIN"] },
     ],
@@ -131,6 +130,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
         <div className="border-t border-white/10 p-3">
           <div className="flex items-center gap-2.5 px-2 py-1.5">
+            <Link to={"/account" as never} onClick={onNavigate} className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md transition hover:bg-white/5" title="My account">
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold">
               {initials(user.name)}
             </span>
@@ -138,6 +138,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               <p className="truncate text-[13px] font-semibold">{user.name}</p>
               <p className="text-[11px] text-white/45">{ROLE_LABEL[user.role]}</p>
             </div>
+            </Link>
             <button
               onClick={logout}
               title="Sign out"
@@ -170,8 +171,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {menuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-navy/50" onClick={() => setMenuOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 flex w-64 flex-col bg-navy text-white shadow-xl">
+          <div className="overlay-enter absolute inset-0 bg-navy/50" onClick={() => setMenuOpen(false)} />
+          <aside className="drawer-enter absolute inset-y-0 left-0 flex w-64 flex-col bg-navy text-white shadow-xl">
             <button
               onClick={() => setMenuOpen(false)}
               className="absolute top-4 right-3 rounded p-1.5 text-white/60 hover:bg-white/10 hover:text-white"
@@ -196,7 +197,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Menu className="h-5 w-5" />
           </button>
           <GlobalSearch />
-          <div className="ml-auto hidden shrink-0 items-center gap-2.5 whitespace-nowrap md:flex">
+          <div className="ml-auto flex shrink-0 items-center gap-2.5 whitespace-nowrap">
+            <NotificationsBell />
+            <Link to={"/account" as never} className="hidden items-center gap-2.5 rounded-full py-1 pr-1 pl-3 transition hover:bg-bg-light md:flex" title="My account">
             <div className="text-right leading-tight">
               <p className="text-[13px] font-semibold text-navy">{user.name}</p>
               <p className="text-[11px] text-muted">{ROLE_LABEL[user.role]}</p>
@@ -204,9 +207,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="grid h-8 w-8 place-items-center rounded-full bg-navy text-[11px] font-bold text-white">
               {initials(user.name)}
             </span>
+            </Link>
           </div>
         </div>
-        {children}
+        <div key={pathname} className="page-enter">
+          {children}
+        </div>
       </main>
     </div>
   );

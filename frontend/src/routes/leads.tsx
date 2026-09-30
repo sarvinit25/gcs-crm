@@ -21,8 +21,20 @@ import { Modal } from "../components/modal";
 import { LeadImportModal } from "../components/lead-import-modal";
 import { PeriodSelect } from "../components/period-select";
 import { DatePicker } from "../components/date-picker";
+import { TableSkeleton } from "../components/skeleton";
+import { ArchivedBadge } from "../components/archive-button";
 
 type Partner = { id: string; name: string };
+type Duplicate = {
+  kind: "lead" | "application";
+  id: string;
+  title: string;
+  status: string;
+  owner: string | null;
+  createdAt: string;
+  archived: boolean;
+  canOpen: boolean;
+};
 
 type Product = { id: string; name: string; slug: string };
 type Assignable = { id: string; name: string };
@@ -42,6 +54,13 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
     queryFn: () => api<Partner[]>("/partners/assignable"),
   });
   const [reference, setReference] = useState<"self" | "partner">("self");
+  const [phone, setPhone] = useState("");
+  const digits = phone.replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
+  const duplicates = useQuery({
+    queryKey: ["lead-duplicates", digits],
+    queryFn: () => api<Duplicate[]>(`/leads/duplicates${qs({ phone: digits })}`),
+    enabled: digits.length === 10,
+  });
 
   const create = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
@@ -84,8 +103,41 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
           </p>
         )}
         <input name="name" required placeholder="Full name" className="field sm:col-span-2" />
-        <input name="phone" required placeholder="10-digit phone" className="field" />
+        <input
+          name="phone"
+          required
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="10-digit phone"
+          className="field"
+        />
         <input name="email" type="email" placeholder="Email (optional)" className="field" />
+        {duplicates.data && duplicates.data.length > 0 && (
+          <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2.5 text-[12px] text-amber-900 sm:col-span-2">
+            <p className="font-semibold">This number is already in the CRM</p>
+            <ul className="mt-1 space-y-0.5">
+              {duplicates.data.map((d) => (
+                <li key={`${d.kind}-${d.id}`}>
+                  {d.canOpen ? (
+                    <Link
+                      to={d.kind === "lead" ? "/leads/$leadId" : "/applications/$applicationId"}
+                      params={d.kind === "lead" ? { leadId: d.id } : ({ applicationId: d.id } as never)}
+                      className="font-semibold underline"
+                    >
+                      {d.title}
+                    </Link>
+                  ) : (
+                    <span className="font-semibold">{d.title}</span>
+                  )}{" "}
+                  · {humanize(d.status)}
+                  {d.archived && " · archived"}
+                  {d.owner ? ` · with ${d.owner}` : " · unassigned"}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-1 text-amber-800/80">You can still create it if this is a genuinely separate enquiry.</p>
+          </div>
+        )}
         <input name="city" placeholder="City" className="field" />
         <input name="amount" type="number" placeholder="Loan amount" className="field" />
         <select name="productSlug" defaultValue="" className="field sm:col-span-2">
@@ -203,6 +255,7 @@ export function LeadsPage() {
   const [page, setPage] = useState(1);
   const [showNewLead, setShowNewLead] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [archived, setArchived] = useState(false);
 
   const products = useQuery({
     queryKey: ["loan-products"],
@@ -210,10 +263,10 @@ export function LeadsPage() {
   });
 
   const query = useQuery({
-    queryKey: ["leads", { search, status, dueOnly, loanProductId, timeRange, page }],
+    queryKey: ["leads", { search, status, dueOnly, loanProductId, timeRange, page, archived }],
     queryFn: () =>
       api<Paginated<Lead>>(
-        `/leads${qs({ search, status, loanProductId, range: timeRange, dueOnly: dueOnly ? "true" : undefined, page })}`,
+        `/leads${qs({ search, status, loanProductId, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, page })}`,
       ),
   });
 
@@ -308,13 +361,16 @@ export function LeadsPage() {
             <AlertCircle className="h-4 w-4" />
             Follow-up due
           </button>
+
+          <label className="flex items-center gap-2 text-[13px] text-muted">
+            <input type="checkbox" checked={archived} onChange={(e) => reset(() => setArchived(e.target.checked))} />
+            Archived
+          </label>
         </div>
 
         <div className="card overflow-x-auto">
           {query.isPending ? (
-            <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading leads…
-            </div>
+            <TableSkeleton />
           ) : query.isError ? (
             <p className="py-16 text-center text-sm text-red-600">
               {(query.error as Error).message}
@@ -345,6 +401,7 @@ export function LeadsPage() {
                       >
                         {lead.name}
                       </Link>
+                      {lead.archivedAt && <ArchivedBadge />}
                       <p className="text-[12px] text-muted">
                         #{lead.leadNo} · {lead.phone}
                         {lead.city && ` · ${lead.city}`}

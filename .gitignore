@@ -5,3 +5,7 @@ dist/
 *.log
 .DS_Store
 *.tsbuildinfo
+
+# Database backups hold every client record — never commit them
+backups/
+*.dump

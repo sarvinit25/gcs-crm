@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Ip, Param, Patch, Post, Query } from "@nestjs/common";
-import { CurrentUser, type AuthUser } from "../auth/auth.decorators";
+import { Role } from "@prisma/client";
+import { CurrentUser, Roles, type AuthUser } from "../auth/auth.decorators";
 import { ApplicationsService } from "./applications.service";
 import {
   ApplicantDto,
@@ -37,6 +38,18 @@ export class ApplicationsController {
     @Ip() ip: string,
   ) {
     return this.applications.update(id, dto, user, ip);
+  }
+
+  @Post(":id/archive")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  archive(@Param("id") id: string, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.applications.setArchived(id, true, user, ip);
+  }
+
+  @Post(":id/unarchive")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  unarchive(@Param("id") id: string, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.applications.setArchived(id, false, user, ip);
   }
 
   @Post(":id/portal-access-code")

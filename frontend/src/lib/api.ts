@@ -27,7 +27,9 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     },
   });
 
-  if (res.status === 401) {
+  // A wrong password or code is an answer to show, not an expired session to bounce away from.
+  const isSignInAttempt = path.startsWith("/auth/login") || path.startsWith("/auth/2fa/verify");
+  if (res.status === 401 && !isSignInAttempt) {
     tokenStore.clear();
     window.location.href = "/crm/login";
     throw new ApiError(401, "Session expired");

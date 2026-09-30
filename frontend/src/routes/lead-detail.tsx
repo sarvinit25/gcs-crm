@@ -19,6 +19,7 @@ import { NewApplicationWizard } from "../components/new-application-wizard";
 import { Modal } from "../components/modal";
 import { todayIST } from "../lib/date";
 import { DatePicker } from "../components/date-picker";
+import { ArchiveButton, ArchivedBadge } from "../components/archive-button";
 
 type AssignablePartner = { id: string; name: string; firm: string | null; commissionRate: string };
 type AssignableUser = { id: string; name: string; role: string };
@@ -114,6 +115,13 @@ export function LeadDetailPage() {
         subtitle={`Lead #${lead.leadNo} · added ${formatDate(lead.createdAt)}`}
         actions={
           <div className="flex items-center gap-2">
+            <ArchiveButton
+              kind="leads"
+              id={lead.id}
+              archived={lead.archivedAt !== null}
+              closed={lead.status === "CONVERTED" || lead.status === "LOST"}
+              refresh={[["lead", leadId], ["leads"]]}
+            />
             <select
               value={lead.status}
               disabled={setStatus.isPending}
@@ -180,7 +188,10 @@ export function LeadDetailPage() {
           <section className="card p-5">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-bold text-navy">Enquiry</h2>
-              <LeadStatusBadge status={lead.status} />
+              <span>
+                <LeadStatusBadge status={lead.status} />
+                {lead.archivedAt && <ArchivedBadge />}
+              </span>
             </div>
             <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
               <Field label="Phone" value={lead.phone} />

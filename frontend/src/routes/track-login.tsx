@@ -38,7 +38,7 @@ export function TrackLoginPage() {
           </div>
         </div>
 
-        <form onSubmit={onSubmit} className="card p-6">
+        <form onSubmit={onSubmit} className="card dialog-enter p-6">
           <h1 className="text-base font-bold text-navy">Track your file</h1>
           <p className="mt-1 text-[13px] text-muted">
             Enter your mobile number and the access code your advisor shared with you.

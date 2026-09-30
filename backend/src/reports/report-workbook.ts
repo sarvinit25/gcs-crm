@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import type { ColumnType, RecordColumn } from "./reports.service";
 import { prettify } from "./reports.service";
+import { formatDateIST, formatDateTimeIST } from "../common/date.util";
 
 export type ReportMeta = {
   title: string;
@@ -28,16 +29,7 @@ const NUM_FORMAT: Record<ColumnType, string | undefined> = {
 
 const WIDTH: Record<ColumnType, number> = { text: 22, amount: 18, date: 14, percent: 10, number: 10 };
 
-const istStamp = (iso: string) =>
-  new Date(iso).toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-    timeZone: "Asia/Kolkata",
-  });
+const istStamp = (iso: string) => formatDateTimeIST(new Date(iso));
 
 function cellValue(col: RecordColumn, raw: unknown) {
   if (raw === null || raw === undefined || raw === "") return null;
@@ -213,7 +205,7 @@ export function buildReportCsv(meta: ReportMeta, columns: RecordColumn[], rows: 
   const line = (...cells: unknown[]) => cells.map(esc).join(",");
   const fmt = (c: RecordColumn, v: unknown) => {
     if (v === null || v === undefined || v === "") return "";
-    if (c.type === "date") return new Date(`${v}T00:00:00+05:30`).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
+    if (c.type === "date") return formatDateIST(new Date(`${v}T00:00:00+05:30`));
     return String(prettify(v));
   };
 

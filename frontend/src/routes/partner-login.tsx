@@ -38,7 +38,7 @@ export function PartnerLoginPage() {
           </div>
         </div>
 
-        <form onSubmit={onSubmit} className="card p-6">
+        <form onSubmit={onSubmit} className="card dialog-enter p-6">
           <h1 className="text-base font-bold text-navy">Partner sign in</h1>
           <p className="mt-1 text-[13px] text-muted">
             Track your referrals and commission structure.

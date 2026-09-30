@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Clock, Loader2, LogIn, LogOut } from "lucide-react";
 import { api } from "../lib/api";
+import { formatTimeIST } from "../lib/date";
 
 type Today = {
   date: string;
@@ -13,8 +14,7 @@ type Today = {
   checkOutAt: string | null;
 };
 
-const clock = (d: Date) =>
-  d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata" });
+const clock = (d: Date) => formatTimeIST(d);
 
 const STATUS_LABEL: Record<string, string> = {
   PRESENT: "Present",
@@ -60,7 +60,9 @@ export function PunchCard() {
           <Clock className="h-5 w-5" />
         </span>
         <div>
-          <p className="text-[11px] font-bold tracking-wide text-muted uppercase">Today's action</p>
+          <p className="flex items-center gap-1.5 text-[11px] font-bold tracking-wide text-muted uppercase">
+            <span className="live-dot" aria-hidden /> Today's action
+          </p>
           <p className="text-xl font-bold text-navy">{clock(now)}</p>
         </div>
       </div>

@@ -39,3 +39,19 @@ export class RolesGuard implements CanActivate {
     return true;
   }
 }
+
+/**
+ * While a password change is required (new account, or a password an admin
+ * issued), the only things a session may do are check who it is and change it.
+ */
+@Injectable()
+export class PasswordChangeGuard implements CanActivate {
+  private static readonly ALLOWED = ["/auth/me", "/auth/change-password"];
+
+  canActivate(context: ExecutionContext) {
+    const req = context.switchToHttp().getRequest();
+    if (!req.user?.mustChangePassword) return true;
+    if (PasswordChangeGuard.ALLOWED.some((p) => String(req.path).endsWith(p))) return true;
+    throw new ForbiddenException({ code: "PASSWORD_CHANGE_REQUIRED", message: "Choose a new password before continuing" });
+  }
+}

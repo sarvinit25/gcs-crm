@@ -3,7 +3,7 @@ import { ApplicationStatus, LeadStatus, Prisma, Role, SanctionStatus } from "@pr
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { SettingsService } from "../settings/settings.service";
-import { describeRange, istParts, rangeFilter, resolveRange, ymd } from "../common/date.util";
+import { describeRange, formatIndianNumber, istParts, rangeFilter, resolveRange, ymd } from "../common/date.util";
 
 export type ReportRange = { range?: string; from?: string; to?: string };
 
@@ -329,7 +329,7 @@ export class ReportsService {
               .map((x) => {
                 const who = x.user?.name ?? x.sourcingPartner?.name ?? "—";
                 const role = x.stakeholderRole ? ` (${x.stakeholderRole})` : "";
-                return `${who}${role} ${Number(x.sharePercent)}% = ₹${Number(x.amount).toLocaleString("en-IN")} [${String(prettify(x.status))}]`;
+                return `${who}${role} ${Number(x.sharePercent)}% = ₹${formatIndianNumber(Number(x.amount))} [${String(prettify(x.status))}]`;
               })
               .join("; ") || null,
         }));
@@ -528,7 +528,7 @@ export class ReportsService {
 
     const lenders = await this.prisma.lender.findMany({ select: { id: true, name: true, type: true } });
 
-    const [appRows, sanctionRows, disbRows] = await this.prisma.$transaction([
+    const [appRows, sanctionRows, disbRows, rejectedRows] = await this.prisma.$transaction([
       this.prisma.application.groupBy({
         by: ["lenderId"],
         where: {
@@ -545,7 +545,12 @@ export class ReportsService {
           application: { ...this.appScope(user), lenderId: { not: null } },
           ...(created && { updatedAt: created }),
         },
-        select: { sanctionedAmount: true, application: { select: { lenderId: true } } },
+        select: {
+          sanctionedAmount: true,
+          interestRate: true,
+          createdAt: true,
+          application: { select: { lenderId: true, bankLoginAt: true } },
+        },
       }),
       this.prisma.disbursement.findMany({
         where: {
@@ -554,15 +559,42 @@ export class ReportsService {
         },
         select: { amount: true, application: { select: { lenderId: true } } },
       }),
+      this.prisma.application.groupBy({
+        by: ["lenderId"],
+        where: {
+          ...this.appScope(user),
+          lenderId: { not: null },
+          status: ApplicationStatus.REJECTED,
+          ...(created && { createdAt: created }),
+        },
+        _count: { _all: true },
+        orderBy: { lenderId: "asc" },
+      }),
     ]);
 
     const apps = new Map(appRows.map((r) => [r.lenderId, countOf(r._count)]));
-    const sanctioned = new Map<string, { count: number; amount: number }>();
+    const rejected = new Map(rejectedRows.map((r) => [r.lenderId, countOf(r._count)]));
+    const sanctioned = new Map<
+      string,
+      { count: number; amount: number; rateSum: number; rateN: number; tatSum: number; tatN: number }
+    >();
     for (const s of sanctionRows) {
       const key = s.application.lenderId!;
-      const entry = sanctioned.get(key) ?? { count: 0, amount: 0 };
+      const entry = sanctioned.get(key) ?? { count: 0, amount: 0, rateSum: 0, rateN: 0, tatSum: 0, tatN: 0 };
       entry.count += 1;
       entry.amount += Number(s.sanctionedAmount ?? 0);
+      if (s.interestRate != null) {
+        entry.rateSum += Number(s.interestRate);
+        entry.rateN += 1;
+      }
+      // Turnaround: from logging in with the bank to the sanction being recorded.
+      if (s.application.bankLoginAt) {
+        const days = (s.createdAt.getTime() - s.application.bankLoginAt.getTime()) / 86_400_000;
+        if (days >= 0) {
+          entry.tatSum += days;
+          entry.tatN += 1;
+        }
+      }
       sanctioned.set(key, entry);
     }
     const disbursed = new Map<string, number>();
@@ -572,14 +604,26 @@ export class ReportsService {
     }
 
     return lenders
-      .map((l) => ({
-        lender: l.name,
-        type: l.type,
-        applications: apps.get(l.id) ?? 0,
-        sanctions: sanctioned.get(l.id)?.count ?? 0,
-        sanctionedAmount: sanctioned.get(l.id)?.amount ?? 0,
-        disbursedAmount: disbursed.get(l.id) ?? 0,
-      }))
+      .map((l) => {
+        const sn = sanctioned.get(l.id);
+        const rej = rejected.get(l.id) ?? 0;
+        const decided = (sn?.count ?? 0) + rej;
+        const round1 = (n: number) => Math.round(n * 10) / 10;
+        return {
+          lender: l.name,
+          type: l.type,
+          applications: apps.get(l.id) ?? 0,
+          sanctions: sn?.count ?? 0,
+          rejected: rej,
+          // Of the files the lender has actually decided, how many it approved.
+          approvalRate: decided ? round1(((sn?.count ?? 0) / decided) * 100) : null,
+          avgDaysToSanction: sn?.tatN ? round1(sn.tatSum / sn.tatN) : null,
+          avgRate: sn?.rateN ? Math.round((sn.rateSum / sn.rateN) * 100) / 100 : null,
+          avgSanction: sn?.count ? Math.round(sn.amount / sn.count) : null,
+          sanctionedAmount: sn?.amount ?? 0,
+          disbursedAmount: disbursed.get(l.id) ?? 0,
+        };
+      })
       .filter((r) => r.applications > 0)
       .sort((a, b) => b.disbursedAmount - a.disbursedAmount);
   }

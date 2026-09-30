@@ -1,0 +1,46 @@
+# /etc/nginx/sites-available/growthcapitalservices.in
+# One site, three things: the public website, the CRM app at /crm, and the CRM API at /crm/api.
+server {
+    listen 80;
+    server_name growthcapitalservices.in www.growthcapitalservices.in;
+    return 301 https://growthcapitalservices.in$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name growthcapitalservices.in;
+
+    # certbot fills these in:
+    ssl_certificate     /etc/letsencrypt/live/growthcapitalservices.in/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/growthcapitalservices.in/privkey.pem;
+
+    client_max_body_size 20m;   # document uploads are capped at 15 MB by the app
+
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options SAMEORIGIN always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # CRM API — the app trusts exactly one proxy hop (TRUST_PROXY_HOPS=1) for real client IPs.
+    location /crm/api/ {
+        proxy_pass http://127.0.0.1:4000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;   # overwrite, never append: clients must not spoof it
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+
+    # CRM front end (built files from frontend/dist). Any unknown path falls back to the app.
+    location /crm/ {
+        alias /var/www/gcs-crm/;
+        try_files $uri $uri/ /crm/index.html;
+        location ~* \.(js|css|svg|png|woff2?)$ { expires 1y; add_header Cache-Control "public, immutable"; }
+    }
+
+    # Public website
+    location / {
+        root /var/www/gcs-website;
+        try_files $uri $uri/ /index.html;
+    }
+}

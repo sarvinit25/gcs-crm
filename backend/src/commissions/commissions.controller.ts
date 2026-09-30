@@ -14,6 +14,7 @@ export class CommissionsController {
   constructor(private commissions: CommissionsService) {}
 
   @Get()
+  @Roles(Role.ADMIN, Role.MANAGER)
   findAll(@Query() query: ListCommissionsQuery, @CurrentUser() user: AuthUser) {
     return this.commissions.findAll(query, user);
   }
@@ -47,6 +48,7 @@ export class DisbursementCommissionController {
   constructor(private commissions: CommissionsService) {}
 
   @Get()
+  @Roles(Role.ADMIN, Role.MANAGER)
   get(@Param("disbursementId") disbursementId: string, @CurrentUser() user: AuthUser) {
     return this.commissions.getForDisbursement(disbursementId, user);
   }

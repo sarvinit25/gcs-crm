@@ -1,32 +1,22 @@
-const INR = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0,
-});
+import { formatDateIST, formatDateTimeFullIST } from "./date";
+
+/** Indian digit grouping without Intl: 1234567 → "12,34,567". */
+export function formatIndianNumber(n: number): string {
+  const [int, frac] = Math.abs(n).toFixed(2).replace(/\.00$/, "").split(".");
+  const last3 = int.slice(-3);
+  const rest = int.slice(0, -3).replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+  return `${n < 0 ? "-" : ""}${rest ? `${rest},` : ""}${last3}${frac ? `.${frac}` : ""}`;
+}
+
+const inr = (n: number) => `${n < 0 ? "-" : ""}₹${formatIndianNumber(Math.abs(Math.round(n)))}`;
 
 export const formatAmount = (value: string | number | null | undefined) =>
-  value == null || value === "" ? "—" : INR.format(Number(value));
+  value == null || value === "" || Number.isNaN(Number(value)) ? "—" : inr(Number(value));
 
-export const formatDate = (iso: string | null | undefined) =>
-  iso
-    ? new Date(iso).toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        timeZone: "Asia/Kolkata",
-      })
-    : "—";
+export const formatDate = (iso: string | null | undefined) => (iso ? formatDateIST(new Date(iso)) : "—");
 
 export const formatDateTime = (iso: string | null | undefined) =>
-  iso
-    ? new Date(iso).toLocaleString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "Asia/Kolkata",
-      })
-    : "—";
+  iso ? formatDateTimeFullIST(new Date(iso)) : "—";
 
 export const isOverdue = (iso: string | null | undefined) =>
   Boolean(iso && new Date(iso).getTime() < Date.now());
@@ -46,7 +36,7 @@ export const formatCompact = (value: string | number | null | undefined) => {
   const trim = (x: number) => String(Math.round(x * 100) / 100);
   if (Math.abs(n) >= 1e7) return `₹${trim(n / 1e7)} Cr`;
   if (Math.abs(n) >= 1e5) return `₹${trim(n / 1e5)} L`;
-  return INR.format(n);
+  return inr(n);
 };
 
 /** "commissionPercent" / "SourcingPartner" → "Commission percent" / "Sourcing partner". */

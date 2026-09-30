@@ -1,7 +1,6 @@
 import { Type } from "class-transformer";
 import {
   IsArray,
-  IsDateString,
   IsEnum,
   IsInt,
   IsNumber,
@@ -13,6 +12,7 @@ import {
   ValidateNested,
 } from "class-validator";
 import { PayoutStatus } from "@prisma/client";
+import { DateInput } from "../../common/date-input.decorator";
 
 export class CommissionSplitInputDto {
   @IsOptional() @IsString() userId?: string;
@@ -25,7 +25,7 @@ export class CommissionSplitInputDto {
 export class CreateCommissionDto {
   @IsNumber() @Min(0.01) @Max(100) grossRate: number;
 
-  @IsOptional() @IsDateString() receivedAt?: string;
+  @IsOptional() @DateInput() receivedAt?: string;
 
   @IsOptional()
   @IsArray()
@@ -36,12 +36,12 @@ export class CreateCommissionDto {
 
 export class UpdateCommissionDto {
   @IsOptional() @IsEnum(PayoutStatus) status?: PayoutStatus;
-  @IsOptional() @IsDateString() receivedAt?: string;
+  @IsOptional() @DateInput() receivedAt?: string;
 }
 
 export class UpdateSplitDto {
   @IsOptional() @IsEnum(PayoutStatus) status?: PayoutStatus;
-  @IsOptional() @IsDateString() paidAt?: string;
+  @IsOptional() @DateInput() paidAt?: string;
   @IsOptional() @IsString() @Length(0, 60) stakeholderRole?: string;
 }
 

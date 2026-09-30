@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Ip, Param, Patch, Post, Query } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
-import { CurrentUser, Public, type AuthUser } from "../auth/auth.decorators";
+import { Role } from "@prisma/client";
+import { CurrentUser, Public, Roles, type AuthUser } from "../auth/auth.decorators";
 import { LeadsService } from "./leads.service";
 import { TurnstileService } from "./turnstile.service";
 import {
@@ -39,6 +40,11 @@ export class LeadsController {
     return this.leads.findAll(query, user);
   }
 
+  @Get("duplicates")
+  duplicates(@Query("phone") phone: string | undefined, @CurrentUser() user: AuthUser) {
+    return this.leads.findDuplicates(phone ?? "", user);
+  }
+
   @Get(":id")
   findOne(@Param("id") id: string, @CurrentUser() user: AuthUser) {
     return this.leads.findOne(id, user);
@@ -62,6 +68,18 @@ export class LeadsController {
     @Ip() ip: string,
   ) {
     return this.leads.update(id, dto, user, ip);
+  }
+
+  @Post(":id/archive")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  archive(@Param("id") id: string, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.leads.setArchived(id, true, user, ip);
+  }
+
+  @Post(":id/unarchive")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  unarchive(@Param("id") id: string, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.leads.setArchived(id, false, user, ip);
   }
 
   @Post(":id/follow-ups")

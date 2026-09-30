@@ -80,7 +80,7 @@ function Floating({
       ref={ref}
       role="dialog"
       style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999, width }}
-      className="fixed z-[70] rounded-xl border border-line bg-white p-3 shadow-xl"
+      className="pop-enter fixed z-[70] rounded-xl border border-line bg-white p-3 shadow-xl"
     >
       {children}
     </div>,

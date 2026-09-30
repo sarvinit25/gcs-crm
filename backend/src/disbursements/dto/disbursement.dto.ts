@@ -1,6 +1,5 @@
 import { Type } from "class-transformer";
 import {
-  IsDateString,
   IsEnum,
   IsInt,
   IsNumber,
@@ -10,13 +9,14 @@ import {
   Min,
 } from "class-validator";
 import { DisbursementType, RoiType } from "@prisma/client";
+import { DateInput } from "../../common/date-input.decorator";
 
 export class CreateDisbursementDto {
   @IsOptional() @IsEnum(DisbursementType) type?: DisbursementType;
 
   @IsNumber() @Min(1) amount: number;
 
-  @IsDateString() disbursedAt: string;
+  @DateInput() disbursedAt: string;
 
   @IsOptional() @IsNumber() @Min(0) interestRate?: number;
   @IsOptional() @IsEnum(RoiType) roiType?: RoiType;

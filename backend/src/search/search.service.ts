@@ -29,14 +29,15 @@ type Candidate = Match & { weight?: number };
 
 const MAX_INT = 2_000_000_000;
 
-const PAGES: { label: string; path: string; roles?: Role[]; keywords: string }[] = [
+const PAGES: { label: string; path: string; hash?: string; roles?: Role[]; keywords: string }[] = [
   { label: "Dashboard", path: "/", keywords: "home overview summary performance metrics loan distribution conversion export report today check in punch" },
   { label: "Leads", path: "/leads", keywords: "prospects enquiries new lead import bulk csv upload export follow-up lost reason source" },
   { label: "Applications", path: "/applications", keywords: "login files cases application form login status bank login new application applicant co-applicant" },
   { label: "Sanctions", path: "/sanctions", keywords: "sanctioned loans technical financial legal evaluation approval sanction letter" },
   { label: "Disbursements", path: "/disbursements", keywords: "payout disbursed utr loan account processing fee roi insurance part disbursement" },
   { label: "Commissions", path: "/commissions", roles: [Role.ADMIN, Role.MANAGER], keywords: "commission ledger payout split stakeholder partner share earnings" },
-  { label: "Lender Directory", path: "/lenders", keywords: "banks nbfc lenders bank master partner banks" },
+  { label: "Banks & NBFCs", path: "/settings", hash: "lenders", roles: [Role.ADMIN], keywords: "lender directory banks nbfc lenders bank master partner banks masters" },
+  { label: "Lender Directory", path: "/lenders", roles: [Role.MANAGER, Role.ADVISOR], keywords: "banks nbfc lenders bank master partner banks" },
   { label: "Sourcing Partners", path: "/partners", roles: [Role.ADMIN, Role.MANAGER], keywords: "bsa dsa referrers partner portal password commission rate" },
   { label: "Team", path: "/team", roles: [Role.ADMIN], keywords: "staff employees users roles hierarchy reports to add staff reset password" },
   { label: "Attendance & Payroll", path: "/attendance", roles: [Role.ADMIN, Role.MANAGER], keywords: "attendance payroll salary leave holiday half day check in check out present absent" },
@@ -64,7 +65,7 @@ const APP_SECTIONS: Record<string, { label: string; hash: string }> = {
 const digits = (s: string) => s.replace(/\D/g, "");
 
 /** Does `value` contain `token`? Phone-like tokens also match regardless of spaces, dashes or +91. */
-function contains(value: string, token: string) {
+export function contains(value: string, token: string) {
   const v = value.toLowerCase();
   const t = token.toLowerCase();
   if (v.includes(t)) return true;
@@ -72,7 +73,7 @@ function contains(value: string, token: string) {
   return td.length >= 4 && td.length === token.replace(/[\s+\-()]/g, "").length && digits(value).includes(td);
 }
 
-function score(cands: Candidate[], tokens: string[]) {
+export function score(cands: Candidate[], tokens: string[]) {
   let best = 0;
   for (const c of cands) {
     const v = c.value.toLowerCase();
@@ -86,14 +87,14 @@ function score(cands: Candidate[], tokens: string[]) {
 }
 
 /** Best name matches first (exact, then prefix, then contains), stable otherwise. */
-function rankByName<T>(rows: T[], name: (r: T) => string, tokens: string[]) {
+export function rankByName<T>(rows: T[], name: (r: T) => string, tokens: string[]) {
   return rows
     .map((r, i) => ({ r, i, s: score([{ label: "", value: name(r) }], tokens) }))
     .sort((a, b) => b.s - a.s || a.i - b.i)
     .map((x) => x.r);
 }
 
-function pickMatches(cands: Candidate[], tokens: string[]): Match[] {
+export function pickMatches(cands: Candidate[], tokens: string[]): Match[] {
   const out: Match[] = [];
   for (const token of tokens) {
     const c = cands.find((x) => x.value && contains(x.value, token));
@@ -129,7 +130,7 @@ export class SearchService {
       await Promise.all([
         this.applications(tokens, limit, isAdvisor ? user.id : null),
         this.leads(tokens, limit, isAdvisor ? user.id : null),
-        this.lenders(tokens, limit),
+        this.lenders(tokens, limit, admin),
         manager ? this.partners(tokens, limit) : null,
         admin ? this.team(tokens, limit) : null,
         this.products(tokens, limit, admin),
@@ -247,7 +248,7 @@ export class SearchService {
           hit: {
             id: a.id,
             title: primary?.name ? `${primary.name}` : no,
-            subtitle: `${no} · ${a.loanProduct.name}${a.lender ? ` · ${a.lender.name}` : ""} · ${a.status.replace(/_/g, " ").toLowerCase()}`,
+            subtitle: `${no} · ${a.loanProduct.name}${a.lender ? ` · ${a.lender.name}` : ""} · ${a.status.replace(/_/g, " ").toLowerCase()}${a.archivedAt ? " · archived" : ""}`,
             where: `Applications › ${no}${sec ? ` › ${sec.label}` : ""}`,
             path: `/applications/${a.id}`,
             hash: sec?.hash,
@@ -327,7 +328,7 @@ export class SearchService {
           hit: {
             id: l.id,
             title: l.name,
-            subtitle: `L-${l.leadNo} · ${l.phone}${l.loanProduct ? ` · ${l.loanProduct.name}` : ""} · ${l.status.replace(/_/g, " ").toLowerCase()}`,
+            subtitle: `L-${l.leadNo} · ${l.phone}${l.loanProduct ? ` · ${l.loanProduct.name}` : ""} · ${l.status.replace(/_/g, " ").toLowerCase()}${l.archivedAt ? " · archived" : ""}`,
             where: `Leads › ${l.name}${followUp ? " › Follow-ups" : ""}`,
             path: `/leads/${l.id}`,
             hash: followUp ? "followups" : undefined,
@@ -344,7 +345,7 @@ export class SearchService {
 
   // ── directories ───────────────────────────────────────────
 
-  private async lenders(tokens: string[], limit: number): Promise<SearchGroup> {
+  private async lenders(tokens: string[], limit: number, admin: boolean): Promise<SearchGroup> {
     // Typing "bank" or "nbfc" lists that kind of lender, as well as matching names.
     const where: Prisma.LenderWhereInput = this.allTokens<Prisma.LenderWhereInput>(tokens, (t) => [
       this.has("name", t),
@@ -362,9 +363,9 @@ export class SearchService {
         id: l.id,
         title: l.name,
         subtitle: `${l.type === "BANK" ? "Bank" : "NBFC"}${l.active ? "" : " · inactive"}`,
-        where: "Lender Directory",
-        path: "/lenders",
-        hash: `row-${l.id}`,
+        where: admin ? "Settings › Banks & NBFCs" : "Lender Directory",
+        path: admin ? "/settings" : "/lenders",
+        hash: `lender-${l.id}`,
         matches: pickMatches([{ label: "Lender", value: l.name }, { label: "Type", value: l.type }], tokens),
       })),
     };
@@ -519,6 +520,7 @@ export class SearchService {
           subtitle: "Open this page",
           where: "Pages",
           path: p.path,
+          hash: p.hash,
           matches: pickMatches(cands.slice(0, 1), tokens),
         });
       }

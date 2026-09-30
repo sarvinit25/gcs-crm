@@ -36,7 +36,14 @@ export const LOST_REASONS = [
   "Other",
 ];
 
-export type AuthUser = { id: string; name: string; email: string; role: Role };
+export type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  mustChangePassword?: boolean;
+  twoFactorEnabled?: boolean;
+};
 
 /** Display names only — the underlying Role values (ADMIN/MANAGER/ADVISOR)
  * are unchanged in the database and in every permission check. */
@@ -61,6 +68,7 @@ export type Lead = {
   nextFollowUpAt: string | null;
   notes: string | null;
   lostReason: string | null;
+  archivedAt: string | null;
   employmentType: EmploymentType | null;
   monthlyIncome: string | null;
   meetingMode: string | null;
@@ -218,6 +226,7 @@ export type Application = {
   loginFees: string | null;
   dsaChannel: string | null;
   portalAccessCode: string | null;
+  archivedAt: string | null;
   createdAt: string;
   loanProduct: { id: string; name: string; slug: string } | null;
   lender: { id: string; name: string } | null;

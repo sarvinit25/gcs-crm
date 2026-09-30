@@ -110,7 +110,7 @@ export function GlobalSearch() {
       {open && text.trim().length > 0 && (
         <div
           role="listbox"
-          className="card absolute top-full right-0 left-0 z-40 mt-1.5 max-h-[70vh] overflow-y-auto p-1.5 shadow-lg"
+          className="card pop-enter absolute top-full right-0 left-0 z-40 mt-1.5 max-h-[70vh] overflow-y-auto p-1.5 shadow-lg"
         >
           {!enabled ? (
             <p className="px-3 py-4 text-center text-[13px] text-muted">Keep typing — at least 2 characters.</p>
