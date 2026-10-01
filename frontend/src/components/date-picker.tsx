@@ -360,7 +360,7 @@ export function DatePicker({
         aria-expanded={open}
         className="field flex w-full items-center gap-2 text-left"
       >
-        <Calendar className="h-4 w-4 shrink-0 text-muted" />
+        <Calendar strokeWidth={1.75} className="h-4 w-4 shrink-0 text-navy/70" />
         <span className={clsx("min-w-0 flex-1 truncate", !current && "text-muted/70")}>
           {current ? formatPickerDate(current) : placeholder}
         </span>
@@ -479,7 +479,7 @@ export function MonthPicker({
           aria-expanded={open}
           className="field flex w-48 items-center gap-2 text-left"
         >
-          <Calendar className="h-4 w-4 shrink-0 text-muted" />
+          <Calendar strokeWidth={1.75} className="h-4 w-4 shrink-0 text-navy/70" />
           <span className="flex-1 truncate font-semibold text-navy">
             {MONTHS[month - 1]} {year}
           </span>

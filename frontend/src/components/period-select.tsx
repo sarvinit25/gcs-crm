@@ -28,12 +28,15 @@ export function PeriodSelect({
   const options = periods.data ?? [{ value: "all", label: "All time" }];
 
   return (
-    <label className="relative">
-      <Calendar className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted" />
+    <label className="relative inline-block">
+      <Calendar
+        strokeWidth={1.75}
+        className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-navy/70"
+      />
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`${className} pl-8`}
+        className={`${className} pl-9!`}
         aria-label="Time period"
       >
         {options.map((o) => (
