@@ -15,15 +15,23 @@ describe("account security", () => {
   const get = (path: string, t?: string) => http.get(`${API}${path}`).set(as(t));
   const post = (path: string, t: string | undefined, body: object = {}) => http.post(`${API}${path}`).set(as(t)).send(body);
   const login = (email: string, password: string) => post("/auth/login", undefined, { email, password });
-  const code = (secret: string) => totpAt(secret, Date.now() / 1000);
+  // A code is good for one 30-second step only, so tests move the clock on a step rather than wait for it.
+  const realNow = Date.now.bind(Date);
+  let steps = 0;
+  const nextCode = (secret: string) => {
+    steps += 1;
+    return totpAt(secret, Date.now() / 1000);
+  };
 
   beforeAll(async () => {
+    jest.spyOn(Date, "now").mockImplementation(() => realNow() + steps * 30_000);
     app = await createTestApp();
     http = request(app.getHttpServer()) as never;
     admin = (await login("admin@growthcapitalservices.in", "ChangeMe123!")).body.accessToken;
   });
 
   afterAll(async () => {
+    jest.restoreAllMocks();
     await app?.close();
   });
 
@@ -61,7 +69,9 @@ describe("account security", () => {
     it("unlocks the account once they choose their own", async () => {
       const done = await post("/auth/change-password", token, { currentPassword: issued, newPassword: "BrandNew#Pass123" });
       expect(done.status).toBe(201);
-      expect((await get("/leads", token)).status).toBe(200);
+      // The old session is retired by the change; the response carries the new one.
+      expect((await get("/leads", token)).status).toBe(401);
+      expect((await get("/leads", done.body.accessToken)).status).toBe(200);
       expect((await login(email, issued)).status).toBe(401);
       expect((await login(email, "BrandNew#Pass123")).body.user.mustChangePassword).toBe(false);
     });
@@ -97,7 +107,7 @@ describe("account security", () => {
     });
 
     it("once on, a password alone no longer signs in", async () => {
-      expect((await post("/auth/2fa/enable", token, { code: code(secret) })).status).toBe(201);
+      expect((await post("/auth/2fa/enable", token, { code: nextCode(secret) })).status).toBe(201);
       const res = await login(email, `${password}!`);
       expect(res.body.twoFactorRequired).toBe(true);
       expect(res.body.accessToken).toBeUndefined();
@@ -113,7 +123,7 @@ describe("account security", () => {
     it("rejects a wrong code and accepts the right one", async () => {
       const { challengeToken } = (await login(email, `${password}!`)).body;
       expect((await post("/auth/2fa/verify", undefined, { challengeToken, code: "000000" })).status).toBe(401);
-      const ok = await post("/auth/2fa/verify", undefined, { challengeToken, code: code(secret) });
+      const ok = await post("/auth/2fa/verify", undefined, { challengeToken, code: nextCode(secret) });
       expect(ok.status).toBe(201);
       expect((await get("/leads", ok.body.accessToken)).status).toBe(200);
       expect((await get("/auth/me", ok.body.accessToken)).body.twoFactorEnabled).toBe(true);
@@ -131,10 +141,10 @@ describe("account security", () => {
     it("turning it off needs both the password and a live code", async () => {
       const s = (await login(email, `${password}!`)).body.accessToken;
       secret = (await post("/auth/2fa/setup", s)).body.secret;
-      await post("/auth/2fa/enable", s, { code: code(secret) });
-      expect((await post("/auth/2fa/disable", s, { password: "wrong-password-1", code: code(secret) })).status).toBe(400);
+      await post("/auth/2fa/enable", s, { code: nextCode(secret) });
+      expect((await post("/auth/2fa/disable", s, { password: "wrong-password-1", code: nextCode(secret) })).status).toBe(400);
       expect((await post("/auth/2fa/disable", s, { password: `${password}!`, code: "000000" })).status).toBe(400);
-      expect((await post("/auth/2fa/disable", s, { password: `${password}!`, code: code(secret) })).status).toBe(201);
+      expect((await post("/auth/2fa/disable", s, { password: `${password}!`, code: nextCode(secret) })).status).toBe(201);
       expect((await login(email, `${password}!`)).body.accessToken).toBeTruthy();
     });
   });

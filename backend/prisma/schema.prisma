@@ -35,6 +35,11 @@ model User {
   // Authenticator-app two-step login. The secret exists from setup; it only counts once totpEnabledAt is set.
   totpSecret        String?
   totpEnabledAt     DateTime?
+  // Last 30-second step already accepted, so a code can't be used twice; and the one live sign-in challenge.
+  totpLastStep      Int?
+  totpChallengeJti  String?
+  // Bumped when the password changes or is reset — every session issued before that stops working.
+  tokenVersion      Int      @default(0)
 
   employeeCode      String?  @unique
   dateOfBirth       DateTime? @db.Date
@@ -156,6 +161,7 @@ model SourcingPartner {
   passwordHash   String?
   active         Boolean  @default(true)
   createdAt      DateTime @default(now())
+  tokenVersion   Int      @default(0)
 
   // The staff member who looks after this partner.
   managerId String?
@@ -332,6 +338,8 @@ model Application {
   // portal login — never the same value as the human-facing applicationNo,
   // which is sequential and guessable.
   portalAccessCode String? @unique
+  // Bumped when the access code is regenerated, which ends any borrower session already open.
+  portalTokenVersion Int @default(0)
 
   status    ApplicationStatus @default(DRAFT)
   archivedAt DateTime?
@@ -664,4 +672,15 @@ model EducationLoanDetail {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+/**
+ * Failed-attempt counter per sign-in subject (an email, a phone number, a user),
+ * so guessing is capped per account and not just per IP address.
+ */
+model LoginLock {
+  subject     String    @id
+  failures    Int       @default(0)
+  lockedUntil DateTime?
+  updatedAt   DateTime  @updatedAt
 }

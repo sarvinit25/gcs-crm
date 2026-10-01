@@ -35,7 +35,8 @@ Postgres listens on localhost only by default — leave it that way.
 sudo git clone https://github.com/sarvinit25/gcs-crm.git /opt/gcs-crm && sudo chown -R gcs:gcs /opt/gcs-crm
 cd /opt/gcs-crm/backend
 sudo -u gcs cp ../ops/backend.env.production.example .env && sudo -u gcs nano .env     # fill every blank
-sudo -u gcs npm ci && sudo -u gcs npx prisma migrate deploy && sudo -u gcs npm run build
+
+> `SECRETS_ENCRYPTION_KEY` encrypts two-step login secrets. Store a copy with your backups (but apart from the database dump) — without it, every two-step login has to be reset by a Super Admin.sudo -u gcs npm ci && sudo -u gcs npx prisma migrate deploy && sudo -u gcs npm run build
 sudo -u gcs npx ts-node --compiler-options '{"module":"commonjs"}' prisma/seed.ts       # loads products, lenders, first admin
 ```
 The seed prints the first admin login. **That password must be changed on first sign-in** (the app forces it). Turn on

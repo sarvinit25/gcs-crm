@@ -27,6 +27,7 @@ import { SearchModule } from "./search/search.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { MaintenanceModule } from "./maintenance/maintenance.module";
 import { HealthModule } from "./health/health.module";
+import { SecurityModule } from "./security/security.module";
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { HealthModule } from "./health/health.module";
       skipIf: () => process.env.NODE_ENV === "test" && process.env.ENABLE_THROTTLE_IN_TESTS !== "true",
     }),
     PrismaModule,
+    SecurityModule,
     AuthModule,
     LeadsModule,
     SearchModule,

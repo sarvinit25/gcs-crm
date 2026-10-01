@@ -250,7 +250,23 @@ back; search and reports always include them). The New Lead form warns when the 
   and checked against the RFC's test vectors. A Super Admin can reset a lost phone from the Team page.
 - Commission economics (ledger, splits, commission reports, the dashboard total) are Admin/Super Admin only —
   enforced on the API, not just hidden in the menu.
-- Login and code entry are rate-limited; the API refuses to start in production with a weak secret or missing keys.
+- Guessing is capped per account as well as per IP: five wrong passwords (or codes) lock that sign-in for 15 minutes,
+  for staff, partners and borrowers alike. Unknown emails/phones behave identically, so nothing is revealed.
+  A Super Admin's password reset, or the lock timing out, lets the person back in.
+- Sessions can be revoked: changing or resetting a password, resetting/turning off two-step login, setting a
+  partner's password or regenerating a borrower's code ends every session already open (a per-account token version).
+- Two-step login: a code works once (no replay within its 30-second window), a sign-in challenge works once and a
+  newer password sign-in replaces it, and the seed is encrypted in the database (`SECRETS_ENCRYPTION_KEY`, required in
+  production — keep a copy with your backups, apart from the dump).
+- Uploads are judged by their contents (PDF/JPG/PNG/WebP/HEIC only), never by the browser's claimed type or the
+  filename; stored names are cleaned and downloads are always attachments.
+- Exports defuse spreadsheet formulas (a leading `=`, `+`, `-`, `@` gets an apostrophe) in CSV.
+- Every request field has a ceiling (text 5,000 chars, amounts below 1e13, bounded arrays/nesting) on top of the
+  per-field rules. The API sends strict headers (helmet); Nginx sends a Content-Security-Policy for the CRM so only our
+  own scripts run.
+- Known trade-off: sign-in tokens live in the browser's local storage (not a cookie). The CSP above is the main
+  defence against stealing them; moving to HttpOnly cookies would also need CSRF protection.
+- Login and code entry are also rate-limited per IP; the API refuses to start in production with a weak secret or missing keys.
 
 ## Tests
 

@@ -209,7 +209,7 @@ export class ApplicationsService {
   async regeneratePortalAccessCode(id: string, user: AuthUser, ip?: string) {
     await this.findOne(id, user);
     const portalAccessCode = generatePortalAccessCode();
-    await this.prisma.application.update({ where: { id }, data: { portalAccessCode } });
+    await this.prisma.application.update({ where: { id }, data: { portalAccessCode, portalTokenVersion: { increment: 1 } } });
 
     await this.audit.record({
       actor: user,

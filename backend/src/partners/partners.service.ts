@@ -3,6 +3,7 @@ import { AuditAction, LeadStatus } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService, diff } from "../audit/audit.service";
+import { LoginLockService } from "../security/login-lock.service";
 import { SettingsService } from "../settings/settings.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { CreatePartnerDto, UpdatePartnerDto } from "./dto/partner.dto";
@@ -35,6 +36,7 @@ export class PartnersService {
     private prisma: PrismaService,
     private audit: AuditService,
     private settings: SettingsService,
+    private locks: LoginLockService,
   ) {}
 
   private assertPasswordPolicy(password: string) {
@@ -140,8 +142,9 @@ export class PartnersService {
 
     await this.prisma.sourcingPartner.update({
       where: { id },
-      data: { passwordHash: await bcrypt.hash(password, 10) },
+      data: { passwordHash: await bcrypt.hash(password, 10), tokenVersion: { increment: 1 } },
     });
+    await this.locks.clear(`partner:${partner.phone}`);
 
     // The password itself is never recorded — only that portal access was set.
     await this.audit.record({

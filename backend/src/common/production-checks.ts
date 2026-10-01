@@ -10,6 +10,10 @@ export function productionProblems(env: Record<string, string | undefined>): str
   if (jwt.length < 32) problems.push("JWT_SECRET must be at least 32 characters (try: openssl rand -hex 48)");
   if (/change.?me|secret|password|example|dev/i.test(jwt)) problems.push("JWT_SECRET looks like a placeholder — generate a real one");
 
+  const enc = env.SECRETS_ENCRYPTION_KEY ?? "";
+  if (enc.length < 32) problems.push("SECRETS_ENCRYPTION_KEY must be at least 32 characters (try: openssl rand -hex 32) — it encrypts two-step login secrets");
+  if (enc && enc === jwt) problems.push("SECRETS_ENCRYPTION_KEY must differ from JWT_SECRET");
+
   if (!env.TURNSTILE_SECRET) problems.push("TURNSTILE_SECRET is required — the public lead form would be unprotected");
   if (!env.B2_KEY_ID || !env.B2_APP_KEY || !env.B2_BUCKET) problems.push("B2_KEY_ID, B2_APP_KEY and B2_BUCKET are required — documents would have nowhere to go");
   if (/localhost|127\.0\.0\.1/.test(env.DATABASE_URL ?? "") && !env.ALLOW_LOCAL_DATABASE) {

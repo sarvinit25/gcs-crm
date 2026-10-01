@@ -62,13 +62,17 @@ export class StorageService implements OnModuleInit {
    * Short-lived link so the browser pulls the file straight from storage
    * instead of streaming it back through the VPS.
    */
-  signedDownloadUrl(key: string, fileName: string, expiresIn = 300) {
+  signedDownloadUrl(key: string, fileName: string, expiresIn = 300, contentType?: string) {
+    // Always a download, never rendered in the browser; the name is made header-safe,
+    // with the real (possibly non-English) name carried in the RFC 5987 form.
+    const ascii = fileName.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "");
     return getSignedUrl(
       this.client,
       new GetObjectCommand({
         Bucket: this.bucket,
         Key: key,
-        ResponseContentDisposition: `attachment; filename="${fileName.replace(/"/g, "")}"`,
+        ResponseContentDisposition: `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(fileName)}`,
+        ...(contentType ? { ResponseContentType: contentType } : {}),
       }),
       { expiresIn },
     );

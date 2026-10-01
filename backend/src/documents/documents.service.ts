@@ -6,18 +6,10 @@ import { AuditService } from "../audit/audit.service";
 import { StorageService } from "./storage.service";
 import { SettingsService } from "../settings/settings.service";
 import type { AuthUser } from "../auth/auth.decorators";
+import { detectFile, safeFileName } from "./file-sniff";
 
 /** Hard ceiling for the multipart parser; the configured limit is checked below it. */
 export const MAX_FILE_BYTES = 100 * 1024 * 1024;
-
-/** KYC and loan files are scans and statements, not arbitrary uploads. */
-const ALLOWED_TYPES = new Set([
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "image/heic",
-  "image/webp",
-]);
 
 @Injectable()
 export class DocumentsService {
@@ -63,8 +55,10 @@ export class DocumentsService {
   ) {
     await this.assertAccess(applicationId, user);
 
-    if (!ALLOWED_TYPES.has(file.mimetype)) {
-      throw new BadRequestException(`${file.mimetype} is not an accepted document type`);
+    // Judge the file by its contents, not by what the browser or the filename claims.
+    const detected = detectFile(file.buffer);
+    if (!detected) {
+      throw new BadRequestException("Only PDF, JPG, PNG, WebP or HEIC files can be uploaded");
     }
     const maxMb = this.settings.get<number>("documents.maxUploadMb");
     if (file.size > maxMb * 1024 * 1024) {
@@ -72,21 +66,20 @@ export class DocumentsService {
     }
 
     // Random key, not the filename — two applicants both uploading "pan.pdf"
-    // must not collide, and object keys should not leak applicant names.
-    const extension = file.originalname.includes(".")
-      ? file.originalname.slice(file.originalname.lastIndexOf("."))
-      : "";
-    const objectKey = `applications/${applicationId}/${randomUUID()}${extension}`;
+    // must not collide, and object keys should not leak applicant names. The
+    // extension comes from the detected type, never from the uploaded name.
+    const objectKey = `applications/${applicationId}/${randomUUID()}${detected.extension}`;
+    const fileName = safeFileName(file.originalname, detected.extension);
 
-    await this.storage.put(objectKey, file.buffer, file.mimetype);
+    await this.storage.put(objectKey, file.buffer, detected.mime);
 
     const document = await this.prisma.document.create({
       data: {
         applicationId,
         category,
-        fileName: file.originalname,
+        fileName,
         objectKey,
-        mimeType: file.mimetype,
+        mimeType: detected.mime,
         sizeBytes: file.size,
         uploadedById: user.id,
       },
@@ -98,7 +91,7 @@ export class DocumentsService {
       action: AuditAction.CREATE,
       entity: "Document",
       entityId: document.id,
-      entityLabel: file.originalname,
+      entityLabel: fileName,
       changes: { category: { from: null, to: category } },
       ip,
     });
@@ -115,7 +108,7 @@ export class DocumentsService {
 
     const minutes = this.settings.get<number>("documents.downloadLinkMinutes");
     return {
-      url: await this.storage.signedDownloadUrl(doc.objectKey, doc.fileName, minutes * 60),
+      url: await this.storage.signedDownloadUrl(doc.objectKey, doc.fileName, minutes * 60, doc.mimeType),
     };
   }
 

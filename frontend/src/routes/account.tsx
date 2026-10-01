@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { CheckCircle2, KeyRound, Loader2, ShieldCheck, ShieldOff } from "lucide-react";
 import QRCode from "qrcode";
-import { api } from "../lib/api";
+import { api, tokenStore } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { ROLE_LABEL } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
@@ -13,8 +13,10 @@ export function ChangePasswordForm({ onDone }: { onDone?: () => void }) {
   const [next, setNext] = useState("");
   const [again, setAgain] = useState("");
   const change = useMutation({
-    mutationFn: () => api("/auth/change-password", { method: "POST", body: JSON.stringify({ currentPassword: current, newPassword: next }) }),
-    onSuccess: () => {
+    mutationFn: () => api<{ accessToken: string }>("/auth/change-password", { method: "POST", body: JSON.stringify({ currentPassword: current, newPassword: next }) }),
+    onSuccess: (done) => {
+      // Changing the password signs out every other session; this one carries on with the fresh token.
+      tokenStore.set(done.accessToken);
       setCurrent("");
       setNext("");
       setAgain("");
@@ -81,8 +83,9 @@ function TwoFactor() {
     },
   });
   const disable = useMutation({
-    mutationFn: () => api("/auth/2fa/disable", { method: "POST", body: JSON.stringify({ password, code }) }),
-    onSuccess: async () => {
+    mutationFn: () => api<{ accessToken: string }>("/auth/2fa/disable", { method: "POST", body: JSON.stringify({ password, code }) }),
+    onSuccess: async (done) => {
+      tokenStore.set(done.accessToken);
       setPassword("");
       setCode("");
       await refresh();

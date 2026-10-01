@@ -1,3 +1,4 @@
+import { csvCell } from "../common/csv.util";
 import ExcelJS from "exceljs";
 import type { ColumnType, RecordColumn } from "./reports.service";
 import { prettify } from "./reports.service";
@@ -198,11 +199,7 @@ export async function buildReportWorkbook(
 
 /** The same letterhead and summary as the Excel report, as plain CSV. */
 export function buildReportCsv(meta: ReportMeta, columns: RecordColumn[], rows: Record<string, unknown>[]) {
-  const esc = (v: unknown) => {
-    const t = v === null || v === undefined ? "" : String(v);
-    return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
-  };
-  const line = (...cells: unknown[]) => cells.map(esc).join(",");
+  const line = (...cells: unknown[]) => cells.map(csvCell).join(",");
   const fmt = (c: RecordColumn, v: unknown) => {
     if (v === null || v === undefined || v === "") return "";
     if (c.type === "date") return formatDateIST(new Date(`${v}T00:00:00+05:30`));

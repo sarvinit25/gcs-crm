@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { AuditAction, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { LoginLockService } from "../security/login-lock.service";
 import { AuthService } from "../auth/auth.service";
 import { AuditService, diff } from "../audit/audit.service";
 import { SettingsService } from "../settings/settings.service";
@@ -32,6 +33,7 @@ export class TeamService {
     private prisma: PrismaService,
     private audit: AuditService,
     private settings: SettingsService,
+    private locks: LoginLockService,
   ) {}
 
   private assertPasswordPolicy(password: string) {
@@ -164,7 +166,11 @@ export class TeamService {
   async resetTwoFactor(id: string, actor: AuthUser, ip?: string) {
     const user = await this.prisma.user.findUnique({ where: { id }, select: PUBLIC_FIELDS });
     if (!user) throw new NotFoundException("Staff member not found");
-    await this.prisma.user.update({ where: { id }, data: { totpSecret: null, totpEnabledAt: null } });
+    await this.prisma.user.update({
+      where: { id },
+      data: { totpSecret: null, totpEnabledAt: null, totpLastStep: null, totpChallengeJti: null, tokenVersion: { increment: 1 } },
+    });
+    await this.locks.clear(`staff-2fa:${id}`);
     await this.audit.record({
       actor,
       action: AuditAction.UPDATE,
@@ -184,8 +190,12 @@ export class TeamService {
 
     await this.prisma.user.update({
       where: { id },
-      data: { passwordHash: await AuthService.hashPassword(password), mustChangePassword: true },
+      // Bumping the version signs the person out everywhere; clearing the locks lets them back in with the new password.
+      data: { passwordHash: await AuthService.hashPassword(password), mustChangePassword: true, tokenVersion: { increment: 1 } },
     });
+    await this.locks.clear(`staff:${user.email.toLowerCase()}`);
+    await this.locks.clear(`staff-pw:${id}`);
+    await this.locks.clear(`staff-2fa:${id}`);
 
     // The new password is never recorded — only the fact that it was reset.
     await this.audit.record({

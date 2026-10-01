@@ -1,9 +1,9 @@
 import "reflect-metadata";
-import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { AppModule } from "./app.module";
+import { configureApp } from "./common/app-config";
 import { assertProductionConfig } from "./common/production-checks";
 
 async function bootstrap() {
@@ -16,10 +16,7 @@ async function bootstrap() {
   const proxyHops = config.get<number>("TRUST_PROXY_HOPS", 0);
   if (proxyHops > 0) app.set("trust proxy", proxyHops);
 
-  app.setGlobalPrefix(config.get<string>("API_PREFIX", "/crm/api"));
-  app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
-  );
+  configureApp(app, config.get<string>("API_PREFIX", "/crm/api"));
 
   // In production Nginx serves both apps from one origin, so CORS only matters in dev.
   const origin = config.get<string>("CORS_ORIGIN");

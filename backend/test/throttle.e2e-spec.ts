@@ -11,11 +11,11 @@ describe("brute-force protection", () => {
     await app?.close();
   });
 
-  it("slows repeated wrong passwords, and the code step too", async () => {
+  it("slows repeated wrong passwords from one address, and the code step too", async () => {
     const http = request(app.getHttpServer());
     const statuses: number[] = [];
     for (let i = 0; i < 12; i++) {
-      statuses.push((await http.post("/crm/api/auth/login").send({ email: "nobody@example.com", password: "wrong-password" })).status);
+      statuses.push((await http.post("/crm/api/auth/login").send({ email: `nobody${i}@example.com`, password: "wrong-password" })).status);
     }
     expect(statuses.slice(0, 10).every((s) => s === 401)).toBe(true);
     expect(statuses.slice(10)).toEqual([429, 429]);

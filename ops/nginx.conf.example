@@ -1,5 +1,14 @@
 # /etc/nginx/sites-available/growthcapitalservices.in
 # One site, three things: the public website, the CRM app at /crm, and the CRM API at /crm/api.
+# Content-Security-Policy for the CRM only (the public website has its own needs).
+# Scripts may only come from our own files, so an injected <script> or inline handler
+# does not run — that matters because sign-in tokens live in the browser. If you add
+# a third-party script or font to the CRM, it must be allowed here first.
+map $uri $crm_csp {
+    default "";
+    ~^/crm/ "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'";
+}
+
 server {
     listen 80;
     server_name growthcapitalservices.in www.growthcapitalservices.in;
@@ -19,6 +28,7 @@ server {
     add_header X-Content-Type-Options nosniff always;
     add_header X-Frame-Options SAMEORIGIN always;
     add_header Referrer-Policy strict-origin-when-cross-origin always;
+    add_header Content-Security-Policy $crm_csp always;
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
     # CRM API — the app trusts exactly one proxy hop (TRUST_PROXY_HOPS=1) for real client IPs.
@@ -35,7 +45,7 @@ server {
     location /crm/ {
         alias /var/www/gcs-crm/;
         try_files $uri $uri/ /crm/index.html;
-        location ~* \.(js|css|svg|png|woff2?)$ { expires 1y; add_header Cache-Control "public, immutable"; }
+        location ~* \.(js|css|svg|png|woff2?)$ { expires 1y; add_header Cache-Control "public, immutable"; add_header X-Content-Type-Options nosniff always; }
     }
 
     # Public website

@@ -23,11 +23,11 @@ export class BorrowerJwtStrategy extends PassportStrategy(Strategy, "jwt-borrowe
     });
   }
 
-  async validate(payload: { sub: string; type?: string }): Promise<BorrowerAuthUser> {
+  async validate(payload: { sub: string; type?: string; tv?: number }): Promise<BorrowerAuthUser> {
     if (payload.type !== "borrower") throw new UnauthorizedException();
 
     const application = await this.prisma.application.findUnique({ where: { id: payload.sub } });
-    if (!application) throw new UnauthorizedException();
+    if (!application || (payload.tv ?? 0) !== application.portalTokenVersion) throw new UnauthorizedException();
 
     return { id: application.id, type: "borrower" };
   }

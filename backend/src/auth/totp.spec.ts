@@ -1,4 +1,4 @@
-import { base32Decode, base32Encode, generateTotpSecret, otpauthUrl, totpAt, verifyTotp } from "./totp";
+import { base32Decode, base32Encode, generateTotpSecret, otpauthUrl, totpAt, verifyTotp, verifyTotpStep } from "./totp";
 
 // RFC 6238 Appendix B: SHA-1 secret is the ASCII string "12345678901234567890".
 const RFC_SECRET = base32Encode(Buffer.from("12345678901234567890"));
@@ -47,5 +47,15 @@ describe("TOTP (RFC 6238)", () => {
   it("builds an otpauth link an authenticator app understands", () => {
     const url = otpauthUrl("a@b.in", "GCS CRM", "ABC234");
     expect(url).toBe("otpauth://totp/GCS%20CRM%3Aa%40b.in?secret=ABC234&issuer=GCS%20CRM&algorithm=SHA1&digits=6&period=30");
+  });
+
+  it("reports which 30-second step a code belongs to, so a step can't be used twice", () => {
+    const now = 1_700_000_000_000;
+    const step = Math.floor(now / 1000 / 30);
+    expect(verifyTotpStep(RFC_SECRET, totpAt(RFC_SECRET, now / 1000), now)).toBe(step);
+    expect(verifyTotpStep(RFC_SECRET, totpAt(RFC_SECRET, now / 1000 - 30), now)).toBe(step - 1);
+    expect(verifyTotpStep(RFC_SECRET, totpAt(RFC_SECRET, now / 1000 + 30), now)).toBe(step + 1);
+    expect(verifyTotpStep(RFC_SECRET, "000000", now)).toBeNull();
+    expect(verifyTotpStep(RFC_SECRET, "12345", now)).toBeNull();
   });
 });

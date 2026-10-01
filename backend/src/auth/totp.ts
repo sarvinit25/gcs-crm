@@ -54,17 +54,26 @@ export function totpAt(secret: string, unixSeconds: number, digits = 6): string 
   return String(code).padStart(digits, "0");
 }
 
-/** Accepts the current code and one step either side, to tolerate clock drift. */
-export function verifyTotp(secret: string, code: string, nowMs = Date.now(), window = 1): boolean {
+/**
+ * Accepts the current code and one step either side, to tolerate clock drift.
+ * Returns the 30-second step the code belongs to (so the caller can refuse to
+ * accept the same step twice), or null when the code is wrong.
+ */
+export function verifyTotpStep(secret: string, code: string, nowMs = Date.now(), window = 1): number | null {
   const clean = code.replace(/\s/g, "");
-  if (!/^\d{6}$/.test(clean)) return false;
+  if (!/^\d{6}$/.test(clean)) return null;
   const now = Math.floor(nowMs / 1000);
+  let matched: number | null = null;
+  // Every candidate is compared so the time taken doesn't reveal which one matched.
   for (let w = -window; w <= window; w++) {
     const expected = Buffer.from(totpAt(secret, now + w * STEP_SECONDS));
-    if (timingSafeEqual(expected, Buffer.from(clean))) return true;
+    if (timingSafeEqual(expected, Buffer.from(clean))) matched = Math.floor(now / STEP_SECONDS) + w;
   }
-  return false;
+  return matched;
 }
+
+export const verifyTotp = (secret: string, code: string, nowMs = Date.now(), window = 1) =>
+  verifyTotpStep(secret, code, nowMs, window) !== null;
 
 /** The link a QR code carries; scanning it adds the account to the authenticator app. */
 export const otpauthUrl = (account: string, issuer: string, secret: string) =>

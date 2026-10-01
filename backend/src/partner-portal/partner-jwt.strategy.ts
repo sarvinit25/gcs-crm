@@ -24,11 +24,11 @@ export class PartnerJwtStrategy extends PassportStrategy(Strategy, "jwt-partner"
     });
   }
 
-  async validate(payload: { sub: string; type?: string }): Promise<PartnerAuthUser> {
+  async validate(payload: { sub: string; type?: string; tv?: number }): Promise<PartnerAuthUser> {
     if (payload.type !== "partner") throw new UnauthorizedException();
 
     const partner = await this.prisma.sourcingPartner.findUnique({ where: { id: payload.sub } });
-    if (!partner || !partner.active) throw new UnauthorizedException();
+    if (!partner || !partner.active || (payload.tv ?? 0) !== partner.tokenVersion) throw new UnauthorizedException();
 
     return { id: partner.id, name: partner.name, phone: partner.phone, type: "partner" };
   }
