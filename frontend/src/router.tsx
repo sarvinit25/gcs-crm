@@ -31,6 +31,7 @@ import { CommissionsPage } from "./routes/commissions";
 import { LendersPage } from "./routes/lenders";
 import { AttendancePage } from "./routes/attendance";
 import { ReportsPage } from "./routes/reports";
+import { CibilPage } from "./routes/cibil";
 import { SettingsPage } from "./routes/settings";
 import { SearchPage } from "./routes/search";
 import { AccountPage, ForcePasswordChange } from "./routes/account";
@@ -206,6 +207,12 @@ const routeTree = rootRoute.addChildren([
       getParentRoute: () => protectedRoute,
       path: "/attendance",
       component: AttendancePage,
+    }),
+    createRoute({
+      getParentRoute: () => protectedRoute,
+      path: "/cibil",
+      component: CibilPage,
+      validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
     }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/reports", component: ReportsPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/settings", component: SettingsPage }),

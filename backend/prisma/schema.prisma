@@ -60,6 +60,7 @@ model User {
   followUps        FollowUp[]
   invitesCreated   ApplicationInvite[]
   marketingSpends  MarketingSpend[]
+  creditChecks     CreditCheck[]
 
   @@index([role, active])
 }
@@ -423,6 +424,9 @@ model Applicant {
   employerName   String?
   monthlyIncome  Decimal?               @db.Decimal(14, 2)
   cibilScore     Int?
+  // The date of the report that score came from, when known.
+  cibilScoreDate DateTime? @db.Date
+  creditChecks   CreditCheck[]
 
   @@index([applicationId])
 }
@@ -775,4 +779,49 @@ model MarketingSpend {
 
   @@index([spentOn])
   @@index([channel, spentOn])
+}
+
+enum CreditCheckKind {
+  // Pulled from the bureau through the configured provider.
+  LIVE
+  // A score typed in from a report obtained elsewhere (the lender's, or the customer's own).
+  MANUAL
+  // Produced by the built-in test provider. Never real, never changes the applicant's score.
+  SIMULATED
+}
+
+enum CreditCheckStatus {
+  SUCCESS
+  FAILED
+}
+
+/**
+ * One credit-bureau check on one applicant: what was asked, the consent it was asked under,
+ * who asked, and what came back. Kept as history; the applicant row only holds the latest real score.
+ */
+model CreditCheck {
+  id          String            @id @default(cuid())
+  applicantId String
+  applicant   Applicant         @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  bureau      String            @default("CIBIL")
+  kind        CreditCheckKind
+  status      CreditCheckStatus
+  score       Int?
+  reportDate  DateTime?         @db.Date
+  // The bureau's own reference for the report, or the number on the paper one.
+  reference   String?
+  note        String?
+  error       String?
+
+  // Credit reports may only be pulled with the person's consent; how it was given is kept with the pull.
+  consentAt     DateTime?
+  consentMethod String?
+  consentText   String?
+
+  requestedById String?
+  requestedBy   User?     @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime  @default(now())
+
+  @@index([applicantId, createdAt])
+  @@index([createdAt])
 }

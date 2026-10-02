@@ -305,6 +305,31 @@ Built from the agency's lead-generation plan (campaigns, qualified leads, cost p
   landing page / month) and the spend log are available from the API (`/crm/api/marketing/performance`, `/marketing/spend`,
   Super Admin and Admin only). The Marketing page that showed them has been taken off the menu for now.
 
+## CIBIL page (credit scores and checks)
+
+**CIBIL** in the menu lists every applicant on every open file with their score, the date of the report it came from and a
+colour band (Excellent 750+, Good 700–749, Fair 650–699, Low below 650). Staff see only applicants on their own files; admins see all.
+People with no score come first. Filter by band, "no score yet" or "out of date" (older than the re-check period), or search by
+name, phone or application number. *Check CIBIL* on any application's applicant opens the page already filtered to them.
+
+- **Record a score** from any report you already have (the lender's, the customer's own): score 300–900, the date on the
+  report, an optional reference. It goes onto the applicant's file; an *older* report never replaces a newer score, but is kept
+  in the history. Every entry is audited.
+- **Run a check** asks the bureau for the score. It needs the applicant's PAN, date of birth and mobile on file, a stated
+  *consent* (how they agreed — signed form, WhatsApp/email, recorded call, or ticked on the online form) and a tick that it is
+  on record. The consent wording and method are saved with the check. A recent check is reused rather than repeated
+  (default 30 days; only a Super Admin can override), since each pull is a paid bureau enquiry.
+- **History** shows every check on a person: who ran it, when, under what consent, and what came back. A failed pull is kept
+  too and never changes the score.
+- **A live bureau is not connected yet.** The setting *Credit-check provider* (Settings → Credit checks) is `none`, so the page
+  offers *Record score* only. `sandbox` switches on a **simulated** test provider so the flow can be shown and tested: its results
+  are made up from the PAN, are labelled *Simulated* everywhere, never change an applicant's score, and the server refuses to use
+  it in production.
+- **To connect a real bureau** (CIBIL directly, or an authorised aggregator) the firm needs the account details from the
+  provider — membership/client id, API credentials, and the provider's consent requirements. The code change is then one
+  class implementing `CreditBureauProvider` (`backend/src/credit/providers/`); the screens, consent capture, history, limits
+  and audit already work with it. Until then nothing can pull a real report.
+
 ## Security
 
 - Staff accounts made or reset by an admin must choose their own password before anything else works

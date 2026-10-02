@@ -6,6 +6,7 @@
  */
 
 import { DEFAULT_CHANNELS } from "../marketing/channel.util";
+import { DEFAULT_CONSENT_TEXT } from "../credit/credit-bands";
 
 export type SettingType = "string" | "text" | "number" | "boolean" | "list" | "email" | "phone" | "time";
 
@@ -28,6 +29,7 @@ export const SETTING_GROUPS = [
   "Documents",
   "Customer form",
   "Marketing",
+  "Credit checks",
   "Numbering",
   "Commissions",
   "Attendance",
@@ -211,6 +213,32 @@ export const SETTINGS: SettingDef[] = [
     help: "Where leads can come from. Leads are credited to one of these, and spend is logged against them — add your own as new activities start.",
     type: "list",
     default: DEFAULT_CHANNELS,
+  },
+  {
+    key: "credit.provider",
+    group: "Credit checks",
+    label: "Credit-check provider",
+    help: "Leave as \"none\" until a bureau account is connected. \"sandbox\" runs a clearly-labelled simulated check for demonstrations; it is refused on the live system.",
+    type: "string",
+    default: "none",
+  },
+  {
+    key: "credit.recheckDays",
+    group: "Credit checks",
+    label: "Days before a check can be repeated",
+    help: "Every pull is a bureau enquiry that costs money, so a recent one is reused. A Super Admin can override.",
+    type: "number",
+    default: 30,
+    min: 0,
+    max: 365,
+  },
+  {
+    key: "credit.consentText",
+    group: "Credit checks",
+    label: "Consent wording",
+    help: "What the applicant agrees to before their credit report is obtained. It is saved with every check.",
+    type: "text",
+    default: DEFAULT_CONSENT_TEXT,
   },
   {
     key: "lenders.segments",

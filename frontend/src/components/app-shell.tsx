@@ -7,6 +7,7 @@ import {
   BarChart3,
   Calendar,
   FileText,
+  Gauge,
   History,
   Handshake,
   LayoutDashboard,
@@ -35,6 +36,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { to: "/", label: "Dashboard", icon: LayoutDashboard },
       { to: "/leads", label: "Leads", icon: Users },
       { to: "/applications", label: "Applications", icon: FileText },
+      { to: "/cibil", label: "CIBIL", icon: Gauge },
       { to: "/sanctions", label: "Sanctions", icon: ShieldCheck },
       { to: "/disbursements", label: "Disbursements", icon: Banknote },
       {
