@@ -74,21 +74,3 @@ describe("tag cleaning", () => {
     expect(cleanLandingPage(undefined)).toBeUndefined();
   });
 });
-
-describe("tracking-link presets offered in the CRM", () => {
-  // Mirrors TRACKING_PRESETS in frontend/src/lib/marketing.ts — a link built there must be credited to the channel it names.
-  it.each([
-    ["Google Search Ads", "google", "cpc"],
-    ["Google Display", "google", "display"],
-    ["YouTube Ads", "youtube", "video"],
-    ["Meta Ads (Facebook)", "facebook", "paid_social"],
-    ["Meta Ads (Instagram)", "instagram", "paid_social"],
-    ["LinkedIn Ads", "linkedin", "paid_social"],
-    ["Microsoft Ads", "bing", "cpc"],
-    ["WhatsApp", "whatsapp", "share"],
-    ["Email", "newsletter", "email"],
-  ])("%s ← utm_source=%s&utm_medium=%s", (channel, source, medium) => {
-    expect(channelFromUtm(source, medium)).toBe(channel);
-    expect(DEFAULT_CHANNELS).toContain(channel);
-  });
-});

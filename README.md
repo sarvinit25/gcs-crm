@@ -301,15 +301,9 @@ Built from the agency's lead-generation plan (campaigns, qualified leads, cost p
   e.g. `utmSource=google, utmMedium=cpc` → *Google Search Ads*. Only the path of `landingPage` is kept (no query string,
   which can contain personal details). The open endpoint never accepts a channel directly, so it can't be spoofed.
   The website's `submitLead()` needs to read `utm_*` from the URL and pass them along (website repo change).
-- **Marketing page** (Super Admin and Admin): spend, leads, cost per lead, qualified leads, **cost per qualified lead**,
-  applications, sanctions, disbursals, **cost per disbursal** and commission earned per ₹1 spent — by channel, campaign,
-  landing page or month, for any period (financial year, last month …), with a lead-to-disbursal funnel and CSV export.
-  Leads are counted in the period they were created; later stages count those same leads, whenever they got there.
-  A lead is *qualified* once it reaches Qualified, Docs pending or Converted, or has an application.
-- **Spend log:** enter what was billed (date, channel, campaign, agency, amount). Spend with no leads — a hoarding that
-  brought nobody in — still shows as its own row.
-- **Tracking-link builder** (bottom of the page) makes `utm_*` links for each channel so leads are credited automatically.
-- A short reminder on advertising loans (no "guaranteed approval" claims; settle how the firm is classified) is on the page.
+- **Reports:** the marketing report (cost per lead, per qualified lead and per disbursal, funnel, by channel / campaign /
+  landing page / month) and the spend log are available from the API (`/crm/api/marketing/performance`, `/marketing/spend`,
+  Super Admin and Admin only). The Marketing page that showed them has been taken off the menu for now.
 
 ## Security
 

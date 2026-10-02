@@ -41,7 +41,6 @@ const PAGES: { label: string; path: string; hash?: string; roles?: Role[]; keywo
   { label: "Sourcing Partners", path: "/partners", roles: [Role.ADMIN, Role.MANAGER], keywords: "bsa dsa referrers partner portal password commission rate" },
   { label: "Team", path: "/team", roles: [Role.ADMIN], keywords: "staff employees users roles hierarchy reports to add staff reset password" },
   { label: "Attendance & Payroll", path: "/attendance", roles: [Role.ADMIN, Role.MANAGER], keywords: "attendance payroll salary leave holiday half day check in check out present absent" },
-  { label: "Marketing", path: "/marketing", roles: [Role.ADMIN, Role.MANAGER], keywords: "campaign channel spend cost per lead cpl qualified roas google ads meta facebook instagram utm tracking link landing page agency advertising hoardings roadshow activation lead sources marketing" },
   { label: "Reports", path: "/reports", keywords: "analytics export excel csv print pdf funnel lead sources loan mix officers stalled cases report builder records" },
   { label: "Audit log", path: "/audit", roles: [Role.ADMIN], keywords: "history changes who did what activity trail log" },
   { label: "Settings", path: "/settings", roles: [Role.ADMIN], keywords: "configuration organisation numbering financial year security password policy categories" },
