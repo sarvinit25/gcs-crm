@@ -242,6 +242,30 @@ Finished files are archived, never deleted: Settings → **Archive** hides conve
 disbursed/rejected/withdrawn applications older than N months from the working lists (`Show archived` brings them
 back; search and reports always include them). The New Lead form warns when the phone number is already in the CRM.
 
+## Customer application form
+
+On any **draft** application, the *Customer application form* panel creates a link
+(`/crm/apply/<token>`) the customer opens on their phone — no login. Staff copy it or send it on WhatsApp
+(a click-to-chat link with the message ready; no WhatsApp account needed).
+
+- The customer works through six steps (about you, work & income, loan, references, documents, review). Everything
+  they type is **saved as a draft as they go**, so closing the page loses nothing; it only lands on the real file
+  when they tick the declaration and **send**. Their phone number is fixed, and the document list follows what they
+  say they do for work (the same checklist staff see).
+- On submit the answers go onto the primary applicant, the loan amount/tenure/purpose and the references are
+  updated, and the link locks. The file stays a **draft** — staff check it and take it forward. Staff get a
+  *"… sent in their application form"* reminder (bell and *My day*) until they do. Customer uploads appear in the
+  file's documents as "Customer (online form)".
+- To correct something, send a fresh link: it starts from the answers already on file. Sending a new link retires
+  the old one; a link can also be withdrawn. Links expire (default 14 days), and stop working once the file moves
+  past draft.
+- Settings → **Customer form**: link validity, how many references are required (default 2, 0 to waive), and the
+  most files per link.
+- Safety: the link is 256 random bits and only a hash is stored (staff can re-copy it; an encrypted copy is kept).
+  Uploads are checked by content (PDF/JPG/PNG/WebP/HEIC), customers can only remove files they uploaded themselves
+  through that link, only Aadhaar's last 4 digits are asked for, and every action is in the audit trail as a
+  *Client* action.
+
 ## Security
 
 - Staff accounts made or reset by an admin must choose their own password before anything else works

@@ -34,6 +34,7 @@ import { ReportsPage } from "./routes/reports";
 import { SettingsPage } from "./routes/settings";
 import { SearchPage } from "./routes/search";
 import { AccountPage, ForcePasswordChange } from "./routes/account";
+import { ApplyPage } from "./routes/apply";
 
 function RootLayout() {
   return <Outlet />;
@@ -45,6 +46,13 @@ const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
   component: LoginPage,
+});
+
+/** The customer's own application form: no login, the link's token is the credential. */
+const applyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/apply/$token",
+  component: ApplyPage,
 });
 
 /** Everything under here needs a session; unauthenticated users bounce to /login. */
@@ -142,6 +150,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   partnerLoginRoute,
   trackLoginRoute,
+  applyRoute,
   partnerProtectedRoute.addChildren([
     createRoute({
       getParentRoute: () => partnerProtectedRoute,

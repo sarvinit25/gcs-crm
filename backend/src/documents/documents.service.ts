@@ -55,6 +55,33 @@ export class DocumentsService {
   ) {
     await this.assertAccess(applicationId, user);
 
+    const document = await this.storeFile(applicationId, file, category, { uploadedById: user.id });
+    const fileName = document.fileName;
+
+    await this.audit.record({
+      actor: user,
+      action: AuditAction.CREATE,
+      entity: "Document",
+      entityId: document.id,
+      entityLabel: fileName,
+      changes: { category: { from: null, to: category } },
+      ip,
+    });
+
+    return document;
+  }
+
+  /**
+   * Checks a file by its contents and size, files it in storage, and records it.
+   * Shared by staff uploads and the customer's own application-form link, so both
+   * get exactly the same checks.
+   */
+  async storeFile(
+    applicationId: string,
+    file: { originalname: string; size: number; buffer: Buffer },
+    category: string,
+    by: { uploadedById?: string; inviteId?: string },
+  ) {
     // Judge the file by its contents, not by what the browser or the filename claims.
     const detected = detectFile(file.buffer);
     if (!detected) {
@@ -73,7 +100,7 @@ export class DocumentsService {
 
     await this.storage.put(objectKey, file.buffer, detected.mime);
 
-    const document = await this.prisma.document.create({
+    return this.prisma.document.create({
       data: {
         applicationId,
         category,
@@ -81,22 +108,11 @@ export class DocumentsService {
         objectKey,
         mimeType: detected.mime,
         sizeBytes: file.size,
-        uploadedById: user.id,
+        uploadedById: by.uploadedById,
+        inviteId: by.inviteId,
       },
       include: { uploadedBy: { select: { id: true, name: true } } },
     });
-
-    await this.audit.record({
-      actor: user,
-      action: AuditAction.CREATE,
-      entity: "Document",
-      entityId: document.id,
-      entityLabel: fileName,
-      changes: { category: { from: null, to: category } },
-      ip,
-    });
-
-    return document;
   }
 
   async downloadUrl(applicationId: string, documentId: string, user: AuthUser) {

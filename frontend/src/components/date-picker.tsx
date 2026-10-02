@@ -349,7 +349,9 @@ export function DatePicker({
   };
   const p = parse(current);
   const today = todayIST();
-  const start = p ?? { y: Number(today.slice(0, 4)), m: Number(today.slice(5, 7)) };
+  // With nothing chosen, open on today — or on the latest allowed month when that is earlier (e.g. a date of birth).
+  const opensOn = max && max < today ? max : today;
+  const start = p ?? { y: Number(opensOn.slice(0, 4)), m: Number(opensOn.slice(5, 7)) };
 
   return (
     <div ref={anchor} className={clsx("relative", className)} title={title}>

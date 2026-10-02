@@ -9,7 +9,7 @@ export type Severity = "high" | "medium" | "info";
 
 export type Notification = {
   id: string;
-  kind: "followup" | "stalled" | "sanction" | "login" | "unassigned" | "commission";
+  kind: "form" | "followup" | "stalled" | "sanction" | "login" | "unassigned" | "commission";
   severity: Severity;
   title: string;
   detail: string;
@@ -52,7 +52,25 @@ export class NotificationsService {
     const person = (a: { applicants: { name: string }[] }) => a.applicants[0]?.name ?? "No applicant yet";
     const primary = { applicants: { where: { isPrimary: true }, take: 1, select: { name: true } } } as const;
 
-    const [due, stalled, expiring, login, unassigned, unpaid] = await Promise.all([
+    const [submittedForms, due, stalled, expiring, login, unassigned, unpaid] = await Promise.all([
+      // A customer has sent in their application form and nobody has taken the file forward yet.
+      this.prisma.application.findMany({
+        where: {
+          ...appScope,
+          status: ApplicationStatus.DRAFT,
+          archivedAt: null,
+          invites: { some: { submittedAt: { not: null }, revokedAt: null } },
+        },
+        orderBy: { updatedAt: "asc" },
+        take: PER_KIND,
+        select: {
+          id: true,
+          seq: true,
+          createdAt: true,
+          ...primary,
+          invites: { where: { submittedAt: { not: null } }, orderBy: { submittedAt: "desc" }, take: 1, select: { submittedAt: true } },
+        },
+      }),
       this.prisma.lead.findMany({
         where: {
           ...leadScope,
@@ -122,6 +140,19 @@ export class NotificationsService {
     const daysAgo = (d: Date) => Math.floor((startToday.getTime() - istDayStart(istParts(d)).getTime()) / DAY);
     const items: Notification[] = [];
 
+    for (const a of submittedForms) {
+      const sent = a.invites[0]?.submittedAt ?? a.createdAt;
+      items.push({
+        id: `form-${a.id}`,
+        kind: "form",
+        severity: "high",
+        title: `${person(a)} sent in their application form`,
+        detail: `${appNo(a)} · check the details and documents, then submit to a lender`,
+        path: `/applications/${a.id}`,
+        hash: "customer-form",
+        since: sent.toISOString(),
+      });
+    }
     for (const l of due) {
       const late = daysAgo(l.nextFollowUpAt!);
       items.push({

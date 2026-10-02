@@ -64,6 +64,20 @@ export class ChecklistService {
   }
 
   /** The required-documents gap view for one application. */
+  /** The active checklist rows that apply to a product and applicant bucket. */
+  itemsFor(loanProductId: string, bucket: ChecklistApplicantType | null) {
+    return this.prisma.checklistItem.findMany({
+      where: {
+        active: true,
+        AND: [
+          { OR: [{ loanProductId: null }, { loanProductId }] },
+          bucket ? { OR: [{ applicantType: null }, { applicantType: bucket }] } : { applicantType: null },
+        ],
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+  }
+
   async forApplication(applicationId: string, user: AuthUser) {
     const application = await this.prisma.application.findFirst({
       where: { id: applicationId, ...this.scopeFor(user) },
@@ -78,18 +92,7 @@ export class ChecklistService {
     const bucket = resolveChecklistBucket(application.applicants[0]);
     const uploadedCategories = new Set(application.documents.map((d) => d.category));
 
-    const items = await this.prisma.checklistItem.findMany({
-      where: {
-        active: true,
-        AND: [
-          { OR: [{ loanProductId: null }, { loanProductId: application.loanProductId }] },
-          bucket
-            ? { OR: [{ applicantType: null }, { applicantType: bucket }] }
-            : { applicantType: null },
-        ],
-      },
-      orderBy: { sortOrder: "asc" },
-    });
+    const items = await this.itemsFor(application.loanProductId, bucket);
 
     const result = items.map((i) => ({
       id: i.id,

@@ -12,6 +12,8 @@ type Doc = {
   sizeBytes: number;
   createdAt: string;
   uploadedBy: { id: string; name: string } | null;
+  /** Set when the customer uploaded it themselves through their application-form link. */
+  inviteId?: string | null;
 };
 
 const CATEGORIES = [
@@ -144,7 +146,7 @@ export function DocumentsPanel({ applicationId }: { applicationId: string }) {
                 <p className="truncate text-[13px] font-medium text-ink">{doc.fileName}</p>
                 <p className="text-[12px] text-muted">
                   {doc.category} · {formatSize(doc.sizeBytes)} ·{" "}
-                  {doc.uploadedBy?.name ?? "Unknown"} · {formatDateTime(doc.createdAt)}
+                  {doc.uploadedBy?.name ?? (doc.inviteId ? "Customer (online form)" : "Unknown")} · {formatDateTime(doc.createdAt)}
                 </p>
               </div>
             </div>

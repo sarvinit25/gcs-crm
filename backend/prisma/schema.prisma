@@ -58,6 +58,7 @@ model User {
   payroll          PayrollRecord[]
   commissionSplits CommissionSplit[]
   followUps        FollowUp[]
+  invitesCreated   ApplicationInvite[]
 
   @@index([role, active])
 }
@@ -353,6 +354,7 @@ model Application {
   disbursements       Disbursement[]
   statementScans      BankStatementAnalysis[]
   educationLoanDetail EducationLoanDetail?
+  invites             ApplicationInvite[]
 
   @@index([status])
   @@index([ownerId])
@@ -416,9 +418,13 @@ model Document {
   sizeBytes    Int
   uploadedById String?
   uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  // Set when the customer uploaded it themselves through their application-form link.
+  inviteId     String?
+  invite       ApplicationInvite? @relation(fields: [inviteId], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now())
 
   @@index([applicationId])
+  @@index([inviteId])
 }
 
 // ─── Sanctions ──────────────────────────────────────────────
@@ -683,4 +689,34 @@ model LoginLock {
   failures    Int       @default(0)
   lockedUntil DateTime?
   updatedAt   DateTime  @updatedAt
+}
+
+/**
+ * A link a customer opens (no login) to fill in their own application form and
+ * upload documents. The link itself is never stored in the clear: only its hash
+ * is used for lookup, and an encrypted copy lets staff copy it again later.
+ */
+model ApplicationInvite {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  tokenHash String @unique
+  tokenEnc  String
+
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  openedAt    DateTime?
+  lastSavedAt DateTime?
+  submittedAt DateTime?
+  // What the customer has typed so far; applied to the real records only when they submit.
+  draft       Json?
+  createdAt   DateTime  @default(now())
+
+  documents Document[]
+
+  @@index([applicationId, createdAt])
 }

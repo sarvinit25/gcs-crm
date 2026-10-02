@@ -27,6 +27,7 @@ import { SearchModule } from "./search/search.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { MaintenanceModule } from "./maintenance/maintenance.module";
 import { HealthModule } from "./health/health.module";
+import { CustomerFormModule } from "./customer-form/customer-form.module";
 import { SecurityModule } from "./security/security.module";
 
 @Module({
@@ -63,6 +64,7 @@ import { SecurityModule } from "./security/security.module";
     SettingsModule,
     PartnerPortalModule,
     BorrowerPortalModule,
+    CustomerFormModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

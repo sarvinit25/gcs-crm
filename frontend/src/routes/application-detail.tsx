@@ -21,6 +21,7 @@ import { SanctionPanel } from "../components/sanction-panel";
 import { EducationLoanDetailPanel } from "../components/education-loan-detail-panel";
 import { LoginStatusPanel } from "../components/login-status-panel";
 import { BorrowerPortalPanel } from "../components/borrower-portal-panel";
+import { CustomerFormPanel } from "../components/customer-form-panel";
 import { DocumentsPanel } from "../components/documents-panel";
 import { DisbursementPanel } from "../components/disbursement-panel";
 import { ChecklistPanel } from "../components/checklist-panel";
@@ -215,6 +216,8 @@ export function ApplicationDetailPage() {
             </section>
 
             <div id="login"><LoginStatusPanel applicationId={applicationId} /></div>
+
+            <div id="customer-form"><CustomerFormPanel applicationId={applicationId} /></div>
 
             <div id="portal"><BorrowerPortalPanel applicationId={applicationId} /></div>
 
