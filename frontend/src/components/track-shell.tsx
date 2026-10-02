@@ -1,3 +1,4 @@
+import { LogoMark } from "./logo";
 import { LogOut } from "lucide-react";
 import { useBorrowerAuth } from "../lib/borrower-auth";
 
@@ -15,9 +16,7 @@ export function TrackShell({ children }: { children: React.ReactNode }) {
       <header className="border-b border-line bg-navy">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 place-items-center rounded-md bg-gold font-bold text-navy">
-              G
-            </span>
+            <LogoMark size="md" />
             <div className="leading-tight text-white">
               <p className="text-sm font-bold">Track Your Application</p>
               <p className="text-[11px] text-white/50">Growth Capital Services</p>

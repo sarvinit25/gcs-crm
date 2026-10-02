@@ -1,3 +1,4 @@
+import { LogoMark } from "./logo";
 import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
@@ -84,9 +85,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
         <div className="flex h-16 items-center gap-2.5 border-b border-white/10 px-5">
-          <span className="grid h-8 w-8 place-items-center rounded-md bg-gold font-bold text-navy">
-            G
-          </span>
+          <LogoMark size="md" />
           <div className="leading-tight">
             <p className="text-sm font-bold">GCS</p>
             <p className="text-[11px] text-white/50">Back office</p>

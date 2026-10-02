@@ -1,3 +1,4 @@
+import { LogoMark } from "./logo";
 import { LogOut } from "lucide-react";
 import { usePartnerAuth } from "../lib/partner-auth";
 
@@ -15,9 +16,7 @@ export function PartnerShell({ children }: { children: React.ReactNode }) {
       <header className="border-b border-line bg-navy">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 place-items-center rounded-md bg-gold font-bold text-navy">
-              G
-            </span>
+            <LogoMark size="md" />
             <div className="leading-tight text-white">
               <p className="text-sm font-bold">Partner Portal</p>
               <p className="text-[11px] text-white/50">Growth Capital Services</p>

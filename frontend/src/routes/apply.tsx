@@ -1,3 +1,4 @@
+import { LogoMark } from "../components/logo";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -36,7 +37,7 @@ function Frame({ company, children }: { company?: Company; children: React.React
     <div className="min-h-full bg-bg-light">
       <header className="bg-navy px-4 py-4">
         <div className="mx-auto flex max-w-xl items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-md bg-gold font-bold text-navy">G</span>
+          <LogoMark size="md" />
           <div className="leading-tight text-white">
             <p className="font-bold">{company?.name ?? "Growth Capital Services"}</p>
             <p className="flex items-center gap-1 text-xs text-white/60">

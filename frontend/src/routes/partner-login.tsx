@@ -1,3 +1,4 @@
+import { LogoFull } from "../components/logo";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
@@ -28,17 +29,10 @@ export function PartnerLoginPage() {
   return (
     <div className="grid min-h-full place-items-center bg-navy px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-md bg-gold font-bold text-navy">
-            G
-          </span>
-          <div className="leading-tight text-white">
-            <p className="font-bold">Growth Capital Services</p>
-            <p className="text-xs text-white/50">Partner Portal</p>
-          </div>
-        </div>
+        <p className="mb-4 text-center text-xs font-semibold tracking-[0.2em] text-white/60 uppercase">Partner Portal</p>
 
         <form onSubmit={onSubmit} className="card dialog-enter p-6">
+          <LogoFull className="mb-5" />
           <h1 className="text-base font-bold text-navy">Partner sign in</h1>
           <p className="mt-1 text-[13px] text-muted">
             Track your referrals and commission structure.
