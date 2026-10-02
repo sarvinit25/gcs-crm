@@ -16,6 +16,7 @@ import {
 import { PageHeader } from "../components/app-shell";
 import { LeadStatusBadge } from "../components/status-badge";
 import { NewApplicationWizard } from "../components/new-application-wizard";
+import { ChannelInput } from "../components/channel-field";
 import { Modal } from "../components/modal";
 import { todayIST } from "../lib/date";
 import { DatePicker } from "../components/date-picker";
@@ -200,6 +201,8 @@ export function LeadDetailPage() {
               <Field label="Product" value={lead.loanProduct?.name} />
               <Field label="Amount" value={formatAmount(lead.amount)} />
               <Field label="Source" value={humanize(lead.source)} />
+              <Field label="Channel" value={lead.channel ?? "Not tracked"} />
+              <Field label="Campaign" value={lead.campaign} />
               {lead.status === "LOST" && <Field label="Lost because" value={lead.lostReason} />}
               <Field
                 label="Employment"
@@ -265,6 +268,40 @@ export function LeadDetailPage() {
                 </select>
               </label>
             </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="text-[11px] font-bold tracking-wide text-muted uppercase">
+                Channel
+                <ChannelInput
+                  id="lead-channels"
+                  defaultValue={lead.channel}
+                  onCommit={(v) => v !== (lead.channel ?? "") && assign.mutate({ channel: v })}
+                  className="field mt-1.5 font-normal tracking-normal normal-case"
+                />
+              </label>
+              <label className="text-[11px] font-bold tracking-wide text-muted uppercase">
+                Campaign
+                <input
+                  defaultValue={lead.campaign ?? ""}
+                  maxLength={120}
+                  onBlur={(e) => e.target.value.trim() !== (lead.campaign ?? "") && assign.mutate({ campaign: e.target.value.trim() })}
+                  className="field mt-1.5 font-normal tracking-normal normal-case"
+                />
+              </label>
+            </div>
+            {(lead.utmSource || lead.utmMedium || lead.utmContent || lead.utmTerm || lead.landingPage) && (
+              <p className="mt-2 text-[12px] text-muted">
+                Arrived via{" "}
+                {[
+                  lead.utmSource && `source ${lead.utmSource}`,
+                  lead.utmMedium && `medium ${lead.utmMedium}`,
+                  lead.utmContent && `ad ${lead.utmContent}`,
+                  lead.utmTerm && `search “${lead.utmTerm}”`,
+                  lead.landingPage && `page ${lead.landingPage}`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            )}
             {lead.notes && (
               <p className="mt-5 rounded-md bg-bg-light px-3 py-2.5 text-[13px] whitespace-pre-wrap text-muted">
                 {lead.notes}

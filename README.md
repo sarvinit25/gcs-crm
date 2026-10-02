@@ -266,6 +266,51 @@ On any **draft** application, the *Customer application form* panel creates a li
   through that link, only Aadhaar's last 4 digits are asked for, and every action is in the audit trail as a
   *Client* action.
 
+## Lender contacts (bank & NBFC relationship managers)
+
+The client's "BL – List of Bank and RM Name" sheet is loaded as a directory of **55 people at 48 banks and NBFCs**,
+each filed under the loan types they handle (Business Loan, Small Business Loan, Overdraft, Machinery, Secured).
+
+- **Where:** Lender Directory (Settings → Banks & NBFCs for admins) has a *Contacts* count per lender and a **People**
+  view across all banks — search by name, number, email or bank, and filter by loan type. Call, WhatsApp and email are one tap.
+- **On a file:** when you update the bank login, *Pick from {bank}'s contacts* lists that bank's people with the ones who
+  handle this loan type first (★) and fills in the banker's name and number.
+- **Search:** the global search finds contacts by name, number (typed any way), email, bank or loan type.
+- **Who can edit:** everyone signed in can look people up; Super Admin and Admin add, edit and remove. Changes are audited.
+- **Data cleaning on import:** phone numbers reduced to 10 digits, emails lower-cased, people listed under several loan
+  types merged, one mistyped email domain fixed. Doubtful entries carry a note shown in amber until someone confirms them
+  (an email that doesn't match the person's name, a personal Gmail address, a missing number).
+- **New lenders:** 25 lenders on the sheet weren't in the CRM; they were added as *internal only* (not on the public
+  website) with a type inferred from their name — check them under Banks & NBFCs.
+- Loan types are a setting (*Lender contact segments*). The source data is `backend/prisma/lender-contacts-data.ts`;
+  `npm run seed` only ever *adds* missing contacts, so edits made in the CRM survive a re-seed.
+
+## Marketing: channels, spend and cost per lead
+
+Built from the agency's lead-generation plan (campaigns, qualified leads, cost per lead, conversion by channel).
+
+- **Every lead can carry a channel and campaign** (Google Search Ads, Meta Ads, WhatsApp, Hoardings, Society activation,
+  Roadshow, Referral, Walk-in … — the list is a setting, *Marketing channels*, and you can type a new one on the spot).
+  Staff set it on the New Lead form or on the lead; leads can be filtered by channel, or by "Not tracked".
+- **Website leads tag themselves.** The public intake accepts the tracking tags from a landing-page link and works the
+  channel out from them:
+  ```
+  POST /crm/api/public/leads
+  { name, phone, source, …, utmSource, utmMedium, utmCampaign, utmContent?, utmTerm?, landingPage? }
+  ```
+  e.g. `utmSource=google, utmMedium=cpc` → *Google Search Ads*. Only the path of `landingPage` is kept (no query string,
+  which can contain personal details). The open endpoint never accepts a channel directly, so it can't be spoofed.
+  The website's `submitLead()` needs to read `utm_*` from the URL and pass them along (website repo change).
+- **Marketing page** (Super Admin and Admin): spend, leads, cost per lead, qualified leads, **cost per qualified lead**,
+  applications, sanctions, disbursals, **cost per disbursal** and commission earned per ₹1 spent — by channel, campaign,
+  landing page or month, for any period (financial year, last month …), with a lead-to-disbursal funnel and CSV export.
+  Leads are counted in the period they were created; later stages count those same leads, whenever they got there.
+  A lead is *qualified* once it reaches Qualified, Docs pending or Converted, or has an application.
+- **Spend log:** enter what was billed (date, channel, campaign, agency, amount). Spend with no leads — a hoarding that
+  brought nobody in — still shows as its own row.
+- **Tracking-link builder** (bottom of the page) makes `utm_*` links for each channel so leads are credited automatically.
+- A short reminder on advertising loans (no "guaranteed approval" claims; settle how the firm is classified) is on the page.
+
 ## Security
 
 - Staff accounts made or reset by an admin must choose their own password before anything else works

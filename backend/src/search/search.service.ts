@@ -41,6 +41,7 @@ const PAGES: { label: string; path: string; hash?: string; roles?: Role[]; keywo
   { label: "Sourcing Partners", path: "/partners", roles: [Role.ADMIN, Role.MANAGER], keywords: "bsa dsa referrers partner portal password commission rate" },
   { label: "Team", path: "/team", roles: [Role.ADMIN], keywords: "staff employees users roles hierarchy reports to add staff reset password" },
   { label: "Attendance & Payroll", path: "/attendance", roles: [Role.ADMIN, Role.MANAGER], keywords: "attendance payroll salary leave holiday half day check in check out present absent" },
+  { label: "Marketing", path: "/marketing", roles: [Role.ADMIN, Role.MANAGER], keywords: "campaign channel spend cost per lead cpl qualified roas google ads meta facebook instagram utm tracking link landing page agency advertising hoardings roadshow activation lead sources marketing" },
   { label: "Reports", path: "/reports", keywords: "analytics export excel csv print pdf funnel lead sources loan mix officers stalled cases report builder records" },
   { label: "Audit log", path: "/audit", roles: [Role.ADMIN], keywords: "history changes who did what activity trail log" },
   { label: "Settings", path: "/settings", roles: [Role.ADMIN], keywords: "configuration organisation numbering financial year security password policy categories" },
@@ -131,6 +132,7 @@ export class SearchService {
         this.applications(tokens, limit, isAdvisor ? user.id : null),
         this.leads(tokens, limit, isAdvisor ? user.id : null),
         this.lenders(tokens, limit, admin),
+        this.lenderContacts(tokens, limit, admin),
         manager ? this.partners(tokens, limit) : null,
         admin ? this.team(tokens, limit) : null,
         this.products(tokens, limit, admin),
@@ -367,6 +369,48 @@ export class SearchService {
         path: admin ? "/settings" : "/lenders",
         hash: `lender-${l.id}`,
         matches: pickMatches([{ label: "Lender", value: l.name }, { label: "Type", value: l.type }], tokens),
+      })),
+    };
+  }
+
+  /** The people at banks and NBFCs — found by name, number, email, their lender or loan type. */
+  private async lenderContacts(tokens: string[], limit: number, admin: boolean): Promise<SearchGroup> {
+    const where: Prisma.LenderContactWhereInput = {
+      active: true,
+      ...this.allTokens<Prisma.LenderContactWhereInput>(tokens, (t) => [
+        this.has("name", t),
+        this.has("phone", t),
+        this.has("email", t),
+        this.has("designation", t),
+        { lender: this.has("name", t) },
+        { segments: { has: t } },
+      ]),
+    };
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.lenderContact.findMany({ where, include: { lender: { select: { id: true, name: true } } }, orderBy: { name: "asc" }, take: limit * 3 }),
+      this.prisma.lenderContact.count({ where }),
+    ]);
+    return {
+      type: "lenderContacts",
+      label: "Bank & NBFC contacts",
+      total,
+      hits: rankByName(rows, (c) => c.name, tokens).slice(0, limit).map((c) => ({
+        id: c.id,
+        title: c.name,
+        subtitle: [c.designation, c.lender.name, c.phone].filter(Boolean).join(" · "),
+        where: `${admin ? "Settings › Banks & NBFCs" : "Lender Directory"} › ${c.lender.name} › Contacts`,
+        path: admin ? "/settings" : "/lenders",
+        hash: `lender-${c.lender.id}`,
+        matches: pickMatches(
+          [
+            { label: "Name", value: c.name },
+            { label: "Phone", value: c.phone ?? "" },
+            { label: "Email", value: c.email ?? "" },
+            { label: "Lender", value: c.lender.name },
+            { label: "Loan types", value: c.segments.join(", ") },
+          ],
+          tokens,
+        ),
       })),
     };
   }

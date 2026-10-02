@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, Eye, EyeOff, Loader2, Plus, Search } from "lucide-react";
+import { Building2, Contact, Eye, EyeOff, Loader2, Plus, Search } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { PageHeader } from "../components/app-shell";
 import { TableSkeleton } from "../components/skeleton";
+import { LenderContactsModal, PeopleDirectory } from "../components/lender-contacts";
 
 type Lender = {
   id: string;
@@ -16,6 +17,7 @@ type Lender = {
   active: boolean;
   sortOrder: number;
   applicationCount: number;
+  contactCount: number;
 };
 
 /** The lender list and its editor. Shown as a page, or embedded as a Settings tab. */
@@ -27,6 +29,8 @@ export function LendersPanel({ embedded = false }: { embedded?: boolean }) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [includeInactive, setIncludeInactive] = useState(false);
+  const [view, setView] = useState<"lenders" | "people">("lenders");
+  const [contactsFor, setContactsFor] = useState<Lender | null>(null);
 
   const query = useQuery({
     queryKey: ["lenders-directory", { includeInactive }],
@@ -65,7 +69,7 @@ export function LendersPanel({ embedded = false }: { embedded?: boolean }) {
   const subtitle = query.data
     ? `${query.data.length} lenders · ${publicCount} shown on the website`
     : "Partner banks and NBFCs";
-  const addButton = isAdmin && (
+  const addButton = isAdmin && view === "lenders" && (
     <button onClick={() => setShowForm(!showForm)} className="btn-primary">
       <Plus className="h-4 w-4" /> Add lender
     </button>
@@ -86,13 +90,29 @@ export function LendersPanel({ embedded = false }: { embedded?: boolean }) {
           </div>
         )}
 
-        {error && (
+        <div className="mb-4 inline-flex rounded-lg border border-line bg-white p-0.5" role="tablist" aria-label="Directory view">
+          {([["lenders", "Banks & NBFCs"], ["people", "People"]] as const).map(([key, label]) => (
+            <button
+              key={key}
+              role="tab"
+              aria-selected={view === key}
+              onClick={() => setView(key)}
+              className={clsx("rounded-md px-3.5 py-1.5 text-[13px] font-semibold transition", view === key ? "bg-navy text-white" : "text-muted hover:text-navy")}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {view === "people" && <PeopleDirectory lenders={(query.data ?? []).filter((l) => l.active)} />}
+
+        {view === "lenders" && error && (
           <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">
             {(error as Error).message}
           </p>
         )}
 
-        {showForm && isAdmin && (
+        {view === "lenders" && showForm && isAdmin && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -124,6 +144,8 @@ export function LendersPanel({ embedded = false }: { embedded?: boolean }) {
           </form>
         )}
 
+        {view === "lenders" && (
+          <>
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted/60" />
@@ -163,6 +185,7 @@ export function LendersPanel({ embedded = false }: { embedded?: boolean }) {
                   <th className="px-4 py-2.5 font-bold">Lender</th>
                   <th className="px-4 py-2.5 font-bold">Type</th>
                   <th className="px-4 py-2.5 font-bold">Applications</th>
+                  <th className="px-4 py-2.5 font-bold">Contacts</th>
                   <th className="px-4 py-2.5 font-bold">On website</th>
                   {isAdmin && <th className="px-4 py-2.5 font-bold">Actions</th>}
                 </tr>
@@ -201,6 +224,15 @@ export function LendersPanel({ embedded = false }: { embedded?: boolean }) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-muted">{l.applicationCount}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => setContactsFor(l)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-[12px] font-semibold text-navy transition hover:border-navy/40 hover:bg-bg-light"
+                        aria-label={`${l.name} contacts`}
+                      >
+                        <Contact className="h-3.5 w-3.5" /> {l.contactCount}
+                      </button>
+                    </td>
                     <td className="px-4 py-3">
                       {isAdmin ? (
                         <button
@@ -245,6 +277,10 @@ export function LendersPanel({ embedded = false }: { embedded?: boolean }) {
           <code className="mx-1 rounded bg-bg-light px-1">/crm/api/public/lenders</code>.
           Deactivating one removes it from both the website and the assignment dropdowns.
         </p>
+          </>
+        )}
+
+        {contactsFor && <LenderContactsModal lender={contactsFor} onClose={() => setContactsFor(null)} />}
       </div>
     </>
   );

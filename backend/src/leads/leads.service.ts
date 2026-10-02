@@ -1,3 +1,4 @@
+import { channelFromUtm, cleanLandingPage, cleanTag } from "../marketing/channel.util";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { AuditAction, LeadStatus, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
@@ -40,10 +41,28 @@ export class LeadsService {
     return product?.id;
   }
 
+  /** The tracking tags a lead arrived with, cleaned, plus the channel they point to. */
+  private attribution(dto: PublicLeadDto & { channel?: string; campaign?: string }) {
+    const utmSource = cleanTag(dto.utmSource);
+    const utmMedium = cleanTag(dto.utmMedium);
+    return {
+      utmSource,
+      utmMedium,
+      utmContent: cleanTag(dto.utmContent),
+      utmTerm: cleanTag(dto.utmTerm, 200),
+      landingPage: cleanLandingPage(dto.landingPage),
+      campaign: cleanTag(dto.campaign) ?? cleanTag(dto.utmCampaign),
+      // A channel chosen by staff wins; otherwise it is read from the tracking tags.
+      channel: cleanTag(dto.channel, 60) ?? channelFromUtm(utmSource, utmMedium) ?? undefined,
+    };
+  }
+
   /** Intake from the public website, WhatsApp flow and AI telecaller. */
   async intake(dto: PublicLeadDto) {
     const lead = await this.prisma.lead.create({
       data: {
+        // The open endpoint never takes a channel directly: it is only ever read from the tracking tags.
+        ...this.attribution({ ...dto, channel: undefined, campaign: undefined }),
         name: dto.name.trim(),
         phone: dto.phone,
         email: dto.email?.trim().toLowerCase(),
@@ -69,6 +88,7 @@ export class LeadsService {
         loanProductId: await this.resolveProductId(dto.productSlug),
         amount: dto.amount,
         notes: dto.detail,
+        ...this.attribution(dto),
         sourcingPartnerId: dto.sourcingPartnerId,
         // An advisor creating a lead owns it unless someone else is named.
         assignedOfficerId:
@@ -98,6 +118,7 @@ export class LeadsService {
       ...(query.source && { source: query.source }),
       ...(query.assignedOfficerId && { assignedOfficerId: query.assignedOfficerId }),
       ...(query.loanProductId && { loanProductId: query.loanProductId }),
+      ...(query.channel && { channel: query.channel === "none" ? null : query.channel }),
       ...(rangeFilter(resolveRange(query)) && { createdAt: rangeFilter(resolveRange(query)) }),
       ...(query.dueOnly === "true" && { nextFollowUpAt: { lte: new Date() } }),
       ...(query.search && {
@@ -152,6 +173,9 @@ export class LeadsService {
     const before = await this.findOne(id, user);
 
     const data: Prisma.LeadUncheckedUpdateInput = { ...dto };
+    // Clearing a field in the form stores nothing, not an empty string.
+    if (dto.channel !== undefined) data.channel = dto.channel?.trim() || null;
+    if (dto.campaign !== undefined) data.campaign = dto.campaign?.trim() || null;
     if (dto.status === LeadStatus.LOST) {
       if (!(dto.lostReason?.trim() || before.lostReason)) {
         throw new BadRequestException("Say why this lead was lost");

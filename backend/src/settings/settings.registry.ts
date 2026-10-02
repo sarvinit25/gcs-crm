@@ -5,6 +5,8 @@
  * from this registry.
  */
 
+import { DEFAULT_CHANNELS } from "../marketing/channel.util";
+
 export type SettingType = "string" | "text" | "number" | "boolean" | "list" | "email" | "phone" | "time";
 
 export type SettingDef = {
@@ -25,6 +27,7 @@ export const SETTING_GROUPS = [
   "Pipeline",
   "Documents",
   "Customer form",
+  "Marketing",
   "Numbering",
   "Commissions",
   "Attendance",
@@ -200,6 +203,22 @@ export const SETTINGS: SettingDef[] = [
     default: 15,
     min: 1,
     max: 100,
+  },
+  {
+    key: "marketing.channels",
+    group: "Marketing",
+    label: "Marketing channels",
+    help: "Where leads can come from. Leads are credited to one of these, and spend is logged against them — add your own as new activities start.",
+    type: "list",
+    default: DEFAULT_CHANNELS,
+  },
+  {
+    key: "lenders.segments",
+    group: "Pipeline",
+    label: "Lender contact segments",
+    help: "The loan types a bank or NBFC relationship manager can be filed under.",
+    type: "list",
+    default: ["Business Loan", "Small Business Loan", "Overdraft", "Machinery Loan", "Secured Loan", "Home Loan", "Loan Against Property", "Personal Loan"],
   },
   {
     key: "forms.linkValidDays",

@@ -48,8 +48,15 @@ export class LendersService {
       orderBy: { lenderId: "asc" },
     });
     const byLender = new Map(counts.map((c) => [c.lenderId, c._count]));
+    const contactCounts = await this.prisma.lenderContact.groupBy({
+      by: ["lenderId"],
+      where: { active: true },
+      _count: true,
+      orderBy: { lenderId: "asc" },
+    });
+    const contactsBy = new Map(contactCounts.map((c) => [c.lenderId, c._count]));
 
-    return lenders.map((l) => ({ ...l, applicationCount: byLender.get(l.id) ?? 0 }));
+    return lenders.map((l) => ({ ...l, applicationCount: byLender.get(l.id) ?? 0, contactCount: contactsBy.get(l.id) ?? 0 }));
   }
 
   async create(dto: CreateLenderDto, actor: AuthUser, ip?: string) {

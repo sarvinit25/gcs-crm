@@ -59,6 +59,7 @@ model User {
   commissionSplits CommissionSplit[]
   followUps        FollowUp[]
   invitesCreated   ApplicationInvite[]
+  marketingSpends  MarketingSpend[]
 
   @@index([role, active])
 }
@@ -130,8 +131,31 @@ model Lender {
   createdAt DateTime   @default(now())
 
   applications Application[]
+  contacts     LenderContact[]
 
   @@index([active, isPublic])
+}
+
+/**
+ * A person at a bank or NBFC — usually the relationship / sales manager who takes
+ * our files for one or more loan types. Internal only; never exposed publicly.
+ */
+model LenderContact {
+  id          String   @id @default(cuid())
+  lenderId    String
+  lender      Lender   @relation(fields: [lenderId], references: [id], onDelete: Cascade)
+  name        String
+  designation String?
+  phone       String?
+  email       String?
+  // Loan types this person handles, as named in Settings → Lender contact segments.
+  segments    String[]
+  notes       String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([lenderId])
 }
 
 model LoanProduct {
@@ -245,6 +269,16 @@ model Lead {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
+  // Where the lead came from, for marketing reports: the channel (Google Search Ads,
+  // Society activation, Referral …), the campaign, and the raw tracking tags the website passed along.
+  channel     String?
+  campaign    String?
+  utmSource   String?
+  utmMedium   String?
+  utmContent  String?
+  utmTerm     String?
+  landingPage String?
+
   application Application?
   followUps   FollowUp[]
 
@@ -254,6 +288,7 @@ model Lead {
   @@index([createdAt])
   @@index([loanProductId])
   @@index([sourcingPartnerId])
+  @@index([channel, createdAt])
   @@index([archivedAt])
 }
 
@@ -719,4 +754,25 @@ model ApplicationInvite {
   documents Document[]
 
   @@index([applicationId, createdAt])
+}
+
+/**
+ * What was spent on marketing, entered by hand (or from an agency's report) so cost per lead and
+ * cost per customer can be worked out. One row per spend; the channel matches Lead.channel.
+ */
+model MarketingSpend {
+  id          String   @id @default(cuid())
+  spentOn     DateTime @db.Date
+  channel     String
+  campaign    String?
+  // Agency or vendor it was paid through, e.g. an advertising agency.
+  vendor      String?
+  amount      Decimal  @db.Decimal(14, 2)
+  note        String?
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+
+  @@index([spentOn])
+  @@index([channel, spentOn])
 }
