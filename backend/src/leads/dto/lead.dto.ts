@@ -1,4 +1,4 @@
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -16,6 +16,7 @@ import {
 } from "class-validator";
 import { EmploymentType, LeadStatus } from "@prisma/client";
 import { DateInput } from "../../common/date-input.decorator";
+import { normalisePhone } from "../../common/phone.util";
 
 const PHONE = /^[6-9]\d{9}$/;
 
@@ -25,6 +26,8 @@ export class PublicLeadDto {
   @Length(2, 120)
   name: string;
 
+  // Forms send it as typed ("+91 98765 43210"); it is stored, and matched against other leads, as 10 digits.
+  @Transform(({ value }) => normalisePhone(value) ?? value)
   @Matches(PHONE, { message: "phone must be a 10-digit Indian mobile number" })
   phone: string;
 

@@ -32,6 +32,7 @@ const MAX_INT = 2_000_000_000;
 const PAGES: { label: string; path: string; hash?: string; roles?: Role[]; keywords: string }[] = [
   { label: "Dashboard", path: "/", keywords: "home overview summary performance metrics loan distribution conversion export report today check in punch" },
   { label: "Leads", path: "/leads", keywords: "prospects enquiries new lead import bulk csv upload export follow-up lost reason source" },
+  { label: "Website", path: "/website", roles: [Role.ADMIN, Role.MANAGER], keywords: "website enquiries form submissions inbox web leads duplicates checklist download partner signup contact form callback" },
   { label: "Applications", path: "/applications", keywords: "login files cases application form login status bank login new application applicant co-applicant" },
   { label: "CIBIL", path: "/cibil", keywords: "credit score cibil bureau credit report credit check score band consent record score low score eligibility experian equifax crif" },
   { label: "Sanctions", path: "/sanctions", keywords: "sanctioned loans technical financial legal evaluation approval sanction letter" },

@@ -19,40 +19,40 @@ enum Role {
 }
 
 model User {
-  id           String    @id @default(cuid())
+  id           String   @id @default(cuid())
   name         String
-  email        String    @unique
+  email        String   @unique
   phone        String?
   passwordHash String
-  role         Role      @default(ADVISOR)
+  role         Role     @default(ADVISOR)
   designation  String?
-  active       Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Set when an admin issues a password (new account, reset): the person must choose their own before doing anything else.
-  mustChangePassword Boolean  @default(false)
+  mustChangePassword Boolean   @default(false)
   // Authenticator-app two-step login. The secret exists from setup; it only counts once totpEnabledAt is set.
-  totpSecret        String?
-  totpEnabledAt     DateTime?
+  totpSecret         String?
+  totpEnabledAt      DateTime?
   // Last 30-second step already accepted, so a code can't be used twice; and the one live sign-in challenge.
-  totpLastStep      Int?
-  totpChallengeJti  String?
+  totpLastStep       Int?
+  totpChallengeJti   String?
   // Bumped when the password changes or is reset — every session issued before that stops working.
-  tokenVersion      Int      @default(0)
+  tokenVersion       Int       @default(0)
 
-  employeeCode      String?  @unique
-  dateOfBirth       DateTime? @db.Date
-  joinedAt          DateTime? @db.Date
-  commissionPercent Decimal?  @db.Decimal(5, 2)
+  employeeCode      String?           @unique
+  dateOfBirth       DateTime?         @db.Date
+  joinedAt          DateTime?         @db.Date
+  commissionPercent Decimal?          @db.Decimal(5, 2)
   reportsToId       String?
-  reportsTo         User?    @relation("Reporting", fields: [reportsToId], references: [id], onDelete: SetNull)
-  reports           User[]   @relation("Reporting")
+  reportsTo         User?             @relation("Reporting", fields: [reportsToId], references: [id], onDelete: SetNull)
+  reports           User[]            @relation("Reporting")
   managedPartners   SourcingPartner[] @relation("PartnerManager")
 
-  leadsAsOfficer   Lead[]             @relation("LeadOfficer")
-  leadsAsManager   Lead[]             @relation("LeadManager")
-  applications     Application[]      @relation("ApplicationOwner")
+  leadsAsOfficer   Lead[]              @relation("LeadOfficer")
+  leadsAsManager   Lead[]              @relation("LeadManager")
+  applications     Application[]       @relation("ApplicationOwner")
   documents        Document[]
   attendance       Attendance[]
   payroll          PayrollRecord[]
@@ -96,13 +96,17 @@ model AuditLog {
   actorType AuditActorType @default(STAFF)
   actorName String
 
-  action AuditAction
-  entity String
-  entityId String
-  /** Human-facing reference, e.g. GCS-2026-0042 or a lead's name. */
+  action      AuditAction
+  entity      String
+  entityId    String
+  /**
+   * Human-facing reference, e.g. GCS-2026-0042 or a lead's name.
+   */
   entityLabel String?
 
-  /** Field-level diff: { field: { from, to } }. */
+  /**
+   * Field-level diff: { field: { from, to } }.
+   */
   changes Json?
   ip      String?
 
@@ -160,12 +164,12 @@ model LenderContact {
 }
 
 model LoanProduct {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
+  id        String  @id @default(cuid())
+  name      String  @unique
+  slug      String  @unique
   category  String?
-  active    Boolean  @default(true)
-  sortOrder Int      @default(0)
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
 
   leads          Lead[]
   applications   Application[]
@@ -234,12 +238,12 @@ enum LeadStatus {
 }
 
 model Lead {
-  id       String @id @default(cuid())
-  leadNo   Int    @unique @default(autoincrement())
-  name     String
-  phone    String
-  email    String?
-  city     String?
+  id     String  @id @default(cuid())
+  leadNo Int     @unique @default(autoincrement())
+  name   String
+  phone  String
+  email  String?
+  city   String?
 
   loanProductId String?
   loanProduct   LoanProduct? @relation(fields: [loanProductId], references: [id])
@@ -267,8 +271,8 @@ model Lead {
   monthlyIncome  Decimal?        @db.Decimal(14, 2)
   meetingMode    String?
   meetingPlace   String?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   // Where the lead came from, for marketing reports: the channel (Google Search Ads,
   // Society activation, Referral …), the campaign, and the raw tracking tags the website passed along.
@@ -282,6 +286,7 @@ model Lead {
 
   application Application?
   followUps   FollowUp[]
+  submissions WebsiteSubmission[]
 
   @@index([status, nextFollowUpAt])
   @@index([assignedOfficerId])
@@ -294,15 +299,15 @@ model Lead {
 }
 
 model FollowUp {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   leadId    String
-  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  lead      Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
   note      String
   dueAt     DateTime?
   doneAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([leadId])
 }
@@ -340,10 +345,10 @@ enum ApplicantConstitution {
 }
 
 model Application {
-  id String @id @default(cuid())
+  id  String @id @default(cuid())
   // Drives the human-facing reference (GCS-2026-0042), formatted on read.
   // A sequence rather than a built string, so concurrent creates can't collide.
-  seq Int @unique @default(autoincrement())
+  seq Int    @unique @default(autoincrement())
 
   leadId String? @unique
   lead   Lead?   @relation(fields: [leadId], references: [id])
@@ -357,7 +362,7 @@ model Application {
   ownerId String?
   owner   User?   @relation("ApplicationOwner", fields: [ownerId], references: [id])
 
-  requestedAmount Decimal  @db.Decimal(14, 2)
+  requestedAmount Decimal   @db.Decimal(14, 2)
   tenureMonths    Int?
   purpose         String?
   bankLoginAt     DateTime?
@@ -366,22 +371,22 @@ model Application {
   bankReferenceNo String?
   // Who at the bank is handling it, and what it cost to log in — and which
   // channel/DSA the file was routed through, when it's not a direct login.
-  bankerName    String?
-  bankerMobile  String?
-  loginFees     Decimal? @db.Decimal(12, 2)
-  dsaChannel    String?
+  bankerName      String?
+  bankerMobile    String?
+  loginFees       Decimal?  @db.Decimal(12, 2)
+  dsaChannel      String?
 
   // Shared secret (with the primary applicant's phone) for the borrower
   // portal login — never the same value as the human-facing applicationNo,
   // which is sequential and guessable.
-  portalAccessCode String? @unique
+  portalAccessCode   String? @unique
   // Bumped when the access code is regenerated, which ends any borrower session already open.
-  portalTokenVersion Int @default(0)
+  portalTokenVersion Int     @default(0)
 
-  status    ApplicationStatus @default(DRAFT)
+  status     ApplicationStatus @default(DRAFT)
   archivedAt DateTime?
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
 
   applicants          Applicant[]
   references          Reference[]
@@ -407,7 +412,7 @@ model Applicant {
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   // First applicant per application is the primary; the rest are co-applicants.
-  isPrimary      Boolean        @default(false)
+  isPrimary      Boolean                @default(false)
   name           String
   relation       String?
   dateOfBirth    DateTime?
@@ -425,7 +430,7 @@ model Applicant {
   monthlyIncome  Decimal?               @db.Decimal(14, 2)
   cibilScore     Int?
   // The date of the report that score came from, when known.
-  cibilScoreDate DateTime? @db.Date
+  cibilScoreDate DateTime?              @db.Date
   creditChecks   CreditCheck[]
 
   @@index([applicationId])
@@ -452,15 +457,15 @@ model Document {
 
   category     String
   fileName     String
-  objectKey    String   @unique
+  objectKey    String             @unique
   mimeType     String
   sizeBytes    Int
   uploadedById String?
-  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  uploadedBy   User?              @relation(fields: [uploadedById], references: [id])
   // Set when the customer uploaded it themselves through their application-form link.
   inviteId     String?
   invite       ApplicationInvite? @relation(fields: [inviteId], references: [id], onDelete: SetNull)
-  createdAt    DateTime @default(now())
+  createdAt    DateTime           @default(now())
 
   @@index([applicationId])
   @@index([inviteId])
@@ -493,14 +498,15 @@ model Sanction {
   legalAt     DateTime?
   legalNote   String?
 
-  sanctionedAmount Decimal? @db.Decimal(14, 2)
-  interestRate     Decimal? @db.Decimal(5, 2)
+  sanctionedAmount Decimal?  @db.Decimal(14, 2)
+  interestRate     Decimal?  @db.Decimal(5, 2)
   tenureMonths     Int?
   sanctionLetterNo String?
   validTill        DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@index([updatedAt])
 }
 
@@ -569,6 +575,7 @@ model Commission {
   updatedAt   DateTime     @updatedAt
 
   splits CommissionSplit[]
+
   @@index([createdAt])
 }
 
@@ -607,12 +614,12 @@ enum AttendanceStatus {
 }
 
 model Attendance {
-  id     String           @id @default(cuid())
-  userId String
-  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date   DateTime         @db.Date
-  status AttendanceStatus @default(PRESENT)
-  note   String?
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date       DateTime         @db.Date
+  status     AttendanceStatus @default(PRESENT)
+  note       String?
   checkInAt  DateTime?
   checkOutAt DateTime?
 
@@ -625,14 +632,14 @@ model PayrollRecord {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  month       Int
-  year        Int
-  baseSalary  Decimal      @db.Decimal(12, 2)
-  incentives  Decimal      @default(0) @db.Decimal(12, 2)
-  deductions  Decimal      @default(0) @db.Decimal(12, 2)
-  netPay      Decimal      @db.Decimal(12, 2)
-  status      PayoutStatus @default(PENDING)
-  paidAt      DateTime?
+  month      Int
+  year       Int
+  baseSalary Decimal      @db.Decimal(12, 2)
+  incentives Decimal      @default(0) @db.Decimal(12, 2)
+  deductions Decimal      @default(0) @db.Decimal(12, 2)
+  netPay     Decimal      @db.Decimal(12, 2)
+  status     PayoutStatus @default(PENDING)
+  paidAt     DateTime?
 
   @@unique([userId, month, year])
 }
@@ -645,17 +652,17 @@ model BankStatementAnalysis {
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   documentId     String?
-  averageBalance Decimal? @db.Decimal(14, 2)
-  totalCredits   Decimal? @db.Decimal(14, 2)
-  totalDebits    Decimal? @db.Decimal(14, 2)
+  averageBalance Decimal?  @db.Decimal(14, 2)
+  totalCredits   Decimal?  @db.Decimal(14, 2)
+  totalDebits    Decimal?  @db.Decimal(14, 2)
   salaryCredits  Json?
-  bounceCount    Int      @default(0)
+  bounceCount    Int       @default(0)
   periodFrom     DateTime?
   periodTo       DateTime?
   // Flagged when parsed from a scan, so the RO double-checks before relying on it.
-  needsReview    Boolean  @default(true)
+  needsReview    Boolean   @default(true)
   raw            Json?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime  @default(now())
 
   @@index([applicationId])
 }
@@ -819,9 +826,85 @@ model CreditCheck {
   consentText   String?
 
   requestedById String?
-  requestedBy   User?     @relation(fields: [requestedById], references: [id], onDelete: SetNull)
-  createdAt     DateTime  @default(now())
+  requestedBy   User?    @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
 
   @@index([applicantId, createdAt])
   @@index([createdAt])
+}
+
+/// What happened to a form entry that arrived from the public website (or WhatsApp / telecaller).
+enum SubmissionOutcome {
+  /// Nobody with this phone and name was open, so it became a new lead.
+  NEW_LEAD
+  /// The same person was already open and their lead had at least as many entries: this one is only logged.
+  DUPLICATE_KEPT
+  /// The same person was already open but this entry was fuller: it filled in / replaced the lead's details.
+  DUPLICATE_UPDATED
+}
+
+/**
+ * Every entry that came in through the public intake, kept as received. The lead is the
+ * de-duplicated person; this is the inbox of what actually arrived, so nothing is lost
+ * when two entries are merged into one lead.
+ */
+model WebsiteSubmission {
+  id         String   @id @default(cuid())
+  receivedAt DateTime @default(now())
+
+  /// Which form it came from ("ca-legal-enquiry", "checklist-download" …).
+  form String
+
+  name        String
+  phone       String
+  email       String?
+  city        String?
+  loanType    String?
+  amount      Decimal? @db.Decimal(14, 2)
+  detail      String?
+  landingPage String?
+  /// How many of name, phone, email, city, loan type, amount and detail were filled in.
+  entries     Int
+
+  outcome     SubmissionOutcome
+  /// Same phone as an open lead but a different name: kept as its own lead, flagged for a look.
+  sharedPhone Boolean           @default(false)
+
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([receivedAt])
+  @@index([form, receivedAt])
+  @@index([outcome, receivedAt])
+  @@index([phone])
+  @@index([leadId])
+}
+
+/**
+ * The pop-up poster the public website shows (e.g. a Diwali offer). Staff upload the image and
+ * choose the dates it runs; the website asks for the one that is live today.
+ */
+model WebsiteAd {
+  id String @id @default(cuid())
+
+  /// Internal name, also the image's alt text on the website.
+  title     String
+  imageKey  String
+  imageMime String
+  imageSize Int
+  /// Optional https link a click on the poster opens.
+  linkUrl   String?
+
+  /// First and last moment it runs: start of the first day and end of the last day, India time.
+  startsAt DateTime
+  endsAt   DateTime
+  /// Switches it off without deleting it or changing the dates.
+  paused   Boolean  @default(false)
+
+  createdById   String?
+  createdByName String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([startsAt, endsAt])
 }

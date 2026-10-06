@@ -356,6 +356,50 @@ name, phone or application number. *Check CIBIL* on any application's applicant 
   defence against stealing them; moving to HttpOnly cookies would also need CSRF protection.
 - Login and code entry are also rate-limited per IP; the API refuses to start in production with a weak secret or missing keys.
 
+## Website tab and duplicate entries
+
+The **Website** tab (Admin and Admin-level managers only) is the inbox of everything that reached
+`POST /public/leads`: one row per entry, with the form it came from, what was filled in, what happened
+to it, and the lead it belongs to. Filters: form, result, period, search, and "shared phones".
+
+Every entry is kept as received (`WebsiteSubmission`), but the same person never becomes two leads:
+
+- **Same person** = same phone number (typed any way: `+91 98765 43210`, `098765-43210`, `9876543210`)
+  **and** a matching name (case, word order and titles ignored; "Rahul" matches "Rahul Kumar Sharma").
+- A repeat of someone with an **open** lead is merged into it. The entry with more of the seven fields
+  (name, phone, email, city, loan type, amount, message) filled in wins and fills in or replaces the
+  lead's details; fields it left blank, and everything staff own (status, owner, follow-ups), stay.
+  On a tie the stored lead stays, because staff may already have corrected it.
+- **Same phone, different name** (family member, an agent filing for a client) is not a duplicate: it
+  becomes its own lead and is flagged "Shared phone".
+- Converted, lost or archived leads never absorb a new entry: that is a new enquiry.
+- Two copies arriving at the same instant still make one lead (a per-phone database lock).
+- A merge that changed a lead writes an audit row by "Website form"; a merge that changed nothing does not.
+
+The rules live in `backend/src/leads/lead-dedupe.ts`; the website has the same filter in
+`src/lib/lead-dedupe.ts` there. Phone numbers are normalised to 10 digits on the way in.
+
+## Website pop-up ad
+
+The **Website → Pop-up ad** tab (Admin and Manager) holds the offer poster the public site shows in a
+centred box over a blurred page, e.g. a Diwali discount.
+
+- Upload a PNG, JPG or WebP (up to 3 MB; checked from the file's real contents, not its name), name it,
+  choose the **first and last day** (India time, both whole days), and optionally a `https://` link the
+  poster opens when clicked. Pause/resume without losing the dates, edit them, or delete (the file goes too).
+- The website asks `GET /public/website-ad` for the ad running today. If two overlap, the one that started
+  last wins. Scheduled, ended and paused ads are never returned, and their pictures are not served publicly.
+- On the website (`src/components/promo-popup.tsx` there) it appears after **20 seconds of the tab actually
+  being looked at**, and again when the visitor **returns to the tab** after switching away. It closes with
+  the cross, Esc, a click outside, or by itself after **8 seconds** (a thin bar counts down). It never nags:
+  at most 3 times per browser session and not twice within 30 seconds. All of these numbers are in
+  `src/lib/promo-ad.ts` on the website.
+- To check a new poster, open any page of the site with `?promo=test`: it shows straight away and does not
+  use up the allowance.
+- The website calls the CRM from another origin, so its address must be in `CORS_ORIGIN` (see `.env.example`),
+  and `VITE_CRM_API_URL` on the website points at the CRM in development (`.env.development`); in production,
+  with both behind one domain, the default `/crm/api` is used.
+
 ## Tests
 
 ```bash

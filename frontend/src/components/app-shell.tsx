@@ -8,6 +8,7 @@ import {
   Calendar,
   FileText,
   Gauge,
+  Globe,
   History,
   Handshake,
   LayoutDashboard,
@@ -35,6 +36,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
     items: [
       { to: "/", label: "Dashboard", icon: LayoutDashboard },
       { to: "/leads", label: "Leads", icon: Users },
+      { to: "/website", label: "Website", icon: Globe, roles: ["ADMIN", "MANAGER"] },
       { to: "/applications", label: "Applications", icon: FileText },
       { to: "/cibil", label: "CIBIL", icon: Gauge },
       { to: "/sanctions", label: "Sanctions", icon: ShieldCheck },
