@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
+import { History, Loader2, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
 
@@ -196,6 +196,12 @@ export function WebsiteContent() {
           {(error as Error).message}
         </p>
       )}
+
+      <HistoryPanel
+        section={section}
+        savedAt={row?.updatedAt}
+        onRestored={() => queryClient.invalidateQueries({ queryKey: ["site-content"] })}
+      />
 
       <Editor
         key={`${section}:${row?.updatedAt ?? "built-in"}`}
@@ -738,6 +744,83 @@ function PageTextEditor({ value, onChange }: { value: PageTextMap; onChange: (v:
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+type Version = { id: string; savedAt: string; savedByName: string | null; reset: boolean; size: number };
+
+/** Past saves of this section. Restoring one puts that wording back live (and is itself recorded). */
+function HistoryPanel({
+  section,
+  savedAt,
+  onRestored,
+}: {
+  section: string;
+  savedAt: string | undefined;
+  onRestored: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const history = useQuery({
+    queryKey: ["site-content-history", section, savedAt],
+    queryFn: () => api<Version[]>(`/settings/site-content/${section}/history`),
+    enabled: open,
+  });
+  const restore = useMutation({
+    mutationFn: (id: string) =>
+      api(`/settings/site-content/${section}/restore/${id}`, { method: "POST" }),
+    onSuccess: () => {
+      onRestored();
+      setOpen(false);
+    },
+  });
+  return (
+    <div className="mb-4">
+      <button onClick={() => setOpen(!open)} className="btn-ghost">
+        <History className="h-4 w-4" /> {open ? "Hide history" : "History / undo"}
+      </button>
+      {open && (
+        <div className="mt-2 max-h-64 overflow-y-auto rounded-lg border border-line">
+          {history.isPending ? (
+            <p className="p-3 text-[13px] text-muted">Loading…</p>
+          ) : (history.data ?? []).length === 0 ? (
+            <p className="p-3 text-[13px] text-muted">No saved changes yet.</p>
+          ) : (
+            <ul className="divide-y divide-line/70 text-[13px]">
+              {history.data!.map((v, i) => (
+                <li key={v.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                  <span>
+                    <span className="font-semibold text-navy">
+                      {new Date(v.savedAt).toLocaleString("en-IN")}
+                    </span>
+                    <span className="text-muted">
+                      {" "}
+                      · {v.savedByName ?? "Unknown"} · {v.reset ? "reset to built-in" : "saved"}
+                      {i === 0 ? " · current" : ""}
+                    </span>
+                  </span>
+                  {i > 0 && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm("Put this version back? It goes live straight away.")) {
+                          restore.mutate(v.id);
+                        }
+                      }}
+                      disabled={restore.isPending}
+                      className="text-[12px] font-semibold text-gold-dark hover:underline"
+                    >
+                      Restore
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {restore.isError && (
+            <p className="p-3 text-[13px] text-red-700">{(restore.error as Error).message}</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

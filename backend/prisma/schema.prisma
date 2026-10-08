@@ -941,3 +941,15 @@ model SiteContent {
   updatedAt     DateTime @updatedAt
   updatedByName String?
 }
+
+/** Every save or reset of a website content section, so a mistake can be undone. */
+model SiteContentVersion {
+  id        String   @id @default(cuid())
+  key       String
+  // The section as saved; null when the section was reset to the website's built-in copy.
+  value     Json?
+  savedAt   DateTime @default(now())
+  savedByName String?
+
+  @@index([key, savedAt])
+}
