@@ -61,6 +61,8 @@ type Content = {
   testimonials?: Testimonial[];
   trustNumbers?: Figures;
   customPages?: CustomPage[];
+  "pageText:hi"?: PageTextMap;
+  "pageText:mr"?: PageTextMap;
 };
 type PageTextMap = Record<string, Record<string, string>>;
 type ImageMap = Record<string, string>;
@@ -95,7 +97,7 @@ type CustomPage = {
   image?: string;
   published?: boolean;
 };
-type Section = "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type Section = "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
@@ -123,6 +125,16 @@ const SECTIONS: { id: Section; label: string; help: string }[] = [
     id: "bankRates",
     label: "Interest rates",
     help: "The table on the website's Interest Rates page, and the starting rate in the EMI calculator. Add a row per bank and loan type.",
+  },
+  {
+    id: "pageText:hi",
+    label: "Hindi",
+    help: "Hindi wording. On the website, sign in here as an admin, switch the language to हिं, press Edit text and click any wording to write it in Hindi. Visitors who choose Hindi then see it.",
+  },
+  {
+    id: "pageText:mr",
+    label: "Marathi",
+    help: "Marathi wording. On the website, switch the language to मरा, press Edit text and click any wording to write it in Marathi.",
   },
   {
     id: "images",
@@ -334,7 +346,7 @@ function Editor({ section, seoPages, initial, builtIn, busy, canReset, onSave, o
       )}
       {section === "bankRates" && <RatesEditor value={draft as BankRates} onChange={setDraft} />}
       {section === "images" && <ImagesEditor value={draft as ImageMap} onChange={setDraft} />}
-      {section === "pageText" && (
+      {(section === "pageText" || section === "pageText:hi" || section === "pageText:mr") && (
         <PageTextEditor value={draft as PageTextMap} onChange={setDraft} />
       )}
       {section === "siteInfo" && (
