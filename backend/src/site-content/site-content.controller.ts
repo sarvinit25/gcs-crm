@@ -7,7 +7,7 @@ import { CurrentUser, Public, Roles, type AuthUser } from "../auth/auth.decorato
 import { PrismaService } from "../prisma/prisma.service";
 
 /** The sections of website text staff can edit. Anything else is refused. */
-export const SITE_CONTENT_KEYS = ["faqs", "products", "caseStudies"] as const;
+export const SITE_CONTENT_KEYS = ["faqs", "products", "caseStudies", "services", "siteInfo"] as const;
 const MAX_BYTES = 400_000;
 
 class SaveContentDto {

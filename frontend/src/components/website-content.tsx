@@ -29,20 +29,50 @@ type CaseStudy = {
   outcome: string;
   visible: boolean;
 };
+type ServiceText = {
+  division?: string;
+  title: string;
+  summary: string;
+  whoNeedsIt: string;
+  process: string[];
+  documents: string[];
+};
+type SiteInfo = {
+  phone: string;
+  whatsapp: string;
+  email: string;
+  address: string;
+  hours: string;
+  reportPrice: number;
+  upiId: string;
+  upiName: string;
+};
 type Content = {
   faqs?: Record<string, Faq[]>;
   products?: Record<string, ProductText>;
   caseStudies?: CaseStudy[];
+  services?: Record<string, ServiceText>;
+  siteInfo?: SiteInfo;
 };
-type Section = "faqs" | "products" | "caseStudies";
+type Section = "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "siteInfo",
+    label: "Contact & CIBIL",
+    help: "Phone, WhatsApp, email, address and hours shown across the site, plus the credit report price and the UPI ID the payment QR uses.",
+  },
   { id: "faqs", label: "FAQs", help: "Questions and answers on the Contact, Partner and city pages." },
   {
     id: "products",
     label: "Loan product pages",
     help: "The description, features, eligibility and documents on each loan page.",
+  },
+  {
+    id: "services",
+    label: "CA & legal services",
+    help: "The summary, who needs it, process steps and documents on each CA and legal service page.",
   },
   {
     id: "caseStudies",
@@ -75,7 +105,7 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
  */
 export function WebsiteContent() {
   const queryClient = useQueryClient();
-  const [section, setSection] = useState<Section>("faqs");
+  const [section, setSection] = useState<Section>("siteInfo");
 
   const saved = useQuery({
     queryKey: ["site-content"],
@@ -198,6 +228,12 @@ function Editor({ section, initial, builtIn, busy, canReset, onSave, onReset }: 
 
   return (
     <div>
+      {section === "siteInfo" && (
+        <SiteInfoEditor value={draft as SiteInfo} onChange={setDraft} />
+      )}
+      {section === "services" && (
+        <ServiceEditor value={draft as Record<string, ServiceText>} onChange={setDraft} />
+      )}
       {section === "faqs" && (
         <FaqEditor value={draft as Record<string, Faq[]>} onChange={setDraft} />
       )}
@@ -562,6 +598,83 @@ function CaseStudyEditor({
           {text("outcome", "Outcome", 3)}
         </>
       )}
+    </div>
+  );
+}
+
+const INFO_FIELDS: { key: keyof SiteInfo; label: string; hint?: string }[] = [
+  { key: "phone", label: "Primary phone", hint: "As shown, e.g. +91 88280 01700" },
+  { key: "whatsapp", label: "WhatsApp number", hint: "Digits with country code, e.g. 918828001700" },
+  { key: "email", label: "Email" },
+  { key: "address", label: "Office address" },
+  { key: "hours", label: "Working hours", hint: "e.g. Monday to Saturday · 10:00 AM – 6:00 PM" },
+  { key: "reportPrice", label: "Credit report price (₹)", hint: "One flat price for every bureau" },
+  { key: "upiId", label: "UPI ID for the payment QR", hint: "e.g. growthcapital@okhdfcbank — leave empty until you have it" },
+  { key: "upiName", label: "Name shown on the UPI payment" },
+];
+
+function SiteInfoEditor({ value, onChange }: { value: SiteInfo; onChange: (v: unknown) => void }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {INFO_FIELDS.map((f) => (
+        <label key={f.key} className={f.key === "address" ? "block sm:col-span-2" : "block"}>
+          <span className="text-[11px] font-bold tracking-wide text-muted uppercase">{f.label}</span>
+          <input
+            value={String(value[f.key] ?? "")}
+            inputMode={f.key === "reportPrice" ? "numeric" : undefined}
+            onChange={(e) =>
+              onChange({
+                ...value,
+                [f.key]: f.key === "reportPrice" ? Number(e.target.value.replace(/\D/g, "")) : e.target.value,
+              })
+            }
+            className="field mt-1 w-full"
+          />
+          {f.hint && <span className="mt-0.5 block text-[11px] text-muted">{f.hint}</span>}
+        </label>
+      ))}
+      <p className="text-[12px] text-muted sm:col-span-2">
+        The extra phone numbers are set under Settings → Organisation → Additional phone numbers.
+      </p>
+    </div>
+  );
+}
+
+function ServiceEditor({
+  value,
+  onChange,
+}: {
+  value: Record<string, ServiceText>;
+  onChange: (v: unknown) => void;
+}) {
+  const slugs = Object.keys(value);
+  const [slug, setSlug] = useState(slugs[0] ?? "");
+  const p = value[slug];
+  if (!p) return <p className="text-sm text-muted">No services found.</p>;
+  const patch = (next: Partial<ServiceText>) => onChange({ ...value, [slug]: { ...p, ...next } });
+  return (
+    <div className="space-y-3">
+      <select value={slug} onChange={(e) => setSlug(e.target.value)} className="field max-w-md">
+        {slugs.map((s) => (
+          <option key={s} value={s}>
+            {value[s]?.title ?? s}
+          </option>
+        ))}
+      </select>
+      <label className="block">
+        <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Title</span>
+        <input value={p.title} onChange={(e) => patch({ title: e.target.value })} className="field mt-1 w-full" />
+      </label>
+      <label className="block">
+        <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Summary</span>
+        <textarea value={p.summary} onChange={(e) => patch({ summary: e.target.value })} rows={3} className="field mt-1 w-full" />
+      </label>
+      <label className="block">
+        <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Who needs it</span>
+        <textarea value={p.whoNeedsIt} onChange={(e) => patch({ whoNeedsIt: e.target.value })} rows={3} className="field mt-1 w-full" />
+      </label>
+      <LinesField label="Process steps" value={p.process} onChange={(process) => patch({ process })} />
+      <LinesField label="Documents" value={p.documents} onChange={(documents) => patch({ documents })} />
     </div>
   );
 }
