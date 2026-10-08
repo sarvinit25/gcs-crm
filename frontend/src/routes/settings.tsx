@@ -7,6 +7,7 @@ import clsx from "clsx";
 import { api } from "../lib/api";
 import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
+import { WebsiteContent } from "../components/website-content";
 import {
   CHECKLIST_APPLICANT_TYPE_LABEL,
   type ChecklistApplicantType,
@@ -826,6 +827,7 @@ export function SettingsPage() {
       checklist: "Document checklist",
       ratecards: "Commission rate cards",
       websitechecklists: "Website checklists",
+      websitecontent: "Website content",
     };
     if (named[hash]) setGroup(named[hash]);
     else if (hash.startsWith("lender-")) setGroup("Banks & NBFCs");
@@ -846,7 +848,7 @@ export function SettingsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["settings"] }),
   });
 
-  const masters = ["Banks & NBFCs", "Loan products", "Document checklist", "Website checklists", "Commission rate cards"];
+  const masters = ["Banks & NBFCs", "Loan products", "Document checklist", "Website checklists", "Website content", "Commission rate cards"];
   const preferences = [...(query.data?.groups ?? []), "Archive"];
   const inGroup = (query.data?.settings ?? []).filter((s) => s.group === group);
   const changed = (query.data?.settings ?? []).filter((s) => !s.isDefault).length;
@@ -900,6 +902,8 @@ export function SettingsPage() {
             <LoanProducts />
           ) : group === "Document checklist" ? (
             <ChecklistItems />
+          ) : group === "Website content" ? (
+            <WebsiteContent />
           ) : group === "Website checklists" ? (
             <WebsiteChecklists />
           ) : group === "Commission rate cards" ? (
@@ -929,6 +933,7 @@ export function SettingsPage() {
         {group !== "Loan products" &&
           group !== "Document checklist" &&
           group !== "Website checklists" &&
+          group !== "Website content" &&
           group !== "Commission rate cards" && (
           <p className="mt-3 text-[12px] text-muted">
             Settings marked PUBLIC are served to the website at

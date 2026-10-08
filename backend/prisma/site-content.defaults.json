@@ -1,0 +1,2231 @@
+{
+  "faqs": {
+    "contact": [
+      {
+        "q": "How long until I hear back?",
+        "a": "A senior advisor typically calls back within one business day, with an indicative offer following shortly after."
+      },
+      {
+        "q": "Are there any upfront charges?",
+        "a": "No advisory fee for customers — we're paid by the lender only on successful disbursal."
+      },
+      {
+        "q": "Can you help if my application was rejected elsewhere?",
+        "a": "Often, yes. We review why it was declined and place the file with a lender better suited to the profile."
+      },
+      {
+        "q": "Do you offer in-person consultations?",
+        "a": "Yes, by appointment at our Ghatkopar West office, Monday to Saturday."
+      }
+    ],
+    "partner": [
+      {
+        "q": "Who can become a referral partner?",
+        "a": "Anyone with a network — Chartered Accountants, property consultants, brokers, insurance advisors, business consultants, or simply someone whose contacts occasionally need a loan."
+      },
+      {
+        "q": "Is there a joining fee?",
+        "a": "No. There's no cost to register or refer — you only earn, you never pay."
+      },
+      {
+        "q": "How and when do I get paid?",
+        "a": "Your referral fee is calculated once the loan is disbursed and settled directly to your account — no invoicing required from you."
+      },
+      {
+        "q": "Do I need a license or certification to refer clients?",
+        "a": "No. As a referral partner, you introduce us to the client — our licensed advisors handle eligibility, documentation and lender matching."
+      },
+      {
+        "q": "Is there a limit on how many clients I can refer?",
+        "a": "None. There's no cap on referrals or earnings — refer as many clients as you like."
+      }
+    ],
+    "mumbai": [
+      {
+        "q": "Where exactly is your Mumbai office?",
+        "a": "CCTV Towers, Andheri-Ghatkopar Road, Ghatkopar West, Mumbai 400084 — a short walk from Ghatkopar station on both the suburban line and Metro Line 1."
+      },
+      {
+        "q": "Can I meet an advisor in person?",
+        "a": "Yes, by appointment, Monday to Saturday, 10 AM to 6 PM. Call ahead so the right advisor for your loan type is free."
+      },
+      {
+        "q": "Do you cover all of Mumbai, or just the western suburbs?",
+        "a": "All of it — South Mumbai, the western and eastern suburbs, Navi Mumbai and Thane are all within our regular service area."
+      }
+    ],
+    "thane": [
+      {
+        "q": "Do you have an office in Thane?",
+        "a": "Not a physical branch — our office is in Ghatkopar West, Mumbai. Thane clients are served digitally, with doorstep document pickup and an in-person option in Ghatkopar when needed."
+      },
+      {
+        "q": "Does that slow things down compared to a local DSA?",
+        "a": "Usually the opposite — no branch queue, and your advisor is reachable directly on phone or WhatsApp through the whole process."
+      },
+      {
+        "q": "Which lenders do you work with for Thane customers?",
+        "a": "The same 75+ Bank and NBFC network we use everywhere — lender fit depends on your profile and loan type, not your address."
+      }
+    ],
+    "navi-mumbai": [
+      {
+        "q": "Do you have an office in Navi Mumbai?",
+        "a": "Not a physical branch — our office is in Ghatkopar West, Mumbai. Navi Mumbai clients are served digitally, with doorstep document pickup and an in-person option in Ghatkopar when needed."
+      },
+      {
+        "q": "I'm a business owner in a MIDC/TTC industrial area — do you handle business loans here?",
+        "a": "Yes — GST-based and banking-based business loan programmes work the same way regardless of which part of Navi Mumbai you're in."
+      },
+      {
+        "q": "Can I get a Loan Against Property for a Navi Mumbai property?",
+        "a": "Yes, residential and commercial property in Navi Mumbai is accepted security, subject to the usual title and valuation checks."
+      }
+    ],
+    "pune": [
+      {
+        "q": "Do you have an office in Pune?",
+        "a": "Not yet — our office is in Ghatkopar West, Mumbai. Pune clients are served entirely digitally, with courier pickup for physical documents where needed."
+      },
+      {
+        "q": "Is the process any slower for Pune compared to Mumbai clients?",
+        "a": "No — sanction and disbursal timelines are set by the lender's process, not by distance from our office."
+      },
+      {
+        "q": "Do you work with Pune-based IT/MSME businesses for working capital?",
+        "a": "Yes — working capital, cash credit and overdraft programmes are available the same way as for our Mumbai clients, assessed on GST, banking and financials."
+      }
+    ]
+  },
+  "products": {
+    "home-loan": {
+      "title": "Home Loan",
+      "tagline": "The keys to your home, without the runaround.",
+      "about": "Whether it's a ready flat, an under-construction project, a self-build or a plot purchase, we shortlist the lender likely to sanction fastest for your profile — and push a stalled or declined file to someone better placed to say yes.",
+      "features": [
+        "Choice of floating or fixed-rate options",
+        "Pre-approved offers checked where your bank runs such a programme",
+        "Balance transfer with top-up if a better rate appears later",
+        "Home-loan-linked overdraft (offset account) to trim interest",
+        "Joint-applicant structuring for tax breaks under 80C and 24(b)"
+      ],
+      "eligibility": [
+        "Resident Indian, generally 21–65 (up to around 70 for self-employed) at loan maturity",
+        "Salaried with take-home income from about ₹25,000/month, or self-employed with 2–3 years of ITR",
+        "Cash salary accepted as income proof too, not just bank-credited salary",
+        "A CIBIL score near 700 gets the sharpest rate; lower scores are reviewed case by case, not auto-rejected"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Property papers (agreement, title chain, tax receipts)",
+        "Passport-size photographs of applicant and co-applicant"
+      ],
+      "facts": [
+        {
+          "label": "Interest rate",
+          "value": "From 7.10%* p.a."
+        },
+        {
+          "label": "Loan amount",
+          "value": "Up to ₹10 Cr"
+        },
+        {
+          "label": "Tenure",
+          "value": "Up to 30 years"
+        },
+        {
+          "label": "Minimum ticket size",
+          "value": "₹20 Lakh"
+        }
+      ]
+    },
+    "loan-against-property": {
+      "title": "Loan Against Property",
+      "tagline": "Your property's value, working for you.",
+      "about": "Borrow against a residential, commercial or industrial property you already own — for expansion, debt consolidation, a medical bill, or any need the bank doesn't need to approve of. You keep ownership and keep using the property throughout.",
+      "features": [
+        "Residential, commercial and industrial property accepted as security",
+        "Income-based, banking-based and GST-based assessment tracks",
+        "Top-up available on a mortgage you already hold",
+        "Term loan or a reducing overdraft, your call"
+      ],
+      "eligibility": [
+        "Property owner, generally 21–70 years of age when the loan matures",
+        "Clean and marketable title with the full ownership chain on record",
+        "Demonstrable repayment capacity via income, business banking or rental receipts — cash salary accepted too, not just bank-credited salary"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Property papers (agreement, title chain, tax receipts)",
+        "Passport-size photographs of applicant and co-applicant"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "Up to 100% of property value"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 7.50%* p.a."
+        },
+        {
+          "label": "Tenure",
+          "value": "Up to 20 years"
+        },
+        {
+          "label": "Minimum ticket size",
+          "value": "₹20 Lakh"
+        }
+      ]
+    },
+    "lease-rental-discounting": {
+      "title": "Lease Rental Discounting",
+      "tagline": "Rent today becomes capital today.",
+      "about": "Get a lump sum upfront against a registered lease on commercial or retail space. The tenant's rent services the EMI, so your own cash flow stays untouched.",
+      "features": [
+        "For registered commercial and retail leases",
+        "Sharper pricing when the tenant is a corporate or MNC covenant",
+        "Rent routed through an escrow arrangement",
+        "Refinance of an LRD loan you already have"
+      ],
+      "eligibility": [
+        "A registered lease with sufficient residual tenure to run",
+        "A dependable tenant with an uninterrupted rent-payment record",
+        "Property title held in the borrower's own name"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Registered lease deed and rent receipts",
+        "Property papers (agreement, title chain, tax receipts)"
+      ],
+      "facts": [
+        {
+          "label": "Interest rate",
+          "value": "From 7.50%* p.a."
+        },
+        {
+          "label": "Loan amount",
+          "value": "Up to 90% of future rentals"
+        },
+        {
+          "label": "Tenure",
+          "value": "Aligned to the lease, typically up to 15 years"
+        }
+      ]
+    },
+    "balance-transfer": {
+      "title": "Balance Transfer",
+      "tagline": "Same loan, smaller bill.",
+      "about": "We lay your current loan next to sharper offers from other lenders, in writing, before you decide — then run the switch end to end, adding a top-up if your profile qualifies.",
+      "features": [
+        "Better pricing available on home, LAP and business loans",
+        "Top-up sanctioned at mortgage-linked pricing, not personal-loan pricing",
+        "Trim the EMI or shorten the tenure — you choose which",
+        "We liaise with your existing lender on foreclosure and transfer"
+      ],
+      "eligibility": [
+        "A track record of on-time EMIs for at least the last 12 months",
+        "No recent bounces or delayed payments on the existing loan",
+        "Income documents and property papers ready for a fresh credit review"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Income proof (salary slips, ITR, bank statements)",
+        "Current loan statement, sanction letter and foreclosure letter",
+        "Property papers (agreement, title chain, tax receipts)"
+      ],
+      "facts": [
+        {
+          "label": "Use case",
+          "value": "Home / LAP / Business"
+        },
+        {
+          "label": "Benefit",
+          "value": "Lower rate + top-up"
+        },
+        {
+          "label": "Savings",
+          "value": "Shown in writing first"
+        }
+      ]
+    },
+    "dlod": {
+      "title": "Drop-Line Overdraft (Secured)",
+      "tagline": "A credit line that shrinks as you pay.",
+      "about": "A property-backed limit that steps down over the tenure, with interest charged only on what you actually draw — useful when your cash needs rise and fall through the year.",
+      "features": [
+        "Secured against a residential or commercial property",
+        "The sanctioned limit reduces on a monthly or quarterly schedule",
+        "Typically no prepayment penalty on the reducing portion",
+        "Suited to seasonal or uneven cash requirements"
+      ],
+      "eligibility": [
+        "Clear, marketable title in the applicant's name",
+        "At least two years of business or professional income",
+        "A steady banking track record over the preceding 12 months"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Business proof (GST returns, ITR with financials, 12-month banking)",
+        "Property papers (agreement, title chain, tax receipts)"
+      ],
+      "facts": [
+        {
+          "label": "Structure",
+          "value": "Secured drop-line overdraft"
+        },
+        {
+          "label": "LTV",
+          "value": "Up to 80% of property value"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 9.75%* p.a. on the drawn balance"
+        }
+      ]
+    },
+    "business-loan": {
+      "title": "Business Loan",
+      "tagline": "Fuel for your next big move.",
+      "about": "Quick, collateral-free funding for expansion, inventory, hiring or new equipment, assessed mainly off your GST filings and bank statements rather than a stack of audited financials — so it moves fast.",
+      "features": [
+        "No collateral or third-party guarantee needed",
+        "Assessed on GST returns, banking and financial statements",
+        "Multiple lenders run in parallel to find the best fit",
+        "Funds disbursed in as few as 5 working days"
+      ],
+      "eligibility": [
+        "At least 2 years of business vintage",
+        "Annual turnover of roughly ₹40 lakh or above",
+        "The last two years of ITR and GST returns filed on time"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Business proof (GST returns, ITR with financials, 12-month banking)",
+        "Proof of business ownership"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "Up to ₹5 Cr"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 14%* p.a."
+        },
+        {
+          "label": "Tenure",
+          "value": "12 — 60 months"
+        },
+        {
+          "label": "Collateral",
+          "value": "Not required"
+        },
+        {
+          "label": "Minimum ticket size",
+          "value": "₹2 Lakh"
+        }
+      ]
+    },
+    "cgtmse": {
+      "title": "CGTMSE Funding",
+      "tagline": "Government-backed funding, no collateral.",
+      "about": "Loans covered under the CGTMSE guarantee scheme, letting young MSMEs borrow meaningful amounts without pledging property or bringing in a guarantor.",
+      "features": [
+        "Structured as a term loan, a working capital limit, or a blend of both",
+        "No collateral and no third-party guarantor required",
+        "Guarantee fee (typically under 1.5% p.a. of the sanctioned amount) explained upfront",
+        "Open to manufacturing, trading and service enterprises"
+      ],
+      "eligibility": [
+        "Udyam-registered as a micro or small enterprise",
+        "At least 1 year of operating history",
+        "A workable business/project plan and a clean credit history"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Business proof (GST returns, ITR with financials, 12-month banking)",
+        "Udyam registration and project report"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "Up to ₹10 Cr"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 9%* p.a."
+        },
+        {
+          "label": "Security",
+          "value": "Government guarantee cover"
+        }
+      ]
+    },
+    "unsecured-term-loan": {
+      "title": "Unsecured Term Loan",
+      "tagline": "Fixed EMIs, zero security.",
+      "about": "A larger, fully-financials-based term loan for businesses with clean audited numbers — fixed tenure, fixed EMI, priced off your bank turnover and filings rather than a quick GST-only scorecard.",
+      "features": [
+        "Fixed EMI on a defined repayment schedule",
+        "Offers benchmarked across several lenders before you commit",
+        "Part-prepayment allowed once the initial lock-in ends",
+        "Top-up available after a clean repayment run"
+      ],
+      "eligibility": [
+        "At least 3 years in business with audited or CA-certified financials",
+        "Consistent bank credits through the preceding 12 months",
+        "A CIBIL score of 680 or higher for the business and its promoters"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Business proof (GST returns, ITR with financials, 12-month banking)"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "Up to ₹5 Cr"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 11.50%* p.a."
+        },
+        {
+          "label": "Tenure",
+          "value": "12 — 60 months"
+        },
+        {
+          "label": "Security",
+          "value": "None"
+        }
+      ]
+    },
+    "unsecured-dod": {
+      "title": "Unsecured DOD",
+      "tagline": "Standby cash, no EMI from day one.",
+      "about": "A collateral-free overdraft that tapers down over its tenure — draw when the business needs it, repay when it doesn't, and pay interest only on the running balance.",
+      "features": [
+        "Draw and repay as often as needed",
+        "Interest charged only on the amount outstanding",
+        "The limit steps down over the tenure",
+        "No property or asset pledge required"
+      ],
+      "eligibility": [
+        "At least 3 years of business operations",
+        "A healthy average balance across current accounts",
+        "No adverse remarks on existing credit facilities"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Business proof (GST returns, ITR with financials, 12-month banking)"
+      ],
+      "facts": [
+        {
+          "label": "Structure",
+          "value": "Unsecured drop-line overdraft"
+        },
+        {
+          "label": "Limit",
+          "value": "Up to ₹2 Cr"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 13.50%* p.a. on the drawn balance"
+        }
+      ]
+    },
+    "project-funding": {
+      "title": "Project Funding",
+      "tagline": "Finance that builds as you build.",
+      "about": "Construction and development funding sized to approvals, project cost and projected sales, released in stages as work progresses rather than as one upfront cheque.",
+      "features": [
+        "Residential, commercial and industrial developments",
+        "Combined land-and-construction funding where needed",
+        "Repayment structured through escrow and sales receivables",
+        "Legal, technical and valuation checks coordinated on your behalf"
+      ],
+      "eligibility": [
+        "Sanctioned building plans and clear, marketable land title",
+        "The developer's own contribution already committed to the project",
+        "A track record of completed projects is preferred, though not always mandatory"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Project report with cost and sales projections",
+        "Approvals, plans and land title documents"
+      ],
+      "facts": [
+        {
+          "label": "Funding",
+          "value": "Up to 75% of project cost"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 12%* p.a."
+        },
+        {
+          "label": "Use",
+          "value": "Construction & development"
+        },
+        {
+          "label": "Release",
+          "value": "Stage by stage"
+        }
+      ]
+    },
+    "working-capital": {
+      "title": "Working Capital",
+      "tagline": "Keep the wheels of business turning.",
+      "about": "Limits sized around your stock, receivables and payroll cycle — new, enhanced, or simply taken over from your current bank if the terms there have gone stale.",
+      "features": [
+        "Cash credit, overdraft and bill-discounting limits",
+        "Enhancement or takeover of a limit you already run",
+        "Stock and debtor statements prepared and filed for you",
+        "Consortium or multiple-banking arrangements structured where useful"
+      ],
+      "eligibility": [
+        "At least 3 years of business operations",
+        "Annual turnover of ₹2 Cr or above, with audited financial statements",
+        "A visible working-capital gap in the balance sheet"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Business proof (GST returns, ITR with financials, 12-month banking)",
+        "Audited financials and stock / debtor statements"
+      ],
+      "facts": [
+        {
+          "label": "Facility",
+          "value": "OD / CC / BD"
+        },
+        {
+          "label": "Limit",
+          "value": "Linked to turnover"
+        },
+        {
+          "label": "Renewal",
+          "value": "Annual"
+        }
+      ]
+    },
+    "cash-credit": {
+      "title": "Cash Credit",
+      "tagline": "Draw, repay, repeat — as business demands.",
+      "about": "A revolving limit against your stock and receivables — draw it down, sell through, repay, and draw again as your operating cycle repeats.",
+      "features": [
+        "Drawing power reassessed monthly against stock statements",
+        "Interest charged only on the utilised portion",
+        "Renewed annually, with headroom to scale as turnover grows",
+        "Works alongside term loans and other trade facilities"
+      ],
+      "eligibility": [
+        "A trading or manufacturing business with a regular stock cycle",
+        "Audited financials and GST filings in good order",
+        "Satisfactory conduct on existing current accounts"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Business proof (GST returns, ITR with financials, 12-month banking)",
+        "Stock and debtor ageing statements"
+      ],
+      "facts": [
+        {
+          "label": "Facility",
+          "value": "Revolving credit limit"
+        },
+        {
+          "label": "Limit",
+          "value": "Linked to stock & debtors"
+        },
+        {
+          "label": "Security",
+          "value": "Hypothecation of current assets"
+        }
+      ]
+    },
+    "overdraft-limit": {
+      "title": "Overdraft Limit",
+      "tagline": "A safety cushion on your current account.",
+      "about": "A pre-approved cushion on your current account that absorbs the short gap between paying suppliers and getting paid by customers.",
+      "features": [
+        "Available secured (property, FDs, securities) or unsecured",
+        "No EMI — just interest on the running balance each month",
+        "Live and usable as soon as it's sanctioned",
+        "Reviewed and renewed on an annual cycle"
+      ],
+      "eligibility": [
+        "An active current account with regular credits",
+        "Documented proof of business or professional income",
+        "A clean credit report with no ongoing defaults"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Business proof (GST returns, ITR with financials, 12-month banking)"
+      ],
+      "facts": [
+        {
+          "label": "Facility",
+          "value": "Account overdraft"
+        },
+        {
+          "label": "Interest",
+          "value": "Charged on usage only"
+        },
+        {
+          "label": "Security",
+          "value": "Secured or unsecured"
+        }
+      ]
+    },
+    "bank-guarantee": {
+      "title": "Bank Guarantee",
+      "tagline": "Win the contract with your bank behind you.",
+      "about": "Your bank's written commitment to the counterparty that you'll pay or perform — so you can bid for and sign contracts with confidence.",
+      "features": [
+        "Financial and performance guarantees",
+        "Bid bonds, EMDs, security deposits and advance-payment BGs",
+        "Commission and margin requirement negotiated on your behalf",
+        "Fast issuance and amendments when terms change"
+      ],
+      "eligibility": [
+        "An existing or freshly opened banking relationship",
+        "Margin money or suitable collateral to back the guarantee",
+        "Tender or contract documents supporting the request"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Business proof (GST returns, ITR with financials, 12-month banking)",
+        "Tender / contract copy and BG format"
+      ],
+      "facts": [
+        {
+          "label": "Type",
+          "value": "Financial / Performance"
+        },
+        {
+          "label": "Use",
+          "value": "Tenders, contracts, deposits"
+        },
+        {
+          "label": "Margin",
+          "value": "10% – 25% cash margin"
+        }
+      ]
+    },
+    "letter-of-credit": {
+      "title": "Letter of Credit",
+      "tagline": "Suppliers paid on time, your cash kept free.",
+      "about": "A bank-backed payment promise to your supplier — it usually gets you better credit terms without tying up your own working capital.",
+      "features": [
+        "Inland and import LCs",
+        "Sight or usance structures",
+        "Buyer's credit tie-ups arranged where available",
+        "Support with documentation and resolving discrepancies"
+      ],
+      "eligibility": [
+        "An established trading or manufacturing business",
+        "A sanctioned LC limit, or full cash margin in its absence",
+        "A supplier contract or proforma invoice on file"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Business proof (GST returns, ITR with financials, 12-month banking)",
+        "Proforma invoice and supplier agreement"
+      ],
+      "facts": [
+        {
+          "label": "Type",
+          "value": "Inland / Import LC"
+        },
+        {
+          "label": "Use",
+          "value": "Supplier & trade payments"
+        },
+        {
+          "label": "Usance",
+          "value": "Sight or up to 180 days"
+        }
+      ]
+    },
+    "working-capital-term-loan": {
+      "title": "Working Capital Term Loan",
+      "tagline": "Reset a stretched cash cycle.",
+      "about": "Converts an overdrawn or irregular working-capital account into a term loan with a repayment schedule your cash flow can actually sustain.",
+      "features": [
+        "Regularises stretched cash-credit or overdraft accounts",
+        "Consolidates several short-term dues into one facility",
+        "Moratorium period available with select lenders",
+        "Can run alongside a freshly sanctioned working-capital limit"
+      ],
+      "eligibility": [
+        "A viable business with an identifiable working-capital gap",
+        "Two years of audited financial statements",
+        "Promoter contribution where the lender asks for one"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Business proof (GST returns, ITR with financials, 12-month banking)",
+        "Audited financials and existing sanction letters"
+      ],
+      "facts": [
+        {
+          "label": "Structure",
+          "value": "Term loan on WC gap"
+        },
+        {
+          "label": "Tenure",
+          "value": "12 — 60 months"
+        },
+        {
+          "label": "Use",
+          "value": "Cycle reset & consolidation"
+        }
+      ]
+    },
+    "personal-loan": {
+      "title": "Personal Loan",
+      "tagline": "Money for life's plans, minus the paperwork.",
+      "about": "Collateral-free funds for a wedding, medical bill, travel or clearing costlier debt — sized so the EMI actually fits your monthly budget, not just your eligibility limit.",
+      "features": [
+        "No security or guarantor needed",
+        "Minimal paperwork, handled fully online",
+        "Refinance to a lower rate later if one becomes available",
+        "Open to both salaried and self-employed applicants"
+      ],
+      "eligibility": [
+        "Between roughly 21 and 60 years of age",
+        "Salaried take-home from about ₹25,000/month, or 2 years of ITR if self-employed",
+        "A CIBIL score of 700+ for the best rate; scores from the mid-600s may still qualify at a higher rate"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Income proof (salary slips, ITR, bank statements)"
+      ],
+      "facts": [
+        {
+          "label": "Interest rate",
+          "value": "From 10.49%* p.a."
+        },
+        {
+          "label": "Loan amount",
+          "value": "Up to ₹1 Cr"
+        },
+        {
+          "label": "Tenure",
+          "value": "12 — 60 months"
+        },
+        {
+          "label": "Disbursal",
+          "value": "As fast as 48 hours"
+        },
+        {
+          "label": "Minimum ticket size",
+          "value": "₹2 Lakh"
+        }
+      ]
+    },
+    "loan-against-securities": {
+      "title": "Loan Against Securities",
+      "tagline": "Borrow on your portfolio, stay invested.",
+      "about": "Pledge shares, bonds or insurance policies for an overdraft line instead of selling them — your holdings stay invested and keep compounding while the limit sits in reserve.",
+      "features": [
+        "Shares, bonds, insurance policies and debt instruments accepted",
+        "The limit moves with the value of the pledged portfolio",
+        "No EMI — interest applies only to what's drawn",
+        "Same-day setup on lender-approved securities"
+      ],
+      "eligibility": [
+        "Approved securities held in the applicant's own name",
+        "A demat account with a recognised depository",
+        "Resident Indian, 21 years or older"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Demat holding statement",
+        "Portfolio / policy documents"
+      ],
+      "facts": [
+        {
+          "label": "LTV",
+          "value": "Up to 80% on debt instruments, 50% on listed shares"
+        },
+        {
+          "label": "Structure",
+          "value": "Overdraft limit"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 9.75%* p.a."
+        }
+      ]
+    },
+    "loan-against-mutual-funds": {
+      "title": "Loan Against Mutual Funds",
+      "tagline": "Borrow against your units, without redeeming them.",
+      "about": "A lien gets marked on your mutual fund units through the RTA (CAMS or KFintech) — your SIPs and investments carry on undisturbed while you draw against the units as an overdraft.",
+      "features": [
+        "Equity, debt and hybrid schemes accepted as collateral",
+        "Units remain invested and keep earning returns",
+        "No EMI — interest applies only to the amount drawn",
+        "Digital lien marking, usually completed the same day"
+      ],
+      "eligibility": [
+        "Mutual fund units held in the applicant's own name",
+        "Scheme falls on the lender's approved AMC/fund list",
+        "Resident Indian, 18 years or older"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Mutual fund statement / CAS",
+        "Folio details"
+      ],
+      "facts": [
+        {
+          "label": "LTV",
+          "value": "Up to 85% on debt funds, 75% on equity funds"
+        },
+        {
+          "label": "Structure",
+          "value": "Overdraft limit"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 9.99%* p.a."
+        }
+      ]
+    },
+    "professional-loan": {
+      "title": "Professional Loan",
+      "tagline": "Built for doctors, CAs and other qualified professionals.",
+      "about": "An unsecured facility built specifically for doctors, CAs, architects and other registered professionals — for setting up or expanding a practice, buying equipment, or covering working capital — typically priced better than a plain personal loan on the strength of the qualification.",
+      "features": [
+        "Preferential pricing tied to your professional registration",
+        "No collateral for most ticket sizes",
+        "Usable for practice setup, equipment purchase or working capital",
+        "Faster turnaround with lighter documentation than a business loan"
+      ],
+      "eligibility": [
+        "A recognised professional qualification or registration (MBBS, CA, CS, architecture, engineering, etc.)",
+        "A minimum number of years in active practice, as set by the lender",
+        "A credit score in the low-to-mid 700s is typical for the better rate slabs"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Income proof (salary slips, ITR, bank statements)",
+        "Professional registration / degree certificate"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "Up to ₹75 lakh"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 10.99%* p.a."
+        },
+        {
+          "label": "Tenure",
+          "value": "12 — 84 months"
+        },
+        {
+          "label": "Collateral",
+          "value": "Usually unsecured"
+        }
+      ]
+    },
+    "education-loan": {
+      "title": "Education Loan",
+      "tagline": "Invest in the degree, not the worry.",
+      "about": "Funding for study in India or abroad — tuition, living costs, travel and equipment. Collateral-backed loans get the lowest rates; unsecured loans for study abroad are priced higher but move faster.",
+      "features": [
+        "Available with or without collateral, depending on the amount",
+        "No EMIs during the course, plus a moratorium/grace period after",
+        "Interest is tax-deductible in full under Section 80E, with no upper cap",
+        "Support with university and visa-related documentation"
+      ],
+      "eligibility": [
+        "Confirmed admission to a recognised institution in India or abroad",
+        "An earning co-applicant based in India",
+        "Collateral typically expected once the loan crosses the unsecured threshold, especially for overseas study"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Admission letter and fee structure",
+        "Co-applicant income proof",
+        "Academic records"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "Up to ₹1.5 Cr"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 8.15%* p.a."
+        },
+        {
+          "label": "Tenure",
+          "value": "Up to 15 years"
+        },
+        {
+          "label": "Benefit",
+          "value": "Section 80E deduction"
+        },
+        {
+          "label": "Minimum ticket size",
+          "value": "₹8 Lakh"
+        }
+      ]
+    },
+    "new-car-loan": {
+      "title": "New Car Loan",
+      "tagline": "From showroom to driveway, fully funded.",
+      "about": "On-road financing for new cars, with the dealer paperwork — invoice, insurance, RTO — handled from quotation through to delivery.",
+      "features": [
+        "Funding up to 100% of the on-road price for eligible profiles",
+        "Dealer and insurance coordination handled on your behalf",
+        "Sharper pricing for salaried applicants with a stable employer",
+        "Fast sanction on light documentation"
+      ],
+      "eligibility": [
+        "Typically 21–65 years old, with a regular, documented income",
+        "At least 1 year in the current job or business",
+        "A CIBIL score of 650+ is usually enough; 750+ unlocks the sharpest rates"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Income proof (salary slips, ITR, bank statements)",
+        "Dealer's vehicle quotation"
+      ],
+      "facts": [
+        {
+          "label": "Funding",
+          "value": "Up to 100% on-road"
+        },
+        {
+          "label": "Tenure",
+          "value": "12 — 84 months"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 8.75%* p.a."
+        }
+      ]
+    },
+    "used-car-loan": {
+      "title": "Used Car Loan",
+      "tagline": "A great pre-owned car, sensibly financed.",
+      "about": "Financing for a second-hand car bought from a dealer or a private seller, with an independent valuation arranged so both sides know the car is fairly priced.",
+      "features": [
+        "Dealer or private-seller purchases both financed",
+        "Independent valuation arranged by the lender",
+        "RC transfer and hypothecation endorsement handled",
+        "Rate reflects the car's age, condition and valuation"
+      ],
+      "eligibility": [
+        "Around 21–65 years old, with income that can be documented",
+        "The car falls within the lender's maximum age limit",
+        "A clean RC, with no lapses in the insurance history"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Income proof (salary slips, ITR, bank statements)",
+        "RC copy, insurance and valuation report"
+      ],
+      "facts": [
+        {
+          "label": "Funding",
+          "value": "Up to 90% of valuation"
+        },
+        {
+          "label": "Vehicle age",
+          "value": "Up to 8 years at loan end"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 10.25%* p.a."
+        },
+        {
+          "label": "Tenure",
+          "value": "12 — 60 months"
+        }
+      ]
+    },
+    "car-refinance": {
+      "title": "Car Refinance",
+      "tagline": "Your car can fund your next plan.",
+      "about": "Raise cash against a car you already own free and clear — strong income profiles can sometimes borrow above the car's current valuation — and keep driving it while you repay.",
+      "features": [
+        "Financing on a car with no existing loan against it",
+        "Top-up above valuation available to well-qualified applicants",
+        "Takeover of an existing car loan also possible",
+        "Fast processing on minimal paperwork"
+      ],
+      "eligibility": [
+        "Car registered in the applicant's own name",
+        "No existing loan on the car, or one that can be taken over cleanly",
+        "Documented income and a credit report free of active defaults"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Income proof (salary slips, ITR, bank statements)",
+        "RC, insurance and any current loan statement"
+      ],
+      "facts": [
+        {
+          "label": "Funding",
+          "value": "Up to 150% of valuation for strong profiles"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 12.50%* p.a."
+        },
+        {
+          "label": "Use",
+          "value": "Any personal or business need"
+        },
+        {
+          "label": "Tenure",
+          "value": "12 — 60 months"
+        }
+      ]
+    },
+    "private-funding": {
+      "title": "Private Funding",
+      "tagline": "Fast money when the clock is ticking.",
+      "about": "Short-term, unsecured funds from vetted private lenders for self-employed profiles that need cash fast — every rate and repayment term set out in writing before you commit, since private credit is priced well above bank rates.",
+      "features": [
+        "Full funding amount — whatever your eligible business requirement calls for",
+        "Fast turnaround — funding arranged within 24–48 hours",
+        "Rate and terms evaluated on your business profile, turnover and profitability",
+        "Structured without collateral, subject to the case and profile",
+        "Flexible EMI/repayment terms, discussed and structured to your need",
+        "Interest is never cut upfront — you receive the full agreed funding amount",
+        "Processing fee and documentation charges as per the applicable structure"
+      ],
+      "eligibility": [],
+      "documents": [],
+      "facts": [
+        {
+          "label": "Security",
+          "value": "No property required"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From ~2.70% per month"
+        },
+        {
+          "label": "Turnaround",
+          "value": "24 – 48 hours"
+        },
+        {
+          "label": "Repayment",
+          "value": "EMI charged twice a month"
+        },
+        {
+          "label": "Eligibility",
+          "value": "Self-employed, turnover up to ₹30 Cr"
+        }
+      ]
+    }
+  },
+  "caseStudies": [
+    {
+      "slug": "home-loan-non-conventional-income",
+      "group": "Home & Property",
+      "category": "Home Loan · Non-Conventional Income",
+      "headline": "₹2.4 crore sanctioned — no salary slip, no problem",
+      "amountLabel": "₹2.4 Crore",
+      "productSlug": "home-loan",
+      "productLabel": "Home Loan",
+      "clientProfile": "A self-employed architect running an established design practice in Thane, with strong monthly billings but no salary slip and income that varies year to year.",
+      "challenge": "Two banks rejected the application at the initial screening stage, citing \"income not verifiable\" — a common outcome for self-employed applicants whose income doesn't fit a standard salaried-income template.",
+      "structuring": "GCS reviewed 18 months of banking activity and client-billing records alongside the applicant's ITRs, and matched the profile with a lender whose underwriting norms specifically accommodate self-employed and professional income assessed on banking turnover rather than salary slips.",
+      "outcome": "₹2.4 crore home loan sanctioned by the matched lender, against the client's target property in Thane.",
+      "visible": true
+    },
+    {
+      "slug": "lap-balance-transfer-business-expansion",
+      "group": "Home & Property",
+      "category": "Loan Against Property · Balance Transfer + Top-Up",
+      "headline": "₹2.6 crore unlocked — one property, a lower rate, fresh capital to expand",
+      "amountLabel": "₹2.6 Crore",
+      "productSlug": "loan-against-property",
+      "productLabel": "Loan Against Property",
+      "clientProfile": "A growing trading business owner in Mumbai carrying an existing Loan Against Property from another lender at a rate that had crept up over three years, wanting extra funds to expand inventory.",
+      "challenge": "The client's existing lender had no incentive to reduce the rate on a running facility, and a fresh application elsewhere would have meant re-starting the entire property and income verification process from scratch.",
+      "structuring": "GCS reviewed the existing loan's outstanding principal, tenure and current rate, and identified a lender offering a materially better rate for a balance transfer plus an additional top-up sized to the client's business requirement — combining both into a single new facility.",
+      "outcome": "₹2.6 crore facility approved (existing ₹1.8 crore transferred + ₹80 lakh fresh top-up), with a lower monthly EMI than the client's original loan despite the additional funds.",
+      "visible": true
+    },
+    {
+      "slug": "home-loan-review-savings",
+      "group": "Home & Property",
+      "category": "Home Loan Balance Transfer · Existing Customer Loan Review",
+      "headline": "₹4,200 shaved off every EMI — one question nobody had asked in 5 years",
+      "amountLabel": "₹4,200/mo saved",
+      "productSlug": "balance-transfer",
+      "productLabel": "Balance Transfer",
+      "clientProfile": "A salaried couple in Mumbai, five years into a home loan taken with their salary-account bank at the time, who had never checked whether a better rate was available elsewhere.",
+      "challenge": "The couple weren't aware their current rate had fallen behind what new-to-bank customers were being offered elsewhere for a similar profile — a common blind spot, since most borrowers only revisit a home loan when something goes wrong.",
+      "structuring": "GCS ran a loan review — outstanding principal, remaining tenure, current rate and applicable transfer costs — and compared this against balance-transfer offers from lenders in its network for the client's current profile.",
+      "outcome": "Loan transferred to a new lender at a lower rate, reducing the monthly EMI by roughly ₹4,200 for the remaining tenure, with no change to the loan amount or the property.",
+      "visible": true
+    },
+    {
+      "slug": "cgtmse-collateral-free-msme",
+      "group": "Business & Cash Flow",
+      "category": "CGTMSE Funding · Collateral-Free Business Loan",
+      "headline": "₹62 lakh funded — zero collateral, one government guarantee",
+      "amountLabel": "₹62 Lakh",
+      "productSlug": "cgtmse",
+      "productLabel": "CGTMSE Funding",
+      "clientProfile": "A growing manufacturing unit in Navi Mumbai, two years into operations, with consistent GST filings and healthy banking turnover, but no owned commercial or residential property to offer as collateral.",
+      "challenge": "Most business-loan lenders wanted collateral given the business's short operating history, effectively ruling out standard secured business loan routes for the funding the business needed.",
+      "structuring": "GCS structured the application under the CGTMSE (Credit Guarantee Fund Trust for Micro and Small Enterprises) route, where a government-backed guarantee substitutes for physical collateral, and matched the client with a lender empanelled for CGTMSE-backed lending.",
+      "outcome": "₹62 lakh collateral-free business loan sanctioned under the CGTMSE scheme.",
+      "visible": true
+    },
+    {
+      "slug": "business-loan-banking-strength",
+      "group": "Business & Cash Flow",
+      "category": "Business Loan · Banking-Strength Underwriting",
+      "headline": "₹55 lakh sanctioned — on banking strength, not the ITR",
+      "amountLabel": "₹55 Lakh",
+      "productSlug": "business-loan",
+      "productLabel": "Business Loan",
+      "clientProfile": "An established trading firm in Mumbai, three years in business, with strong monthly banking credits but an ITR that understated real turnover — common for cash-heavy trading businesses.",
+      "challenge": "Standard business-loan underwriting leans heavily on ITR-declared income, and an ITR-only assessment would have supported a much smaller loan than the business could actually service.",
+      "structuring": "GCS built the case around 12 months of banking turnover and GST filings rather than ITR alone, and matched the profile with a lender whose credit policy weighs banking strength for trading businesses.",
+      "outcome": "₹55 lakh unsecured business loan sanctioned — nearly double what an ITR-only assessment would have supported.",
+      "visible": true
+    },
+    {
+      "slug": "working-capital-seasonal-bridge",
+      "group": "Business & Cash Flow",
+      "category": "Working Capital · Seasonal Cash-Flow Bridge",
+      "headline": "₹68 lakh working capital — released before the order was lost",
+      "amountLabel": "₹68 Lakh",
+      "productSlug": "working-capital",
+      "productLabel": "Working Capital",
+      "clientProfile": "A garment exporter in Navi Mumbai with a strong seasonal order book, but cash tied up in receivables right when a large new order needed raw-material payment upfront.",
+      "challenge": "The business's own cash was locked in 60-90 day receivables, and the new order's supplier wanted advance payment — a timing mismatch that had nothing to do with the business's underlying health.",
+      "structuring": "GCS structured a cash credit facility sized to the business's stock and receivables cycle, rather than a fixed-term loan that wouldn't flex with the seasonal pattern.",
+      "outcome": "₹68 lakh working capital limit sanctioned, drawn against as needed rather than disbursed as a lump sum.",
+      "visible": true
+    },
+    {
+      "slug": "personal-loan-fast-turnaround",
+      "group": "Personal Goals",
+      "category": "Personal Loan · Fast Turnaround",
+      "headline": "₹24 lakh, disbursed in days — when a medical bill couldn't wait",
+      "amountLabel": "₹24 Lakh",
+      "productSlug": "personal-loan",
+      "productLabel": "Personal Loan",
+      "clientProfile": "A senior salaried IT professional in Pune with a clean credit history, strong take-home pay and stable employment, needing funds quickly for a major family medical emergency.",
+      "challenge": "Time was the constraint, not eligibility — the client needed funds within days, and going lender-by-lender to compare processing timelines would have cost valuable time.",
+      "structuring": "Given the client's clean profile, GCS routed the application directly to a lender known for minimal documentation and fast turnaround for salaried applicants with strong credit scores.",
+      "outcome": "₹24 lakh personal loan sanctioned and disbursed within a few working days of application.",
+      "visible": true
+    },
+    {
+      "slug": "education-loan-co-applicant",
+      "group": "Personal Goals",
+      "category": "Education Loan · Co-Applicant Structuring",
+      "headline": "₹22 lakh for a degree abroad — one lender said no, structuring said yes",
+      "amountLabel": "₹22 Lakh",
+      "productSlug": "education-loan",
+      "productLabel": "Education Loan",
+      "clientProfile": "A student from Pune admitted to a postgraduate professional course abroad, whose parents' individual income wasn't, on its own, sufficient to meet a single lender's income criteria for the full loan amount.",
+      "challenge": "The family's instinct was to apply with just one parent as co-applicant against their salary alone, which fell short of what most lenders wanted to see for a loan of this size.",
+      "structuring": "GCS reviewed the combined household income and identified a lender willing to consider both parents as joint co-applicants, alongside the standard admission and cost documentation for the course.",
+      "outcome": "₹22 lakh education loan sanctioned, covering tuition and living costs for the course.",
+      "visible": true
+    },
+    {
+      "slug": "new-car-loan-zero-down",
+      "group": "Personal Goals",
+      "category": "New Car Loan · 100% On-Road Funding",
+      "headline": "100% on-road funding — a first car, zero down payment",
+      "amountLabel": "100% On-Road",
+      "productSlug": "new-car-loan",
+      "productLabel": "New Car Loan",
+      "clientProfile": "A first-time car buyer in Pune, two years into a salaried role, wanting to avoid a large down payment on a new hatchback.",
+      "challenge": "Most lenders cap funding at 85-90% of the on-road price for a first-time borrower with limited credit history, leaving a down payment gap the client hadn't budgeted for.",
+      "structuring": "GCS matched the client with a lender offering on-road funding — covering registration and insurance, not just the ex-showroom price — for well-qualified salaried applicants.",
+      "outcome": "100% on-road funding approved, with no down payment required at delivery.",
+      "visible": true
+    }
+  ],
+  "services": {
+    "income-tax-return-filing": {
+      "division": "CA Services",
+      "title": "Income Tax Return Filing",
+      "summary": "ITR filing support for salaried individuals, professionals, business owners and firms, matched to the correct ITR form for your income type. We handle everything from Form 16 reconciliation to e-filing and the acknowledgement receipt.",
+      "whoNeedsIt": "Anyone with taxable income who needs to file a return — salaried, self-employed or a firm. Also useful if you've missed a filing deadline in a prior year and need to catch up correctly.",
+      "process": [
+        "Share your income sources and documents for review",
+        "Correct ITR form identified and return prepared",
+        "Return shared with you for confirmation before filing",
+        "Filed and acknowledgement shared with you"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Form 16 or income proof",
+        "Bank statements",
+        "Investment/deduction proofs, if applicable"
+      ]
+    },
+    "tax-planning-advisory": {
+      "division": "CA Services",
+      "title": "Tax Planning & Advisory",
+      "summary": "Guidance on deductions, exemptions, advance tax and tax-efficient structuring based on your income profile. We look at your full financial picture, not just the current year's filing, before recommending a plan.",
+      "whoNeedsIt": "Individuals and businesses wanting to plan ahead rather than react at filing time. Particularly useful if your income has changed recently — a new job, a bonus, a property sale, or a new business.",
+      "process": [
+        "Review of current income, investments and tax position",
+        "Applicable deductions and structuring options discussed",
+        "A practical plan for the year, including advance-tax dates where relevant"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Latest ITR or income details",
+        "Existing investment/insurance summary"
+      ]
+    },
+    "tds-return-filing": {
+      "division": "CA Services",
+      "title": "TDS Return Filing",
+      "summary": "TDS compliance and quarterly return filing for salary, commission, rent, professional fees and other applicable payments. We reconcile challans against deductions before filing, so mismatches don't surface later as notices.",
+      "whoNeedsIt": "Businesses and individuals required to deduct and report TDS on payments they make. Also useful if you've received a TDS mismatch notice and need help correcting a prior filing.",
+      "process": [
+        "Deduction details for the quarter collected and reviewed",
+        "Return prepared and challans reconciled",
+        "Filed within the applicable due date, with Form 16/16A support"
+      ],
+      "documents": [
+        "TAN details",
+        "Deduction and payment records for the quarter",
+        "Challan details"
+      ]
+    },
+    "tds-property-sale-26qb": {
+      "division": "CA Services",
+      "title": "TDS on Property Sale — Form 26QB",
+      "summary": "Assistance with the applicable TDS compliance when buying a property above the notified threshold, including Form 26QB filing. We also help generate Form 16B for the seller once the deposit is confirmed.",
+      "whoNeedsIt": "Buyers and sellers in a property transaction where TDS on the sale consideration applies. This typically comes up on transactions above ₹50 lakh, where the buyer must deduct and deposit TDS before registration.",
+      "process": [
+        "Transaction details and applicability reviewed",
+        "Form 26QB prepared and TDS deposited",
+        "Form 16B generated for the seller"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Sale agreement",
+        "PAN of buyer and seller"
+      ]
+    },
+    "gst-registration": {
+      "division": "CA Services",
+      "title": "GST Registration",
+      "summary": "New GST registration support, including document preparation and application follow-up. We track the application through the portal until the GSTIN is issued, resolving any department queries along the way.",
+      "whoNeedsIt": "Businesses crossing the GST threshold, or those who need GST registration voluntarily. Also relevant if you're expanding into e-commerce or inter-state supply, where registration is mandatory regardless of turnover.",
+      "process": [
+        "Business details and documents reviewed for eligibility",
+        "Application prepared and submitted on the GST portal",
+        "Follow-up on queries until registration is granted"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Business proof (registration certificate, partnership deed, etc.)",
+        "Business address proof",
+        "Bank account details"
+      ]
+    },
+    "gst-return-filing": {
+      "division": "CA Services",
+      "title": "GST Return Filing & Compliance",
+      "summary": "Monthly/quarterly GSTR-1 and GSTR-3B filing along with ongoing GST compliance support. We reconcile sales and purchase data each cycle so your returns match your books and your GSTR-2B.",
+      "whoNeedsIt": "GST-registered businesses that need regular, on-time return filing. Suited to businesses that would rather hand off the monthly compliance grind than track due dates themselves.",
+      "process": [
+        "Sales and purchase data collected for the period",
+        "Returns prepared and shared for review",
+        "Filed within the due date each cycle"
+      ],
+      "documents": [
+        "Sales and purchase registers",
+        "GST login credentials",
+        "Bank statements, if required for reconciliation"
+      ]
+    },
+    "gst-reconciliation-notice-support": {
+      "division": "CA Services",
+      "title": "GST Reconciliation & Notice Support",
+      "summary": "GSTR-2B/books reconciliation and professional assistance in responding to applicable GST notices. We identify exactly where the mismatch originates before drafting any response to the department.",
+      "whoNeedsIt": "Businesses with mismatches between books and GST returns, or who've received a GST notice. Also useful ahead of an annual return or audit, to clear up discrepancies before they get flagged.",
+      "process": [
+        "Books and GST returns reconciled to identify gaps",
+        "Root cause reviewed and corrective filing planned",
+        "Notice, if any, reviewed and a response prepared"
+      ],
+      "documents": [
+        "GST returns filed to date",
+        "Books of accounts",
+        "Copy of notice, if applicable"
+      ]
+    },
+    "accounting-bookkeeping": {
+      "division": "CA Services",
+      "title": "Accounting & Bookkeeping",
+      "summary": "Monthly bookkeeping, ledger maintenance, bank reconciliation and financial statement preparation. Your books stay current through the year, so tax filing and audit season don't turn into a scramble.",
+      "whoNeedsIt": "Businesses and professionals who want their books maintained on an ongoing basis. A good fit if you currently rely on scattered spreadsheets or an in-house team stretched too thin to keep up.",
+      "process": [
+        "Transaction data and bank statements shared each month",
+        "Books updated and reconciled",
+        "Financial statements shared periodically"
+      ],
+      "documents": [
+        "Bank statements",
+        "Sales/purchase invoices",
+        "Expense records"
+      ]
+    },
+    "tax-audit-support": {
+      "division": "CA Services",
+      "title": "Tax Audit Support",
+      "summary": "Support for tax audit and GST-related audit/compliance requirements, for taxpayers to whom audit applies. We work through the applicable checklist and reconcile records well before the filing deadline.",
+      "whoNeedsIt": "Businesses and professionals whose turnover or profile brings them under applicable audit requirements. Also useful if this is your first year crossing the audit threshold and you're unsure what's expected.",
+      "process": [
+        "Applicability of audit reviewed against your turnover/profile",
+        "Books and records reviewed and reconciled",
+        "Audit report prepared and filed within the due date"
+      ],
+      "documents": [
+        "Books of accounts",
+        "Bank statements",
+        "Prior year's audit report, if applicable"
+      ]
+    },
+    "company-llp-registration": {
+      "division": "CA Services",
+      "title": "Company & LLP Registration",
+      "summary": "Incorporation support for Private Limited Companies and LLPs, including the applicable MCA documentation. We coordinate the DSC, DIN, name approval and incorporation filing as one continuous process.",
+      "whoNeedsIt": "Founders setting up a new company or LLP, or converting from a proprietorship/partnership. Also relevant if you're bringing in a co-founder or investor and need a formal corporate structure in place.",
+      "process": [
+        "Structure, name and documentation requirements discussed",
+        "DSC, DIN and incorporation forms prepared and filed with MCA",
+        "Certificate of Incorporation, PAN and TAN obtained"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Registered office proof",
+        "Passport-size photographs",
+        "Digital Signature Certificate (DSC)"
+      ]
+    },
+    "msme-udyam-registration": {
+      "division": "CA Services",
+      "title": "MSME / Udyam Registration",
+      "summary": "Udyam registration assistance for eligible micro, small and medium enterprises. Getting registered typically unlocks priority-sector lending, government tenders and other MSME-specific benefits.",
+      "whoNeedsIt": "Proprietorships, partnerships and companies eligible for MSME classification. Especially useful before applying for a business loan, since several lenders ask for Udyam registration upfront.",
+      "process": [
+        "Business and investment/turnover details reviewed",
+        "Udyam application filed against your PAN",
+        "Udyam certificate shared once generated"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Business PAN",
+        "Bank account and GST details, if applicable"
+      ]
+    },
+    "shop-act-fssai-registration": {
+      "division": "CA Services",
+      "title": "Shop Act (Gumasta) & FSSAI Registration",
+      "summary": "Maharashtra Shop & Establishment (Gumasta) registration, and FSSAI registration/licensing for eligible food businesses. We identify which registration actually applies to your setup before filing anything.",
+      "whoNeedsIt": "Businesses operating a physical establishment in Maharashtra, or those dealing in food products. Also relevant when opening a new outlet, since Gumasta registration is typically required per location.",
+      "process": [
+        "Applicable registration(s) identified for your business",
+        "Application prepared with the required premises/business documents",
+        "Registration/licence obtained and shared with you"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Premises proof (rent agreement/ownership document)",
+        "Business constitution proof"
+      ]
+    },
+    "pan-tan-dsc-services": {
+      "division": "CA Services",
+      "title": "PAN, TAN & DSC Services",
+      "summary": "Application assistance for PAN, TAN and Digital Signature Certificates for individuals and businesses. We also help with corrections — a misspelled name or an outdated address — on an existing PAN.",
+      "whoNeedsIt": "New businesses, or anyone needing a fresh PAN/TAN/DSC or a correction to an existing one. A DSC in particular is usually a prerequisite before any MCA or GST filing can be submitted.",
+      "process": [
+        "Requirement and applicant details confirmed",
+        "Application prepared and submitted with supporting documents",
+        "PAN/TAN/DSC shared with you once issued"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Business registration proof, for TAN/DSC in a company or firm's name"
+      ]
+    },
+    "property-title-verification": {
+      "division": "Sheetal Associates",
+      "title": "Property Title Verification & Due Diligence",
+      "summary": "Review of ownership documents, title chain, encumbrances and approvals before a property purchase. We flag anything that could complicate the sale — a pending litigation, an unclear share, or a missing approval — before you commit funds.",
+      "whoNeedsIt": "Buyers wanting a professional check on a property's title and documentation before committing. Especially important for resale flats, ancestral property, or anything without a clean, recent chain of ownership.",
+      "process": [
+        "Property and seller documents collected",
+        "Title chain, encumbrances and approvals reviewed",
+        "Written observations shared with you"
+      ],
+      "documents": [
+        "Title documents/chain",
+        "7/12 extract or property card",
+        "Encumbrance certificate, where available"
+      ]
+    },
+    "sale-agreement-sale-deed": {
+      "division": "Sheetal Associates",
+      "title": "Sale Agreement & Sale Deed Drafting",
+      "summary": "Drafting and registration assistance for sale agreements and sale deeds in a property transaction. We coordinate stamp duty payment and the registration appointment so the transaction closes cleanly.",
+      "whoNeedsIt": "Buyers and sellers finalising a property purchase or sale. Also useful for structuring a phased payment schedule between the agreement and the final sale deed.",
+      "process": [
+        "Transaction terms and party details confirmed",
+        "Agreement/deed drafted for both parties' review",
+        "Stamp duty coordination and registration assistance"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Property title documents",
+        "Previous agreement, if any"
+      ]
+    },
+    "gift-release-deed": {
+      "division": "Sheetal Associates",
+      "title": "Gift Deed & Release Deed Documentation",
+      "summary": "Drafting assistance for gift deeds and release/relinquishment deeds for family property transfers. Both documents are drafted to withstand scrutiny later, with the right stamp duty and registration handled from the start.",
+      "whoNeedsIt": "Families transferring property between members without a sale, or releasing a share in jointly held property. Common after a family settlement, when one sibling wants to formally give up their share to another.",
+      "process": [
+        "Relationship, property details and intent confirmed",
+        "Deed drafted and shared for review",
+        "Stamp duty coordination and registration assistance"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Property title documents",
+        "Proof of relationship, where relevant"
+      ]
+    },
+    "power-of-attorney-drafting": {
+      "division": "Sheetal Associates",
+      "title": "Power of Attorney Drafting",
+      "summary": "Drafting of General and Special Power of Attorney documents for property and related matters. We scope the exact powers granted carefully, so the document does what you intend and nothing more.",
+      "whoNeedsIt": "Anyone authorising another person to act on their behalf for a property or legal matter. Especially relevant for NRIs or anyone unable to be physically present for a transaction or registration.",
+      "process": [
+        "Purpose and scope of authority discussed",
+        "POA drafted to match the intended use",
+        "Execution and registration/notarisation guidance provided"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Details of the person being authorised"
+      ]
+    },
+    "society-share-transfer": {
+      "division": "Sheetal Associates",
+      "title": "Housing Society Share Transfer",
+      "summary": "Documentation support for transferring share certificates and flat ownership within a housing society. We prepare the transfer application in the format each society typically expects, to avoid back-and-forth.",
+      "whoNeedsIt": "Flat owners transferring ownership after a sale, gift or family transfer within a co-operative society. Required whenever a flat changes hands, since the society's own records must be updated alongside the deed.",
+      "process": [
+        "Transfer type and society requirements confirmed",
+        "Application and supporting documents prepared",
+        "Coordination with the society until the transfer is recorded"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Share certificate",
+        "Sale/gift/release deed as applicable",
+        "Society NOC application"
+      ]
+    },
+    "society-noc-membership": {
+      "division": "Sheetal Associates",
+      "title": "Society NOC & Membership Documentation",
+      "summary": "Assistance obtaining society NOCs and completing membership documentation for a flat. We follow up directly with the managing committee so the NOC doesn't get stuck in a routine backlog.",
+      "whoNeedsIt": "New or existing members needing an NOC for sale, mortgage or other society-related purposes. Also useful if the society is delaying membership paperwork for a flat you've already purchased.",
+      "process": [
+        "Purpose of the NOC/membership request confirmed",
+        "Application prepared per the society's format",
+        "Follow-up with the society/managing committee"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Share certificate",
+        "Reason/purpose for the NOC"
+      ]
+    },
+    "sra-flat-transfer": {
+      "division": "Sheetal Associates",
+      "title": "SRA Flat Transfer Documentation",
+      "summary": "Documentation assistance for transferring an SRA (Slum Rehabilitation Authority) flat, subject to eligibility. We review the specific SRA scheme's transfer rules before preparing any application.",
+      "whoNeedsIt": "SRA flat owners transferring the flat to a family member or buyer, where permitted. Eligibility and lock-in conditions vary by scheme, so this is worth checking before assuming a transfer is possible.",
+      "process": [
+        "Eligibility and transfer conditions reviewed",
+        "Application and supporting documents prepared",
+        "Coordination with the relevant authority until completion"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "SRA allotment/agreement documents",
+        "Reason for transfer"
+      ]
+    },
+    "mhada-flat-transfer": {
+      "division": "Sheetal Associates",
+      "title": "MHADA Flat Transfer Documentation",
+      "summary": "Documentation assistance for MHADA flat transfers, including family transfers, subject to MHADA norms. We coordinate directly with the MHADA office to keep the application moving.",
+      "whoNeedsIt": "MHADA flat owners transferring the flat within the family or to an eligible buyer. Transfer conditions differ by MHADA scheme and lease terms, so it's worth confirming eligibility early.",
+      "process": [
+        "Transfer type and MHADA eligibility reviewed",
+        "Application and supporting documents prepared",
+        "Coordination with MHADA until the transfer is recorded"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "MHADA allotment letter/agreement",
+        "Reason for transfer"
+      ]
+    },
+    "mmrda-property-documentation": {
+      "division": "Sheetal Associates",
+      "title": "MMRDA Property Documentation",
+      "summary": "Documentation assistance for properties involving MMRDA, subject to the applicable scheme's terms. We identify which MMRDA-specific approvals or NOCs your transaction actually needs.",
+      "whoNeedsIt": "Owners of MMRDA-linked properties needing transfer or related documentation support. Also useful if you're unsure which MMRDA scheme your property falls under.",
+      "process": [
+        "Property and scheme details reviewed",
+        "Application and supporting documents prepared",
+        "Coordination with the relevant authority until completion"
+      ],
+      "documents": [
+        "Allotment/agreement documents",
+        "Reason for the request"
+      ]
+    },
+    "society-redevelopment-documentation": {
+      "division": "Sheetal Associates",
+      "title": "Society Redevelopment Documentation",
+      "summary": "Documentation support for housing society redevelopment, for individual members, managing committees and developers. We help track consents, agreements and approvals across what's usually a multi-year process.",
+      "whoNeedsIt": "Society members or committees navigating the documentation side of a redevelopment project. Also useful for an individual member trying to understand their own rights and paperwork within a larger redevelopment.",
+      "process": [
+        "Stage of the redevelopment and documentation gap reviewed",
+        "Required agreements/consents identified",
+        "Documentation prepared and coordinated with the relevant parties"
+      ],
+      "documents": [
+        "Society registration documents",
+        "Existing member/share documents",
+        "Developer agreement, where applicable"
+      ]
+    },
+    "legal-drafting-agreements-affidavits": {
+      "division": "Sheetal Associates",
+      "title": "Legal Drafting — Agreements, Affidavits & Notices",
+      "summary": "Drafting assistance for agreements, affidavits, declarations, undertakings and legal notices. Each document is drafted to your specific facts, not from a generic template that may not hold up if challenged.",
+      "whoNeedsIt": "Individuals and businesses needing a specific document drafted or reviewed. Also useful if you already have a draft and want a professional review before signing.",
+      "process": [
+        "Purpose and key terms of the document discussed",
+        "Document drafted and shared for your review",
+        "Finalised after your inputs, with execution guidance"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Relevant background documents for the matter"
+      ]
+    },
+    "public-notice-publication": {
+      "division": "Sheetal Associates",
+      "title": "Public Notice Publication",
+      "summary": "Drafting and newspaper publication of public notices — for a lost title deed, a property sale objection window, a name change, or a similar legal requirement. We handle the drafting and coordinate publication in the required newspapers.",
+      "whoNeedsIt": "Anyone needing to publish a notice for a lost document, an intended property sale, a change of name, or a similar legal requirement. Commonly needed before a property transaction closes, to invite objections within the notice period.",
+      "process": [
+        "Purpose and required newspaper(s)/language confirmed",
+        "Notice drafted and shared for your approval",
+        "Published, with the tear sheet/proof of publication shared with you"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Details/proof relevant to the notice (e.g. FIR copy for a lost document, property papers for a sale notice)"
+      ]
+    },
+    "nri-property-documentation": {
+      "division": "Sheetal Associates",
+      "title": "NRI Property Documentation",
+      "summary": "Documentation support for NRIs on property purchase, sale, transfer and Power of Attorney matters. We structure the paperwork for remote execution, so a trip back to India isn't always necessary.",
+      "whoNeedsIt": "NRIs handling a property matter in India remotely, or through a Power of Attorney holder. Especially useful when time zones and travel make in-person visits to registrars or societies impractical.",
+      "process": [
+        "Requirement and location of the property confirmed",
+        "Documents drafted and shared for remote execution",
+        "Coordination with the POA holder/local representative as needed"
+      ],
+      "documents": [
+        "Passport/OCI details",
+        "Property title documents",
+        "POA, if a representative will act locally"
+      ]
+    },
+    "will-succession-documentation": {
+      "division": "Sheetal Associates",
+      "title": "Will & Succession Documentation",
+      "summary": "Drafting assistance for Wills, and documentation support for legal heir and succession matters. We also help coordinate the succession certificate or legal heir documentation needed after a death in the family.",
+      "whoNeedsIt": "Individuals wanting to draft a Will, or families handling succession documentation after a death in the family. Especially useful when multiple legal heirs are involved and consensus documentation is needed.",
+      "process": [
+        "Assets and intended distribution discussed, or succession situation reviewed",
+        "Document(s) drafted and shared for review",
+        "Execution/registration guidance, or coordination for succession documentation"
+      ],
+      "documents": [
+        "PAN, Aadhaar and address proof",
+        "Asset/property details",
+        "Death certificate and family details, for succession matters"
+      ]
+    }
+  },
+  "siteInfo": {
+    "phone": "+91 88280 01700",
+    "whatsapp": "918828001700",
+    "email": "growthcs17@gmail.com",
+    "address": "CCTV Towers, Andheri-Ghatkopar Rd, Bhatwadi, Kaju Pada, Barve Nagar, Ghatkopar West, Mumbai 400084",
+    "hours": "Monday to Saturday · 10:00 AM – 6:00 PM",
+    "reportPrice": 500,
+    "upiId": "",
+    "upiName": "Growth Capital Services"
+  },
+  "bankRates": {
+    "asOf": "",
+    "disclaimer": "Rates are indicative and change with the lender, your profile, the loan amount and market conditions. The final rate is confirmed in the lender's sanction letter.",
+    "defaultEmiRate": 9.5,
+    "rows": [
+      {
+        "product": "Home Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "7.10%"
+      },
+      {
+        "product": "Loan Against Property",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "7.50%"
+      },
+      {
+        "product": "Lease Rental Discounting",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "7.50%"
+      },
+      {
+        "product": "Drop-Line Overdraft (Secured)",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "9.75%"
+      },
+      {
+        "product": "Business Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "14%"
+      },
+      {
+        "product": "CGTMSE Funding",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "9%"
+      },
+      {
+        "product": "Unsecured Term Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "11.50%"
+      },
+      {
+        "product": "Unsecured DOD",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "13.50%"
+      },
+      {
+        "product": "Project Funding",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "12%"
+      },
+      {
+        "product": "Personal Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "10.49%"
+      },
+      {
+        "product": "Loan Against Securities",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "9.75%"
+      },
+      {
+        "product": "Loan Against Mutual Funds",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "9.99%"
+      },
+      {
+        "product": "Professional Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "10.99%"
+      },
+      {
+        "product": "Education Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "8.15%"
+      },
+      {
+        "product": "New Car Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "8.75%"
+      },
+      {
+        "product": "Used Car Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "10.25%"
+      },
+      {
+        "product": "Car Refinance",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "12.50%"
+      },
+      {
+        "product": "Private Funding",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "2.70%"
+      }
+    ]
+  },
+  "seoPages": [
+    {
+      "path": "/",
+      "label": "Home",
+      "title": "Growth Capital Services | Loan Experts in Mumbai, Thane & Pune",
+      "description": "Tailored home, property, business and personal loan solutions from leading Banks and NBFCs. Trusted loan advisors since 2017 across Mumbai, Thane, Navi Mumbai and Pune."
+    },
+    {
+      "path": "/about",
+      "label": "About us",
+      "title": "About Growth Capital Services | Trusted Loan Advisors Since 2017",
+      "description": "Growth Capital Services, established in 2017, is a leading partnership firm offering custom-fit loan solutions from various Banks and NBFCs across Mumbai, Thane, Navi Mumbai and Pune."
+    },
+    {
+      "path": "/services",
+      "label": "Our services",
+      "title": "Loan Products & Services | Growth Capital Services",
+      "description": "Home Loan, Loan Against Property, Business & Working Capital, Personal, Car and Education Loans arranged across leading Banks and NBFCs."
+    },
+    {
+      "path": "/tools",
+      "label": "Calculators & tools",
+      "title": "Loan Calculators & Tools | Growth Capital Services",
+      "description": "Ten free calculators — EMI, eligibility, stamp duty, prepayment, balance transfer, loan comparison, working capital, CGTMSE fee, LAP eligibility and a credit score estimator."
+    },
+    {
+      "path": "/rates",
+      "label": "Interest rates",
+      "title": "Current Loan Interest Rates | Growth Capital Services",
+      "description": "Indicative interest rates and processing fees for home loans, loan against property, business loans, personal loans and more across banks and NBFCs."
+    },
+    {
+      "path": "/cibil",
+      "label": "CIBIL report",
+      "title": "Get Your CIBIL & Credit Report | Growth Capital Services",
+      "description": "Request your TransUnion CIBIL, Experian, Equifax or CRIF High Mark credit report through Growth Capital Services. Pick your bureau, pay by UPI QR, share your details, and we pull it for you."
+    },
+    {
+      "path": "/case-studies",
+      "label": "Case studies",
+      "title": "Case Studies | Growth Capital Services",
+      "description": "Real lending scenarios GCS has structured — home loans, LAP, business funding, personal loans and education loans — the challenge, how it was routed, and the outcome."
+    },
+    {
+      "path": "/ca-legal-services",
+      "label": "CA & legal services",
+      "title": "CA & Legal Services | Growth Capital Services",
+      "description": "Tax, GST, accounting and business registration through our associated CA Services team, and property, society, SRA/MHADA/MMRDA and legal documentation through Sheetal Associates."
+    },
+    {
+      "path": "/partner",
+      "label": "Partner with us",
+      "title": "Partner With Us | Growth Capital Services",
+      "description": "Refer loan clients to Growth Capital Services and earn on every disbursal. No investment, no license required — built for CAs, property consultants, brokers, insurance advisors and business consultants."
+    },
+    {
+      "path": "/contact",
+      "label": "Contact",
+      "title": "Contact & Free Loan Consultation | Growth Capital Services",
+      "description": "Call +91 88280 01700 or send a loan enquiry. Growth Capital Services, Ghatkopar West, Mumbai. Monday to Saturday, 10 AM to 6 PM."
+    },
+    {
+      "path": "/why-us",
+      "label": "Why us",
+      "title": "Why Choose Growth Capital Services | Loan Advisors Since 2017",
+      "description": "Trust, transparency, a paperless process and end-to-end support — how Growth Capital Services solves the real hurdles of borrowing."
+    },
+    {
+      "path": "/mumbai",
+      "label": "Mumbai",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/thane",
+      "label": "Thane",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/navi-mumbai",
+      "label": "Navi Mumbai",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/pune",
+      "label": "Pune",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/home-loan",
+      "label": "Loan: Home Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/loan-against-property",
+      "label": "Loan: Loan Against Property",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/lease-rental-discounting",
+      "label": "Loan: Lease Rental Discounting",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/balance-transfer",
+      "label": "Loan: Balance Transfer",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/dlod",
+      "label": "Loan: Drop-Line Overdraft (Secured)",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/business-loan",
+      "label": "Loan: Business Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/cgtmse",
+      "label": "Loan: CGTMSE Funding",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/unsecured-term-loan",
+      "label": "Loan: Unsecured Term Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/unsecured-dod",
+      "label": "Loan: Unsecured DOD",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/project-funding",
+      "label": "Loan: Project Funding",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/working-capital",
+      "label": "Loan: Working Capital",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/cash-credit",
+      "label": "Loan: Cash Credit",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/overdraft-limit",
+      "label": "Loan: Overdraft Limit",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/bank-guarantee",
+      "label": "Loan: Bank Guarantee",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/letter-of-credit",
+      "label": "Loan: Letter of Credit",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/working-capital-term-loan",
+      "label": "Loan: Working Capital Term Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/personal-loan",
+      "label": "Loan: Personal Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/loan-against-securities",
+      "label": "Loan: Loan Against Securities",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/loan-against-mutual-funds",
+      "label": "Loan: Loan Against Mutual Funds",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/professional-loan",
+      "label": "Loan: Professional Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/education-loan",
+      "label": "Loan: Education Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/new-car-loan",
+      "label": "Loan: New Car Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/used-car-loan",
+      "label": "Loan: Used Car Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/car-refinance",
+      "label": "Loan: Car Refinance",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/private-funding",
+      "label": "Loan: Private Funding",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/income-tax-return-filing",
+      "label": "CA & legal: Income Tax Return Filing",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/tax-planning-advisory",
+      "label": "CA & legal: Tax Planning & Advisory",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/tds-return-filing",
+      "label": "CA & legal: TDS Return Filing",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/tds-property-sale-26qb",
+      "label": "CA & legal: TDS on Property Sale — Form 26QB",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/gst-registration",
+      "label": "CA & legal: GST Registration",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/gst-return-filing",
+      "label": "CA & legal: GST Return Filing & Compliance",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/gst-reconciliation-notice-support",
+      "label": "CA & legal: GST Reconciliation & Notice Support",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/accounting-bookkeeping",
+      "label": "CA & legal: Accounting & Bookkeeping",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/tax-audit-support",
+      "label": "CA & legal: Tax Audit Support",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/company-llp-registration",
+      "label": "CA & legal: Company & LLP Registration",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/msme-udyam-registration",
+      "label": "CA & legal: MSME / Udyam Registration",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/shop-act-fssai-registration",
+      "label": "CA & legal: Shop Act (Gumasta) & FSSAI Registration",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/pan-tan-dsc-services",
+      "label": "CA & legal: PAN, TAN & DSC Services",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/property-title-verification",
+      "label": "CA & legal: Property Title Verification & Due Diligence",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/sale-agreement-sale-deed",
+      "label": "CA & legal: Sale Agreement & Sale Deed Drafting",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/gift-release-deed",
+      "label": "CA & legal: Gift Deed & Release Deed Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/power-of-attorney-drafting",
+      "label": "CA & legal: Power of Attorney Drafting",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/society-share-transfer",
+      "label": "CA & legal: Housing Society Share Transfer",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/society-noc-membership",
+      "label": "CA & legal: Society NOC & Membership Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/sra-flat-transfer",
+      "label": "CA & legal: SRA Flat Transfer Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/mhada-flat-transfer",
+      "label": "CA & legal: MHADA Flat Transfer Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/mmrda-property-documentation",
+      "label": "CA & legal: MMRDA Property Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/society-redevelopment-documentation",
+      "label": "CA & legal: Society Redevelopment Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/legal-drafting-agreements-affidavits",
+      "label": "CA & legal: Legal Drafting — Agreements, Affidavits & Notices",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/public-notice-publication",
+      "label": "CA & legal: Public Notice Publication",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/nri-property-documentation",
+      "label": "CA & legal: NRI Property Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/will-succession-documentation",
+      "label": "CA & legal: Will & Succession Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/home-loan-non-conventional-income",
+      "label": "Case study: ₹2.4 crore sanctioned — no salary slip, no problem",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/lap-balance-transfer-business-expansion",
+      "label": "Case study: ₹2.6 crore unlocked — one property, a lower rate, fresh capital to expand",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/home-loan-review-savings",
+      "label": "Case study: ₹4,200 shaved off every EMI — one question nobody had asked in 5 years",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/cgtmse-collateral-free-msme",
+      "label": "Case study: ₹62 lakh funded — zero collateral, one government guarantee",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/business-loan-banking-strength",
+      "label": "Case study: ₹55 lakh sanctioned — on banking strength, not the ITR",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/working-capital-seasonal-bridge",
+      "label": "Case study: ₹68 lakh working capital — released before the order was lost",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/personal-loan-fast-turnaround",
+      "label": "Case study: ₹24 lakh, disbursed in days — when a medical bill couldn't wait",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/education-loan-co-applicant",
+      "label": "Case study: ₹22 lakh for a degree abroad — one lender said no, structuring said yes",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/new-car-loan-zero-down",
+      "label": "Case study: 100% on-road funding — a first car, zero down payment",
+      "title": "",
+      "description": ""
+    }
+  ],
+  "testimonials": [
+    {
+      "name": "Priya Deshmukh",
+      "city": "Mumbai",
+      "product": "Home Loan Balance Transfer",
+      "rating": 5,
+      "quote": "Switched our home loan and shaved ₹3,800 off the EMI within three weeks. Wish we'd called sooner.",
+      "visible": true
+    },
+    {
+      "name": "Rohan Mehta",
+      "city": "Thane",
+      "product": "Business Loan",
+      "rating": 4.5,
+      "quote": "Working capital sanctioned in 9 days flat — right when a big order needed raw materials.",
+      "visible": true
+    },
+    {
+      "name": "Anjali Kulkarni",
+      "city": "Pune",
+      "product": "Personal Loan",
+      "rating": 4,
+      "quote": "Needed funds fast for a family emergency. Disbursed in two days, no drama at all.",
+      "visible": true
+    },
+    {
+      "name": "Sameer Iyer",
+      "city": "Navi Mumbai",
+      "product": "Loan Against Property",
+      "rating": 5,
+      "quote": "Unlocked funds against our property without touching our savings. Clean process, clear terms.",
+      "visible": true
+    },
+    {
+      "name": "Neha Joshi",
+      "city": "Mumbai",
+      "product": "Education Loan",
+      "rating": 4.5,
+      "quote": "Got my daughter's admission abroad funded end-to-end, tuition and living costs both.",
+      "visible": true
+    },
+    {
+      "name": "Vikram Shah",
+      "city": "Pune",
+      "product": "CGTMSE Funding",
+      "rating": 4,
+      "quote": "No collateral, no problem. They found the right scheme for my two-year-old business.",
+      "visible": true
+    },
+    {
+      "name": "Arjun Nair",
+      "city": "Thane",
+      "product": "New Car Loan",
+      "rating": 4.5,
+      "quote": "100% on-road funding on my first car — didn't touch my savings for the down payment.",
+      "visible": true
+    },
+    {
+      "name": "Kavita Rao",
+      "city": "Navi Mumbai",
+      "product": "Balance Transfer",
+      "rating": 5,
+      "quote": "One phone call, and my home loan rate dropped by over a full percentage point.",
+      "visible": true
+    }
+  ],
+  "trustNumbers": {
+    "2017": "2017",
+    "75+": "75+",
+    "25+": "25+",
+    "100%": "100%"
+  }
+}

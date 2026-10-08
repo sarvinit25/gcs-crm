@@ -126,7 +126,7 @@ export class LeadsService {
           select: { id: true, leadNo: true },
         });
         await log(SubmissionOutcome.NEW_LEAD, lead.id, open.length > 0);
-        return { id: lead.id, leadNo: lead.leadNo };
+        return { id: lead.id, leadNo: lead.leadNo, isNew: true };
       }
 
       const stored: Entry = {
