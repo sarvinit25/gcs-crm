@@ -1600,5 +1600,102 @@
     "reportPrice": 500,
     "upiId": "",
     "upiName": "Growth Capital Services"
+  },
+  "bankRates": {
+    "asOf": "",
+    "disclaimer": "Rates are indicative and change with the lender, your profile, the loan amount and market conditions. The final rate is confirmed in the lender's sanction letter.",
+    "defaultEmiRate": 9.5,
+    "rows": [
+      {
+        "product": "Home Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "7.10%"
+      },
+      {
+        "product": "Loan Against Property",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "7.50%"
+      },
+      {
+        "product": "Lease Rental Discounting",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "7.50%"
+      },
+      {
+        "product": "Drop-Line Overdraft (Secured)",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "9.75%"
+      },
+      {
+        "product": "Business Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "14%"
+      },
+      {
+        "product": "CGTMSE Funding",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "9%"
+      },
+      {
+        "product": "Unsecured Term Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "11.50%"
+      },
+      {
+        "product": "Unsecured DOD",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "13.50%"
+      },
+      {
+        "product": "Project Funding",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "12%"
+      },
+      {
+        "product": "Personal Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "10.49%"
+      },
+      {
+        "product": "Loan Against Securities",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "9.75%"
+      },
+      {
+        "product": "Loan Against Mutual Funds",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "9.99%"
+      },
+      {
+        "product": "Professional Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "10.99%"
+      },
+      {
+        "product": "Education Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "8.15%"
+      },
+      {
+        "product": "New Car Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "8.75%"
+      },
+      {
+        "product": "Used Car Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "10.25%"
+      },
+      {
+        "product": "Car Refinance",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "12.50%"
+      },
+      {
+        "product": "Private Funding",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "2.70%"
+      }
+    ]
   }
 }

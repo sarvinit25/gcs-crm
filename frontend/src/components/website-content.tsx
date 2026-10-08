@@ -55,13 +55,28 @@ type Content = {
   siteInfo?: SiteInfo;
   pageText?: PageTextMap;
   images?: ImageMap;
+  bankRates?: BankRates;
 };
 type PageTextMap = Record<string, Record<string, string>>;
 type ImageMap = Record<string, string>;
-type Section = "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type RateRow = {
+  product: string;
+  bank: string;
+  rateFrom: string;
+  rateTo?: string;
+  fee?: string;
+  note?: string;
+};
+type BankRates = { asOf: string; disclaimer: string; defaultEmiRate: number; rows: RateRow[] };
+type Section = "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "bankRates",
+    label: "Interest rates",
+    help: "The table on the website's Interest Rates page, and the starting rate in the EMI calculator. Add a row per bank and loan type.",
+  },
   {
     id: "images",
     label: "Pictures",
@@ -240,7 +255,7 @@ function Editor({ section, initial, builtIn, busy, canReset, onSave, onReset }: 
 
   // Only changed pages/products are stored, so untouched ones keep following the website's copy.
   const toSave = () => {
-    if (section === "caseStudies") return draft;
+    if (section === "caseStudies" || section === "bankRates") return draft;
     const d = draft as Record<string, unknown>;
     const b = builtIn as Record<string, unknown>;
     return Object.fromEntries(Object.entries(d).filter(([k, v]) => !same(v, b[k])));
@@ -248,6 +263,7 @@ function Editor({ section, initial, builtIn, busy, canReset, onSave, onReset }: 
 
   return (
     <div>
+      {section === "bankRates" && <RatesEditor value={draft as BankRates} onChange={setDraft} />}
       {section === "images" && <ImagesEditor value={draft as ImageMap} onChange={setDraft} />}
       {section === "pageText" && (
         <PageTextEditor value={draft as PageTextMap} onChange={setDraft} />
@@ -865,6 +881,92 @@ function ImagesEditor({ value, onChange }: { value: ImageMap; onChange: (v: unkn
           </button>
         </div>
       ))}
+    </div>
+  );
+}
+
+function RatesEditor({ value, onChange }: { value: BankRates; onChange: (v: unknown) => void }) {
+  const patch = (next: Partial<BankRates>) => onChange({ ...value, ...next });
+  const setRow = (i: number, next: Partial<RateRow>) =>
+    patch({ rows: value.rows.map((r, j) => (j === i ? { ...r, ...next } : r)) });
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <label className="block">
+          <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Rates checked on</span>
+          <input
+            type="date"
+            value={value.asOf}
+            onChange={(e) => patch({ asOf: e.target.value })}
+            className="field mt-1 w-full"
+          />
+        </label>
+        <label className="block">
+          <span className="text-[11px] font-bold tracking-wide text-muted uppercase">
+            EMI calculator starting rate (% p.a.)
+          </span>
+          <input
+            inputMode="decimal"
+            value={String(value.defaultEmiRate)}
+            onChange={(e) => patch({ defaultEmiRate: Number(e.target.value.replace(/[^\d.]/g, "")) || 0 })}
+            className="field mt-1 w-full"
+          />
+        </label>
+      </div>
+      <label className="block">
+        <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Note under the table</span>
+        <textarea
+          value={value.disclaimer}
+          onChange={(e) => patch({ disclaimer: e.target.value })}
+          rows={2}
+          className="field mt-1 w-full"
+        />
+      </label>
+
+      <div className="overflow-x-auto rounded-lg border border-line">
+        <table className="w-full min-w-[760px] text-left text-[13px]">
+          <thead className="border-b border-line bg-bg-light text-[11px] tracking-wide text-muted uppercase">
+            <tr>
+              {["Loan", "Lender", "Rate from", "Rate to", "Processing fee", "Note", ""].map((h) => (
+                <th key={h} className="px-2 py-2 font-bold">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {value.rows.map((r, i) => (
+              <tr key={i} className="border-b border-line/70 last:border-0">
+                {(["product", "bank", "rateFrom", "rateTo", "fee", "note"] as const).map((k) => (
+                  <td key={k} className="px-1.5 py-1.5">
+                    <input
+                      value={r[k] ?? ""}
+                      onChange={(e) => setRow(i, { [k]: e.target.value })}
+                      placeholder={k === "rateFrom" || k === "rateTo" ? "8.5%" : ""}
+                      className="field w-full"
+                    />
+                  </td>
+                ))}
+                <td className="px-1.5">
+                  <button
+                    onClick={() => patch({ rows: value.rows.filter((_, j) => j !== i) })}
+                    className="rounded p-2 text-muted hover:bg-red-50 hover:text-red-600"
+                    title="Remove row"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button
+        onClick={() => patch({ rows: [...value.rows, { product: "", bank: "", rateFrom: "" }] })}
+        className="btn-ghost"
+      >
+        <Plus className="h-4 w-4" /> Add a rate
+      </button>
     </div>
   );
 }
