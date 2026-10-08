@@ -456,6 +456,147 @@ function ChecklistItems() {
   );
 }
 
+type WebsiteChecklist = {
+  id: string;
+  title: string;
+  productSlug: string | null;
+  variant: string | null;
+  fileUrl: string;
+  active: boolean;
+};
+
+/** The checklist PDFs the public website offers for download — staff list, add and edit them here. */
+function WebsiteChecklists() {
+  const queryClient = useQueryClient();
+  const [showForm, setShowForm] = useState(false);
+
+  const query = useQuery({
+    queryKey: ["admin-checklist-documents"],
+    queryFn: () => api<WebsiteChecklist[]>("/settings/checklist-documents"),
+  });
+  const invalidate = () =>
+    void queryClient.invalidateQueries({ queryKey: ["admin-checklist-documents"] });
+
+  const create = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      api("/settings/checklist-documents", { method: "POST", body: JSON.stringify(body) }),
+    onSuccess: () => {
+      setShowForm(false);
+      invalidate();
+    },
+  });
+  const update = useMutation({
+    mutationFn: ({ id, ...body }: { id: string } & Record<string, unknown>) =>
+      api(`/settings/checklist-documents/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+    onSuccess: invalidate,
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => api(`/settings/checklist-documents/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+
+  const error = [create, update, remove].find((m) => m.isError)?.error;
+
+  return (
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-[13px] text-muted">
+          The checklist PDFs visitors can download from the website. Deactivate one to take it off
+          the list; the file path is where the PDF is served from (e.g. /checklists/home-loan-checklist.pdf).
+        </p>
+        <button onClick={() => setShowForm(!showForm)} className="btn-ghost">
+          <Plus className="h-4 w-4" /> Add checklist
+        </button>
+      </div>
+
+      {error && (
+        <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">
+          {(error as Error).message}
+        </p>
+      )}
+
+      {showForm && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const f = new FormData(e.currentTarget);
+            create.mutate({
+              title: f.get("title"),
+              fileUrl: f.get("fileUrl"),
+              productSlug: f.get("productSlug") || undefined,
+              variant: f.get("variant") || undefined,
+            });
+            e.currentTarget.reset();
+          }}
+          className="mb-3 grid gap-2 rounded-lg bg-bg-light p-3 sm:grid-cols-4"
+        >
+          <input name="title" required placeholder="Title" className="field sm:col-span-2" />
+          <input name="productSlug" placeholder="Website product slug" className="field" />
+          <input name="variant" placeholder="Variant (optional)" className="field" />
+          <input name="fileUrl" required placeholder="/checklists/name.pdf" className="field sm:col-span-4" />
+          <button type="submit" disabled={create.isPending} className="btn-primary sm:col-span-4">
+            {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            Add checklist
+          </button>
+        </form>
+      )}
+
+      <div className="max-h-[560px] overflow-y-auto rounded-lg border border-line">
+        {query.isPending ? (
+          <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+          </div>
+        ) : (
+          <table className="w-full text-left text-[13px]">
+            <thead className="sticky top-0 border-b border-line bg-bg-light/95 text-[11px] tracking-wide text-muted uppercase backdrop-blur">
+              <tr>
+                <th className="px-4 py-2.5 font-bold">Checklist</th>
+                <th className="px-4 py-2.5 font-bold">Product</th>
+                <th className="px-4 py-2.5 font-bold">File</th>
+                <th className="px-4 py-2.5 font-bold">Active</th>
+                <th className="px-4 py-2.5 font-bold" />
+              </tr>
+            </thead>
+            <tbody>
+              {query.data?.map((d) => (
+                <tr key={d.id} className={clsx("border-b border-line/70 last:border-0", !d.active && "opacity-50")}>
+                  <td className="px-4 py-2.5 font-semibold text-navy">
+                    {d.title}
+                    {d.variant ? <span className="ml-2 text-[11px] text-muted">{d.variant}</span> : null}
+                  </td>
+                  <td className="px-4 py-2.5 text-muted">{d.productSlug ?? "—"}</td>
+                  <td className="px-4 py-2.5">
+                    <a href={d.fileUrl} target="_blank" rel="noreferrer" className="text-[12px] text-muted underline hover:text-navy">
+                      {d.fileUrl}
+                    </a>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <button
+                      onClick={() => update.mutate({ id: d.id, active: !d.active })}
+                      className="text-[12px] font-semibold text-muted hover:text-navy"
+                    >
+                      {d.active ? "Deactivate" : "Reactivate"}
+                    </button>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <button
+                      onClick={() => remove.mutate(d.id)}
+                      className="rounded p-1 text-muted transition hover:bg-red-50 hover:text-red-600"
+                      title="Delete checklist"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /**
  * The referral commission structure published to the website's Partner page
  * and the partner portal — this is the tool GCS uses to enter and change
@@ -684,6 +825,7 @@ export function SettingsPage() {
       products: "Loan products",
       checklist: "Document checklist",
       ratecards: "Commission rate cards",
+      websitechecklists: "Website checklists",
     };
     if (named[hash]) setGroup(named[hash]);
     else if (hash.startsWith("lender-")) setGroup("Banks & NBFCs");
@@ -704,7 +846,7 @@ export function SettingsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["settings"] }),
   });
 
-  const masters = ["Banks & NBFCs", "Loan products", "Document checklist", "Commission rate cards"];
+  const masters = ["Banks & NBFCs", "Loan products", "Document checklist", "Website checklists", "Commission rate cards"];
   const preferences = [...(query.data?.groups ?? []), "Archive"];
   const inGroup = (query.data?.settings ?? []).filter((s) => s.group === group);
   const changed = (query.data?.settings ?? []).filter((s) => !s.isDefault).length;
@@ -758,6 +900,8 @@ export function SettingsPage() {
             <LoanProducts />
           ) : group === "Document checklist" ? (
             <ChecklistItems />
+          ) : group === "Website checklists" ? (
+            <WebsiteChecklists />
           ) : group === "Commission rate cards" ? (
             <RateCards />
           ) : query.isPending ? (
@@ -784,6 +928,7 @@ export function SettingsPage() {
 
         {group !== "Loan products" &&
           group !== "Document checklist" &&
+          group !== "Website checklists" &&
           group !== "Commission rate cards" && (
           <p className="mt-3 text-[12px] text-muted">
             Settings marked PUBLIC are served to the website at

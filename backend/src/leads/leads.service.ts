@@ -42,14 +42,48 @@ export class LeadsService {
 
   /** Intake from the public website, WhatsApp flow and AI telecaller. */
   async intake(dto: PublicLeadDto) {
+    const loanProductId = await this.resolveProductId(dto.productSlug);
+    const name = dto.name.trim();
+    const email = dto.email?.trim().toLowerCase();
+    const city = dto.city?.trim();
+
+    // The same person often fills several website forms (consultation, then a checklist
+    // download). Within 30 days that is one lead with a longer history, not a new row.
+    const existing = await this.prisma.lead.findFirst({
+      where: {
+        phone: dto.phone,
+        archivedAt: null,
+        createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+      },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, leadNo: true, notes: true, email: true, city: true, loanProductId: true, amount: true },
+    });
+
+    if (existing) {
+      const stamp = new Date().toISOString().slice(0, 10);
+      const entry = `[${stamp}] Enquired again via ${dto.source}${dto.detail ? `: ${dto.detail}` : ""}`;
+      await this.prisma.lead.update({
+        where: { id: existing.id },
+        data: {
+          notes: existing.notes ? `${existing.notes}
+${entry}` : entry,
+          ...(!existing.email && email ? { email } : {}),
+          ...(!existing.city && city ? { city } : {}),
+          ...(!existing.loanProductId && loanProductId ? { loanProductId } : {}),
+          ...(!existing.amount && dto.amount ? { amount: dto.amount } : {}),
+        },
+      });
+      return { id: existing.id, leadNo: existing.leadNo };
+    }
+
     const lead = await this.prisma.lead.create({
       data: {
-        name: dto.name.trim(),
+        name,
         phone: dto.phone,
-        email: dto.email?.trim().toLowerCase(),
-        city: dto.city?.trim(),
+        email,
+        city,
         source: dto.source,
-        loanProductId: await this.resolveProductId(dto.productSlug),
+        loanProductId,
         amount: dto.amount,
         notes: dto.detail,
       },
