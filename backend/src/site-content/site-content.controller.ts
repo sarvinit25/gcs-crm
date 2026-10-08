@@ -7,7 +7,7 @@ import { CurrentUser, Public, Roles, type AuthUser } from "../auth/auth.decorato
 import { PrismaService } from "../prisma/prisma.service";
 
 /** The sections of website text staff can edit. Anything else is refused. */
-export const SITE_CONTENT_KEYS = ["faqs", "products", "caseStudies", "services", "siteInfo"] as const;
+export const SITE_CONTENT_KEYS = ["faqs", "products", "caseStudies", "services", "siteInfo", "pageText"] as const;
 const MAX_BYTES = 400_000;
 
 class SaveContentDto {
@@ -17,6 +17,18 @@ class SaveContentDto {
 function assertKey(key: string) {
   if (!(SITE_CONTENT_KEYS as readonly string[]).includes(key)) {
     throw new BadRequestException(`Unknown content section "${key}"`);
+  }
+}
+
+/** pageText is { "<page path or *>": { "<original wording>": "<new wording>" } }, all plain text. */
+function assertPageText(value: unknown) {
+  const bad = () => new BadRequestException("Page text must be edits grouped by page");
+  if (Array.isArray(value)) throw bad();
+  for (const [page, edits] of Object.entries(value as Record<string, unknown>)) {
+    if (page.length > 200 || !edits || typeof edits !== "object" || Array.isArray(edits)) throw bad();
+    for (const [from, to] of Object.entries(edits as Record<string, unknown>)) {
+      if (typeof to !== "string" || from.length > 2000 || to.length > 2000) throw bad();
+    }
   }
 }
 
@@ -66,6 +78,7 @@ export class SiteContentAdminController {
     if (JSON.stringify(dto.value).length > MAX_BYTES) {
       throw new BadRequestException("That is too much text for one section");
     }
+    if (key === "pageText") assertPageText(dto.value);
     const value = dto.value as object;
     return this.prisma.siteContent.upsert({
       where: { key },

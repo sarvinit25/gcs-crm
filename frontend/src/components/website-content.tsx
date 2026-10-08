@@ -53,11 +53,18 @@ type Content = {
   caseStudies?: CaseStudy[];
   services?: Record<string, ServiceText>;
   siteInfo?: SiteInfo;
+  pageText?: PageTextMap;
 };
-type Section = "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type PageTextMap = Record<string, Record<string, string>>;
+type Section = "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "pageText",
+    label: "Page wording",
+    help: "Wording changed straight on the website (sign in here, open any page, press Edit text). Review or undo those changes here.",
+  },
   {
     id: "siteInfo",
     label: "Contact & CIBIL",
@@ -105,7 +112,7 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
  */
 export function WebsiteContent() {
   const queryClient = useQueryClient();
-  const [section, setSection] = useState<Section>("siteInfo");
+  const [section, setSection] = useState<Section>("pageText");
 
   const saved = useQuery({
     queryKey: ["site-content"],
@@ -228,6 +235,9 @@ function Editor({ section, initial, builtIn, busy, canReset, onSave, onReset }: 
 
   return (
     <div>
+      {section === "pageText" && (
+        <PageTextEditor value={draft as PageTextMap} onChange={setDraft} />
+      )}
       {section === "siteInfo" && (
         <SiteInfoEditor value={draft as SiteInfo} onChange={setDraft} />
       )}
@@ -675,6 +685,59 @@ function ServiceEditor({
       </label>
       <LinesField label="Process steps" value={p.process} onChange={(process) => patch({ process })} />
       <LinesField label="Documents" value={p.documents} onChange={(documents) => patch({ documents })} />
+    </div>
+  );
+}
+
+function PageTextEditor({ value, onChange }: { value: PageTextMap; onChange: (v: unknown) => void }) {
+  const pages = Object.keys(value);
+  if (pages.length === 0) {
+    return (
+      <p className="rounded-lg bg-bg-light p-4 text-[13px] text-muted">
+        Nothing changed yet. To edit wording: sign in here as an admin, open the website page you
+        want to change, press <strong>Edit text</strong> (bottom-left), click the wording and save.
+      </p>
+    );
+  }
+  const setEdit = (page: string, from: string, to: string | null) => {
+    const edits = { ...value[page] };
+    if (to === null) delete edits[from];
+    else edits[from] = to;
+    const next = { ...value, [page]: edits };
+    if (Object.keys(edits).length === 0) delete next[page];
+    onChange(next);
+  };
+  return (
+    <div className="space-y-5">
+      {pages.map((page) => (
+        <div key={page}>
+          <p className="mb-2 text-[12px] font-bold tracking-wide text-navy uppercase">
+            {page === "*" ? "Every page" : page}
+          </p>
+          <div className="space-y-2">
+            {Object.entries(value[page] ?? {}).map(([from, to]) => (
+              <div key={from} className="rounded-lg border border-line p-3">
+                <p className="text-[12px] text-muted line-through">{from}</p>
+                <div className="mt-1 flex gap-2">
+                  <textarea
+                    value={to}
+                    onChange={(e) => setEdit(page, from, e.target.value)}
+                    rows={2}
+                    className="field flex-1"
+                  />
+                  <button
+                    onClick={() => setEdit(page, from, null)}
+                    className="rounded p-2 text-muted hover:bg-red-50 hover:text-red-600"
+                    title="Undo this change"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
