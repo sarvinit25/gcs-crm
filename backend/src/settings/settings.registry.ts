@@ -34,9 +34,36 @@ export const SETTING_GROUPS = [
   "Commissions",
   "Attendance",
   "Security",
+  "Alerts",
 ] as const;
 
 export const SETTINGS: SettingDef[] = [
+  // -- Alerts ---------------------------------------------------
+  {
+    key: "alerts.newLeadEmails",
+    group: "Alerts",
+    label: "Email me when a website enquiry arrives",
+    help: "One email address per line. Each new enquiry sends them the details with tap-to-call and WhatsApp links. Needs the mail server (SMTP) set up on the server.",
+    type: "list",
+    default: [],
+  },
+  {
+    key: "alerts.customerAutoReply",
+    group: "Alerts",
+    label: "Thank the customer by email",
+    help: "Sent automatically when the enquirer gave an email address.",
+    type: "boolean",
+    default: true,
+  },
+  {
+    key: "alerts.autoReplyMessage",
+    group: "Alerts",
+    label: "Thank-you message",
+    help: "Use {name}, {org} and {phone} for the customer's first name, your company name and your phone.",
+    type: "text",
+    default:
+      "Hi {name},\n\nThank you for contacting {org}. We have your enquiry and a senior advisor will call you within one business day.\n\nIn a hurry? Call us on {phone}.\n\nRegards,\n{org}",
+  },
   // ── Organisation ──────────────────────────────────────────
   {
     key: "org.name",
