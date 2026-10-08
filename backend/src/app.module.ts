@@ -16,6 +16,7 @@ import { DocumentsModule } from "./documents/documents.module";
 import { DisbursementsModule } from "./disbursements/disbursements.module";
 import { CommissionsModule } from "./commissions/commissions.module";
 import { ChecklistModule } from "./checklist/checklist.module";
+import { SiteContentModule } from "./site-content/site-content.module";
 import { EducationLoanDetailModule } from "./education-loan-detail/education-loan-detail.module";
 import { PartnersModule } from "./partners/partners.module";
 import { AttendanceModule } from "./attendance/attendance.module";
@@ -60,6 +61,7 @@ import { SecurityModule } from "./security/security.module";
     DisbursementsModule,
     CommissionsModule,
     ChecklistModule,
+    SiteContentModule,
     EducationLoanDetailModule,
     PartnersModule,
     AttendanceModule,

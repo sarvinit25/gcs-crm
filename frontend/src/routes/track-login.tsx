@@ -32,7 +32,7 @@ export function TrackLoginPage() {
         <p className="mb-4 text-center text-xs font-semibold tracking-[0.2em] text-white/60 uppercase">Track Your Application</p>
 
         <form onSubmit={onSubmit} className="card dialog-enter p-6">
-          <LogoFull className="mb-5" />
+          <LogoFull className="-mt-3 mb-4" />
           <h1 className="text-base font-bold text-navy">Track your file</h1>
           <p className="mt-1 text-[13px] text-muted">
             Enter your mobile number and the access code your advisor shared with you.

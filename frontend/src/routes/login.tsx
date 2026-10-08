@@ -42,7 +42,7 @@ export function LoginPage() {
         <p className="mb-4 text-center text-xs font-semibold tracking-[0.2em] text-white/60 uppercase">CRM back office</p>
 
         <form onSubmit={onSubmit} className="card dialog-enter p-6">
-          <LogoFull className="mb-5" />
+          <LogoFull className="-mt-3 mb-4" />
           <h1 className="text-base font-bold text-navy">{step === "code" ? "Two-step verification" : "Sign in"}</h1>
           <p className="mt-1 text-[13px] text-muted">
             {step === "code" ? "Open your authenticator app and enter the 6-digit code." : "Staff accounts only."}

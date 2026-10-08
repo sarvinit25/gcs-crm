@@ -21,7 +21,7 @@ export function LogoFull({ className }: { className?: string }) {
     <img
       src={asset("gcs-logo.png")}
       alt="Growth Capital Services — Your growth, our financial expertise"
-      className={clsx("mx-auto h-24 w-auto object-contain", className)}
+      className={clsx("mx-auto h-44 w-auto max-w-full object-contain", className)}
       draggable={false}
     />
   );

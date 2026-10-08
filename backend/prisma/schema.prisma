@@ -928,3 +928,16 @@ model ChecklistDocument {
 
   @@index([productSlug])
 }
+
+// ─── Website content staff edit from the CRM ───
+
+/**
+ * Text content shown on the public website, one row per section (faqs, products, caseStudies).
+ * A missing row means the website uses the copy built into it.
+ */
+model SiteContent {
+  key           String   @id
+  value         Json
+  updatedAt     DateTime @updatedAt
+  updatedByName String?
+}
