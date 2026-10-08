@@ -1,4 +1,4 @@
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -16,6 +16,7 @@ import {
 } from "class-validator";
 import { EmploymentType, LeadStatus } from "@prisma/client";
 import { DateInput } from "../../common/date-input.decorator";
+import { normalisePhone } from "../../common/phone.util";
 
 const PHONE = /^[6-9]\d{9}$/;
 
@@ -25,6 +26,8 @@ export class PublicLeadDto {
   @Length(2, 120)
   name: string;
 
+  // Forms send it as typed ("+91 98765 43210"); it is stored, and matched against other leads, as 10 digits.
+  @Transform(({ value }) => normalisePhone(value) ?? value)
   @Matches(PHONE, { message: "phone must be a 10-digit Indian mobile number" })
   phone: string;
 
@@ -64,6 +67,15 @@ export class PublicLeadDto {
   @IsString()
   @Length(0, 4096)
   captchaToken?: string;
+
+  /** Tracking tags from the landing-page link (?utm_source=…); the channel is worked out from these. */
+  @IsOptional() @IsString() @Length(0, 120) utmSource?: string;
+  @IsOptional() @IsString() @Length(0, 120) utmMedium?: string;
+  @IsOptional() @IsString() @Length(0, 120) utmCampaign?: string;
+  @IsOptional() @IsString() @Length(0, 120) utmContent?: string;
+  @IsOptional() @IsString() @Length(0, 120) utmTerm?: string;
+  /** The page the visitor landed on — the path is kept, any query string is dropped. */
+  @IsOptional() @IsString() @Length(0, 300) landingPage?: string;
 }
 
 export class CreateLeadDto extends PublicLeadDto {
@@ -87,6 +99,10 @@ export class CreateLeadDto extends PublicLeadDto {
   @IsOptional() @IsNumber() @Min(0) monthlyIncome?: number;
   @IsOptional() @IsString() @Length(0, 40) meetingMode?: string;
   @IsOptional() @IsString() @Length(0, 200) meetingPlace?: string;
+
+  /** Staff can credit a lead to a channel directly (e.g. a hoarding, a society activation). */
+  @IsOptional() @IsString() @Length(0, 60) channel?: string;
+  @IsOptional() @IsString() @Length(0, 120) campaign?: string;
 }
 
 export class UpdateLeadDto {
@@ -107,6 +123,8 @@ export class UpdateLeadDto {
   @IsOptional() @IsNumber() @Min(0) monthlyIncome?: number;
   @IsOptional() @IsString() @Length(0, 40) meetingMode?: string;
   @IsOptional() @IsString() @Length(0, 200) meetingPlace?: string;
+  @IsOptional() @IsString() @Length(0, 60) channel?: string | null;
+  @IsOptional() @IsString() @Length(0, 120) campaign?: string | null;
 }
 
 export class ListLeadsQuery {
@@ -114,6 +132,8 @@ export class ListLeadsQuery {
   @IsOptional() @IsString() search?: string;
   @IsOptional() @IsString() assignedOfficerId?: string;
   @IsOptional() @IsString() source?: string;
+  /** A marketing channel, or "none" for leads whose origin wasn't tracked. */
+  @IsOptional() @IsString() channel?: string;
   @IsOptional() @IsBooleanString() dueOnly?: string;
   @IsOptional() @IsString() loanProductId?: string;
   /** "true" lists archived leads instead of the working set. */

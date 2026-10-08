@@ -17,6 +17,7 @@ import {
 } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
 import { LeadStatusBadge } from "../components/status-badge";
+import { ChannelInput, useChannels } from "../components/channel-field";
 import { Modal } from "../components/modal";
 import { LeadImportModal } from "../components/lead-import-modal";
 import { PeriodSelect } from "../components/period-select";
@@ -88,6 +89,8 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
             monthlyIncome: f.get("monthlyIncome") ? Number(f.get("monthlyIncome")) : undefined,
             meetingMode: f.get("meetingMode") || undefined,
             meetingPlace: f.get("meetingPlace") || undefined,
+            channel: f.get("channel") || undefined,
+            campaign: f.get("campaign") || undefined,
             nextFollowUpAt: f.get("nextFollowUpAt")
               ? new Date(f.get("nextFollowUpAt") as string).toISOString()
               : undefined,
@@ -227,6 +230,14 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
           </select>
         </label>
         <input name="meetingPlace" placeholder="Place of contact" className="field sm:col-span-2" />
+        <label className="text-[12px] font-semibold text-muted">
+          Where did this lead come from?
+          <ChannelInput name="channel" id="new-lead-channels" className="field mt-1 font-normal" />
+        </label>
+        <label className="text-[12px] font-semibold text-muted">
+          Campaign / activity (optional)
+          <input name="campaign" maxLength={120} placeholder="e.g. Andheri society drive" className="field mt-1 font-normal" />
+        </label>
         <textarea
           name="detail"
           placeholder="Notes (optional)"
@@ -251,6 +262,8 @@ export function LeadsPage() {
   const [status, setStatus] = useState("");
   const [dueOnly, setDueOnly] = useState(false);
   const [loanProductId, setLoanProductId] = useState("");
+  const [channel, setChannel] = useState("");
+  const channels = useChannels();
   const [timeRange, setTimeRange] = useState("all");
   const [page, setPage] = useState(1);
   const [showNewLead, setShowNewLead] = useState(false);
@@ -263,10 +276,10 @@ export function LeadsPage() {
   });
 
   const query = useQuery({
-    queryKey: ["leads", { search, status, dueOnly, loanProductId, timeRange, page, archived }],
+    queryKey: ["leads", { search, status, dueOnly, loanProductId, channel, timeRange, page, archived }],
     queryFn: () =>
       api<Paginated<Lead>>(
-        `/leads${qs({ search, status, loanProductId, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, page })}`,
+        `/leads${qs({ search, status, loanProductId, channel, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, page })}`,
       ),
   });
 
@@ -348,6 +361,16 @@ export function LeadsPage() {
             {products.data?.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
+              </option>
+            ))}
+          </select>
+
+          <select value={channel} onChange={(e) => reset(() => setChannel(e.target.value))} className="field w-48" aria-label="Channel">
+            <option value="">All channels</option>
+            <option value="none">Not tracked</option>
+            {(channels.data ?? []).map((c) => (
+              <option key={c} value={c}>
+                {c}
               </option>
             ))}
           </select>

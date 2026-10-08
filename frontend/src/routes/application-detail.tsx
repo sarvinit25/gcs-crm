@@ -345,6 +345,9 @@ export function ApplicationDetailPage() {
                     <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[12px] text-muted">
                       {a!.monthlyIncome && <span>Income {formatAmount(a!.monthlyIncome)}/mo</span>}
                       {a!.cibilScore && <span>CIBIL {a!.cibilScore}</span>}
+                      <Link to="/cibil" search={{ q: app.applicationNo } as never} className="font-semibold text-navy underline-offset-2 hover:underline">
+                        {a!.cibilScore ? "CIBIL details" : "Check CIBIL"}
+                      </Link>
                       {a!.employerName && <span>{a!.employerName}</span>}
                       {a!.employmentType && <span>{EMPLOYMENT_TYPE_LABEL[a!.employmentType]}</span>}
                       {a!.constitution && <span>{CONSTITUTION_LABEL[a!.constitution]}</span>}

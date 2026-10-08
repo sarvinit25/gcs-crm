@@ -1,5 +1,7 @@
+import { channelFromUtm, cleanLandingPage, cleanTag } from "../marketing/channel.util";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { AuditAction, LeadStatus, Prisma, Role } from "@prisma/client";
+import { AuditAction, AuditActorType, LeadStatus, Prisma, Role, SubmissionOutcome } from "@prisma/client";
+import { entryCount, isFuller, nameTokens, namesMatch, type Entry } from "./lead-dedupe";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { AuditService, diff } from "../audit/audit.service";
@@ -40,56 +42,136 @@ export class LeadsService {
     return product?.id;
   }
 
-  /** Intake from the public website, WhatsApp flow and AI telecaller. */
+  /** The tracking tags a lead arrived with, cleaned, plus the channel they point to. */
+  private attribution(dto: PublicLeadDto & { channel?: string; campaign?: string }) {
+    const utmSource = cleanTag(dto.utmSource);
+    const utmMedium = cleanTag(dto.utmMedium);
+    return {
+      utmSource,
+      utmMedium,
+      utmContent: cleanTag(dto.utmContent),
+      utmTerm: cleanTag(dto.utmTerm, 200),
+      landingPage: cleanLandingPage(dto.landingPage),
+      campaign: cleanTag(dto.campaign) ?? cleanTag(dto.utmCampaign),
+      // A channel chosen by staff wins; otherwise it is read from the tracking tags.
+      channel: cleanTag(dto.channel, 60) ?? channelFromUtm(utmSource, utmMedium) ?? undefined,
+    };
+  }
+
+  /**
+   * Intake from the public website, WhatsApp flow and AI telecaller. Every entry is logged
+   * as received; the same person filling a form twice still ends up as one lead:
+   *  - same phone + matching name as an open lead → merged into it (the fuller entry wins),
+   *  - same phone but a different name → its own lead, flagged as a shared phone.
+   * Closed leads (converted, lost, archived) never absorb a new entry: that is a new enquiry.
+   */
   async intake(dto: PublicLeadDto) {
-    const loanProductId = await this.resolveProductId(dto.productSlug);
-    const name = dto.name.trim();
-    const email = dto.email?.trim().toLowerCase();
-    const city = dto.city?.trim();
+    const product = dto.productSlug
+      ? await this.prisma.loanProduct.findUnique({ where: { slug: dto.productSlug }, select: { id: true, name: true } })
+      : null;
+    const incoming: Entry = {
+      name: dto.name.trim(),
+      phone: dto.phone,
+      email: dto.email?.trim().toLowerCase() || null,
+      city: dto.city?.trim() || null,
+      loanType: product?.name ?? null,
+      amount: dto.amount ?? null,
+      detail: dto.detail?.trim() || null,
+    };
+    const attribution = this.attribution({ ...dto, channel: undefined, campaign: undefined });
 
-    // The same person often fills several website forms (consultation, then a checklist
-    // download). Within 30 days that is one lead with a longer history, not a new row.
-    const existing = await this.prisma.lead.findFirst({
-      where: {
-        phone: dto.phone,
-        archivedAt: null,
-        createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-      },
-      orderBy: { createdAt: "desc" },
-      select: { id: true, leadNo: true, notes: true, email: true, city: true, loanProductId: true, amount: true },
-    });
+    return this.prisma.$transaction(async (tx) => {
+      // Two copies of one form arriving together must not both create a lead.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${dto.phone}))`;
 
-    if (existing) {
-      const stamp = new Date().toISOString().slice(0, 10);
-      const entry = `[${stamp}] Enquired again via ${dto.source}${dto.detail ? `: ${dto.detail}` : ""}`;
-      await this.prisma.lead.update({
-        where: { id: existing.id },
-        data: {
-          notes: existing.notes ? `${existing.notes}
-${entry}` : entry,
-          ...(!existing.email && email ? { email } : {}),
-          ...(!existing.city && city ? { city } : {}),
-          ...(!existing.loanProductId && loanProductId ? { loanProductId } : {}),
-          ...(!existing.amount && dto.amount ? { amount: dto.amount } : {}),
-        },
+      const open = await tx.lead.findMany({
+        where: { phone: dto.phone, archivedAt: null, status: { notIn: [LeadStatus.CONVERTED, LeadStatus.LOST] } },
+        include: { loanProduct: { select: { name: true } } },
+        orderBy: { createdAt: "asc" },
       });
-      return { id: existing.id, leadNo: existing.leadNo };
-    }
+      const same = open.find((l) => namesMatch(l.name, incoming.name));
 
-    const lead = await this.prisma.lead.create({
-      data: {
-        name,
-        phone: dto.phone,
-        email,
-        city,
-        source: dto.source,
-        loanProductId,
+      const log = (outcome: SubmissionOutcome, leadId: string, sharedPhone = false) =>
+        tx.websiteSubmission.create({
+          data: {
+            form: dto.source,
+            name: incoming.name,
+            phone: incoming.phone,
+            email: incoming.email,
+            city: incoming.city,
+            loanType: product?.name ?? null,
+            amount: dto.amount,
+            detail: incoming.detail,
+            landingPage: attribution.landingPage,
+            entries: entryCount(incoming),
+            outcome,
+            sharedPhone,
+            leadId,
+          },
+        });
+
+      if (!same) {
+        const lead = await tx.lead.create({
+          data: {
+            ...attribution,
+            name: incoming.name,
+            phone: dto.phone,
+            email: incoming.email,
+            city: incoming.city,
+            source: dto.source,
+            loanProductId: product?.id,
+            amount: dto.amount,
+            notes: incoming.detail,
+          },
+          select: { id: true, leadNo: true },
+        });
+        await log(SubmissionOutcome.NEW_LEAD, lead.id, open.length > 0);
+        return { id: lead.id, leadNo: lead.leadNo };
+      }
+
+      const stored: Entry = {
+        name: same.name,
+        phone: same.phone,
+        email: same.email,
+        city: same.city,
+        loanType: same.loanProduct?.name,
+        amount: same.amount?.toString(),
+        detail: same.notes,
+      };
+      if (!isFuller(incoming, stored)) {
+        await log(SubmissionOutcome.DUPLICATE_KEPT, same.id);
+        return { id: same.id, leadNo: same.leadNo };
+      }
+
+      // The fuller entry fills in or replaces what the lead holds. Anything it left blank, and everything
+      // staff own (status, owner, follow-ups), stays as it was.
+      const data = {
+        name: nameTokens(incoming.name).length >= nameTokens(same.name).length ? incoming.name : undefined,
+        email: incoming.email ?? undefined,
+        city: incoming.city ?? undefined,
+        loanProductId: product?.id,
         amount: dto.amount,
-        notes: dto.detail,
-      },
-      select: { id: true, leadNo: true },
+        notes:
+          incoming.detail && !same.notes?.includes(incoming.detail)
+            ? [same.notes, incoming.detail].filter(Boolean).join("\n— Sent again from the website: ")
+            : undefined,
+        utmSource: same.utmSource ?? attribution.utmSource,
+        utmMedium: same.utmMedium ?? attribution.utmMedium,
+        channel: same.channel ?? attribution.channel,
+        landingPage: same.landingPage ?? attribution.landingPage,
+      } satisfies Prisma.LeadUncheckedUpdateInput;
+      await tx.lead.update({ where: { id: same.id }, data });
+      await log(SubmissionOutcome.DUPLICATE_UPDATED, same.id);
+      await this.audit.recordUpdate({
+        actor: { name: "Website form" },
+        actorType: AuditActorType.CLIENT,
+        entity: "Lead",
+        entityId: same.id,
+        entityLabel: `${same.name} · sent the form again with more details`,
+        changes: diff({ ...same, loanProductId: same.loanProductId }, data),
+      });
+      return { id: same.id, leadNo: same.leadNo };
     });
-    return { id: lead.id, leadNo: lead.leadNo };
   }
 
   async create(dto: CreateLeadDto, user: AuthUser) {
@@ -103,6 +185,7 @@ ${entry}` : entry,
         loanProductId: await this.resolveProductId(dto.productSlug),
         amount: dto.amount,
         notes: dto.detail,
+        ...this.attribution(dto),
         sourcingPartnerId: dto.sourcingPartnerId,
         // An advisor creating a lead owns it unless someone else is named.
         assignedOfficerId:
@@ -132,6 +215,7 @@ ${entry}` : entry,
       ...(query.source && { source: query.source }),
       ...(query.assignedOfficerId && { assignedOfficerId: query.assignedOfficerId }),
       ...(query.loanProductId && { loanProductId: query.loanProductId }),
+      ...(query.channel && { channel: query.channel === "none" ? null : query.channel }),
       ...(rangeFilter(resolveRange(query)) && { createdAt: rangeFilter(resolveRange(query)) }),
       ...(query.dueOnly === "true" && { nextFollowUpAt: { lte: new Date() } }),
       ...(query.search && {
@@ -186,6 +270,9 @@ ${entry}` : entry,
     const before = await this.findOne(id, user);
 
     const data: Prisma.LeadUncheckedUpdateInput = { ...dto };
+    // Clearing a field in the form stores nothing, not an empty string.
+    if (dto.channel !== undefined) data.channel = dto.channel?.trim() || null;
+    if (dto.campaign !== undefined) data.campaign = dto.campaign?.trim() || null;
     if (dto.status === LeadStatus.LOST) {
       if (!(dto.lostReason?.trim() || before.lostReason)) {
         throw new BadRequestException("Say why this lead was lost");

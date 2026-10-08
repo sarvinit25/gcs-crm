@@ -73,6 +73,13 @@ export type Lead = {
   monthlyIncome: string | null;
   meetingMode: string | null;
   meetingPlace: string | null;
+  channel: string | null;
+  campaign: string | null;
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmContent: string | null;
+  utmTerm: string | null;
+  landingPage: string | null;
   createdAt: string;
   loanProduct: (Named & { slug: string }) | null;
   assignedOfficer: Named | null;

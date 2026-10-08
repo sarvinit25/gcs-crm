@@ -5,7 +5,9 @@ import clsx from "clsx";
 import { api } from "../lib/api";
 import { formatAmount, formatDate } from "../lib/format";
 import type { ApplicationDetail } from "../lib/types";
+import { rankContacts, type LenderContact } from "../lib/lender-contacts";
 import { Modal } from "./modal";
+import { ContactLinks } from "./lender-contacts";
 import { DatePicker } from "./date-picker";
 
 const DSA_CHANNELS = ["Direct", "Urban Money Pvt Ltd", "Other"];
@@ -19,6 +21,8 @@ const DSA_CHANNELS = ["Direct", "Urban Money Pvt Ltd", "Other"];
 export function LoginStatusPanel({ applicationId }: { applicationId: string }) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
+  const [bankerName, setBankerName] = useState("");
+  const [bankerMobile, setBankerMobile] = useState("");
 
   // Same query key as the parent application-detail query — reads from the
   // shared cache rather than firing a second request.
@@ -38,7 +42,16 @@ export function LoginStatusPanel({ applicationId }: { applicationId: string }) {
   });
 
   const app = query.data;
+
+  // The people we already know at the chosen bank, those who handle this loan type first.
+  const lenderId = app?.lender?.id;
+  const directory = useQuery({
+    queryKey: ["lender-contacts", { lenderId }],
+    queryFn: () => api<LenderContact[]>(`/lender-contacts?lenderId=${lenderId}`),
+    enabled: editing && Boolean(lenderId),
+  });
   if (!app) return null;
+  const ranked = rankContacts(directory.data ?? [], app.loanProduct?.name);
 
   const isLoggedIn = !!app.bankLoginAt;
 
@@ -55,7 +68,14 @@ export function LoginStatusPanel({ applicationId }: { applicationId: string }) {
           >
             {isLoggedIn ? "Login Done" : "Not Logged In"}
           </span>
-          <button onClick={() => setEditing(true)} className="btn-ghost">
+          <button
+            onClick={() => {
+              setBankerName(app.bankerName ?? "");
+              setBankerMobile(app.bankerMobile ?? "");
+              setEditing(true);
+            }}
+            className="btn-ghost"
+          >
             <Pencil className="h-4 w-4" /> Update
           </button>
         </div>
@@ -86,8 +106,9 @@ export function LoginStatusPanel({ applicationId }: { applicationId: string }) {
         </div>
         <div>
           <p className="text-[11px] font-bold tracking-wide text-muted uppercase">Banker</p>
-          <p className="mt-0.5 text-[13px] text-ink">
+          <p className="mt-0.5 flex items-center gap-1 text-[13px] text-ink">
             {[app.bankerName, app.bankerMobile].filter(Boolean).join(" · ") || "—"}
+            {app.bankerMobile && /^\d{10}$/.test(app.bankerMobile) && <ContactLinks phone={app.bankerMobile} email={null} />}
           </p>
         </div>
         <div>
@@ -126,10 +147,46 @@ export function LoginStatusPanel({ applicationId }: { applicationId: string }) {
               className="field"
             />
             <DatePicker name="bankLoginAt" defaultValue={app.bankLoginAt?.slice(0, 10) ?? ""} placeholder="Login date" />
-            <input name="bankerName" defaultValue={app.bankerName ?? ""} placeholder="Banker name" className="field" />
+            <div className="sm:col-span-2">
+              {app.lender ? (
+                ranked.length > 0 ? (
+                  <select
+                    className="field"
+                    aria-label={`Pick the banker from ${app.lender.name}'s contacts`}
+                    value=""
+                    onChange={(e) => {
+                      const c = ranked.find((r) => r.contact.id === e.target.value)?.contact;
+                      if (c) {
+                        setBankerName(c.name);
+                        setBankerMobile(c.phone ?? "");
+                      }
+                    }}
+                  >
+                    <option value="">Pick from {app.lender.name}'s contacts…</option>
+                    {ranked.map(({ contact: c, relevant }) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                        {c.phone ? ` · ${c.phone}` : ""}
+                        {c.segments.length ? ` — ${c.segments.join(", ")}` : ""}
+                        {relevant ? "  ★" : ""}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-[12px] text-muted">
+                    {directory.isPending ? "Looking up contacts…" : `No contacts saved for ${app.lender.name} yet — add them under Banks & NBFCs.`}
+                  </p>
+                )
+              ) : (
+                <p className="text-[12px] text-muted">Choose a lender on this application to pick the banker from your directory.</p>
+              )}
+              {ranked.some((r) => r.relevant) && <p className="mt-1 text-[11px] text-muted">★ handles {app.loanProduct?.name ?? "this loan type"}</p>}
+            </div>
+            <input name="bankerName" value={bankerName} onChange={(e) => setBankerName(e.target.value)} placeholder="Banker name" className="field" />
             <input
               name="bankerMobile"
-              defaultValue={app.bankerMobile ?? ""}
+              value={bankerMobile}
+              onChange={(e) => setBankerMobile(e.target.value)}
               placeholder="Banker mobile"
               className="field"
             />

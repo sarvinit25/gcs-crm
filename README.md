@@ -266,6 +266,70 @@ On any **draft** application, the *Customer application form* panel creates a li
   through that link, only Aadhaar's last 4 digits are asked for, and every action is in the audit trail as a
   *Client* action.
 
+## Lender contacts (bank & NBFC relationship managers)
+
+The client's "BL – List of Bank and RM Name" sheet is loaded as a directory of **55 people at 48 banks and NBFCs**,
+each filed under the loan types they handle (Business Loan, Small Business Loan, Overdraft, Machinery, Secured).
+
+- **Where:** Lender Directory (Settings → Banks & NBFCs for admins) has a *Contacts* count per lender and a **People**
+  view across all banks — search by name, number, email or bank, and filter by loan type. Call, WhatsApp and email are one tap.
+- **On a file:** when you update the bank login, *Pick from {bank}'s contacts* lists that bank's people with the ones who
+  handle this loan type first (★) and fills in the banker's name and number.
+- **Search:** the global search finds contacts by name, number (typed any way), email, bank or loan type.
+- **Who can edit:** everyone signed in can look people up; Super Admin and Admin add, edit and remove. Changes are audited.
+- **Data cleaning on import:** phone numbers reduced to 10 digits, emails lower-cased, people listed under several loan
+  types merged, one mistyped email domain fixed. Doubtful entries carry a note shown in amber until someone confirms them
+  (an email that doesn't match the person's name, a personal Gmail address, a missing number).
+- **New lenders:** 25 lenders on the sheet weren't in the CRM; they were added as *internal only* (not on the public
+  website) with a type inferred from their name — check them under Banks & NBFCs.
+- Loan types are a setting (*Lender contact segments*). The source data is `backend/prisma/lender-contacts-data.ts`;
+  `npm run seed` only ever *adds* missing contacts, so edits made in the CRM survive a re-seed.
+
+## Marketing: channels, spend and cost per lead
+
+Built from the agency's lead-generation plan (campaigns, qualified leads, cost per lead, conversion by channel).
+
+- **Every lead can carry a channel and campaign** (Google Search Ads, Meta Ads, WhatsApp, Hoardings, Society activation,
+  Roadshow, Referral, Walk-in … — the list is a setting, *Marketing channels*, and you can type a new one on the spot).
+  Staff set it on the New Lead form or on the lead; leads can be filtered by channel, or by "Not tracked".
+- **Website leads tag themselves.** The public intake accepts the tracking tags from a landing-page link and works the
+  channel out from them:
+  ```
+  POST /crm/api/public/leads
+  { name, phone, source, …, utmSource, utmMedium, utmCampaign, utmContent?, utmTerm?, landingPage? }
+  ```
+  e.g. `utmSource=google, utmMedium=cpc` → *Google Search Ads*. Only the path of `landingPage` is kept (no query string,
+  which can contain personal details). The open endpoint never accepts a channel directly, so it can't be spoofed.
+  The website's `submitLead()` needs to read `utm_*` from the URL and pass them along (website repo change).
+- **Reports:** the marketing report (cost per lead, per qualified lead and per disbursal, funnel, by channel / campaign /
+  landing page / month) and the spend log are available from the API (`/crm/api/marketing/performance`, `/marketing/spend`,
+  Super Admin and Admin only). The Marketing page that showed them has been taken off the menu for now.
+
+## CIBIL page (credit scores and checks)
+
+**CIBIL** in the menu lists every applicant on every open file with their score, the date of the report it came from and a
+colour band (Excellent 750+, Good 700–749, Fair 650–699, Low below 650). Staff see only applicants on their own files; admins see all.
+People with no score come first. Filter by band, "no score yet" or "out of date" (older than the re-check period), or search by
+name, phone or application number. *Check CIBIL* on any application's applicant opens the page already filtered to them.
+
+- **Record a score** from any report you already have (the lender's, the customer's own): score 300–900, the date on the
+  report, an optional reference. It goes onto the applicant's file; an *older* report never replaces a newer score, but is kept
+  in the history. Every entry is audited.
+- **Run a check** asks the bureau for the score. It needs the applicant's PAN, date of birth and mobile on file, a stated
+  *consent* (how they agreed — signed form, WhatsApp/email, recorded call, or ticked on the online form) and a tick that it is
+  on record. The consent wording and method are saved with the check. A recent check is reused rather than repeated
+  (default 30 days; only a Super Admin can override), since each pull is a paid bureau enquiry.
+- **History** shows every check on a person: who ran it, when, under what consent, and what came back. A failed pull is kept
+  too and never changes the score.
+- **A live bureau is not connected yet.** The setting *Credit-check provider* (Settings → Credit checks) is `none`, so the page
+  offers *Record score* only. `sandbox` switches on a **simulated** test provider so the flow can be shown and tested: its results
+  are made up from the PAN, are labelled *Simulated* everywhere, never change an applicant's score, and the server refuses to use
+  it in production.
+- **To connect a real bureau** (CIBIL directly, or an authorised aggregator) the firm needs the account details from the
+  provider — membership/client id, API credentials, and the provider's consent requirements. The code change is then one
+  class implementing `CreditBureauProvider` (`backend/src/credit/providers/`); the screens, consent capture, history, limits
+  and audit already work with it. Until then nothing can pull a real report.
+
 ## Security
 
 - Staff accounts made or reset by an admin must choose their own password before anything else works
@@ -291,6 +355,50 @@ On any **draft** application, the *Customer application form* panel creates a li
 - Known trade-off: sign-in tokens live in the browser's local storage (not a cookie). The CSP above is the main
   defence against stealing them; moving to HttpOnly cookies would also need CSRF protection.
 - Login and code entry are also rate-limited per IP; the API refuses to start in production with a weak secret or missing keys.
+
+## Website tab and duplicate entries
+
+The **Website** tab (Admin and Admin-level managers only) is the inbox of everything that reached
+`POST /public/leads`: one row per entry, with the form it came from, what was filled in, what happened
+to it, and the lead it belongs to. Filters: form, result, period, search, and "shared phones".
+
+Every entry is kept as received (`WebsiteSubmission`), but the same person never becomes two leads:
+
+- **Same person** = same phone number (typed any way: `+91 98765 43210`, `098765-43210`, `9876543210`)
+  **and** a matching name (case, word order and titles ignored; "Rahul" matches "Rahul Kumar Sharma").
+- A repeat of someone with an **open** lead is merged into it. The entry with more of the seven fields
+  (name, phone, email, city, loan type, amount, message) filled in wins and fills in or replaces the
+  lead's details; fields it left blank, and everything staff own (status, owner, follow-ups), stay.
+  On a tie the stored lead stays, because staff may already have corrected it.
+- **Same phone, different name** (family member, an agent filing for a client) is not a duplicate: it
+  becomes its own lead and is flagged "Shared phone".
+- Converted, lost or archived leads never absorb a new entry: that is a new enquiry.
+- Two copies arriving at the same instant still make one lead (a per-phone database lock).
+- A merge that changed a lead writes an audit row by "Website form"; a merge that changed nothing does not.
+
+The rules live in `backend/src/leads/lead-dedupe.ts`; the website has the same filter in
+`src/lib/lead-dedupe.ts` there. Phone numbers are normalised to 10 digits on the way in.
+
+## Website pop-up ad
+
+The **Website → Pop-up ad** tab (Admin and Manager) holds the offer poster the public site shows in a
+centred box over a blurred page, e.g. a Diwali discount.
+
+- Upload a PNG, JPG or WebP (up to 3 MB; checked from the file's real contents, not its name), name it,
+  choose the **first and last day** (India time, both whole days), and optionally a `https://` link the
+  poster opens when clicked. Pause/resume without losing the dates, edit them, or delete (the file goes too).
+- The website asks `GET /public/website-ad` for the ad running today. If two overlap, the one that started
+  last wins. Scheduled, ended and paused ads are never returned, and their pictures are not served publicly.
+- On the website (`src/components/promo-popup.tsx` there) it appears after **20 seconds of the tab actually
+  being looked at**, and again when the visitor **returns to the tab** after switching away. It closes with
+  the cross, Esc, a click outside, or by itself after **8 seconds** (a thin bar counts down). It never nags:
+  at most 3 times per browser session and not twice within 30 seconds. All of these numbers are in
+  `src/lib/promo-ad.ts` on the website.
+- To check a new poster, open any page of the site with `?promo=test`: it shows straight away and does not
+  use up the allowance.
+- The website calls the CRM from another origin, so its address must be in `CORS_ORIGIN` (see `.env.example`),
+  and `VITE_CRM_API_URL` on the website points at the CRM in development (`.env.development`); in production,
+  with both behind one domain, the default `/crm/api` is used.
 
 ## Tests
 

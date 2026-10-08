@@ -1,3 +1,4 @@
+import { LENDER_CONTACTS, NEW_LENDERS } from "./lender-contacts-data";
 import { ChecklistApplicantType, LenderType, PrismaClient, Role } from "@prisma/client";
 import { PRODUCT_CHECKLIST_ITEMS } from "./checklist-data";
 import * as bcrypt from "bcryptjs";
@@ -281,6 +282,29 @@ async function main() {
       create: { name, type, logoUrl, sortOrder: i },
     });
   }
+
+  // Lenders that only appear in the relationship-manager sheet: usable on files, but not shown on the public website.
+  for (const [i, l] of NEW_LENDERS.entries()) {
+    await prisma.lender.upsert({
+      where: { name: l.name },
+      update: {},
+      create: { name: l.name, type: l.type === "BANK" ? LenderType.BANK : LenderType.NBFC, isPublic: false, sortOrder: 100 + i },
+    });
+  }
+  // Contacts are only ever added here, never overwritten, so edits made in the CRM survive a re-seed.
+  let contactsAdded = 0;
+  for (const c of LENDER_CONTACTS) {
+    const lender = await prisma.lender.findUniqueOrThrow({ where: { name: c.lender } });
+    const exists = await prisma.lenderContact.findFirst({
+      where: { lenderId: lender.id, ...(c.phone ? { phone: c.phone } : { name: c.name }) },
+    });
+    if (exists) continue;
+    await prisma.lenderContact.create({
+      data: { lenderId: lender.id, name: c.name, designation: c.designation, phone: c.phone, email: c.email, segments: c.segments, notes: c.notes },
+    });
+    contactsAdded++;
+  }
+  console.log(`Lender directory: ${contactsAdded} new contact(s) added, ${LENDER_CONTACTS.length - contactsAdded} already present`);
 
   for (const [i, [title, productSlug, variant, fileUrl]] of CHECKLIST_DOCUMENTS.entries()) {
     await prisma.checklistDocument.upsert({
