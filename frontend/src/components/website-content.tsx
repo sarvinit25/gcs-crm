@@ -58,6 +58,8 @@ type Content = {
   bankRates?: BankRates;
   seo?: SeoMap;
   seoPages?: SeoPage[];
+  testimonials?: Testimonial[];
+  trustNumbers?: Figures;
 };
 type PageTextMap = Record<string, Record<string, string>>;
 type ImageMap = Record<string, string>;
@@ -73,10 +75,29 @@ type BankRates = { asOf: string; disclaimer: string; defaultEmiRate: number; row
 type SeoEntry = { title?: string; description?: string };
 type SeoMap = Record<string, SeoEntry>;
 type SeoPage = { path: string; label: string; title: string; description: string };
-type Section = "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type Testimonial = {
+  name: string;
+  city: string;
+  product: string;
+  rating: number;
+  quote: string;
+  visible: boolean;
+};
+type Figures = Record<string, string>;
+type Section = "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "testimonials",
+    label: "Client stories",
+    help: "The client quotes scrolling on the home page. Add, edit or hide them.",
+  },
+  {
+    id: "trustNumbers",
+    label: "Trust figures",
+    help: "Headline figures used across the site. Changing one updates it everywhere it appears (home, About, footer and more).",
+  },
   {
     id: "seo",
     label: "Search listings",
@@ -272,7 +293,10 @@ function Editor({ section, seoPages, initial, builtIn, busy, canReset, onSave, o
         Object.entries(draft as SeoMap).filter(([, e]) => e.title?.trim() || e.description?.trim()),
       );
     }
-    if (section === "caseStudies" || section === "bankRates") return draft;
+    if (section === "caseStudies" || section === "bankRates" || section === "testimonials") return draft;
+    if (section === "trustNumbers") {
+      return Object.fromEntries(Object.entries(draft as Figures).filter(([from, to]) => to.trim() && to !== from));
+    }
     const d = draft as Record<string, unknown>;
     const b = builtIn as Record<string, unknown>;
     return Object.fromEntries(Object.entries(d).filter(([k, v]) => !same(v, b[k])));
@@ -280,6 +304,10 @@ function Editor({ section, seoPages, initial, builtIn, busy, canReset, onSave, o
 
   return (
     <div>
+      {section === "testimonials" && (
+        <TestimonialsEditor value={draft as Testimonial[]} onChange={setDraft} />
+      )}
+      {section === "trustNumbers" && <FiguresEditor value={draft as Figures} onChange={setDraft} />}
       {section === "seo" && (
         <SeoEditor value={draft as SeoMap} pages={seoPages} onChange={setDraft} />
       )}
@@ -1053,6 +1081,109 @@ function SeoEditor({
           {entry.description || page?.description || "Built-in description"}
         </p>
       </div>
+    </div>
+  );
+}
+
+const FIGURES: { token: string; label: string }[] = [
+  { token: "75+", label: "Banks and NBFCs in our network" },
+  { token: "25+", label: "Loan products" },
+  { token: "2017", label: "Year established" },
+  { token: "100%", label: "Transparent process" },
+];
+
+function FiguresEditor({ value, onChange }: { value: Figures; onChange: (v: unknown) => void }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {FIGURES.map((f) => (
+        <label key={f.token} className="block">
+          <span className="text-[11px] font-bold tracking-wide text-muted uppercase">{f.label}</span>
+          <input
+            value={value[f.token] ?? f.token}
+            onChange={(e) => onChange({ ...value, [f.token]: e.target.value })}
+            className="field mt-1 w-full"
+          />
+          <span className="mt-0.5 block text-[11px] text-muted">Currently shown as {f.token} on the site</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function TestimonialsEditor({ value, onChange }: { value: Testimonial[]; onChange: (v: unknown) => void }) {
+  const [index, setIndex] = useState(0);
+  const t = value[index];
+  const patch = (next: Partial<Testimonial>) =>
+    onChange(value.map((x, i) => (i === index ? { ...x, ...next } : x)));
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <select value={index} onChange={(e) => setIndex(Number(e.target.value))} className="field max-w-md">
+          {value.map((s, i) => (
+            <option key={i} value={i}>
+              {s.visible === false ? "(hidden) " : ""}
+              {s.name || "New story"} — {s.product}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={() => {
+            onChange([...value, { name: "", city: "", product: "", rating: 5, quote: "", visible: true }]);
+            setIndex(value.length);
+          }}
+          className="btn-ghost"
+        >
+          <Plus className="h-4 w-4" /> Add story
+        </button>
+        {t && (
+          <button
+            onClick={() => {
+              if (window.confirm("Delete this story?")) {
+                onChange(value.filter((_, i) => i !== index));
+                setIndex(0);
+              }
+            }}
+            className="btn-ghost text-red-600"
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </button>
+        )}
+      </div>
+      {t && (
+        <>
+          <label className="flex items-center gap-2 text-[13px] font-semibold text-navy">
+            <input type="checkbox" checked={t.visible !== false} onChange={(e) => patch({ visible: e.target.checked })} />
+            Show on the website
+          </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Name</span>
+              <input value={t.name} onChange={(e) => patch({ name: e.target.value })} className="field mt-1 w-full" />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">City</span>
+              <input value={t.city} onChange={(e) => patch({ city: e.target.value })} className="field mt-1 w-full" />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Loan</span>
+              <input value={t.product} onChange={(e) => patch({ product: e.target.value })} className="field mt-1 w-full" />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Rating (1 to 5)</span>
+              <input
+                inputMode="decimal"
+                value={String(t.rating)}
+                onChange={(e) => patch({ rating: Math.min(5, Math.max(1, Number(e.target.value.replace(/[^\d.]/g, "")) || 5)) })}
+                className="field mt-1 w-full"
+              />
+            </label>
+          </div>
+          <label className="block">
+            <span className="text-[11px] font-bold tracking-wide text-muted uppercase">What they said</span>
+            <textarea value={t.quote} onChange={(e) => patch({ quote: e.target.value })} rows={3} className="field mt-1 w-full" />
+          </label>
+        </>
+      )}
     </div>
   );
 }

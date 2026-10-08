@@ -60,6 +60,16 @@ function assertSeo(value: unknown) {
   }
 }
 
+/** trustNumbers maps a figure on the site to the figure to show instead, e.g. "75+" -> "90+". */
+function assertFigures(value: unknown) {
+  if (Array.isArray(value)) throw new BadRequestException("Figures must be a list of replacements");
+  for (const [from, to] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof to !== "string" || from.length > 40 || to.length > 40) {
+      throw new BadRequestException("Each figure must be short text");
+    }
+  }
+}
+
 /** images maps a website picture path to a picture uploaded to the CRM. */
 function assertImages(value: unknown) {
   if (Array.isArray(value)) throw new BadRequestException("Images must be a list of replacements");
@@ -80,6 +90,7 @@ function validate(key: string, value: unknown) {
   if (key === "pageText" || LANGUAGE_KEY.test(key)) assertPageText(value);
   if (key === "images") assertImages(value);
   if (key === "seo") assertSeo(value);
+  if (key === "trustNumbers") assertFigures(value);
 }
 
 /** What the marketing website reads: every edited section, keyed by name. */
