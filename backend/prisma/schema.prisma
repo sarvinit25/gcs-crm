@@ -908,3 +908,23 @@ model WebsiteAd {
 
   @@index([startsAt, endsAt])
 }
+
+// ─── Downloadable checklist PDFs published on the website ───
+
+/** One checklist PDF the public website offers for download. Staff manage the list in Settings. */
+model ChecklistDocument {
+  id          String   @id @default(cuid())
+  title       String
+  // Website product/service slug this checklist belongs to, e.g. "home-loan".
+  productSlug String?
+  // Variant within a product, e.g. "Salaried", "NRI".
+  variant     String?
+  // Where the PDF is served from — a website path (/checklists/x.pdf) or a full URL.
+  fileUrl     String
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([productSlug])
+}

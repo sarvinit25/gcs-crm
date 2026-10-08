@@ -81,6 +81,15 @@ export const SETTINGS: SettingDef[] = [
     publicFacing: true,
   },
   {
+    key: "org.morePhones",
+    group: "Organisation",
+    label: "Additional phone numbers",
+    help: "One per line. Shown on the website next to the primary phone.",
+    type: "list",
+    default: [],
+    publicFacing: true,
+  },
+  {
     key: "org.email",
     group: "Organisation",
     label: "Primary email",
