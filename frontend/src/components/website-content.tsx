@@ -56,6 +56,8 @@ type Content = {
   pageText?: PageTextMap;
   images?: ImageMap;
   bankRates?: BankRates;
+  seo?: SeoMap;
+  seoPages?: SeoPage[];
 };
 type PageTextMap = Record<string, Record<string, string>>;
 type ImageMap = Record<string, string>;
@@ -68,10 +70,18 @@ type RateRow = {
   note?: string;
 };
 type BankRates = { asOf: string; disclaimer: string; defaultEmiRate: number; rows: RateRow[] };
-type Section = "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type SeoEntry = { title?: string; description?: string };
+type SeoMap = Record<string, SeoEntry>;
+type SeoPage = { path: string; label: string; title: string; description: string };
+type Section = "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "seo",
+    label: "Search listings",
+    help: "How each page appears in Google: the blue title and the grey description. Leave a page empty to keep its built-in wording.",
+  },
   {
     id: "bankRates",
     label: "Interest rates",
@@ -230,6 +240,7 @@ export function WebsiteContent() {
         section={section}
         initial={initial}
         builtIn={builtIn}
+        seoPages={defaults.data?.seoPages ?? []}
         busy={save.isPending || reset.isPending}
         canReset={!!row}
         onSave={(value) => save.mutate({ key: section, value })}
@@ -241,6 +252,7 @@ export function WebsiteContent() {
 
 type EditorProps = {
   section: Section;
+  seoPages: SeoPage[];
   initial: unknown;
   builtIn: unknown;
   busy: boolean;
@@ -249,12 +261,17 @@ type EditorProps = {
   onReset: () => void;
 };
 
-function Editor({ section, initial, builtIn, busy, canReset, onSave, onReset }: EditorProps) {
+function Editor({ section, seoPages, initial, builtIn, busy, canReset, onSave, onReset }: EditorProps) {
   const [draft, setDraft] = useState<unknown>(initial);
   const dirty = !same(draft, initial);
 
   // Only changed pages/products are stored, so untouched ones keep following the website's copy.
   const toSave = () => {
+    if (section === "seo") {
+      return Object.fromEntries(
+        Object.entries(draft as SeoMap).filter(([, e]) => e.title?.trim() || e.description?.trim()),
+      );
+    }
     if (section === "caseStudies" || section === "bankRates") return draft;
     const d = draft as Record<string, unknown>;
     const b = builtIn as Record<string, unknown>;
@@ -263,6 +280,9 @@ function Editor({ section, initial, builtIn, busy, canReset, onSave, onReset }: 
 
   return (
     <div>
+      {section === "seo" && (
+        <SeoEditor value={draft as SeoMap} pages={seoPages} onChange={setDraft} />
+      )}
       {section === "bankRates" && <RatesEditor value={draft as BankRates} onChange={setDraft} />}
       {section === "images" && <ImagesEditor value={draft as ImageMap} onChange={setDraft} />}
       {section === "pageText" && (
@@ -967,6 +987,72 @@ function RatesEditor({ value, onChange }: { value: BankRates; onChange: (v: unkn
       >
         <Plus className="h-4 w-4" /> Add a rate
       </button>
+    </div>
+  );
+}
+
+function SeoEditor({
+  value,
+  pages,
+  onChange,
+}: {
+  value: SeoMap;
+  pages: SeoPage[];
+  onChange: (v: unknown) => void;
+}) {
+  const [path, setPath] = useState(pages[0]?.path ?? "/");
+  const page = pages.find((p) => p.path === path);
+  const entry = value[path] ?? {};
+  const set = (next: SeoEntry) => onChange({ ...value, [path]: { ...entry, ...next } });
+  const counter = (text: string | undefined, good: number) => {
+    const n = (text ?? "").length;
+    return <span className={n > good ? "text-red-600" : "text-muted"}>{n}/{good} characters</span>;
+  };
+  return (
+    <div className="space-y-3">
+      <select value={path} onChange={(e) => setPath(e.target.value)} className="field max-w-xl">
+        {pages.map((p) => (
+          <option key={p.path} value={p.path}>
+            {value[p.path]?.title || value[p.path]?.description ? "● " : ""}
+            {p.label} ({p.path})
+          </option>
+        ))}
+      </select>
+      <label className="block">
+        <span className="text-[11px] font-bold tracking-wide text-muted uppercase">
+          Google title — about 60 characters
+        </span>
+        <input
+          value={entry.title ?? ""}
+          onChange={(e) => set({ title: e.target.value })}
+          placeholder={page?.title || "Built-in title"}
+          className="field mt-1 w-full"
+        />
+        <span className="text-[11px]">{counter(entry.title, 60)}</span>
+      </label>
+      <label className="block">
+        <span className="text-[11px] font-bold tracking-wide text-muted uppercase">
+          Google description — about 160 characters
+        </span>
+        <textarea
+          value={entry.description ?? ""}
+          onChange={(e) => set({ description: e.target.value })}
+          placeholder={page?.description || "Built-in description"}
+          rows={3}
+          className="field mt-1 w-full"
+        />
+        <span className="text-[11px]">{counter(entry.description, 160)}</span>
+      </label>
+      <div className="rounded-lg border border-line bg-white p-3">
+        <p className="text-[11px] tracking-wide text-muted uppercase">Preview</p>
+        <p className="mt-1 text-[18px] leading-tight text-[#1a0dab]">
+          {entry.title || page?.title || "Built-in title"}
+        </p>
+        <p className="text-[12px] text-[#006621]">growthcapitalservices.in{path === "/" ? "" : path}</p>
+        <p className="mt-0.5 text-[13px] text-[#545454]">
+          {entry.description || page?.description || "Built-in description"}
+        </p>
+      </div>
     </div>
   );
 }

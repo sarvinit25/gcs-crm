@@ -1697,5 +1697,463 @@
         "rateFrom": "2.70%"
       }
     ]
-  }
+  },
+  "seoPages": [
+    {
+      "path": "/",
+      "label": "Home",
+      "title": "Growth Capital Services | Loan Experts in Mumbai, Thane & Pune",
+      "description": "Tailored home, property, business and personal loan solutions from leading Banks and NBFCs. Trusted loan advisors since 2017 across Mumbai, Thane, Navi Mumbai and Pune."
+    },
+    {
+      "path": "/about",
+      "label": "About us",
+      "title": "About Growth Capital Services | Trusted Loan Advisors Since 2017",
+      "description": "Growth Capital Services, established in 2017, is a leading partnership firm offering custom-fit loan solutions from various Banks and NBFCs across Mumbai, Thane, Navi Mumbai and Pune."
+    },
+    {
+      "path": "/services",
+      "label": "Our services",
+      "title": "Loan Products & Services | Growth Capital Services",
+      "description": "Home Loan, Loan Against Property, Business & Working Capital, Personal, Car and Education Loans arranged across leading Banks and NBFCs."
+    },
+    {
+      "path": "/tools",
+      "label": "Calculators & tools",
+      "title": "Loan Calculators & Tools | Growth Capital Services",
+      "description": "Ten free calculators — EMI, eligibility, stamp duty, prepayment, balance transfer, loan comparison, working capital, CGTMSE fee, LAP eligibility and a credit score estimator."
+    },
+    {
+      "path": "/rates",
+      "label": "Interest rates",
+      "title": "Current Loan Interest Rates | Growth Capital Services",
+      "description": "Indicative interest rates and processing fees for home loans, loan against property, business loans, personal loans and more across banks and NBFCs."
+    },
+    {
+      "path": "/cibil",
+      "label": "CIBIL report",
+      "title": "Get Your CIBIL & Credit Report | Growth Capital Services",
+      "description": "Request your TransUnion CIBIL, Experian, Equifax or CRIF High Mark credit report through Growth Capital Services. Pick your bureau, pay by UPI QR, share your details, and we pull it for you."
+    },
+    {
+      "path": "/case-studies",
+      "label": "Case studies",
+      "title": "Case Studies | Growth Capital Services",
+      "description": "Real lending scenarios GCS has structured — home loans, LAP, business funding, personal loans and education loans — the challenge, how it was routed, and the outcome."
+    },
+    {
+      "path": "/ca-legal-services",
+      "label": "CA & legal services",
+      "title": "CA & Legal Services | Growth Capital Services",
+      "description": "Tax, GST, accounting and business registration through our associated CA Services team, and property, society, SRA/MHADA/MMRDA and legal documentation through Sheetal Associates."
+    },
+    {
+      "path": "/partner",
+      "label": "Partner with us",
+      "title": "Partner With Us | Growth Capital Services",
+      "description": "Refer loan clients to Growth Capital Services and earn on every disbursal. No investment, no license required — built for CAs, property consultants, brokers, insurance advisors and business consultants."
+    },
+    {
+      "path": "/contact",
+      "label": "Contact",
+      "title": "Contact & Free Loan Consultation | Growth Capital Services",
+      "description": "Call +91 88280 01700 or send a loan enquiry. Growth Capital Services, Ghatkopar West, Mumbai. Monday to Saturday, 10 AM to 6 PM."
+    },
+    {
+      "path": "/why-us",
+      "label": "Why us",
+      "title": "Why Choose Growth Capital Services | Loan Advisors Since 2017",
+      "description": "Trust, transparency, a paperless process and end-to-end support — how Growth Capital Services solves the real hurdles of borrowing."
+    },
+    {
+      "path": "/mumbai",
+      "label": "Mumbai",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/thane",
+      "label": "Thane",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/navi-mumbai",
+      "label": "Navi Mumbai",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/pune",
+      "label": "Pune",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/home-loan",
+      "label": "Loan: Home Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/loan-against-property",
+      "label": "Loan: Loan Against Property",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/lease-rental-discounting",
+      "label": "Loan: Lease Rental Discounting",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/balance-transfer",
+      "label": "Loan: Balance Transfer",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/dlod",
+      "label": "Loan: Drop-Line Overdraft (Secured)",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/business-loan",
+      "label": "Loan: Business Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/cgtmse",
+      "label": "Loan: CGTMSE Funding",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/unsecured-term-loan",
+      "label": "Loan: Unsecured Term Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/unsecured-dod",
+      "label": "Loan: Unsecured DOD",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/project-funding",
+      "label": "Loan: Project Funding",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/working-capital",
+      "label": "Loan: Working Capital",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/cash-credit",
+      "label": "Loan: Cash Credit",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/overdraft-limit",
+      "label": "Loan: Overdraft Limit",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/bank-guarantee",
+      "label": "Loan: Bank Guarantee",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/letter-of-credit",
+      "label": "Loan: Letter of Credit",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/working-capital-term-loan",
+      "label": "Loan: Working Capital Term Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/personal-loan",
+      "label": "Loan: Personal Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/loan-against-securities",
+      "label": "Loan: Loan Against Securities",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/loan-against-mutual-funds",
+      "label": "Loan: Loan Against Mutual Funds",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/professional-loan",
+      "label": "Loan: Professional Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/education-loan",
+      "label": "Loan: Education Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/new-car-loan",
+      "label": "Loan: New Car Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/used-car-loan",
+      "label": "Loan: Used Car Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/car-refinance",
+      "label": "Loan: Car Refinance",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/private-funding",
+      "label": "Loan: Private Funding",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/income-tax-return-filing",
+      "label": "CA & legal: Income Tax Return Filing",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/tax-planning-advisory",
+      "label": "CA & legal: Tax Planning & Advisory",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/tds-return-filing",
+      "label": "CA & legal: TDS Return Filing",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/tds-property-sale-26qb",
+      "label": "CA & legal: TDS on Property Sale — Form 26QB",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/gst-registration",
+      "label": "CA & legal: GST Registration",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/gst-return-filing",
+      "label": "CA & legal: GST Return Filing & Compliance",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/gst-reconciliation-notice-support",
+      "label": "CA & legal: GST Reconciliation & Notice Support",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/accounting-bookkeeping",
+      "label": "CA & legal: Accounting & Bookkeeping",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/tax-audit-support",
+      "label": "CA & legal: Tax Audit Support",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/company-llp-registration",
+      "label": "CA & legal: Company & LLP Registration",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/msme-udyam-registration",
+      "label": "CA & legal: MSME / Udyam Registration",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/shop-act-fssai-registration",
+      "label": "CA & legal: Shop Act (Gumasta) & FSSAI Registration",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/pan-tan-dsc-services",
+      "label": "CA & legal: PAN, TAN & DSC Services",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/property-title-verification",
+      "label": "CA & legal: Property Title Verification & Due Diligence",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/sale-agreement-sale-deed",
+      "label": "CA & legal: Sale Agreement & Sale Deed Drafting",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/gift-release-deed",
+      "label": "CA & legal: Gift Deed & Release Deed Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/power-of-attorney-drafting",
+      "label": "CA & legal: Power of Attorney Drafting",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/society-share-transfer",
+      "label": "CA & legal: Housing Society Share Transfer",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/society-noc-membership",
+      "label": "CA & legal: Society NOC & Membership Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/sra-flat-transfer",
+      "label": "CA & legal: SRA Flat Transfer Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/mhada-flat-transfer",
+      "label": "CA & legal: MHADA Flat Transfer Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/mmrda-property-documentation",
+      "label": "CA & legal: MMRDA Property Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/society-redevelopment-documentation",
+      "label": "CA & legal: Society Redevelopment Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/legal-drafting-agreements-affidavits",
+      "label": "CA & legal: Legal Drafting — Agreements, Affidavits & Notices",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/public-notice-publication",
+      "label": "CA & legal: Public Notice Publication",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/nri-property-documentation",
+      "label": "CA & legal: NRI Property Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/ca-legal-services/will-succession-documentation",
+      "label": "CA & legal: Will & Succession Documentation",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/home-loan-non-conventional-income",
+      "label": "Case study: ₹2.4 crore sanctioned — no salary slip, no problem",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/lap-balance-transfer-business-expansion",
+      "label": "Case study: ₹2.6 crore unlocked — one property, a lower rate, fresh capital to expand",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/home-loan-review-savings",
+      "label": "Case study: ₹4,200 shaved off every EMI — one question nobody had asked in 5 years",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/cgtmse-collateral-free-msme",
+      "label": "Case study: ₹62 lakh funded — zero collateral, one government guarantee",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/business-loan-banking-strength",
+      "label": "Case study: ₹55 lakh sanctioned — on banking strength, not the ITR",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/working-capital-seasonal-bridge",
+      "label": "Case study: ₹68 lakh working capital — released before the order was lost",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/personal-loan-fast-turnaround",
+      "label": "Case study: ₹24 lakh, disbursed in days — when a medical bill couldn't wait",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/education-loan-co-applicant",
+      "label": "Case study: ₹22 lakh for a degree abroad — one lender said no, structuring said yes",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/case-studies/new-car-loan-zero-down",
+      "label": "Case study: 100% on-road funding — a first car, zero down payment",
+      "title": "",
+      "description": ""
+    }
+  ]
 }

@@ -48,6 +48,18 @@ function assertPageText(value: unknown) {
   }
 }
 
+/** seo is { "<page path>": { title?, description? } }, plain text. */
+function assertSeo(value: unknown) {
+  const bad = () => new BadRequestException("Search listings must be a title and description per page");
+  if (Array.isArray(value)) throw bad();
+  for (const [path, entry] of Object.entries(value as Record<string, unknown>)) {
+    if (!path.startsWith("/") || path.length > 200 || !entry || typeof entry !== "object" || Array.isArray(entry)) throw bad();
+    for (const [field, text] of Object.entries(entry as Record<string, unknown>)) {
+      if ((field !== "title" && field !== "description") || typeof text !== "string" || text.length > 400) throw bad();
+    }
+  }
+}
+
 /** images maps a website picture path to a picture uploaded to the CRM. */
 function assertImages(value: unknown) {
   if (Array.isArray(value)) throw new BadRequestException("Images must be a list of replacements");
@@ -67,6 +79,7 @@ function validate(key: string, value: unknown) {
   }
   if (key === "pageText" || LANGUAGE_KEY.test(key)) assertPageText(value);
   if (key === "images") assertImages(value);
+  if (key === "seo") assertSeo(value);
 }
 
 /** What the marketing website reads: every edited section, keyed by name. */
