@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { History, Loader2, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import clsx from "clsx";
-import { api } from "../lib/api";
+import { api, tokenStore } from "../lib/api";
 
 type Faq = { q: string; a: string };
 type Fact = { label: string; value: string };
@@ -60,6 +60,7 @@ type Content = {
   seoPages?: SeoPage[];
   testimonials?: Testimonial[];
   trustNumbers?: Figures;
+  customPages?: CustomPage[];
 };
 type PageTextMap = Record<string, Record<string, string>>;
 type ImageMap = Record<string, string>;
@@ -84,10 +85,25 @@ type Testimonial = {
   visible: boolean;
 };
 type Figures = Record<string, string>;
-type Section = "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type CustomPage = {
+  slug: string;
+  title: string;
+  kind: "post" | "page";
+  summary?: string;
+  body: string;
+  date?: string;
+  image?: string;
+  published?: boolean;
+};
+type Section = "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "customPages",
+    label: "New pages & articles",
+    help: "Write a new article for the Insights page, or a stand-alone page (for example a new loan type or scheme). It appears at /p/<address>.",
+  },
   {
     id: "testimonials",
     label: "Client stories",
@@ -293,7 +309,9 @@ function Editor({ section, seoPages, initial, builtIn, busy, canReset, onSave, o
         Object.entries(draft as SeoMap).filter(([, e]) => e.title?.trim() || e.description?.trim()),
       );
     }
-    if (section === "caseStudies" || section === "bankRates" || section === "testimonials") return draft;
+    if (section === "caseStudies" || section === "bankRates" || section === "testimonials" || section === "customPages") {
+      return draft;
+    }
     if (section === "trustNumbers") {
       return Object.fromEntries(Object.entries(draft as Figures).filter(([from, to]) => to.trim() && to !== from));
     }
@@ -304,6 +322,9 @@ function Editor({ section, seoPages, initial, builtIn, busy, canReset, onSave, o
 
   return (
     <div>
+      {section === "customPages" && (
+        <PagesEditor value={draft as CustomPage[]} onChange={setDraft} />
+      )}
       {section === "testimonials" && (
         <TestimonialsEditor value={draft as Testimonial[]} onChange={setDraft} />
       )}
@@ -1181,6 +1202,194 @@ function TestimonialsEditor({ value, onChange }: { value: Testimonial[]; onChang
           <label className="block">
             <span className="text-[11px] font-bold tracking-wide text-muted uppercase">What they said</span>
             <textarea value={t.quote} onChange={(e) => patch({ quote: e.target.value })} rows={3} className="field mt-1 w-full" />
+          </label>
+        </>
+      )}
+    </div>
+  );
+}
+
+const pageSlug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+function PagesEditor({ value, onChange }: { value: CustomPage[]; onChange: (v: unknown) => void }) {
+  const [index, setIndex] = useState(0);
+  const [uploadError, setUploadError] = useState("");
+  const p = value[index];
+  const patch = (next: Partial<CustomPage>) =>
+    onChange(value.map((x, i) => (i === index ? { ...x, ...next } : x)));
+
+  const upload = async (file: File) => {
+    setUploadError("");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/crm/api/settings/site-images", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${tokenStore.get() ?? ""}` },
+        body,
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.message ?? "Upload failed");
+      const { path } = (await res.json()) as { path: string };
+      patch({ image: path });
+    } catch (e) {
+      setUploadError((e as Error).message);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {value.length > 0 && (
+          <select value={index} onChange={(e) => setIndex(Number(e.target.value))} className="field max-w-md">
+            {value.map((x, i) => (
+              <option key={i} value={i}>
+                {x.published === false ? "(draft) " : ""}
+                {x.kind === "post" ? "Article" : "Page"}: {x.title || "Untitled"}
+              </option>
+            ))}
+          </select>
+        )}
+        <button
+          onClick={() => {
+            onChange([
+              ...value,
+              {
+                slug: "",
+                title: "",
+                kind: "post",
+                summary: "",
+                body: "",
+                date: new Date().toISOString().slice(0, 10),
+                published: false,
+              },
+            ]);
+            setIndex(value.length);
+          }}
+          className="btn-ghost"
+        >
+          <Plus className="h-4 w-4" /> New article or page
+        </button>
+        {p && (
+          <button
+            onClick={() => {
+              if (window.confirm("Delete this page for good?")) {
+                onChange(value.filter((_, i) => i !== index));
+                setIndex(0);
+              }
+            }}
+            className="btn-ghost text-red-600"
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </button>
+        )}
+      </div>
+      {!p && (
+        <p className="rounded-lg bg-bg-light p-4 text-[13px] text-muted">
+          Nothing here yet. Press <strong>New article or page</strong> to write one.
+        </p>
+      )}
+      {p && (
+        <>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block sm:col-span-2">
+              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Title</span>
+              <input
+                value={p.title}
+                onChange={(e) => patch({ title: e.target.value })}
+                onBlur={() => !p.slug && p.title && patch({ slug: pageSlug(p.title) })}
+                className="field mt-1 w-full"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Type</span>
+              <select
+                value={p.kind}
+                onChange={(e) => patch({ kind: e.target.value as CustomPage["kind"] })}
+                className="field mt-1 w-full"
+              >
+                <option value="post">Article (listed on Insights, with a date)</option>
+                <option value="page">Stand-alone page</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">
+                Web address: /p/
+              </span>
+              <input
+                value={p.slug}
+                onChange={(e) => patch({ slug: pageSlug(e.target.value) })}
+                className="field mt-1 w-full"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Date</span>
+              <input
+                type="date"
+                value={p.date ?? ""}
+                onChange={(e) => patch({ date: e.target.value })}
+                className="field mt-1 w-full"
+              />
+            </label>
+            <label className="flex items-center gap-2 pt-5 text-[13px] font-semibold text-navy">
+              <input
+                type="checkbox"
+                checked={p.published !== false}
+                onChange={(e) => patch({ published: e.target.checked })}
+              />
+              Published (untick to keep as a draft)
+            </label>
+          </div>
+          <label className="block">
+            <span className="text-[11px] font-bold tracking-wide text-muted uppercase">
+              Short summary (shown in the list and on Google)
+            </span>
+            <textarea
+              value={p.summary ?? ""}
+              onChange={(e) => patch({ summary: e.target.value })}
+              rows={2}
+              className="field mt-1 w-full"
+            />
+          </label>
+          <div>
+            <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Cover picture</span>
+            <div className="mt-1 flex items-center gap-3">
+              {p.image && (
+                <img src={`/crm/api${p.image}`} alt="" className="h-16 w-24 rounded object-cover ring-1 ring-line" />
+              )}
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = "";
+                  if (f) void upload(f);
+                }}
+                className="text-[13px]"
+              />
+              {p.image && (
+                <button onClick={() => patch({ image: "" })} className="text-[12px] font-semibold text-muted hover:text-red-600">
+                  Remove
+                </button>
+              )}
+            </div>
+            {uploadError && <p className="mt-1 text-[12px] text-red-600">{uploadError}</p>}
+          </div>
+          <label className="block">
+            <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Body</span>
+            <textarea
+              value={p.body}
+              onChange={(e) => patch({ body: e.target.value })}
+              rows={14}
+              className="field mt-1 w-full font-mono text-[13px]"
+            />
+            <span className="mt-1 block text-[11px] text-muted">
+              Leave a blank line between paragraphs. Start a line with ## for a heading, or with - for a
+              bullet. **bold** and [link text](https://address) also work.
+            </span>
           </label>
         </>
       )}

@@ -60,6 +60,28 @@ function assertSeo(value: unknown) {
   }
 }
 
+/** customPages is a list of pages and articles; slugs must be unique, plain, and not clash with the site. */
+function assertPages(value: unknown) {
+  const bad = (m: string) => new BadRequestException(m);
+  if (!Array.isArray(value)) throw bad("Pages must be a list");
+  if (value.length > 200) throw bad("That is too many pages");
+  const seen = new Set<string>();
+  for (const raw of value as Record<string, unknown>[]) {
+    const slug = typeof raw?.slug === "string" ? raw.slug : "";
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || slug.length > 80) {
+      throw bad("A page address may only use lowercase letters, numbers and dashes");
+    }
+    if (seen.has(slug)) throw bad(`Two pages share the address "${slug}"`);
+    seen.add(slug);
+    if (typeof raw.title !== "string" || raw.title.length < 2 || raw.title.length > 200) throw bad("Every page needs a title");
+    if (raw.kind !== "post" && raw.kind !== "page") throw bad("A page must be an article or a page");
+    if (typeof raw.body !== "string" || raw.body.length > 30000) throw bad("A page body is too long");
+    if (raw.image !== undefined && raw.image !== "" && !/^\/public\/site-images\/[A-Za-z0-9]+$/.test(String(raw.image))) {
+      throw bad("A cover picture must be one uploaded through the CRM");
+    }
+  }
+}
+
 /** trustNumbers maps a figure on the site to the figure to show instead, e.g. "75+" -> "90+". */
 function assertFigures(value: unknown) {
   if (Array.isArray(value)) throw new BadRequestException("Figures must be a list of replacements");
@@ -84,6 +106,9 @@ function validate(key: string, value: unknown) {
   if (value === null || typeof value !== "object") {
     throw new BadRequestException("Content must be a list or an object");
   }
+  if (Array.isArray(value) && key !== "caseStudies" && key !== "testimonials" && key !== "customPages") {
+    throw new BadRequestException("This section must be an object");
+  }
   if (JSON.stringify(value).length > MAX_BYTES) {
     throw new BadRequestException("That is too much text for one section");
   }
@@ -91,6 +116,7 @@ function validate(key: string, value: unknown) {
   if (key === "images") assertImages(value);
   if (key === "seo") assertSeo(value);
   if (key === "trustNumbers") assertFigures(value);
+  if (key === "customPages") assertPages(value);
 }
 
 /** What the marketing website reads: every edited section, keyed by name. */
