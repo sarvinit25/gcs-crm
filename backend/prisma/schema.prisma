@@ -953,3 +953,13 @@ model SiteContentVersion {
 
   @@index([key, savedAt])
 }
+
+/** A picture staff uploaded to replace one on the public website. Small, so kept in the database. */
+model SiteImage {
+  id          String   @id @default(cuid())
+  name        String
+  mime        String
+  data        Bytes
+  createdAt   DateTime @default(now())
+  createdByName String?
+}

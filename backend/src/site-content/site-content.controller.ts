@@ -48,6 +48,16 @@ function assertPageText(value: unknown) {
   }
 }
 
+/** images maps a website picture path to a picture uploaded to the CRM. */
+function assertImages(value: unknown) {
+  if (Array.isArray(value)) throw new BadRequestException("Images must be a list of replacements");
+  for (const [from, to] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof to !== "string" || !/^\/public\/site-images\/[A-Za-z0-9]+$/.test(to) || from.length > 500) {
+      throw new BadRequestException("Each picture must be one uploaded through the CRM");
+    }
+  }
+}
+
 function validate(key: string, value: unknown) {
   if (value === null || typeof value !== "object") {
     throw new BadRequestException("Content must be a list or an object");
@@ -56,6 +66,7 @@ function validate(key: string, value: unknown) {
     throw new BadRequestException("That is too much text for one section");
   }
   if (key === "pageText" || LANGUAGE_KEY.test(key)) assertPageText(value);
+  if (key === "images") assertImages(value);
 }
 
 /** What the marketing website reads: every edited section, keyed by name. */

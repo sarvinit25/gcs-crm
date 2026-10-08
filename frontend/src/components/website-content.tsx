@@ -54,12 +54,19 @@ type Content = {
   services?: Record<string, ServiceText>;
   siteInfo?: SiteInfo;
   pageText?: PageTextMap;
+  images?: ImageMap;
 };
 type PageTextMap = Record<string, Record<string, string>>;
-type Section = "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type ImageMap = Record<string, string>;
+type Section = "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "images",
+    label: "Pictures",
+    help: "Pictures replaced straight on the website (Edit text mode, then click a picture). Undo one to bring back the original.",
+  },
   {
     id: "pageText",
     label: "Page wording",
@@ -241,6 +248,7 @@ function Editor({ section, initial, builtIn, busy, canReset, onSave, onReset }: 
 
   return (
     <div>
+      {section === "images" && <ImagesEditor value={draft as ImageMap} onChange={setDraft} />}
       {section === "pageText" && (
         <PageTextEditor value={draft as PageTextMap} onChange={setDraft} />
       )}
@@ -821,6 +829,42 @@ function HistoryPanel({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function ImagesEditor({ value, onChange }: { value: ImageMap; onChange: (v: unknown) => void }) {
+  const entries = Object.entries(value);
+  if (entries.length === 0) {
+    return (
+      <p className="rounded-lg bg-bg-light p-4 text-[13px] text-muted">
+        No pictures replaced yet. Sign in here as an admin, open the website page, press{" "}
+        <strong>Edit text</strong> (bottom-left), then click the picture you want to replace.
+      </p>
+    );
+  }
+  return (
+    <div className="space-y-2">
+      {entries.map(([original, path]) => (
+        <div key={original} className="flex items-center gap-3 rounded-lg border border-line p-3">
+          <img src={`/crm/api${path}`} alt="" className="h-16 w-24 rounded object-contain ring-1 ring-line" />
+          <div className="min-w-0 flex-1 text-[13px]">
+            <p className="font-semibold text-navy">Replaces</p>
+            <p className="truncate text-muted">{original}</p>
+          </div>
+          <button
+            onClick={() => {
+              const next = { ...value };
+              delete next[original];
+              onChange(next);
+            }}
+            className="rounded p-2 text-muted hover:bg-red-50 hover:text-red-600"
+            title="Bring back the original picture"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
