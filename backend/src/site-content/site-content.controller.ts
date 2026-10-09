@@ -20,6 +20,7 @@ export const SITE_CONTENT_KEYS = [
   "trustNumbers",
   "customPages",
   "images",
+  "lists",
 ] as const;
 /** Wording edited per language: pageText:hi, pageText:mr. */
 const LANGUAGE_KEY = /^pageText:(hi|mr)$/;
@@ -82,6 +83,22 @@ function assertPages(value: unknown) {
   }
 }
 
+/** lists maps a list name to its items: [{ field: text }], all plain text. */
+function assertLists(value: unknown) {
+  const bad = (m: string) => new BadRequestException(m);
+  if (Array.isArray(value)) throw bad("Lists must be grouped by list name");
+  for (const [name, items] of Object.entries(value as Record<string, unknown>)) {
+    if (!/^[a-z]+\.[a-z]+$/.test(name) || name.length > 60) throw bad("Unknown list name");
+    if (!Array.isArray(items) || items.length > 100) throw bad("A list can have up to 100 items");
+    for (const item of items) {
+      if (!item || typeof item !== "object" || Array.isArray(item)) throw bad("Every list item must be a set of fields");
+      for (const [field, text] of Object.entries(item as Record<string, unknown>)) {
+        if (field.length > 40 || typeof text !== "string" || text.length > 2000) throw bad("List fields must be short plain text");
+      }
+    }
+  }
+}
+
 /** trustNumbers maps a figure on the site to the figure to show instead, e.g. "75+" -> "90+". */
 function assertFigures(value: unknown) {
   if (Array.isArray(value)) throw new BadRequestException("Figures must be a list of replacements");
@@ -117,6 +134,7 @@ function validate(key: string, value: unknown) {
   if (key === "seo") assertSeo(value);
   if (key === "trustNumbers") assertFigures(value);
   if (key === "customPages") assertPages(value);
+  if (key === "lists") assertLists(value);
 }
 
 /** What the marketing website reads: every edited section, keyed by name. */
