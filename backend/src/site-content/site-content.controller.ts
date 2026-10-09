@@ -88,7 +88,7 @@ function assertLists(value: unknown) {
   const bad = (m: string) => new BadRequestException(m);
   if (Array.isArray(value)) throw bad("Lists must be grouped by list name");
   for (const [name, items] of Object.entries(value as Record<string, unknown>)) {
-    if (!/^[a-z]+\.[a-z]+$/.test(name) || name.length > 60) throw bad("Unknown list name");
+    if (!/^[a-zA-Z]+\.[a-zA-Z]+$/.test(name) || name.length > 60) throw bad("Unknown list name");
     if (!Array.isArray(items) || items.length > 100) throw bad("A list can have up to 100 items");
     for (const item of items) {
       if (!item || typeof item !== "object" || Array.isArray(item)) throw bad("Every list item must be a set of fields");
