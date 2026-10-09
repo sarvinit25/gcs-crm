@@ -49,11 +49,12 @@ Do these with the CRM API, CRM UI and website all running.
 6. **Interest rates.** Settings -> Website content -> Interest rates: add a row, set the EMI starting rate, save. See `/rates` and the EMI calculator on `/tools`.
 7. **Search listings.** Settings -> Website content -> Search listings: set a title for `/contact`; open the page and check the browser tab title and the page's `<meta name="description">`.
 8. **Client stories and figures.** Client stories: edit or hide one, then see the home page strip. Trust figures: change `75+` to another number and check Home and About.
-9. **New pages.** New pages & articles: create an article, tick Published, save. See it on `/insights` and at `/p/<address>`; an unticked draft does not show.
-10. **Hindi / Marathi.** Settings -> Website content -> Hindi: translations appear here. On the website with the token set, the language switcher (EN / हिं / मरा) is visible; choose हिं, press Edit text, click wording, type the Hindi, Save. Reload with `?lang=hi` to see it as a visitor.
-11. **Checklists.** Settings -> Website checklists lists the 58 PDFs. Deactivate one or change its file path and download it from the matching service page.
-12. **Email alerts.** Settings -> Alerts: add an address. Without SMTP configured nothing is sent. To try it locally run any local SMTP catcher (for example `npx maildev`, SMTP 1025), set `SMTP_HOST=localhost`, `SMTP_PORT=1025` in `backend/.env`, restart the API and submit an enquiry with an email: staff and customer emails arrive.
-13. **Rate-limit and Turnstile.** The lead endpoint allows 5 per minute per IP. Turnstile is only enforced when `TURNSTILE_SECRET` is set.
+9. **Page sections.** Settings -> Website content -> Page sections: pick Home -> Hero highlights, reword an item, add one with Add item, remove another, save, then reload the home page. Also try Home -> Who we help (a new item becomes a new tab) and Partner -> Benefits.
+10. **New pages.** New pages & articles: create an article, tick Published, save. See it on `/insights` and at `/p/<address>`; an unticked draft does not show.
+11. **Hindi / Marathi.** Settings -> Website content -> Hindi: translations appear here. On the website with the token set, the language switcher (EN / हिं / मरा) is visible; choose हिं, press Edit text, click wording, type the Hindi, Save. Reload with `?lang=hi` to see it as a visitor.
+12. **Checklists.** Settings -> Website checklists lists the 58 PDFs. Deactivate one or change its file path and download it from the matching service page.
+13. **Email alerts.** Settings -> Alerts: add an address. Without SMTP configured nothing is sent. To try it locally run any local SMTP catcher (for example `npx maildev`, SMTP 1025), set `SMTP_HOST=localhost`, `SMTP_PORT=1025` in `backend/.env`, restart the API and submit an enquiry with an email: staff and customer emails arrive.
+14. **Rate-limit and Turnstile.** The lead endpoint allows 5 per minute per IP. Turnstile is only enforced when `TURNSTILE_SECRET` is set.
 
 ## 4. Where to look when something is off
 

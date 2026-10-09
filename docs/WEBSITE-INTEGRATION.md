@@ -34,6 +34,7 @@ Public, read-only endpoints (no login):
 
 All under **Settings -> Website content** (admins only) unless stated. Each section has **History / undo** and **Reset to built-in**.
 
+- **Page sections:** the repeated blocks on Home, About, Why Us, Partner and Services (hero points, trust ticker, who we help, steps, figures, benefits, reasons, concerns). Reword, add, remove and reorder items; icons are picked from a fixed list.
 - Contact & CIBIL: phone, WhatsApp, email, address, hours, credit report price, UPI ID for the payment QR (the UPI ID is still empty — enter it here)
 - Page wording (edited directly on the live site) and Pictures (replaced directly on the live site)
 - Hindi and Marathi wording (translated directly on the live site)
@@ -54,6 +55,7 @@ All under **Settings -> Website content** (admins only) unless stated. Each sect
 - `src/lib/leads.ts`, `captcha.ts`, `lead-dedupe.ts` — sending enquiries
 - `src/lib/site-content.ts` — fetches `/public/site-content` once; hooks `useFaqs`, `useProduct`, `useCaseStudies`, `useProfessionalService(s)`, `useBankRates`, `useTestimonials`, `useCustomPages`, `useApplySiteInfo`
 - `src/lib/page-text.ts` — applies edited wording, translations, figures and replacement pictures to the page after it has hydrated (waits until the router is idle so React does not discard the page)
+- `src/data/page-lists.ts` — the built-in items of every editable block plus each block's field definition (`LIST_SPECS`); `src/lib/page-lists.ts` (`useList`); `src/lib/icon-map.ts` (icon names). To make another block editable, add its items and a spec there and call `useList` in the page. The CRM editor builds its forms from the exported specs.
 - `src/lib/seo.ts`, `src/lib/language.ts`, `src/lib/commission.ts`, `src/lib/checklist-documents.ts`, `src/lib/public-settings.ts`
 - `src/components/inline-editor.tsx` (admin Edit text), `language-switcher.tsx`, `rich-text.tsx`
 - New routes: `/rates`, `/insights`, `/p/$slug`
