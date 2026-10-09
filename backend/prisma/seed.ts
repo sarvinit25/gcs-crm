@@ -1,4 +1,5 @@
 import { LENDER_CONTACTS, NEW_LENDERS } from "./lender-contacts-data";
+import { CHECKLIST_DOCUMENTS } from "./checklist-documents.data";
 import { ChecklistApplicantType, LenderType, PrismaClient, Role } from "@prisma/client";
 import { PRODUCT_CHECKLIST_ITEMS } from "./checklist-data";
 import * as bcrypt from "bcryptjs";
@@ -171,68 +172,6 @@ const CHECKLIST_ITEMS: [ChecklistApplicantType | null, string | null, string, st
   [null, "lease-rental-discounting", "Property title papers and chain of agreements", "Property papers"],
 ];
 
-// Checklist PDFs the website offers for download (public/checklists on the website).
-// [title, website product slug, variant, file path]
-const CHECKLIST_DOCUMENTS: [title: string, productSlug: string, variant: string | null, fileUrl: string][] = [
-  ["Accounting Bookkeeping", "accounting-bookkeeping", null, "/checklists/accounting-bookkeeping-checklist.pdf"],
-  ["Balance Transfer", "balance-transfer", null, "/checklists/balance-transfer-checklist.pdf"],
-  ["Bank Guarantee", "bank-guarantee", null, "/checklists/bank-guarantee-checklist.pdf"],
-  ["Business Loan", "business-loan", null, "/checklists/business-loan-checklist.pdf"],
-  ["Car Loan", "car-loan", null, "/checklists/car-loan-checklist.pdf"],
-  ["Car Refinance", "car-refinance", null, "/checklists/car-refinance-checklist.pdf"],
-  ["Cash Credit", "cash-credit", null, "/checklists/cash-credit-checklist.pdf"],
-  ["CGTMSE", "cgtmse", null, "/checklists/cgtmse-checklist.pdf"],
-  ["Company Llp Registration", "company-llp-registration", null, "/checklists/company-llp-registration-checklist.pdf"],
-  ["DLOD", "dlod", null, "/checklists/dlod-checklist.pdf"],
-  ["Education Loan", "education-loan", null, "/checklists/education-loan-checklist.pdf"],
-  ["Gift Release Deed", "gift-release-deed", null, "/checklists/gift-release-deed-checklist.pdf"],
-  ["GST Reconciliation Notice Support", "gst-reconciliation-notice-support", null, "/checklists/gst-reconciliation-notice-support-checklist.pdf"],
-  ["GST Registration", "gst-registration", null, "/checklists/gst-registration-checklist.pdf"],
-  ["GST Return Filing", "gst-return-filing", null, "/checklists/gst-return-filing-checklist.pdf"],
-  ["Home Loan", "home-loan", null, "/checklists/home-loan-checklist.pdf"],
-  ["Home Loan NRI", "home-loan", "NRI", "/checklists/home-loan-nri-checklist.pdf"],
-  ["Home Loan Salaried", "home-loan", "Salaried", "/checklists/home-loan-salaried-checklist.pdf"],
-  ["Home Loan Self Employed", "home-loan", "Self-Employed", "/checklists/home-loan-self-employed-checklist.pdf"],
-  ["Income Tax Return Filing", "income-tax-return-filing", null, "/checklists/income-tax-return-filing-checklist.pdf"],
-  ["LAP DLOD", "lap-dlod", null, "/checklists/lap-dlod-checklist.pdf"],
-  ["Lease Rental Discounting", "lease-rental-discounting", null, "/checklists/lease-rental-discounting-checklist.pdf"],
-  ["Legal Drafting Agreements Affidavits", "legal-drafting-agreements-affidavits", null, "/checklists/legal-drafting-agreements-affidavits-checklist.pdf"],
-  ["Letter Of Credit", "letter-of-credit", null, "/checklists/letter-of-credit-checklist.pdf"],
-  ["Loan Against Mutual Funds", "loan-against-mutual-funds", null, "/checklists/loan-against-mutual-funds-checklist.pdf"],
-  ["Loan Against Property", "loan-against-property", null, "/checklists/loan-against-property-checklist.pdf"],
-  ["Loan Against Securities", "loan-against-securities", null, "/checklists/loan-against-securities-checklist.pdf"],
-  ["MHADA Flat Transfer", "mhada-flat-transfer", null, "/checklists/mhada-flat-transfer-checklist.pdf"],
-  ["MMRDA Property Documentation", "mmrda-property-documentation", null, "/checklists/mmrda-property-documentation-checklist.pdf"],
-  ["MSME UDYAM Registration", "msme-udyam-registration", null, "/checklists/msme-udyam-registration-checklist.pdf"],
-  ["New Car Loan", "new-car-loan", null, "/checklists/new-car-loan-checklist.pdf"],
-  ["NRI Property Documentation", "nri-property-documentation", null, "/checklists/nri-property-documentation-checklist.pdf"],
-  ["Overdraft Limit", "overdraft-limit", null, "/checklists/overdraft-limit-checklist.pdf"],
-  ["PAN TAN DSC Services", "pan-tan-dsc-services", null, "/checklists/pan-tan-dsc-services-checklist.pdf"],
-  ["Personal Loan", "personal-loan", null, "/checklists/personal-loan-checklist.pdf"],
-  ["Power Of Attorney Drafting", "power-of-attorney-drafting", null, "/checklists/power-of-attorney-drafting-checklist.pdf"],
-  ["Private Funding", "private-funding", null, "/checklists/private-funding-checklist.pdf"],
-  ["Professional Loan", "professional-loan", null, "/checklists/professional-loan-checklist.pdf"],
-  ["Project Funding", "project-funding", null, "/checklists/project-funding-checklist.pdf"],
-  ["Property Title Verification", "property-title-verification", null, "/checklists/property-title-verification-checklist.pdf"],
-  ["Public Notice Publication", "public-notice-publication", null, "/checklists/public-notice-publication-checklist.pdf"],
-  ["Sale Agreement Sale Deed", "sale-agreement-sale-deed", null, "/checklists/sale-agreement-sale-deed-checklist.pdf"],
-  ["Shop Act Fssai Registration", "shop-act-fssai-registration", null, "/checklists/shop-act-fssai-registration-checklist.pdf"],
-  ["Society Noc Membership", "society-noc-membership", null, "/checklists/society-noc-membership-checklist.pdf"],
-  ["Society Redevelopment Documentation", "society-redevelopment-documentation", null, "/checklists/society-redevelopment-documentation-checklist.pdf"],
-  ["Society Share Transfer", "society-share-transfer", null, "/checklists/society-share-transfer-checklist.pdf"],
-  ["SRA Flat Transfer", "sra-flat-transfer", null, "/checklists/sra-flat-transfer-checklist.pdf"],
-  ["Tax Audit Support", "tax-audit-support", null, "/checklists/tax-audit-support-checklist.pdf"],
-  ["Tax Planning Advisory", "tax-planning-advisory", null, "/checklists/tax-planning-advisory-checklist.pdf"],
-  ["TDS Property Sale 26qb", "tds-property-sale-26qb", null, "/checklists/tds-property-sale-26qb-checklist.pdf"],
-  ["TDS Return Filing", "tds-return-filing", null, "/checklists/tds-return-filing-checklist.pdf"],
-  ["Unsecured DOD", "unsecured-dod", null, "/checklists/unsecured-dod-checklist.pdf"],
-  ["Unsecured Term Loan", "unsecured-term-loan", null, "/checklists/unsecured-term-loan-checklist.pdf"],
-  ["Used Car Loan", "used-car-loan", null, "/checklists/used-car-loan-checklist.pdf"],
-  ["WCL CC OD LC BG", "wcl-cc-od-lc-bg", null, "/checklists/wcl-cc-od-lc-bg-checklist.pdf"],
-  ["Will Succession Documentation", "will-succession-documentation", null, "/checklists/will-succession-documentation-checklist.pdf"],
-  ["Working Capital", "working-capital", null, "/checklists/working-capital-checklist.pdf"],
-  ["Working Capital Term Loan", "working-capital-term-loan", null, "/checklists/working-capital-term-loan-checklist.pdf"],
-];
 
 async function main() {
   for (const [i, [slug, name, category]] of PRODUCTS.entries()) {
