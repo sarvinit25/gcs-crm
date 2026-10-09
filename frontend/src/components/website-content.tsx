@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { History, Loader2, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, History, Loader2, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import clsx from "clsx";
 import { api, tokenStore } from "../lib/api";
+import { SITE_ICONS } from "./site-icons";
 
 type Faq = { q: string; a: string };
 type Fact = { label: string; value: string };
@@ -61,6 +62,9 @@ type Content = {
   testimonials?: Testimonial[];
   trustNumbers?: Figures;
   customPages?: CustomPage[];
+  lists?: Lists;
+  listSpecs?: ListSpec[];
+  iconNames?: string[];
   "pageText:hi"?: PageTextMap;
   "pageText:mr"?: PageTextMap;
 };
@@ -97,7 +101,11 @@ type CustomPage = {
   image?: string;
   published?: boolean;
 };
-type Section = "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type ListField = { key: string; label: string; kind: "text" | "textarea" | "icon" };
+type ListSpec = { key: string; page: string; label: string; hint: string; fields: ListField[] };
+type ListItem = Record<string, string>;
+type Lists = Record<string, ListItem[]>;
+type Section = "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
@@ -145,6 +153,11 @@ const SECTIONS: { id: Section; label: string; help: string }[] = [
     id: "pageText",
     label: "Page wording",
     help: "Wording changed straight on the website (sign in here, open any page, press Edit text). Review or undo those changes here.",
+  },
+  {
+    id: "lists",
+    label: "Page sections",
+    help: "The repeated blocks on the Home, About, Why Us, Partner and Services pages: hero points, steps, benefits, reasons, figures and more. Reword, add, remove or reorder items.",
   },
   {
     id: "siteInfo",
@@ -290,6 +303,7 @@ export function WebsiteContent() {
         initial={initial}
         builtIn={builtIn}
         seoPages={defaults.data?.seoPages ?? []}
+        listSpecs={defaults.data?.listSpecs ?? []}
         busy={save.isPending || reset.isPending}
         canReset={!!row}
         onSave={(value) => save.mutate({ key: section, value })}
@@ -302,6 +316,7 @@ export function WebsiteContent() {
 type EditorProps = {
   section: Section;
   seoPages: SeoPage[];
+  listSpecs: ListSpec[];
   initial: unknown;
   builtIn: unknown;
   busy: boolean;
@@ -310,7 +325,7 @@ type EditorProps = {
   onReset: () => void;
 };
 
-function Editor({ section, seoPages, initial, builtIn, busy, canReset, onSave, onReset }: EditorProps) {
+function Editor({ section, seoPages, listSpecs, initial, builtIn, busy, canReset, onSave, onReset }: EditorProps) {
   const [draft, setDraft] = useState<unknown>(initial);
   const dirty = !same(draft, initial);
 
@@ -341,6 +356,9 @@ function Editor({ section, seoPages, initial, builtIn, busy, canReset, onSave, o
         <TestimonialsEditor value={draft as Testimonial[]} onChange={setDraft} />
       )}
       {section === "trustNumbers" && <FiguresEditor value={draft as Figures} onChange={setDraft} />}
+      {section === "lists" && (
+        <ListsEditor value={draft as Lists} specs={listSpecs} onChange={setDraft} />
+      )}
       {section === "seo" && (
         <SeoEditor value={draft as SeoMap} pages={seoPages} onChange={setDraft} />
       )}
@@ -1405,6 +1423,123 @@ function PagesEditor({ value, onChange }: { value: CustomPage[]; onChange: (v: u
           </label>
         </>
       )}
+    </div>
+  );
+}
+
+function IconPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const Icon = SITE_ICONS[value];
+  return (
+    <div className="flex items-center gap-2">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-bg-light text-navy ring-1 ring-line">
+        {Icon ? <Icon className="h-5 w-5" /> : <span className="text-[10px] text-muted">none</span>}
+      </span>
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="field flex-1">
+        {value && !SITE_ICONS[value] && <option value={value}>{value}</option>}
+        {Object.keys(SITE_ICONS).map((n) => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+/** Edits the repeated blocks on each page: fields come from the website's own definition of each list. */
+function ListsEditor({
+  value,
+  specs,
+  onChange,
+}: {
+  value: Lists;
+  specs: ListSpec[];
+  onChange: (v: unknown) => void;
+}) {
+  const pages = Array.from(new Set(specs.map((s) => s.page)));
+  const [page, setPage] = useState(pages[0] ?? "");
+  const pageSpecs = specs.filter((s) => s.page === page);
+  const [listKey, setListKey] = useState(pageSpecs[0]?.key ?? "");
+  const spec = specs.find((s) => s.key === listKey) ?? pageSpecs[0];
+  if (!spec) return <p className="text-sm text-muted">No page sections found.</p>;
+  const items = value[spec.key] ?? [];
+  const set = (next: ListItem[]) => onChange({ ...value, [spec.key]: next });
+  const patch = (i: number, key: string, text: string) =>
+    set(items.map((it, j) => (j === i ? { ...it, [key]: text } : it)));
+  const move = (i: number, by: number) => {
+    const j = i + by;
+    if (j < 0 || j >= items.length) return;
+    const next = [...items];
+    [next[i], next[j]] = [next[j]!, next[i]!];
+    set(next);
+  };
+  const blank = (): ListItem => {
+    const first = items[0] ?? {};
+    return Object.fromEntries(spec.fields.map((f) => [f.key, f.kind === "icon" ? (first[f.key] ?? "Sparkles") : ""]));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        <select
+          value={page}
+          onChange={(e) => {
+            setPage(e.target.value);
+            setListKey(specs.find((s) => s.page === e.target.value)?.key ?? "");
+          }}
+          className="field w-48"
+        >
+          {pages.map((p) => (
+            <option key={p}>{p}</option>
+          ))}
+        </select>
+        <select value={spec.key} onChange={(e) => setListKey(e.target.value)} className="field w-72">
+          {pageSpecs.map((s) => (
+            <option key={s.key} value={s.key}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <p className="text-[12px] text-muted">{spec.hint}</p>
+
+      <div className="space-y-3">
+        {items.map((item, i) => (
+          <div key={i} className="rounded-lg border border-line p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Item {i + 1}</span>
+              <span className="flex gap-1">
+                <button onClick={() => move(i, -1)} disabled={i === 0} className="rounded p-1.5 text-muted hover:bg-bg-light disabled:opacity-30" title="Move up">
+                  <ArrowUp className="h-4 w-4" />
+                </button>
+                <button onClick={() => move(i, 1)} disabled={i === items.length - 1} className="rounded p-1.5 text-muted hover:bg-bg-light disabled:opacity-30" title="Move down">
+                  <ArrowDown className="h-4 w-4" />
+                </button>
+                <button onClick={() => set(items.filter((_, j) => j !== i))} className="rounded p-1.5 text-muted hover:bg-red-50 hover:text-red-600" title="Remove">
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </span>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {spec.fields.map((f) => (
+                <label key={f.key} className={f.kind === "textarea" ? "block sm:col-span-2" : "block"}>
+                  <span className="text-[11px] font-bold tracking-wide text-muted uppercase">{f.label}</span>
+                  {f.kind === "icon" ? (
+                    <IconPicker value={item[f.key] ?? ""} onChange={(v) => patch(i, f.key, v)} />
+                  ) : f.kind === "textarea" ? (
+                    <textarea value={item[f.key] ?? ""} onChange={(e) => patch(i, f.key, e.target.value)} rows={2} className="field mt-1 w-full" />
+                  ) : (
+                    <input value={item[f.key] ?? ""} onChange={(e) => patch(i, f.key, e.target.value)} className="field mt-1 w-full" />
+                  )}
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <button onClick={() => set([...items, blank()])} className="btn-ghost">
+        <Plus className="h-4 w-4" /> Add item
+      </button>
     </div>
   );
 }
