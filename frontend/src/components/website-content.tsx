@@ -112,7 +112,7 @@ type CustomPage = {
 type ListField = {
   key: string;
   label: string;
-  kind: "text" | "textarea" | "icon" | "image" | "readonly";
+  kind: "text" | "textarea" | "icon" | "image" | "readonly" | "yesno";
 };
 type ListSpec = {
   key: string;
@@ -1564,6 +1564,15 @@ function ListsEditor({
                     <IconPicker value={item[f.key] ?? ""} onChange={(v) => patch(i, f.key, v)} />
                   ) : f.kind === "readonly" ? (
                     <p className="mt-1 rounded-md bg-bg-light px-3 py-2 text-[13px] font-semibold text-navy">{item[f.key] ?? ""}</p>
+                  ) : f.kind === "yesno" ? (
+                    <span className="mt-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
+                      <input
+                        type="checkbox"
+                        checked={item[f.key] === "yes"}
+                        onChange={(e) => patch(i, f.key, e.target.checked ? "yes" : "no")}
+                      />
+                      {item[f.key] === "yes" ? "Yes" : "No"}
+                    </span>
                   ) : f.kind === "image" ? (
                     <ImageField value={item[f.key] ?? ""} onChange={(v) => patch(i, f.key, v)} />
                   ) : f.kind === "textarea" ? (

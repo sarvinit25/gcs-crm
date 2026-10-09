@@ -3261,6 +3261,281 @@
         "label": "CGTMSE: starting fee rate, %",
         "value": "1"
       }
+    ],
+    "form.applicants": [
+      {
+        "label": "Salaried"
+      },
+      {
+        "label": "Self-Employed"
+      },
+      {
+        "label": "NRI"
+      }
+    ],
+    "products.visibility": [
+      {
+        "title": "Home Loan",
+        "slug": "home-loan",
+        "visible": "yes"
+      },
+      {
+        "title": "Loan Against Property",
+        "slug": "loan-against-property",
+        "visible": "yes"
+      },
+      {
+        "title": "Lease Rental Discounting",
+        "slug": "lease-rental-discounting",
+        "visible": "yes"
+      },
+      {
+        "title": "Balance Transfer",
+        "slug": "balance-transfer",
+        "visible": "yes"
+      },
+      {
+        "title": "Drop-Line Overdraft (Secured)",
+        "slug": "dlod",
+        "visible": "yes"
+      },
+      {
+        "title": "Business Loan",
+        "slug": "business-loan",
+        "visible": "yes"
+      },
+      {
+        "title": "CGTMSE Funding",
+        "slug": "cgtmse",
+        "visible": "yes"
+      },
+      {
+        "title": "Unsecured Term Loan",
+        "slug": "unsecured-term-loan",
+        "visible": "yes"
+      },
+      {
+        "title": "Unsecured DOD",
+        "slug": "unsecured-dod",
+        "visible": "yes"
+      },
+      {
+        "title": "Project Funding",
+        "slug": "project-funding",
+        "visible": "yes"
+      },
+      {
+        "title": "Working Capital",
+        "slug": "working-capital",
+        "visible": "yes"
+      },
+      {
+        "title": "Cash Credit",
+        "slug": "cash-credit",
+        "visible": "yes"
+      },
+      {
+        "title": "Overdraft Limit",
+        "slug": "overdraft-limit",
+        "visible": "yes"
+      },
+      {
+        "title": "Bank Guarantee",
+        "slug": "bank-guarantee",
+        "visible": "yes"
+      },
+      {
+        "title": "Letter of Credit",
+        "slug": "letter-of-credit",
+        "visible": "yes"
+      },
+      {
+        "title": "Working Capital Term Loan",
+        "slug": "working-capital-term-loan",
+        "visible": "yes"
+      },
+      {
+        "title": "Personal Loan",
+        "slug": "personal-loan",
+        "visible": "yes"
+      },
+      {
+        "title": "Loan Against Securities",
+        "slug": "loan-against-securities",
+        "visible": "yes"
+      },
+      {
+        "title": "Loan Against Mutual Funds",
+        "slug": "loan-against-mutual-funds",
+        "visible": "yes"
+      },
+      {
+        "title": "Professional Loan",
+        "slug": "professional-loan",
+        "visible": "yes"
+      },
+      {
+        "title": "Education Loan",
+        "slug": "education-loan",
+        "visible": "yes"
+      },
+      {
+        "title": "New Car Loan",
+        "slug": "new-car-loan",
+        "visible": "yes"
+      },
+      {
+        "title": "Used Car Loan",
+        "slug": "used-car-loan",
+        "visible": "yes"
+      },
+      {
+        "title": "Car Refinance",
+        "slug": "car-refinance",
+        "visible": "yes"
+      },
+      {
+        "title": "Private Funding",
+        "slug": "private-funding",
+        "visible": "yes"
+      }
+    ],
+    "intake.fields": [
+      {
+        "slug": "home-loan",
+        "label": "Loan Requirement",
+        "type": "select",
+        "options": "Home Loan, Balance Transfer, Top-Up, Other",
+        "placeholder": "",
+        "amount": "",
+        "key": "loanRequirement"
+      },
+      {
+        "slug": "home-loan",
+        "label": "Property Type",
+        "type": "select",
+        "options": "Builder Purchase, Resale",
+        "placeholder": "",
+        "amount": "",
+        "key": "propertyType"
+      },
+      {
+        "slug": "home-loan",
+        "label": "Possession Date",
+        "type": "date",
+        "options": "",
+        "placeholder": "",
+        "amount": "",
+        "key": "possessionDate"
+      },
+      {
+        "slug": "home-loan",
+        "label": "Loan Amount Required",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 50,00,000",
+        "amount": "yes",
+        "key": "loanAmount"
+      },
+      {
+        "slug": "education-loan",
+        "label": "Loan Amount Required",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 15,00,000",
+        "amount": "yes",
+        "key": "loanAmount"
+      },
+      {
+        "slug": "education-loan",
+        "label": "Course Name",
+        "type": "text",
+        "options": "",
+        "placeholder": "",
+        "amount": "",
+        "key": "courseName"
+      },
+      {
+        "slug": "education-loan",
+        "label": "Course Duration",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 2 years",
+        "amount": "",
+        "key": "courseDuration"
+      },
+      {
+        "slug": "education-loan",
+        "label": "Course Start Date",
+        "type": "date",
+        "options": "",
+        "placeholder": "",
+        "amount": "",
+        "key": "courseStartDate"
+      },
+      {
+        "slug": "education-loan",
+        "label": "University Name",
+        "type": "text",
+        "options": "",
+        "placeholder": "",
+        "amount": "",
+        "key": "universityName"
+      },
+      {
+        "slug": "education-loan",
+        "label": "Country",
+        "type": "text",
+        "options": "",
+        "placeholder": "",
+        "amount": "",
+        "key": "country"
+      },
+      {
+        "slug": "new-car-loan",
+        "label": "Purchase From",
+        "type": "select",
+        "options": "Dealer, Resale",
+        "placeholder": "",
+        "amount": "",
+        "key": "purchaseFrom"
+      },
+      {
+        "slug": "new-car-loan",
+        "label": "Loan Amount Required",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 8,00,000",
+        "amount": "yes",
+        "key": "loanAmount"
+      },
+      {
+        "slug": "used-car-loan",
+        "label": "Purchase From",
+        "type": "select",
+        "options": "Dealer, Resale",
+        "placeholder": "",
+        "amount": "",
+        "key": "purchaseFrom"
+      },
+      {
+        "slug": "used-car-loan",
+        "label": "Loan Amount Required",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 8,00,000",
+        "amount": "yes",
+        "key": "loanAmount"
+      },
+      {
+        "slug": "car-refinance",
+        "label": "Loan Amount Required",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 5,00,000",
+        "amount": "yes",
+        "key": "loanAmount"
+      }
     ]
   },
   "listSpecs": [
@@ -3736,8 +4011,8 @@
         },
         {
           "key": "small",
-          "label": "Small? type yes",
-          "kind": "text"
+          "label": "Small logo (very wide)",
+          "kind": "yesno"
         }
       ]
     },
@@ -3779,8 +4054,8 @@
         },
         {
           "key": "featured",
-          "label": "Most popular? type yes",
-          "kind": "text"
+          "label": "Most popular",
+          "kind": "yesno"
         }
       ]
     },
@@ -3909,8 +4184,8 @@
         },
         {
           "key": "hasOffice",
-          "label": "Office there? yes or no",
-          "kind": "text"
+          "label": "We have an office there",
+          "kind": "yesno"
         }
       ]
     },
@@ -3957,6 +4232,86 @@
         {
           "key": "value",
           "label": "Value",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "form.applicants",
+      "page": "Forms",
+      "label": "Enquiry form: applicant types",
+      "hint": "The 'applicant' choices in the enquiry form. (The checklist download keeps its own fixed Salaried / Self-Employed / NRI choices, which decide which PDF is served.)",
+      "fields": [
+        {
+          "key": "label",
+          "label": "Choice",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "products.visibility",
+      "page": "Services",
+      "label": "Show or hide loan products",
+      "hint": "Untick a loan to take it off the website: its page, menu entries and cards disappear. Tick it again to bring it back.",
+      "fixed": true,
+      "fields": [
+        {
+          "key": "title",
+          "label": "Loan",
+          "kind": "readonly"
+        },
+        {
+          "key": "slug",
+          "label": "Page",
+          "kind": "readonly"
+        },
+        {
+          "key": "visible",
+          "label": "Show on the website",
+          "kind": "yesno"
+        }
+      ]
+    },
+    {
+      "key": "intake.fields",
+      "page": "Forms",
+      "label": "Checklist download: extra questions",
+      "hint": "Extra questions asked before a checklist downloads. Put the loan's website slug in each row (e.g. education-loan). Type is text, select or date; for select, list the options separated by commas. Keep the id (key) of an existing question unchanged; leave it empty on new ones.",
+      "fields": [
+        {
+          "key": "slug",
+          "label": "Loan page slug",
+          "kind": "text"
+        },
+        {
+          "key": "label",
+          "label": "Question",
+          "kind": "text"
+        },
+        {
+          "key": "type",
+          "label": "Type: text, select or date",
+          "kind": "text"
+        },
+        {
+          "key": "options",
+          "label": "Options for select, separated by commas",
+          "kind": "text"
+        },
+        {
+          "key": "placeholder",
+          "label": "Example answer (text only)",
+          "kind": "text"
+        },
+        {
+          "key": "amount",
+          "label": "Format as a rupee amount",
+          "kind": "yesno"
+        },
+        {
+          "key": "key",
+          "label": "Id (leave empty on new)",
           "kind": "text"
         }
       ]
