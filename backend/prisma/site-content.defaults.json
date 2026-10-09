@@ -1599,7 +1599,14 @@
     "hours": "Monday to Saturday · 10:00 AM – 6:00 PM",
     "reportPrice": 500,
     "upiId": "",
-    "upiName": "Growth Capital Services"
+    "upiName": "Growth Capital Services",
+    "facebook": "",
+    "instagram": "",
+    "linkedin": "",
+    "youtube": "",
+    "x": "",
+    "googleAnalyticsId": "",
+    "metaPixelId": ""
   },
   "bankRates": {
     "asOf": "",
@@ -2222,6 +2229,35 @@
       "visible": true
     }
   ],
+  "customPages": [
+    {
+      "slug": "privacy-policy",
+      "title": "Privacy Policy",
+      "kind": "page",
+      "published": false,
+      "showInFooter": true,
+      "summary": "How Growth Capital Services collects, uses and protects your personal information.",
+      "body": "## Who we are\n\nGrowth Capital Services (\"we\", \"us\") is a loan advisory and facilitation firm. This policy explains what personal information we collect through this website, why, and the choices you have.\n\n## What we collect\n\n- Details you give us in forms: name, mobile number, email, city, the loan you need and the amount.\n- Details you share while we work on your enquiry, such as income, employment and property information, and identity and address documents.\n- Basic technical data when you visit: pages viewed, device and browser type, and the page you came from, collected through cookies and analytics tools.\n\n## How we use it\n\n- To contact you about your enquiry and assess which lenders may suit your profile.\n- To prepare and submit your loan application to banks and NBFCs you ask us to approach.\n- To send you updates about your file, and, where you agree, information about our services.\n- To keep our records, meet legal obligations and improve this website.\n\n## Who we share it with\n\nWe share your details with the banks, NBFCs and service providers (for example valuers, legal and technical agencies, and credit bureaus) needed to process your request, and only for that purpose. We do not sell your personal information.\n\n## Credit reports\n\nIf you ask us to fetch a credit report, we do so only with your consent and use it only to advise you on your request.\n\n## How long we keep it\n\nWe keep your information for as long as needed to serve you and to meet legal and record-keeping requirements, and then delete or anonymise it.\n\n## Security\n\nWe use reasonable technical and organisational safeguards to protect your information. No system is completely secure, so please share sensitive documents only through the channels we give you.\n\n## Your choices\n\nYou may ask to see, correct or delete the personal information we hold about you, or withdraw your consent to marketing, by contacting us below. We will respond within a reasonable time.\n\n## Cookies\n\nWe use cookies and similar tools to make the site work and to understand how it is used. You can control cookies in your browser settings.\n\n## Contact\n\nCCTV Towers, Andheri-Ghatkopar Rd, Bhatwadi, Kaju Pada, Barve Nagar, Ghatkopar West, Mumbai 400084. Email: growthcs17@gmail.com. Phone: +91 88280 01700."
+    },
+    {
+      "slug": "terms-and-conditions",
+      "title": "Terms & Conditions",
+      "kind": "page",
+      "published": false,
+      "showInFooter": true,
+      "summary": "The terms for using the Growth Capital Services website and our advisory services.",
+      "body": "## About these terms\n\nBy using this website or contacting Growth Capital Services you agree to these terms. If you do not agree, please do not use the site.\n\n## What we do\n\nWe are a loan advisory and facilitation firm. We help you compare options across banks and NBFCs and support you through documentation and processing. We are not a bank or lender, and we do not sanction or disburse loans ourselves.\n\n## No guarantee of approval\n\nWhether a loan is approved, and its amount, rate and terms, is decided by the lender alone. Information on this site, including interest rates, calculators and eligibility tools, is indicative and is not an offer or commitment.\n\n## Our fees\n\nWe do not charge customers an advisory fee for arranging a loan unless we tell you otherwise in writing before you proceed. We are paid by the lender on successful disbursal. Lenders may charge their own processing and other fees, which will be stated in their sanction documents.\n\n## Your responsibilities\n\n- Give us accurate and complete information and documents.\n- Tell us promptly if anything changes.\n- Do not misuse the site or attempt to disrupt it.\n\n## Third-party content and links\n\nLinks to other websites are for convenience. We are not responsible for their content or practices.\n\n## Limitation of liability\n\nTo the extent permitted by law, we are not liable for any indirect or consequential loss arising from use of this site or from a lender's decision.\n\n## Changes\n\nWe may update these terms from time to time. The version on this page applies from the date it is published.\n\n## Governing law\n\nThese terms are governed by the laws of India, and the courts at Mumbai have jurisdiction.\n\n## Contact\n\nCCTV Towers, Andheri-Ghatkopar Rd, Bhatwadi, Kaju Pada, Barve Nagar, Ghatkopar West, Mumbai 400084. Email: growthcs17@gmail.com. Phone: +91 88280 01700."
+    },
+    {
+      "slug": "disclaimer",
+      "title": "Disclaimer",
+      "kind": "page",
+      "published": false,
+      "showInFooter": true,
+      "summary": "Important information about the content on the Growth Capital Services website.",
+      "body": "## General\n\nThe information on this website is for general guidance only. It is not financial, legal, tax or investment advice, and you should consider your own circumstances before acting on it.\n\n## We are not a lender\n\nGrowth Capital Services is not a bank, NBFC or lender. We facilitate loan applications with banks and NBFCs. All loans are subject to the lender's own eligibility criteria, credit assessment, documentation and approval.\n\n## Rates, fees and calculators\n\nInterest rates, processing fees, eligibility estimates and calculator results shown here are indicative and may change without notice. The final terms are those in the lender's sanction letter.\n\n## Names and logos\n\nBank and lender names and logos appear only to indicate the institutions we work with. They remain the property of their owners, and their appearance does not imply endorsement.\n\n## Accuracy\n\nWe try to keep the information current and accurate but do not guarantee that it is complete or error-free.\n\n## Contact\n\nCCTV Towers, Andheri-Ghatkopar Rd, Bhatwadi, Kaju Pada, Barve Nagar, Ghatkopar West, Mumbai 400084. Email: growthcs17@gmail.com. Phone: +91 88280 01700."
+    }
+  ],
   "lists": {
     "home.hero": [
       {
@@ -2609,6 +2645,622 @@
         "question": "How is prompt disbursal ensured?",
         "answer": "A dedicated relationship manager tracks your file daily through login, sanction, legal, technical and disbursal stages."
       }
+    ],
+    "nav.header": [
+      {
+        "label": "Home",
+        "to": "/"
+      },
+      {
+        "label": "About Us",
+        "to": "/about"
+      },
+      {
+        "label": "Our Services",
+        "to": "/services"
+      },
+      {
+        "label": "Tools",
+        "to": "/tools"
+      },
+      {
+        "label": "CIBIL",
+        "to": "/cibil"
+      },
+      {
+        "label": "Case Studies",
+        "to": "/case-studies"
+      },
+      {
+        "label": "CA & Legal",
+        "to": "/ca-legal-services"
+      },
+      {
+        "label": "Become Partner",
+        "to": "/partner"
+      },
+      {
+        "label": "Contact Us",
+        "to": "/contact"
+      }
+    ],
+    "nav.tools": [
+      {
+        "label": "EMI Calculator",
+        "desc": "Estimate your monthly EMI",
+        "hash": "emi"
+      },
+      {
+        "label": "Eligibility Calculator",
+        "desc": "Find your max loan amount",
+        "hash": "eligibility"
+      },
+      {
+        "label": "Stamp Duty Calculator",
+        "desc": "State-wise registration costs",
+        "hash": "stamp-duty"
+      },
+      {
+        "label": "Prepayment Calculator",
+        "desc": "Tenure & interest you'll save",
+        "hash": "prepayment"
+      },
+      {
+        "label": "Balance Transfer Calculator",
+        "desc": "Is switching lenders worth it",
+        "hash": "balance-transfer"
+      },
+      {
+        "label": "Loan Comparison",
+        "desc": "Compare offers side by side",
+        "hash": "loan-comparison"
+      },
+      {
+        "label": "Working Capital Estimator",
+        "desc": "MSME limit, GCS exclusive",
+        "hash": "working-capital"
+      },
+      {
+        "label": "CGTMSE Guarantee Fee",
+        "desc": "Fee on a collateral-free loan",
+        "hash": "cgtmse"
+      },
+      {
+        "label": "Loan Against Property LTV",
+        "desc": "What your property can unlock",
+        "hash": "lap-ltv"
+      },
+      {
+        "label": "Credit Score Estimator",
+        "desc": "Indicative range, not a bureau pull",
+        "hash": "credit-score"
+      }
+    ],
+    "footer.explore": [
+      {
+        "label": "Home",
+        "to": "/"
+      },
+      {
+        "label": "About Us",
+        "to": "/about"
+      },
+      {
+        "label": "Our Services",
+        "to": "/services"
+      },
+      {
+        "label": "EMI Calculator",
+        "to": "/tools"
+      },
+      {
+        "label": "Interest Rates",
+        "to": "/rates"
+      },
+      {
+        "label": "Insights",
+        "to": "/insights"
+      },
+      {
+        "label": "CIBIL Report",
+        "to": "/cibil"
+      },
+      {
+        "label": "Case Studies",
+        "to": "/case-studies"
+      },
+      {
+        "label": "CA & Legal Services",
+        "to": "/ca-legal-services"
+      },
+      {
+        "label": "Become Partner",
+        "to": "/partner"
+      },
+      {
+        "label": "Contact Us",
+        "to": "/contact"
+      }
+    ],
+    "footer.products": [
+      {
+        "label": "Home Loan",
+        "to": "/services#home-loan"
+      },
+      {
+        "label": "Loan Against Property",
+        "to": "/services#loan-against-property"
+      },
+      {
+        "label": "Business Loan & Working Capital",
+        "to": "/services#business-loan"
+      },
+      {
+        "label": "Personal Loan",
+        "to": "/services#personal-loan"
+      },
+      {
+        "label": "Car Loan",
+        "to": "/services#car-loan"
+      },
+      {
+        "label": "Education Loan",
+        "to": "/services#education-loan"
+      },
+      {
+        "label": "Balance Transfer",
+        "to": "/services#balance-transfer"
+      },
+      {
+        "label": "Working Capital Loans",
+        "to": "/services#working-capital"
+      }
+    ],
+    "form.loanTypes": [
+      {
+        "title": "Home Loan",
+        "slug": "home-loan"
+      },
+      {
+        "title": "Loan Against Property",
+        "slug": "loan-against-property"
+      },
+      {
+        "title": "Business Loan & Working Capital",
+        "slug": "business-loan"
+      },
+      {
+        "title": "Personal Loan",
+        "slug": "personal-loan"
+      },
+      {
+        "title": "Car Loan",
+        "slug": "car-loan"
+      },
+      {
+        "title": "Education Loan",
+        "slug": "education-loan"
+      },
+      {
+        "title": "Balance Transfer",
+        "slug": "balance-transfer"
+      },
+      {
+        "title": "Working Capital Loans",
+        "slug": "working-capital"
+      },
+      {
+        "title": "Overdraft Facility",
+        "slug": "overdraft-facility"
+      },
+      {
+        "title": "Cash Credit",
+        "slug": "cash-credit"
+      }
+    ],
+    "form.cities": [
+      {
+        "city": "Mumbai"
+      },
+      {
+        "city": "Thane"
+      },
+      {
+        "city": "Navi Mumbai"
+      },
+      {
+        "city": "Pune"
+      }
+    ],
+    "home.banks": [
+      {
+        "name": "HDFC Bank",
+        "logo": "/banks/viva/hdfc.svg",
+        "small": ""
+      },
+      {
+        "name": "ICICI Bank",
+        "logo": "/banks/viva/icici.svg",
+        "small": ""
+      },
+      {
+        "name": "Axis Bank",
+        "logo": "/banks/viva/axis.svg",
+        "small": ""
+      },
+      {
+        "name": "Kotak Mahindra Bank",
+        "logo": "/banks/viva/kotak.svg",
+        "small": ""
+      },
+      {
+        "name": "Yes Bank",
+        "logo": "/banks/viva/yes.svg",
+        "small": ""
+      },
+      {
+        "name": "IDFC First Bank",
+        "logo": "/banks/idfc-first-bank.svg",
+        "small": ""
+      },
+      {
+        "name": "IndusInd Bank",
+        "logo": "/banks/indusind-bank-new.svg",
+        "small": "yes"
+      },
+      {
+        "name": "Standard Chartered",
+        "logo": "/banks/viva/standard-chartered.svg",
+        "small": ""
+      },
+      {
+        "name": "Tata Capital",
+        "logo": "/banks/viva/tata-capital.jpg",
+        "small": ""
+      },
+      {
+        "name": "Aditya Birla Capital",
+        "logo": "/banks/viva/aditya-birla.svg",
+        "small": ""
+      },
+      {
+        "name": "Godrej Capital",
+        "logo": "/banks/viva/godrej.png",
+        "small": ""
+      },
+      {
+        "name": "State Bank of India",
+        "logo": "/banks/sbi.svg",
+        "small": ""
+      },
+      {
+        "name": "Bajaj Finserv",
+        "logo": "/banks/bajaj-finserv.svg",
+        "small": ""
+      },
+      {
+        "name": "Bank of Baroda",
+        "logo": "/banks/bank-of-baroda.svg",
+        "small": ""
+      }
+    ],
+    "home.goals": [
+      {
+        "category": "Home & Property",
+        "icon": "Home",
+        "goal": "Buy or build your home",
+        "product": "Home Loan",
+        "slug": "home-loan",
+        "line": "Ready flat, under-construction, plot or self-build — we line up the lender most likely to say yes.",
+        "featured": "yes"
+      },
+      {
+        "category": "Home & Property",
+        "icon": "Building2",
+        "goal": "Unlock your property's value",
+        "product": "Loan Against Property",
+        "slug": "loan-against-property",
+        "line": "Raise serious funds and keep using the property.",
+        "featured": ""
+      },
+      {
+        "category": "Home & Property",
+        "icon": "TrendingDown",
+        "goal": "Shrink your EMI",
+        "product": "Balance Transfer",
+        "slug": "balance-transfer",
+        "line": "Move to a sharper rate, with a top-up if you need one.",
+        "featured": ""
+      },
+      {
+        "category": "Business & Cash Flow",
+        "icon": "Briefcase",
+        "goal": "Grow your business",
+        "product": "Business Loan",
+        "slug": "business-loan",
+        "line": "Stock, staff or a new branch — no collateral needed.",
+        "featured": ""
+      },
+      {
+        "category": "Business & Cash Flow",
+        "icon": "RefreshCw",
+        "goal": "Keep cash flowing",
+        "product": "Working Capital",
+        "slug": "working-capital",
+        "line": "Cash credit, overdraft and bill discounting sized to your business cycle.",
+        "featured": ""
+      },
+      {
+        "category": "Personal Goals",
+        "icon": "Wallet",
+        "goal": "Fund a personal plan",
+        "product": "Personal Loan",
+        "slug": "personal-loan",
+        "line": "Wedding, travel, medical or a makeover — sorted in days.",
+        "featured": ""
+      },
+      {
+        "category": "Personal Goals",
+        "icon": "Car",
+        "goal": "Drive home a new car",
+        "product": "Car Loan",
+        "slug": "new-car-loan",
+        "line": "Up to 100% on-road funding, new or pre-owned.",
+        "featured": ""
+      },
+      {
+        "category": "Personal Goals",
+        "icon": "GraduationCap",
+        "goal": "Study anywhere",
+        "product": "Education Loan",
+        "slug": "education-loan",
+        "line": "Tuition, stay and travel — with tax benefits on interest.",
+        "featured": ""
+      }
+    ],
+    "tools.cards": [
+      {
+        "id": "emi",
+        "label": "EMI Calculator",
+        "sub": "Estimate your monthly EMI"
+      },
+      {
+        "id": "eligibility",
+        "label": "Eligibility Calculator",
+        "sub": "Find your maximum loan amount"
+      },
+      {
+        "id": "stamp-duty",
+        "label": "Stamp Duty Calculator",
+        "sub": "State-wise registration costs"
+      },
+      {
+        "id": "prepayment",
+        "label": "Prepayment Calculator",
+        "sub": "Tenure & interest you'll save"
+      },
+      {
+        "id": "balance-transfer",
+        "label": "Balance Transfer Calculator",
+        "sub": "Is switching lenders worth it"
+      },
+      {
+        "id": "loan-comparison",
+        "label": "Loan Comparison",
+        "sub": "Compare offers side by side"
+      },
+      {
+        "id": "working-capital",
+        "label": "Working Capital Estimator",
+        "sub": "MSME limit — exclusive to GCS"
+      },
+      {
+        "id": "cgtmse",
+        "label": "CGTMSE Guarantee Fee",
+        "sub": "Fee on a collateral-free business loan"
+      },
+      {
+        "id": "lap-ltv",
+        "label": "Loan Against Property LTV",
+        "sub": "What your property can unlock"
+      },
+      {
+        "id": "credit-score",
+        "label": "Credit Score Estimator",
+        "sub": "Indicative range, not a bureau pull"
+      }
+    ],
+    "services.groups": [
+      {
+        "name": "Property Finance",
+        "heading": "Make your property work for you.",
+        "description": "Everything from a first home purchase to unlocking equity already sitting in a property you own."
+      },
+      {
+        "name": "Business Growth",
+        "heading": "Funding that keeps pace with your business.",
+        "description": "Whether it's working capital fast or collateral-free funding to scale, structured for businesses actually moving."
+      },
+      {
+        "name": "Cash Flow & Trade",
+        "heading": "Money moving, operations humming.",
+        "description": "The day-to-day financial plumbing — credit lines, guarantees and limits that keep operations from stalling."
+      },
+      {
+        "name": "Personal & Education",
+        "heading": "For life's big moments.",
+        "description": "For the moments that don't wait — a medical bill, a degree abroad, or funds against what you've already invested."
+      },
+      {
+        "name": "Vehicles & Special Cases",
+        "heading": "Wheels, bridges and urgent deadlines.",
+        "description": "A new car, a better rate on the one you're driving, or funding when a deadline won't wait."
+      }
+    ],
+    "cibil.bureaus": [
+      {
+        "id": "cibil",
+        "name": "TransUnion CIBIL",
+        "blurb": "The score most banks and NBFCs check first."
+      },
+      {
+        "id": "experian",
+        "name": "Experian",
+        "blurb": "Widely used by lenders and card issuers."
+      },
+      {
+        "id": "equifax",
+        "name": "Equifax",
+        "blurb": "Used by banks and housing-finance lenders."
+      },
+      {
+        "id": "crif",
+        "name": "CRIF High Mark",
+        "blurb": "Strong coverage of retail and microfinance borrowers."
+      }
+    ],
+    "cibil.lastPulled": [
+      {
+        "id": "never",
+        "label": "Never",
+        "hint": "I haven't taken a report from them"
+      },
+      {
+        "id": "over-12-months",
+        "label": "More than 12 months ago",
+        "hint": "It's been over a year"
+      },
+      {
+        "id": "within-12-months",
+        "label": "Within the last 12 months",
+        "hint": "I took one recently"
+      }
+    ],
+    "cities.pages": [
+      {
+        "slug": "mumbai",
+        "city": "Mumbai",
+        "intro": "Our advisory office sits on the Andheri-Ghatkopar Road in Ghatkopar West, in the middle of Mumbai's western suburbs. If you're anywhere from Andheri to Mulund, Bandra to Chembur, a senior advisor is a short trip away — or a phone call, if that's easier.",
+        "serviceNote": "Walk in by appointment for a face-to-face file review, or handle the entire process over phone, WhatsApp and email — most Mumbai clients do a mix of both.",
+        "hasOffice": "yes"
+      },
+      {
+        "slug": "thane",
+        "city": "Thane",
+        "intro": "We don't have a branch counter in Thane — most of our Thane clients never needed one. Your file moves through us digitally from wherever you are, with a senior advisor on call throughout.",
+        "serviceNote": "Documents collected digitally or by doorstep pickup, video or phone consultations with a senior advisor, and an in-person meeting at our Ghatkopar West office when a file genuinely needs it.",
+        "hasOffice": "no"
+      },
+      {
+        "slug": "navi-mumbai",
+        "city": "Navi Mumbai",
+        "intro": "From Vashi to Kharghar to Panvel, we handle Navi Mumbai files the same way we handle everything else — digitally, with a named advisor who stays on the case start to finish.",
+        "serviceNote": "Documents collected digitally or by doorstep pickup, video or phone consultations with a senior advisor, and an in-person meeting at our Ghatkopar West office when a file genuinely needs it.",
+        "hasOffice": "no"
+      },
+      {
+        "slug": "pune",
+        "city": "Pune",
+        "intro": "Pune is the farthest city we actively serve, and it works because almost nothing in the process needs you to be in the same room as us — documents, discussion and disbursal all move digitally.",
+        "serviceNote": "Documents collected digitally or by courier, video or phone consultations with a senior advisor, and an in-person meeting at our Ghatkopar West, Mumbai office for the rare file that needs it.",
+        "hasOffice": "no"
+      }
+    ],
+    "calc.stampDuty": [
+      {
+        "state": "Delhi",
+        "stampDuty": "6",
+        "stampDutyFemale": "4",
+        "registration": "1"
+      },
+      {
+        "state": "Maharashtra",
+        "stampDuty": "5",
+        "stampDutyFemale": "4",
+        "registration": "1"
+      },
+      {
+        "state": "Karnataka",
+        "stampDuty": "5",
+        "stampDutyFemale": "",
+        "registration": "1"
+      },
+      {
+        "state": "Tamil Nadu",
+        "stampDuty": "7",
+        "stampDutyFemale": "",
+        "registration": "1"
+      },
+      {
+        "state": "Uttar Pradesh",
+        "stampDuty": "7",
+        "stampDutyFemale": "",
+        "registration": "1"
+      },
+      {
+        "state": "Haryana",
+        "stampDuty": "6",
+        "stampDutyFemale": "4",
+        "registration": "1"
+      },
+      {
+        "state": "Gujarat",
+        "stampDuty": "4.9",
+        "stampDutyFemale": "",
+        "registration": "1"
+      },
+      {
+        "state": "Telangana",
+        "stampDuty": "5.5",
+        "stampDutyFemale": "",
+        "registration": "0.5"
+      },
+      {
+        "state": "West Bengal",
+        "stampDuty": "6",
+        "stampDutyFemale": "",
+        "registration": "1"
+      },
+      {
+        "state": "Rajasthan",
+        "stampDuty": "6",
+        "stampDutyFemale": "",
+        "registration": "1"
+      }
+    ],
+    "calc.assumptions": [
+      {
+        "label": "Eligibility: share of income that can go to EMIs (FOIR), %",
+        "value": "50"
+      },
+      {
+        "label": "Eligibility: starting interest rate, %",
+        "value": "9"
+      },
+      {
+        "label": "Working capital: gap as % of turnover",
+        "value": "25"
+      },
+      {
+        "label": "Working capital: margin money as % of turnover",
+        "value": "5"
+      },
+      {
+        "label": "Working capital: bank finance as % of turnover",
+        "value": "20"
+      },
+      {
+        "label": "Loan against property: starting LTV, %",
+        "value": "60"
+      },
+      {
+        "label": "CGTMSE: starting guarantee cover, %",
+        "value": "75"
+      },
+      {
+        "label": "CGTMSE: starting fee rate, %",
+        "value": "1"
+      }
     ]
   },
   "listSpecs": [
@@ -2957,9 +3609,361 @@
           "kind": "textarea"
         }
       ]
+    },
+    {
+      "key": "nav.header",
+      "page": "Menu & footer",
+      "label": "Top menu",
+      "hint": "The links in the top menu. Our Services and Tools keep their drop-down panels.",
+      "fields": [
+        {
+          "key": "label",
+          "label": "Name",
+          "kind": "text"
+        },
+        {
+          "key": "to",
+          "label": "Page address, e.g. /about",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "nav.tools",
+      "page": "Menu & footer",
+      "label": "Tools drop-down",
+      "hint": "The calculators listed under Tools.",
+      "fields": [
+        {
+          "key": "label",
+          "label": "Name",
+          "kind": "text"
+        },
+        {
+          "key": "desc",
+          "label": "Short line",
+          "kind": "text"
+        },
+        {
+          "key": "hash",
+          "label": "Calculator id",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "footer.explore",
+      "page": "Menu & footer",
+      "label": "Footer: Explore links",
+      "hint": "The Explore column in the footer.",
+      "fields": [
+        {
+          "key": "label",
+          "label": "Name",
+          "kind": "text"
+        },
+        {
+          "key": "to",
+          "label": "Page address, e.g. /about",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "footer.products",
+      "page": "Menu & footer",
+      "label": "Footer: Loan products",
+      "hint": "The Loan Products column in the footer.",
+      "fields": [
+        {
+          "key": "label",
+          "label": "Name",
+          "kind": "text"
+        },
+        {
+          "key": "to",
+          "label": "Page address, e.g. /services#home-loan",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "form.loanTypes",
+      "page": "Forms",
+      "label": "Enquiry form: loan types",
+      "hint": "The loan types in the enquiry form. The website slug (e.g. home-loan) files the enquiry under that loan in the CRM.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Name shown",
+          "kind": "text"
+        },
+        {
+          "key": "slug",
+          "label": "Website slug",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "form.cities",
+      "page": "Forms",
+      "label": "Cities we serve",
+      "hint": "Used in the enquiry form drop-down and the footer.",
+      "fields": [
+        {
+          "key": "city",
+          "label": "City",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "home.banks",
+      "page": "Home",
+      "label": "Bank and lender logos",
+      "hint": "The scrolling strip. Upload a logo (PNG, JPG or WebP); tick Small for very wide logos.",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Bank or lender",
+          "kind": "text"
+        },
+        {
+          "key": "logo",
+          "label": "Logo",
+          "kind": "image"
+        },
+        {
+          "key": "small",
+          "label": "Small? type yes",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "home.goals",
+      "page": "Home",
+      "label": "What are you planning? (goal cards)",
+      "hint": "Cards are grouped by the category name; the order here is the order shown.",
+      "fields": [
+        {
+          "key": "category",
+          "label": "Category",
+          "kind": "text"
+        },
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "goal",
+          "label": "Goal",
+          "kind": "text"
+        },
+        {
+          "key": "product",
+          "label": "Loan name",
+          "kind": "text"
+        },
+        {
+          "key": "slug",
+          "label": "Loan page slug",
+          "kind": "text"
+        },
+        {
+          "key": "line",
+          "label": "One-line description",
+          "kind": "textarea"
+        },
+        {
+          "key": "featured",
+          "label": "Most popular? type yes",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "tools.cards",
+      "page": "Tools",
+      "label": "Calculator cards",
+      "hint": "Reword or reorder the calculators. They cannot be added or removed here.",
+      "fixed": true,
+      "fields": [
+        {
+          "key": "id",
+          "label": "Calculator",
+          "kind": "readonly"
+        },
+        {
+          "key": "label",
+          "label": "Name",
+          "kind": "text"
+        },
+        {
+          "key": "sub",
+          "label": "Short line",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "services.groups",
+      "page": "Services",
+      "label": "Loan groups",
+      "hint": "The heading and description above each group of loans.",
+      "fixed": true,
+      "fields": [
+        {
+          "key": "name",
+          "label": "Group",
+          "kind": "readonly"
+        },
+        {
+          "key": "heading",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "cibil.bureaus",
+      "page": "CIBIL",
+      "label": "Credit bureaus",
+      "hint": "Names and one-line descriptions on the CIBIL page.",
+      "fixed": true,
+      "fields": [
+        {
+          "key": "id",
+          "label": "Bureau",
+          "kind": "readonly"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "kind": "text"
+        },
+        {
+          "key": "blurb",
+          "label": "Description",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "cibil.lastPulled",
+      "page": "CIBIL",
+      "label": "'When did you last take a report?' options",
+      "hint": "The wording of the three choices.",
+      "fixed": true,
+      "fields": [
+        {
+          "key": "id",
+          "label": "Option",
+          "kind": "readonly"
+        },
+        {
+          "key": "label",
+          "label": "Choice",
+          "kind": "text"
+        },
+        {
+          "key": "hint",
+          "label": "Helper text",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "cities.pages",
+      "page": "City pages",
+      "label": "City pages",
+      "hint": "Intro and service note for Mumbai, Thane, Navi Mumbai and Pune. Type yes or no for whether we have an office there.",
+      "fixed": true,
+      "fields": [
+        {
+          "key": "slug",
+          "label": "Page",
+          "kind": "readonly"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "kind": "text"
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "kind": "textarea"
+        },
+        {
+          "key": "serviceNote",
+          "label": "Service note",
+          "kind": "textarea"
+        },
+        {
+          "key": "hasOffice",
+          "label": "Office there? yes or no",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "calc.stampDuty",
+      "page": "Calculators",
+      "label": "Stamp duty by state",
+      "hint": "Percentages. Leave the women's rate empty if there is none.",
+      "fields": [
+        {
+          "key": "state",
+          "label": "State",
+          "kind": "text"
+        },
+        {
+          "key": "stampDuty",
+          "label": "Stamp duty %",
+          "kind": "text"
+        },
+        {
+          "key": "stampDutyFemale",
+          "label": "Women's stamp duty %",
+          "kind": "text"
+        },
+        {
+          "key": "registration",
+          "label": "Registration %",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "calc.assumptions",
+      "page": "Calculators",
+      "label": "Calculator assumptions",
+      "hint": "Numbers the calculators start from or assume.",
+      "fixed": true,
+      "fields": [
+        {
+          "key": "label",
+          "label": "Setting",
+          "kind": "readonly"
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "kind": "text"
+        }
+      ]
     }
   ],
   "iconNames": [
+    "RefreshCw",
     "Award",
     "BadgeCheck",
     "Banknote",

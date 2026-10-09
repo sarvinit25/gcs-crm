@@ -47,6 +47,13 @@ type SiteInfo = {
   reportPrice: number;
   upiId: string;
   upiName: string;
+  facebook?: string;
+  instagram?: string;
+  linkedin?: string;
+  youtube?: string;
+  x?: string;
+  googleAnalyticsId?: string;
+  metaPixelId?: string;
 };
 type Content = {
   faqs?: Record<string, Faq[]>;
@@ -100,9 +107,21 @@ type CustomPage = {
   date?: string;
   image?: string;
   published?: boolean;
+  showInFooter?: boolean;
 };
-type ListField = { key: string; label: string; kind: "text" | "textarea" | "icon" };
-type ListSpec = { key: string; page: string; label: string; hint: string; fields: ListField[] };
+type ListField = {
+  key: string;
+  label: string;
+  kind: "text" | "textarea" | "icon" | "image" | "readonly";
+};
+type ListSpec = {
+  key: string;
+  page: string;
+  label: string;
+  hint: string;
+  fields: ListField[];
+  fixed?: boolean;
+};
 type ListItem = Record<string, string>;
 type Lists = Record<string, ListItem[]>;
 type Section = "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
@@ -750,6 +769,13 @@ const INFO_FIELDS: { key: keyof SiteInfo; label: string; hint?: string }[] = [
   { key: "reportPrice", label: "Credit report price (₹)", hint: "One flat price for every bureau" },
   { key: "upiId", label: "UPI ID for the payment QR", hint: "e.g. growthcapital@okhdfcbank — leave empty until you have it" },
   { key: "upiName", label: "Name shown on the UPI payment" },
+  { key: "facebook", label: "Facebook page link", hint: "Full address, starting with https://. Leave empty to hide the icon." },
+  { key: "instagram", label: "Instagram link" },
+  { key: "linkedin", label: "LinkedIn link" },
+  { key: "youtube", label: "YouTube link" },
+  { key: "x", label: "X (Twitter) link" },
+  { key: "googleAnalyticsId", label: "Google Analytics ID", hint: "Looks like G-XXXXXXXXXX. Tracking starts as soon as you save." },
+  { key: "metaPixelId", label: "Meta (Facebook) Pixel ID", hint: "Digits only. Tracking starts as soon as you save." },
 ];
 
 function SiteInfoEditor({ value, onChange }: { value: SiteInfo; onChange: (v: unknown) => void }) {
@@ -1372,6 +1398,14 @@ function PagesEditor({ value, onChange }: { value: CustomPage[]; onChange: (v: u
               />
               Published (untick to keep as a draft)
             </label>
+            <label className="flex items-center gap-2 text-[13px] font-semibold text-navy">
+              <input
+                type="checkbox"
+                checked={p.showInFooter === true}
+                onChange={(e) => patch({ showInFooter: e.target.checked })}
+              />
+              Link from the website footer
+            </label>
           </div>
           <label className="block">
             <span className="text-[11px] font-bold tracking-wide text-muted uppercase">
@@ -1515,9 +1549,11 @@ function ListsEditor({
                 <button onClick={() => move(i, 1)} disabled={i === items.length - 1} className="rounded p-1.5 text-muted hover:bg-bg-light disabled:opacity-30" title="Move down">
                   <ArrowDown className="h-4 w-4" />
                 </button>
-                <button onClick={() => set(items.filter((_, j) => j !== i))} className="rounded p-1.5 text-muted hover:bg-red-50 hover:text-red-600" title="Remove">
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                {!spec.fixed && (
+                  <button onClick={() => set(items.filter((_, j) => j !== i))} className="rounded p-1.5 text-muted hover:bg-red-50 hover:text-red-600" title="Remove">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
               </span>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -1526,6 +1562,10 @@ function ListsEditor({
                   <span className="text-[11px] font-bold tracking-wide text-muted uppercase">{f.label}</span>
                   {f.kind === "icon" ? (
                     <IconPicker value={item[f.key] ?? ""} onChange={(v) => patch(i, f.key, v)} />
+                  ) : f.kind === "readonly" ? (
+                    <p className="mt-1 rounded-md bg-bg-light px-3 py-2 text-[13px] font-semibold text-navy">{item[f.key] ?? ""}</p>
+                  ) : f.kind === "image" ? (
+                    <ImageField value={item[f.key] ?? ""} onChange={(v) => patch(i, f.key, v)} />
                   ) : f.kind === "textarea" ? (
                     <textarea value={item[f.key] ?? ""} onChange={(e) => patch(i, f.key, e.target.value)} rows={2} className="field mt-1 w-full" />
                   ) : (
@@ -1537,9 +1577,55 @@ function ListsEditor({
           </div>
         ))}
       </div>
-      <button onClick={() => set([...items, blank()])} className="btn-ghost">
-        <Plus className="h-4 w-4" /> Add item
-      </button>
+      {!spec.fixed && (
+        <button onClick={() => set([...items, blank()])} className="btn-ghost">
+          <Plus className="h-4 w-4" /> Add item
+        </button>
+      )}
+      {spec.fixed && (
+        <p className="text-[12px] text-muted">The items here are fixed by the page, so you can reword and reorder them but not add or remove.</p>
+      )}
+    </div>
+  );
+}
+
+/** A picture field: shows the current picture, uploads a replacement, or takes a path. */
+function ImageField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [error, setError] = useState("");
+  const preview = value.startsWith("/public/") ? `/crm/api${value}` : value;
+  const upload = async (file: File) => {
+    setError("");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/crm/api/settings/site-images", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${tokenStore.get() ?? ""}` },
+        body,
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.message ?? "Upload failed");
+      const { path } = (await res.json()) as { path: string };
+      onChange(path);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
+  return (
+    <div className="mt-1 flex items-center gap-2">
+      <span className="grid h-10 w-16 shrink-0 place-items-center rounded bg-bg-light ring-1 ring-line">
+        {value ? <img src={preview} alt="" className="max-h-9 max-w-14 object-contain" /> : <span className="text-[10px] text-muted">none</span>}
+      </span>
+      <input
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          if (f) void upload(f);
+        }}
+        className="min-w-0 flex-1 text-[12px]"
+      />
+      {error && <span className="text-[11px] text-red-600">{error}</span>}
     </div>
   );
 }
