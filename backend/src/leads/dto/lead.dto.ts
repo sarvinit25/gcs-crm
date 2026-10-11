@@ -5,6 +5,7 @@ import {
   IsArray,
   IsBooleanString,
   IsEnum,
+  IsIn,
   IsInt,
   IsNumber,
   IsOptional,
@@ -14,7 +15,7 @@ import {
   Min,
   ValidateNested,
 } from "class-validator";
-import { EmploymentType, LeadStatus } from "@prisma/client";
+import { DocumentsStatus, EmploymentType, LeadSegment, LeadStatus } from "@prisma/client";
 import { DateInput } from "../../common/date-input.decorator";
 import { normalisePhone } from "../../common/phone.util";
 
@@ -99,6 +100,7 @@ export class CreateLeadDto extends PublicLeadDto {
   @IsOptional() @IsNumber() @Min(0) monthlyIncome?: number;
   @IsOptional() @IsString() @Length(0, 40) meetingMode?: string;
   @IsOptional() @IsString() @Length(0, 200) meetingPlace?: string;
+  @IsOptional() @IsEnum(DocumentsStatus) documentsStatus?: DocumentsStatus;
 
   /** Staff can credit a lead to a channel directly (e.g. a hoarding, a society activation). */
   @IsOptional() @IsString() @Length(0, 60) channel?: string;
@@ -125,13 +127,19 @@ export class UpdateLeadDto {
   @IsOptional() @IsString() @Length(0, 200) meetingPlace?: string;
   @IsOptional() @IsString() @Length(0, 60) channel?: string | null;
   @IsOptional() @IsString() @Length(0, 120) campaign?: string | null;
+  @IsOptional() @IsEnum(DocumentsStatus) documentsStatus?: DocumentsStatus;
+  /** A segment to pin the lead to, or "AUTO" to hand it back to the automatic rules. */
+  @IsOptional() @IsIn([...Object.values(LeadSegment), "AUTO"]) segment?: LeadSegment | "AUTO";
 }
 
 export class ListLeadsQuery {
   @IsOptional() @IsEnum(LeadStatus) status?: LeadStatus;
+  @IsOptional() @IsEnum(LeadSegment) segment?: LeadSegment;
   @IsOptional() @IsString() search?: string;
   @IsOptional() @IsString() assignedOfficerId?: string;
   @IsOptional() @IsString() source?: string;
+  /** "true" lists only the people who signed in to the website chat with a mobile code. */
+  @IsOptional() @IsBooleanString() chatbot?: string;
   /** A marketing channel, or "none" for leads whose origin wasn't tracked. */
   @IsOptional() @IsString() channel?: string;
   @IsOptional() @IsBooleanString() dueOnly?: string;

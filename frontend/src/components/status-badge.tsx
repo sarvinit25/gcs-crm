@@ -1,9 +1,12 @@
 import clsx from "clsx";
 import {
   APPLICATION_STATUS_LABEL,
+  LEAD_SEGMENT_HINT,
+  LEAD_SEGMENT_LABEL,
   LEAD_STATUS_LABEL,
   SANCTION_STATUS_LABEL,
   type ApplicationStatus,
+  type LeadSegment,
   type LeadStatus,
   type SanctionStatus,
 } from "../lib/types";
@@ -26,6 +29,28 @@ export function LeadStatusBadge({ status }: { status: LeadStatus }) {
       )}
     >
       {LEAD_STATUS_LABEL[status]}
+    </span>
+  );
+}
+
+export const SEGMENT_TONE: Record<LeadSegment, string> = {
+  HOT: "bg-red-50 text-red-700 ring-1 ring-red-200",
+  WARM: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+  FOLLOW_UP: "bg-sky-50 text-sky-700 ring-1 ring-sky-200",
+  COLD: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
+};
+
+export function SegmentBadge({ segment, note }: { segment: LeadSegment | null; note?: string | null }) {
+  if (!segment) return <span className="text-[12px] text-muted">—</span>;
+  return (
+    <span
+      title={note ?? LEAD_SEGMENT_HINT[segment]}
+      className={clsx(
+        "inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap",
+        SEGMENT_TONE[segment],
+      )}
+    >
+      {LEAD_SEGMENT_LABEL[segment]}
     </span>
   );
 }

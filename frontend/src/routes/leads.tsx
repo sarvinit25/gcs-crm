@@ -9,14 +9,18 @@ import { todayIST } from "../lib/date";
 import { formatAmount, formatDate, humanize, isOverdue } from "../lib/format";
 import {
   EMPLOYMENT_TYPE_LABEL,
+  LEAD_SEGMENTS,
+  LEAD_SEGMENT_HINT,
+  LEAD_SEGMENT_LABEL,
   LEAD_STATUSES,
   LEAD_STATUS_LABEL,
   type EmploymentType,
   type Lead,
+  type LeadSegment,
   type Paginated,
 } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
-import { LeadStatusBadge } from "../components/status-badge";
+import { LeadStatusBadge, SEGMENT_TONE, SegmentBadge } from "../components/status-badge";
 import { ChannelInput, useChannels } from "../components/channel-field";
 import { Modal } from "../components/modal";
 import { LeadImportModal } from "../components/lead-import-modal";
@@ -260,6 +264,8 @@ export function LeadsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [segment, setSegment] = useState<LeadSegment | "">("");
+  const [chatbot, setChatbot] = useState(false);
   const [dueOnly, setDueOnly] = useState(false);
   const [loanProductId, setLoanProductId] = useState("");
   const [channel, setChannel] = useState("");
@@ -275,11 +281,16 @@ export function LeadsPage() {
     queryFn: () => api<Product[]>("/loan-products"),
   });
 
+  const counts = useQuery({
+    queryKey: ["leads", "segments"],
+    queryFn: () => api<Record<LeadSegment, number> & { followUpsDue: number; chatbot: number }>("/leads/segments"),
+  });
+
   const query = useQuery({
-    queryKey: ["leads", { search, status, dueOnly, loanProductId, channel, timeRange, page, archived }],
+    queryKey: ["leads", { search, status, segment, chatbot, dueOnly, loanProductId, channel, timeRange, page, archived }],
     queryFn: () =>
       api<Paginated<Lead>>(
-        `/leads${qs({ search, status, loanProductId, channel, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, page })}`,
+        `/leads${qs({ search, status, segment, chatbot: chatbot ? "true" : undefined, loanProductId, channel, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, page })}`,
       ),
   });
 
@@ -328,6 +339,55 @@ export function LeadsPage() {
       )}
 
       <div className="px-6 py-5">
+        {/* The four working segments, in priority order. Tap one to see only those leads. */}
+        <div className="mb-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-6">
+          <button
+            onClick={() => reset(() => setSegment(""))}
+            className={clsx(
+              "rounded-xl border px-4 py-3 text-left transition-colors",
+              segment === "" ? "border-navy bg-navy text-white" : "border-line bg-white hover:border-navy/30",
+            )}
+          >
+            <p className="text-[11px] font-bold tracking-wide uppercase opacity-70">All, by priority</p>
+            <p className="mt-0.5 text-xl font-bold">
+              {counts.data ? LEAD_SEGMENTS.reduce((n, k) => n + counts.data[k], 0) : "—"}
+            </p>
+          </button>
+          {LEAD_SEGMENTS.map((k) => (
+            <button
+              key={k}
+              onClick={() => reset(() => setSegment(segment === k ? "" : k))}
+              title={LEAD_SEGMENT_HINT[k]}
+              className={clsx(
+                "rounded-xl border px-4 py-3 text-left transition-colors",
+                segment === k ? "border-navy ring-2 ring-navy/20" : "border-line hover:border-navy/30",
+                "bg-white",
+              )}
+            >
+              <span className={clsx("inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold", SEGMENT_TONE[k])}>
+                {LEAD_SEGMENT_LABEL[k]}
+              </span>
+              <p className="mt-1 text-xl font-bold text-navy">{counts.data ? counts.data[k] : "—"}</p>
+              <p className="text-[11px] leading-snug text-muted">{LEAD_SEGMENT_HINT[k]}</p>
+            </button>
+          ))}
+          {/* People who signed in to the website chat with a mobile code, in any segment. */}
+          <button
+            onClick={() => reset(() => setChatbot(!chatbot))}
+            title="People who confirmed their mobile number with a code to use the website chat"
+            className={clsx(
+              "rounded-xl border bg-white px-4 py-3 text-left transition-colors",
+              chatbot ? "border-navy ring-2 ring-navy/20" : "border-line hover:border-navy/30",
+            )}
+          >
+            <span className="inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-700">
+              Chatbot contacts
+            </span>
+            <p className="mt-1 text-xl font-bold text-navy">{counts.data ? counts.data.chatbot : "—"}</p>
+            <p className="text-[11px] leading-snug text-muted">Verified by a code in the website chat</p>
+          </button>
+        </div>
+
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted/60" />
@@ -405,9 +465,11 @@ export function LeadsPage() {
               <thead className="border-b border-line bg-bg-light/60 text-[11px] tracking-wide text-muted uppercase">
                 <tr>
                   <th className="px-4 py-2.5 font-bold">Lead</th>
+                  <th className="px-4 py-2.5 font-bold">Priority</th>
                   <th className="px-4 py-2.5 font-bold">Product</th>
                   <th className="px-4 py-2.5 font-bold">Amount</th>
                   <th className="px-4 py-2.5 font-bold">Reference</th>
+                  <th className="px-4 py-2.5 font-bold">Chatbot</th>
                   <th className="px-4 py-2.5 font-bold">Owner</th>
                   <th className="px-4 py-2.5 font-bold">Follow-up</th>
                   <th className="px-4 py-2.5 font-bold">Status</th>
@@ -430,11 +492,31 @@ export function LeadsPage() {
                         {lead.city && ` · ${lead.city}`}
                       </p>
                     </td>
+                    <td className="px-4 py-3">
+                      <SegmentBadge segment={lead.segment} note={lead.segmentNote} />
+                      {lead.segmentNote && lead.segment && (
+                        <p className="mt-0.5 max-w-[210px] truncate text-[11px] text-muted" title={lead.segmentNote}>
+                          {lead.segmentNote}
+                        </p>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-muted">{lead.loanProduct?.name ?? "—"}</td>
                     <td className="px-4 py-3 font-medium">{formatAmount(lead.amount)}</td>
                     <td className="px-4 py-3 text-muted">
                       {lead.sourcingPartner?.name ?? "Self"}
                       <p className="text-[11px]">{humanize(lead.source)}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      {lead.chatVerifiedAt ? (
+                        <>
+                          <span className="inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-700">
+                            Verified on chat
+                          </span>
+                          <p className="mt-0.5 text-[11px] text-muted">{formatDate(lead.chatVerifiedAt)}</p>
+                        </>
+                      ) : (
+                        <span className="text-muted/60">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-muted">
                       {lead.assignedOfficer?.name ?? (

@@ -1,20 +1,26 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, FileText, Loader2, Plus } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, Pencil, Plus } from "lucide-react";
 import { api } from "../lib/api";
 import { formatAmount, formatDate, formatDateTime, humanize } from "../lib/format";
 import {
+  DOCUMENTS_STATUS_LABEL,
   EMPLOYMENT_TYPE_LABEL,
+  LEAD_SEGMENTS,
+  LEAD_SEGMENT_HINT,
+  LEAD_SEGMENT_LABEL,
   LEAD_STATUSES,
   LEAD_STATUS_LABEL,
   LOST_REASONS,
+  type DocumentsStatus,
+  type EmploymentType,
   type LeadDetail,
-  type LeadStatus,
+    type LeadStatus,
 } from "../lib/types";
 
 import { PageHeader } from "../components/app-shell";
-import { LeadStatusBadge } from "../components/status-badge";
+import { LeadStatusBadge, SegmentBadge } from "../components/status-badge";
 import { NewApplicationWizard } from "../components/new-application-wizard";
 import { ChannelInput } from "../components/channel-field";
 import { Modal } from "../components/modal";
@@ -34,6 +40,78 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
+type ProductOption = { id: string; name: string };
+
+/** Fill in what a lead is missing: the details lenders ask for before a meeting. */
+function DetailsModal({ lead, onClose, onSaved }: { lead: LeadDetail; onClose: () => void; onSaved: () => void }) {
+  const products = useQuery({ queryKey: ["loan-products"], queryFn: () => api<ProductOption[]>("/loan-products") });
+  const save = useMutation({
+    mutationFn: (body: Record<string, unknown>) => api(`/leads/${lead.id}`, { method: "PATCH", body: JSON.stringify(body) }),
+    onSuccess: onSaved,
+  });
+  return (
+    <Modal title="Lead details" subtitle="The more that is filled in, the higher this lead ranks" onClose={onClose}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const f = new FormData(e.currentTarget);
+          const text = (k: string) => ((f.get(k) as string) ?? "").trim();
+          const num = (k: string) => (text(k) ? Number(text(k)) : undefined);
+          save.mutate({
+            ...(text("city") && { city: text("city") }),
+            ...(text("email") && { email: text("email") }),
+            ...(text("loanProductId") && { loanProductId: text("loanProductId") }),
+            ...(num("amount") !== undefined && { amount: num("amount") }),
+            ...(text("employmentType") && { employmentType: text("employmentType") }),
+            ...(num("monthlyIncome") !== undefined && { monthlyIncome: num("monthlyIncome") }),
+          });
+        }}
+        className="grid gap-2.5 sm:grid-cols-2"
+      >
+        {save.isError && (
+          <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700 sm:col-span-2">{(save.error as Error).message}</p>
+        )}
+        <select name="loanProductId" defaultValue={lead.loanProduct?.id ?? ""} className="field sm:col-span-2">
+          <option value="">Loan product</option>
+          {products.data?.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+        <input name="amount" type="number" min={0} defaultValue={lead.amount ? Number(lead.amount) : ""} placeholder="Loan amount" className="field" />
+        <input name="city" defaultValue={lead.city ?? ""} placeholder="City" className="field" />
+        <select name="employmentType" defaultValue={lead.employmentType ?? ""} className="field">
+          <option value="">Employment type</option>
+          {(Object.keys(EMPLOYMENT_TYPE_LABEL) as EmploymentType[]).map((k) => (
+            <option key={k} value={k}>
+              {EMPLOYMENT_TYPE_LABEL[k]}
+            </option>
+          ))}
+        </select>
+        <input
+          name="monthlyIncome"
+          type="number"
+          min={0}
+          defaultValue={lead.monthlyIncome ? Number(lead.monthlyIncome) : ""}
+          placeholder="Monthly income"
+          className="field"
+        />
+        <input name="email" type="email" defaultValue={lead.email ?? ""} placeholder="Email" className="field sm:col-span-2" />
+        <div className="flex gap-2 sm:col-span-2">
+          <button type="submit" disabled={save.isPending} className="btn-primary">
+            {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            Save details
+          </button>
+          <button type="button" onClick={onClose} className="btn-ghost">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
 export function LeadDetailPage() {
   // Non-strict: the route sits under an id-based layout route, so its full id isn't "/leads/$leadId".
   const { leadId } = useParams({ strict: false }) as { leadId: string };
@@ -42,6 +120,7 @@ export function LeadDetailPage() {
   const [note, setNote] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [showWizard, setShowWizard] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const query = useQuery({
     queryKey: ["lead", leadId],
@@ -147,6 +226,17 @@ export function LeadDetailPage() {
         }
       />
 
+      {editing && (
+        <DetailsModal
+          lead={lead}
+          onClose={() => setEditing(false)}
+          onSaved={() => {
+            setEditing(false);
+            invalidate();
+          }}
+        />
+      )}
+
       {askingReason && (
         <Modal title="Why was this lead lost?" subtitle="This is kept on the lead and shows in reports" onClose={() => setAskingReason(false)}>
           <form
@@ -186,10 +276,68 @@ export function LeadDetailPage() {
 
       <div className="grid gap-5 px-6 py-5 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-5">
+          {lead.segment !== null && (
+            <section className="card p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-sm font-bold text-navy">Priority</h2>
+                  <SegmentBadge segment={lead.segment} note={lead.segmentNote} />
+                  {lead.segmentLocked && <span className="text-[11px] font-semibold text-muted">Set by hand</span>}
+                </div>
+                <label className="flex items-center gap-2 text-[11px] font-bold tracking-wide text-muted uppercase">
+                  Move to
+                  <select
+                    value={lead.segmentLocked ? lead.segment : "AUTO"}
+                    onChange={(e) => assign.mutate({ segment: e.target.value })}
+                    className="field w-36 font-normal tracking-normal normal-case"
+                  >
+                    <option value="AUTO">Automatic</option>
+                    {LEAD_SEGMENTS.map((k) => (
+                      <option key={k} value={k}>
+                        {LEAD_SEGMENT_LABEL[k]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <p className="mt-2 text-[13px] text-muted">{lead.segmentNote ?? LEAD_SEGMENT_HINT[lead.segment]}</p>
+              {lead.segment !== "HOT" && lead.missingForMeeting.length > 0 && (
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-bold tracking-wide text-muted uppercase">To be meeting-ready</span>
+                  {lead.missingForMeeting.map((m) => (
+                    <span key={m} className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                      {m}
+                    </span>
+                  ))}
+                  <button onClick={() => setEditing(true)} className="text-[12px] font-semibold text-navy underline hover:text-gold-dark">
+                    Fill in
+                  </button>
+                </div>
+              )}
+              <label className="mt-4 block text-[11px] font-bold tracking-wide text-muted uppercase sm:w-64">
+                Documents from the customer
+                <select
+                  value={lead.documentsStatus}
+                  onChange={(e) => assign.mutate({ documentsStatus: e.target.value as DocumentsStatus })}
+                  className="field mt-1.5 font-normal tracking-normal normal-case"
+                >
+                  {(Object.keys(DOCUMENTS_STATUS_LABEL) as DocumentsStatus[]).map((k) => (
+                    <option key={k} value={k}>
+                      {DOCUMENTS_STATUS_LABEL[k]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </section>
+          )}
+
           <section className="card p-5">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-bold text-navy">Enquiry</h2>
-              <span>
+              <span className="flex items-center gap-2">
+                <button onClick={() => setEditing(true)} className="btn-ghost !px-2 !py-1 text-[12px]">
+                  <Pencil className="h-3.5 w-3.5" /> Edit details
+                </button>
                 <LeadStatusBadge status={lead.status} />
                 {lead.archivedAt && <ArchivedBadge />}
               </span>

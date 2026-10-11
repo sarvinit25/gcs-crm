@@ -34,6 +34,7 @@ import { MarketingModule } from "./marketing/marketing.module";
 import { CreditModule } from "./credit/credit.module";
 import { WebsiteModule } from "./website/website.module";
 import { SecurityModule } from "./security/security.module";
+import { ChatAuthModule } from "./chat-auth/chat-auth.module";
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { SecurityModule } from "./security/security.module";
     MarketingModule,
     CreditModule,
     WebsiteModule,
+    ChatAuthModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

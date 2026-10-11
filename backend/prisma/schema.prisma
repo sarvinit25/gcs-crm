@@ -228,6 +228,24 @@ model Setting {
 
 // ─── Leads ──────────────────────────────────────────────────
 
+// How a lead is worked, in priority order (the order here is the order they sort in):
+// HOT = details and documents complete, ready for a meeting; WARM = good potential but
+// something is missing; FOLLOW_UP = interested, will decide later; COLD = nothing to go on yet.
+enum LeadSegment {
+  HOT
+  WARM
+  FOLLOW_UP
+  COLD
+}
+
+// Documents the customer has handed over so far (documents proper attach to an application,
+// which only exists once a lead is converted, so for a lead the team records it here).
+enum DocumentsStatus {
+  NONE
+  PARTIAL
+  COMPLETE
+}
+
 enum LeadStatus {
   NEW
   CONTACTED
@@ -274,6 +292,13 @@ model Lead {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
+  // Priority segment. Worked out automatically from the lead's details, documents and follow-up
+  // date (see leads/lead-segment.ts) unless staff pin it (segmentLocked). Null once a lead is closed.
+  documentsStatus DocumentsStatus @default(NONE)
+  segment         LeadSegment?
+  segmentLocked   Boolean         @default(false)
+  segmentNote     String?
+
   // Where the lead came from, for marketing reports: the channel (Google Search Ads,
   // Society activation, Referral …), the campaign, and the raw tracking tags the website passed along.
   channel     String?
@@ -284,11 +309,17 @@ model Lead {
   utmTerm     String?
   landingPage String?
 
+  // Set when this person proved they own the number with a one-time code in the website chat.
+  // Those leads are the "Chatbot contacts" in the CRM.
+  chatVerifiedAt DateTime?
+
   application Application?
   followUps   FollowUp[]
   submissions WebsiteSubmission[]
 
+  @@index([chatVerifiedAt])
   @@index([status, nextFollowUpAt])
+  @@index([segment, nextFollowUpAt])
   @@index([assignedOfficerId])
   @@index([phone])
   @@index([createdAt])
@@ -296,6 +327,39 @@ model Lead {
   @@index([sourcingPartnerId])
   @@index([channel, createdAt])
   @@index([archivedAt])
+}
+
+// ─── Website chat sign-in ───────────────────────────────────
+
+// A one-time code sent to a visitor's mobile before the website chat opens. Only a hash of the
+// code is kept. A code is good for a few minutes and a handful of tries, then it is dead.
+model ChatOtp {
+  id        String    @id @default(cuid())
+  phone     String
+  codeHash  String
+  name      String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  ip        String?
+  createdAt DateTime  @default(now())
+
+  @@index([phone, createdAt])
+  @@index([expiresAt])
+}
+
+// A verified visitor's chat pass. The browser holds the token; only its hash is stored here.
+model ChatSession {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  phone     String
+  name      String
+  leadId    String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@index([expiresAt])
 }
 
 model FollowUp {
