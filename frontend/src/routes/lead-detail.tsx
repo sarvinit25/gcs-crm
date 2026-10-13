@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, FileText, Loader2, Plus } from "lucide-react";
 import { api } from "../lib/api";
+import { SmartMatchPanel } from "../components/smart-match-panel";
 import { formatAmount, formatDate, formatDateTime, humanize } from "../lib/format";
 import {
   EMPLOYMENT_TYPE_LABEL,
@@ -356,6 +357,8 @@ export function LeadDetailPage() {
           </section>
         </div>
 
+        <div className="space-y-5">
+        <SmartMatchPanel lead={lead} />
         <section id="followups" className="card p-5">
           <h2 className="text-sm font-bold text-navy">Follow-ups</h2>
 
@@ -409,6 +412,7 @@ export function LeadDetailPage() {
             ))}
           </ul>
         </section>
+        </div>
       </div>
     </>
   );

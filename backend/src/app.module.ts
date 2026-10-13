@@ -9,6 +9,7 @@ import { LeadsModule } from "./leads/leads.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { ApplicationsModule } from "./applications/applications.module";
 import { LendersModule } from "./lenders/lenders.module";
+import { LenderPoliciesModule } from "./lender-policies/lender-policies.module";
 import { SanctionsModule } from "./sanctions/sanctions.module";
 import { AuditModule } from "./audit/audit.module";
 import { TeamModule } from "./team/team.module";
@@ -55,6 +56,7 @@ import { SecurityModule } from "./security/security.module";
     DashboardModule,
     ApplicationsModule,
     LendersModule,
+    LenderPoliciesModule,
     SanctionsModule,
     AuditModule,
     TeamModule,
