@@ -38,6 +38,18 @@
       {
         "q": "Is there a limit on how many clients I can refer?",
         "a": "None. There's no cap on referrals or earnings — refer as many clients as you like."
+      },
+      {
+        "q": "What loans can I offer my clients?",
+        "a": "Home loans, loan against property, balance transfers, business and working-capital loans, personal, education and vehicle loans, and more. You refer the need and our advisors pick the right product and lender."
+      },
+      {
+        "q": "What support do I get as a partner?",
+        "a": "A named advisor who handles login, documents and bank follow-ups, a short walk-through of our products when you start, and updates on each referral as it moves towards disbursal."
+      },
+      {
+        "q": "How do I send a client's details and follow the case?",
+        "a": "Share the client's name, number and requirement through the form on this page, or by call or WhatsApp. Your advisor keeps you updated on the status, approval and disbursal of every referral."
       }
     ],
     "mumbai": [
@@ -101,7 +113,7 @@
     "home-loan": {
       "title": "Home Loan",
       "tagline": "The keys to your home, without the runaround.",
-      "about": "Whether it's a ready flat, an under-construction project, a self-build or a plot purchase, we shortlist the lender likely to sanction fastest for your profile — and push a stalled or declined file to someone better placed to say yes.",
+      "about": "A home loan helps you buy a ready flat, a flat in an under-construction project, or a plot, or build your own house. We look at your income and documents, then compare options from different Banks and NBFCs that may suit your profile. If one lender delays or does not approve your file, we can explore other lenders that may be a better fit.",
       "features": [
         "Choice of floating or fixed-rate options",
         "Pre-approved offers checked where your bank runs such a programme",
@@ -113,7 +125,7 @@
         "Resident Indian, generally 21–65 (up to around 70 for self-employed) at loan maturity",
         "Salaried with take-home income from about ₹25,000/month, or self-employed with 2–3 years of ITR",
         "Cash salary accepted as income proof too, not just bank-credited salary",
-        "A CIBIL score near 700 gets the sharpest rate; lower scores are reviewed case by case, not auto-rejected"
+        "A CIBIL score near 700 or above may help you get a better rate; lower scores are reviewed case by case"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -142,7 +154,7 @@
     "loan-against-property": {
       "title": "Loan Against Property",
       "tagline": "Your property's value, working for you.",
-      "about": "Borrow against a residential, commercial or industrial property you already own — for expansion, debt consolidation, a medical bill, or any need the bank doesn't need to approve of. You keep ownership and keep using the property throughout.",
+      "about": "A loan against property lets you borrow money using a residential, commercial or industrial property that you already own. You can use it to grow your business, combine other loans, pay a medical bill or meet other needs. Lenders may have rules on how the money can be used. You keep ownership of the property and can continue to use it while you repay.",
       "features": [
         "Residential, commercial and industrial property accepted as security",
         "Income-based, banking-based and GST-based assessment tracks",
@@ -181,10 +193,10 @@
     "lease-rental-discounting": {
       "title": "Lease Rental Discounting",
       "tagline": "Rent today becomes capital today.",
-      "about": "Get a lump sum upfront against a registered lease on commercial or retail space. The tenant's rent services the EMI, so your own cash flow stays untouched.",
+      "about": "Lease rental discounting gives you a lump sum today against the rent you will receive from a registered lease on commercial or retail space. The tenant's rent is used to pay the EMI, so your own cash flow is not needed for it.",
       "features": [
         "For registered commercial and retail leases",
-        "Sharper pricing when the tenant is a corporate or MNC covenant",
+        "Pricing may be better when the tenant is a well-known company",
         "Rent routed through an escrow arrangement",
         "Refinance of an LRD loan you already have"
       ],
@@ -216,7 +228,7 @@
     "balance-transfer": {
       "title": "Balance Transfer",
       "tagline": "Same loan, smaller bill.",
-      "about": "We lay your current loan next to sharper offers from other lenders, in writing, before you decide — then run the switch end to end, adding a top-up if your profile qualifies.",
+      "about": "A balance transfer means moving your current loan to another lender that may offer better terms. We put your existing loan next to offers from other lenders, in writing, so you can compare before you decide. If you choose to switch, we guide you through the whole process. A top-up may also be possible if your profile qualifies.",
       "features": [
         "Better pricing available on home, LAP and business loans",
         "Top-up sanctioned at mortgage-linked pricing, not personal-loan pricing",
@@ -252,7 +264,7 @@
     "dlod": {
       "title": "Drop-Line Overdraft (Secured)",
       "tagline": "A credit line that shrinks as you pay.",
-      "about": "A property-backed limit that steps down over the tenure, with interest charged only on what you actually draw — useful when your cash needs rise and fall through the year.",
+      "about": "This is a limit against your property that reduces step by step over the loan period. You pay interest only on the amount you actually use. It can suit you if your need for cash goes up and down during the year.",
       "features": [
         "Secured against a residential or commercial property",
         "The sanctioned limit reduces on a monthly or quarterly schedule",
@@ -287,7 +299,7 @@
     "business-loan": {
       "title": "Business Loan",
       "tagline": "Fuel for your next big move.",
-      "about": "Quick, collateral-free funding for expansion, inventory, hiring or new equipment, assessed mainly off your GST filings and bank statements rather than a stack of audited financials — so it moves fast.",
+      "about": "A business loan without collateral for needs such as expansion, stock, hiring or new equipment. Lenders mainly look at your GST returns and bank statements, so you may not need a full set of audited financials. This can make the process quicker.",
       "features": [
         "No collateral or third-party guarantee needed",
         "Assessed on GST returns, banking and financial statements",
@@ -330,7 +342,7 @@
     "cgtmse": {
       "title": "CGTMSE Funding",
       "tagline": "Government-backed funding, no collateral.",
-      "about": "Loans covered under the CGTMSE guarantee scheme, letting young MSMEs borrow meaningful amounts without pledging property or bringing in a guarantor.",
+      "about": "These are loans covered by the CGTMSE guarantee scheme. The scheme helps young MSMEs borrow without giving property as security or arranging a guarantor. The amount you can borrow depends on the lender and the scheme rules.",
       "features": [
         "Structured as a term loan, a working capital limit, or a blend of both",
         "No collateral and no third-party guarantor required",
@@ -365,7 +377,7 @@
     "unsecured-term-loan": {
       "title": "Unsecured Term Loan",
       "tagline": "Fixed EMIs, zero security.",
-      "about": "A larger, fully-financials-based term loan for businesses with clean audited numbers — fixed tenure, fixed EMI, priced off your bank turnover and filings rather than a quick GST-only scorecard.",
+      "about": "A term loan without collateral for businesses with clean, audited financials. The loan has a fixed period and a fixed EMI. The lender decides the amount based on your bank turnover and filings, not only a quick GST check.",
       "features": [
         "Fixed EMI on a defined repayment schedule",
         "Offers benchmarked across several lenders before you commit",
@@ -403,7 +415,7 @@
     "unsecured-dod": {
       "title": "Unsecured DOD",
       "tagline": "Standby cash, no EMI from day one.",
-      "about": "A collateral-free overdraft that tapers down over its tenure — draw when the business needs it, repay when it doesn't, and pay interest only on the running balance.",
+      "about": "An overdraft without collateral where the limit reduces over the loan period. Use the money when your business needs it and repay when you can. You pay interest only on the amount you have used.",
       "features": [
         "Draw and repay as often as needed",
         "Interest charged only on the amount outstanding",
@@ -437,7 +449,7 @@
     "project-funding": {
       "title": "Project Funding",
       "tagline": "Finance that builds as you build.",
-      "about": "Construction and development funding sized to approvals, project cost and projected sales, released in stages as work progresses rather than as one upfront cheque.",
+      "about": "Funding for construction and development projects. The amount depends on your approvals, project cost and expected sales. The money is released in stages as the work moves ahead, not all at once.",
       "features": [
         "Residential, commercial and industrial developments",
         "Combined land-and-construction funding where needed",
@@ -476,7 +488,7 @@
     "working-capital": {
       "title": "Working Capital",
       "tagline": "Keep the wheels of business turning.",
-      "about": "Limits sized around your stock, receivables and payroll cycle — new, enhanced, or simply taken over from your current bank if the terms there have gone stale.",
+      "about": "Working capital is the money a business needs for its day-to-day running. The limit is set around your stock, the payments you are waiting for from customers, and your salary and payment cycle. You can get a new limit, increase an existing one, or move your account from your current bank if its terms no longer suit you.",
       "features": [
         "Cash credit, overdraft and bill-discounting limits",
         "Enhancement or takeover of a limit you already run",
@@ -511,7 +523,7 @@
     "cash-credit": {
       "title": "Cash Credit",
       "tagline": "Draw, repay, repeat — as business demands.",
-      "about": "A revolving limit against your stock and receivables — draw it down, sell through, repay, and draw again as your operating cycle repeats.",
+      "about": "A limit that you can use again and again, backed by your stock and the payments due from your customers. Draw money when you need it, repay it as sales come in, and draw again as your business cycle repeats.",
       "features": [
         "Drawing power reassessed monthly against stock statements",
         "Interest charged only on the utilised portion",
@@ -546,7 +558,7 @@
     "overdraft-limit": {
       "title": "Overdraft Limit",
       "tagline": "A safety cushion on your current account.",
-      "about": "A pre-approved cushion on your current account that absorbs the short gap between paying suppliers and getting paid by customers.",
+      "about": "An overdraft is a ready limit on your current account. It helps cover the short gap between paying your suppliers and receiving payment from your customers.",
       "features": [
         "Available secured (property, FDs, securities) or unsecured",
         "No EMI — just interest on the running balance each month",
@@ -580,7 +592,7 @@
     "bank-guarantee": {
       "title": "Bank Guarantee",
       "tagline": "Win the contract with your bank behind you.",
-      "about": "Your bank's written commitment to the counterparty that you'll pay or perform — so you can bid for and sign contracts with confidence.",
+      "about": "A bank guarantee is a written promise from the bank to the other party that you will pay or complete the work as agreed. It helps you bid for and sign contracts with more confidence.",
       "features": [
         "Financial and performance guarantees",
         "Bid bonds, EMDs, security deposits and advance-payment BGs",
@@ -615,7 +627,7 @@
     "letter-of-credit": {
       "title": "Letter of Credit",
       "tagline": "Suppliers paid on time, your cash kept free.",
-      "about": "A bank-backed payment promise to your supplier — it usually gets you better credit terms without tying up your own working capital.",
+      "about": "A letter of credit is a payment promise given by the bank to your supplier. It may help you get better credit terms without using your own working capital.",
       "features": [
         "Inland and import LCs",
         "Sight or usance structures",
@@ -650,7 +662,7 @@
     "working-capital-term-loan": {
       "title": "Working Capital Term Loan",
       "tagline": "Reset a stretched cash cycle.",
-      "about": "Converts an overdrawn or irregular working-capital account into a term loan with a repayment schedule your cash flow can actually sustain.",
+      "about": "This turns an overdrawn or irregular working-capital account into a term loan with a fixed repayment plan. The plan is set so that it matches what your cash flow can handle.",
       "features": [
         "Regularises stretched cash-credit or overdraft accounts",
         "Consolidates several short-term dues into one facility",
@@ -685,7 +697,7 @@
     "personal-loan": {
       "title": "Personal Loan",
       "tagline": "Money for life's plans, minus the paperwork.",
-      "about": "Collateral-free funds for a wedding, medical bill, travel or clearing costlier debt — sized so the EMI actually fits your monthly budget, not just your eligibility limit.",
+      "about": "A personal loan needs no collateral. You can use it for a wedding, a medical bill, travel, or to clear a more costly debt. We help you choose an amount and EMI that fit your monthly budget, not just the maximum you are eligible for.",
       "features": [
         "No security or guarantor needed",
         "Minimal paperwork, handled fully online",
@@ -695,7 +707,7 @@
       "eligibility": [
         "Between roughly 21 and 60 years of age",
         "Salaried take-home from about ₹25,000/month, or 2 years of ITR if self-employed",
-        "A CIBIL score of 700+ for the best rate; scores from the mid-600s may still qualify at a higher rate"
+        "A CIBIL score of 700+ may help you get a better rate; scores from the mid-600s may still be considered at a higher rate"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -727,12 +739,12 @@
     "loan-against-securities": {
       "title": "Loan Against Securities",
       "tagline": "Borrow on your portfolio, stay invested.",
-      "about": "Pledge shares, bonds or insurance policies for an overdraft line instead of selling them — your holdings stay invested and keep compounding while the limit sits in reserve.",
+      "about": "You can pledge shares, bonds or insurance policies to get an overdraft limit, instead of selling them. Your investments stay in place, and the limit is there when you need it. Lenders accept only certain securities and set their own limits.",
       "features": [
         "Shares, bonds, insurance policies and debt instruments accepted",
         "The limit moves with the value of the pledged portfolio",
         "No EMI — interest applies only to what's drawn",
-        "Same-day setup on lender-approved securities"
+        "Quick setup on lender-approved securities"
       ],
       "eligibility": [
         "Approved securities held in the applicant's own name",
@@ -762,7 +774,7 @@
     "loan-against-mutual-funds": {
       "title": "Loan Against Mutual Funds",
       "tagline": "Borrow against your units, without redeeming them.",
-      "about": "A lien gets marked on your mutual fund units through the RTA (CAMS or KFintech) — your SIPs and investments carry on undisturbed while you draw against the units as an overdraft.",
+      "about": "The lender marks a lien on your mutual fund units through the registrar (CAMS or KFintech). Your SIPs and investments continue as before, and you can draw money against the units as an overdraft.",
       "features": [
         "Equity, debt and hybrid schemes accepted as collateral",
         "Units remain invested and keep earning returns",
@@ -797,7 +809,7 @@
     "professional-loan": {
       "title": "Professional Loan",
       "tagline": "Built for doctors, CAs and other qualified professionals.",
-      "about": "An unsecured facility built specifically for doctors, CAs, architects and other registered professionals — for setting up or expanding a practice, buying equipment, or covering working capital — typically priced better than a plain personal loan on the strength of the qualification.",
+      "about": "A loan without collateral for doctors, CAs, architects and other registered professionals. You can use it to start or grow a practice, buy equipment or meet working capital needs. Depending on the lender's policy, the terms may be better than a regular personal loan because of your professional qualification.",
       "features": [
         "Preferential pricing tied to your professional registration",
         "No collateral for most ticket sizes",
@@ -836,7 +848,7 @@
     "education-loan": {
       "title": "Education Loan",
       "tagline": "Invest in the degree, not the worry.",
-      "about": "Funding for study in India or abroad — tuition, living costs, travel and equipment. Collateral-backed loans get the lowest rates; unsecured loans for study abroad are priced higher but move faster.",
+      "about": "Funding for studies in India or abroad, covering tuition, living costs, travel and equipment. Loans with collateral usually have lower interest rates. Loans without collateral for studying abroad usually cost more but can be quicker to process.",
       "features": [
         "Available with or without collateral, depending on the amount",
         "No EMIs during the course, plus a moratorium/grace period after",
@@ -880,17 +892,17 @@
     "new-car-loan": {
       "title": "New Car Loan",
       "tagline": "From showroom to driveway, fully funded.",
-      "about": "On-road financing for new cars, with the dealer paperwork — invoice, insurance, RTO — handled from quotation through to delivery.",
+      "about": "Financing for the on-road price of a new car. We help with the dealer paperwork, such as the invoice, insurance and RTO, from quotation to delivery.",
       "features": [
         "Funding up to 100% of the on-road price for eligible profiles",
         "Dealer and insurance coordination handled on your behalf",
-        "Sharper pricing for salaried applicants with a stable employer",
+        "Pricing may be better for salaried applicants with a stable employer",
         "Fast sanction on light documentation"
       ],
       "eligibility": [
         "Typically 21–65 years old, with a regular, documented income",
         "At least 1 year in the current job or business",
-        "A CIBIL score of 650+ is usually enough; 750+ unlocks the sharpest rates"
+        "A CIBIL score of 650+ is usually considered; 750+ may help you get better rates"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -915,7 +927,7 @@
     "used-car-loan": {
       "title": "Used Car Loan",
       "tagline": "A great pre-owned car, sensibly financed.",
-      "about": "Financing for a second-hand car bought from a dealer or a private seller, with an independent valuation arranged so both sides know the car is fairly priced.",
+      "about": "Financing for a second-hand car from a dealer or a private seller. We arrange an independent valuation so both sides can check that the price is fair.",
       "features": [
         "Dealer or private-seller purchases both financed",
         "Independent valuation arranged by the lender",
@@ -954,7 +966,7 @@
     "car-refinance": {
       "title": "Car Refinance",
       "tagline": "Your car can fund your next plan.",
-      "about": "Raise cash against a car you already own free and clear — strong income profiles can sometimes borrow above the car's current valuation — and keep driving it while you repay.",
+      "about": "Raise money against a car you already own and have fully paid for. In some cases, strong income profiles may be able to borrow more than the car's current value. You keep driving the car while you repay.",
       "features": [
         "Financing on a car with no existing loan against it",
         "Top-up above valuation available to well-qualified applicants",
@@ -993,7 +1005,7 @@
     "private-funding": {
       "title": "Private Funding",
       "tagline": "Fast money when the clock is ticking.",
-      "about": "Short-term, unsecured funds from vetted private lenders for self-employed profiles that need cash fast — every rate and repayment term set out in writing before you commit, since private credit is priced well above bank rates.",
+      "about": "Short-term funds without collateral from private lenders, for self-employed people who need cash quickly. Private credit usually costs much more than bank loans, so we share every rate and repayment term in writing before you decide.",
       "features": [
         "Full funding amount — whatever your eligible business requirement calls for",
         "Fast turnaround — funding arranged within 24–48 hours",
@@ -1755,12 +1767,6 @@
       "description": "Tax, GST, accounting and business registration through our associated CA Services team, and property, society, SRA/MHADA/MMRDA and legal documentation through Sheetal Associates."
     },
     {
-      "path": "/partner",
-      "label": "Partner with us",
-      "title": "Partner With Us | Growth Capital Services",
-      "description": "Refer loan clients to Growth Capital Services and earn on every disbursal. No investment, no license required — built for CAs, property consultants, brokers, insurance advisors and business consultants."
-    },
-    {
       "path": "/contact",
       "label": "Contact",
       "title": "Contact & Free Loan Consultation | Growth Capital Services",
@@ -2306,6 +2312,40 @@
         "label": "In-House CRM Tracking"
       }
     ],
+    "home.compare.banks": [
+      {
+        "text": "Only their own loan products on the table"
+      },
+      {
+        "text": "One standard answer for every borrower"
+      },
+      {
+        "text": "You chase the paperwork and the updates yourself"
+      },
+      {
+        "text": "Charges tucked away in the sanction letter"
+      },
+      {
+        "text": "Sales targets shape the advice"
+      }
+    ],
+    "home.compare.us": [
+      {
+        "text": "Offers compared across 75+ banks and NBFCs"
+      },
+      {
+        "text": "A loan shaped around your income and goals"
+      },
+      {
+        "text": "One dedicated manager from login to disbursal"
+      },
+      {
+        "text": "Every charge shared in writing before you sign"
+      },
+      {
+        "text": "Zero advisory fee, independent advice"
+      }
+    ],
     "home.personas": [
       {
         "icon": "Users",
@@ -2684,6 +2724,26 @@
         "to": "/contact"
       }
     ],
+    "nav.partner": [
+      {
+        "icon": "Handshake",
+        "label": "Agent",
+        "desc": "CAs, brokers, consultants and DSAs",
+        "to": "/partner"
+      },
+      {
+        "icon": "Building2",
+        "label": "Builder",
+        "desc": "Buyer financing and project approvals",
+        "to": "/partner/builder"
+      },
+      {
+        "icon": "Users",
+        "label": "Freelancer",
+        "desc": "Earn on your own time, no investment",
+        "to": "/partner/freelancer"
+      }
+    ],
     "nav.tools": [
       {
         "label": "EMI Calculator",
@@ -2875,72 +2935,227 @@
     "home.banks": [
       {
         "name": "HDFC Bank",
-        "logo": "/banks/viva/hdfc.svg",
-        "small": ""
-      },
-      {
-        "name": "ICICI Bank",
-        "logo": "/banks/viva/icici.svg",
-        "small": ""
-      },
-      {
-        "name": "Axis Bank",
-        "logo": "/banks/viva/axis.svg",
-        "small": ""
-      },
-      {
-        "name": "Kotak Mahindra Bank",
-        "logo": "/banks/viva/kotak.svg",
-        "small": ""
-      },
-      {
-        "name": "Yes Bank",
-        "logo": "/banks/viva/yes.svg",
-        "small": ""
-      },
-      {
-        "name": "IDFC First Bank",
-        "logo": "/banks/idfc-first-bank.svg",
-        "small": ""
-      },
-      {
-        "name": "IndusInd Bank",
-        "logo": "/banks/indusind-bank-new.svg",
-        "small": "yes"
-      },
-      {
-        "name": "Standard Chartered",
-        "logo": "/banks/viva/standard-chartered.svg",
+        "logo": "/banks/network/hdfc-bank.png",
         "small": ""
       },
       {
         "name": "Tata Capital",
-        "logo": "/banks/viva/tata-capital.jpg",
+        "logo": "/banks/network/tata-capital.png",
+        "small": ""
+      },
+      {
+        "name": "Axis Bank",
+        "logo": "/banks/network/axis-bank.png",
+        "small": ""
+      },
+      {
+        "name": "Bandhan Bank",
+        "logo": "/banks/network/bandhan-bank.png",
+        "small": ""
+      },
+      {
+        "name": "ICICI Bank",
+        "logo": "/banks/network/icici-bank.png",
+        "small": ""
+      },
+      {
+        "name": "Fullerton India",
+        "logo": "/banks/network/fullerton-india.png",
         "small": ""
       },
       {
         "name": "Aditya Birla Capital",
-        "logo": "/banks/viva/aditya-birla.svg",
+        "logo": "/banks/network/aditya-birla-capital.png",
         "small": ""
       },
       {
-        "name": "Godrej Capital",
-        "logo": "/banks/viva/godrej.png",
-        "small": ""
-      },
-      {
-        "name": "State Bank of India",
-        "logo": "/banks/sbi.svg",
+        "name": "Federal Bank",
+        "logo": "/banks/network/federal-bank.png",
         "small": ""
       },
       {
         "name": "Bajaj Finserv",
-        "logo": "/banks/bajaj-finserv.svg",
+        "logo": "/banks/network/bajaj-finserv.png",
+        "small": ""
+      },
+      {
+        "name": "IDBI Bank",
+        "logo": "/banks/network/idbi-bank.png",
+        "small": ""
+      },
+      {
+        "name": "Cholamandalam",
+        "logo": "/banks/network/cholamandalam.png",
+        "small": ""
+      },
+      {
+        "name": "Kotak Mahindra Bank",
+        "logo": "/banks/network/kotak-mahindra-bank.png",
+        "small": ""
+      },
+      {
+        "name": "Poonawalla Fincorp",
+        "logo": "/banks/network/poonawalla-fincorp.png",
+        "small": ""
+      },
+      {
+        "name": "Union Bank of India",
+        "logo": "/banks/network/union-bank-of-india.png",
+        "small": ""
+      },
+      {
+        "name": "Piramal Finance",
+        "logo": "/banks/network/piramal-finance.png",
+        "small": ""
+      },
+      {
+        "name": "SBI Home Loans",
+        "logo": "/banks/network/sbi-home-loans.png",
         "small": ""
       },
       {
         "name": "Bank of Baroda",
-        "logo": "/banks/bank-of-baroda.svg",
+        "logo": "/banks/network/bank-of-baroda.png",
+        "small": ""
+      },
+      {
+        "name": "IIFL Finance",
+        "logo": "/banks/network/iifl-finance.png",
+        "small": ""
+      },
+      {
+        "name": "Shriram Finance",
+        "logo": "/banks/network/shriram-finance.png",
+        "small": ""
+      },
+      {
+        "name": "Godrej Capital",
+        "logo": "/banks/network/godrej-capital.png",
+        "small": ""
+      },
+      {
+        "name": "DCB Bank",
+        "logo": "/banks/network/dcb-bank.png",
+        "small": ""
+      },
+      {
+        "name": "Yes Bank",
+        "logo": "/banks/network/yes-bank.png",
+        "small": ""
+      },
+      {
+        "name": "HSBC",
+        "logo": "/banks/network/hsbc.png",
+        "small": ""
+      },
+      {
+        "name": "Axis Finance",
+        "logo": "/banks/network/axis-finance.png",
+        "small": ""
+      },
+      {
+        "name": "Indiabulls Housing Finance",
+        "logo": "/banks/network/indiabulls-housing-finance.png",
+        "small": ""
+      },
+      {
+        "name": "HDFC Sales",
+        "logo": "/banks/network/hdfc-sales.png",
+        "small": ""
+      },
+      {
+        "name": "Standard Chartered",
+        "logo": "/banks/network/standard-chartered.png",
+        "small": ""
+      },
+      {
+        "name": "Aditya Birla Finance",
+        "logo": "/banks/network/aditya-birla-finance.png",
+        "small": ""
+      },
+      {
+        "name": "LIC Housing Finance",
+        "logo": "/banks/network/lic-housing-finance.png",
+        "small": ""
+      },
+      {
+        "name": "Bajaj Finance",
+        "logo": "/banks/network/bajaj-finance.png",
+        "small": ""
+      },
+      {
+        "name": "Deutsche Bank",
+        "logo": "/banks/network/deutsche-bank.png",
+        "small": ""
+      },
+      {
+        "name": "ICICI Home Finance",
+        "logo": "/banks/network/icici-home-finance.png",
+        "small": ""
+      },
+      {
+        "name": "IndusInd Bank",
+        "logo": "/banks/network/indusind-bank.png",
+        "small": ""
+      },
+      {
+        "name": "Edelweiss",
+        "logo": "/banks/network/edelweiss.png",
+        "small": ""
+      },
+      {
+        "name": "PNB Housing Finance",
+        "logo": "/banks/network/pnb-housing-finance.png",
+        "small": ""
+      },
+      {
+        "name": "Bank of India",
+        "logo": "/banks/network/bank-of-india.png",
+        "small": ""
+      },
+      {
+        "name": "L&T Finance",
+        "logo": "/banks/network/l-t-finance.png",
+        "small": ""
+      },
+      {
+        "name": "Aadhar Housing Finance",
+        "logo": "/banks/network/aadhar-housing-finance.png",
+        "small": ""
+      },
+      {
+        "name": "IDFC First Bank",
+        "logo": "/banks/network/idfc-first-bank.png",
+        "small": ""
+      },
+      {
+        "name": "AU Small Finance Bank",
+        "logo": "/banks/network/au-small-finance-bank.png",
+        "small": ""
+      },
+      {
+        "name": "Mahindra Finance",
+        "logo": "/banks/network/mahindra-finance.png",
+        "small": ""
+      },
+      {
+        "name": "HeroFinCorp",
+        "logo": "/banks/network/herofincorp.png",
+        "small": ""
+      },
+      {
+        "name": "Central Bank of India",
+        "logo": "/banks/network/central-bank-of-india.png",
+        "small": ""
+      },
+      {
+        "name": "Profectus Capital",
+        "logo": "/banks/network/profectus-capital.png",
+        "small": ""
+      },
+      {
+        "name": "IndoStar Capital",
+        "logo": "/banks/network/indostar-capital.png",
         "small": ""
       }
     ],
@@ -3581,6 +3796,32 @@
       ]
     },
     {
+      "key": "home.compare.banks",
+      "page": "Home",
+      "label": "Comparison: Banks & Lenders column",
+      "hint": "The points in the left column of the 'Banks & Lenders vs us' block.",
+      "fields": [
+        {
+          "key": "text",
+          "label": "Point",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "home.compare.us",
+      "page": "Home",
+      "label": "Comparison: Growth Capital column",
+      "hint": "The points in the highlighted right column.",
+      "fields": [
+        {
+          "key": "text",
+          "label": "Point",
+          "kind": "text"
+        }
+      ]
+    },
+    {
       "key": "home.personas",
       "page": "Home",
       "label": "Who we help",
@@ -3899,6 +4140,34 @@
         {
           "key": "to",
           "label": "Page address, e.g. /about",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "nav.partner",
+      "page": "Menu & footer",
+      "label": "Become Partner drop-down",
+      "hint": "The partner types listed under Become Partner. Page address is e.g. /partner/builder.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "label",
+          "label": "Name",
+          "kind": "text"
+        },
+        {
+          "key": "desc",
+          "label": "Short line",
+          "kind": "text"
+        },
+        {
+          "key": "to",
+          "label": "Page address",
           "kind": "text"
         }
       ]
