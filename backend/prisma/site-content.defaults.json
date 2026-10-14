@@ -3166,25 +3166,25 @@
         "goal": "Buy or build your home",
         "product": "Home Loan",
         "slug": "home-loan",
-        "line": "Ready flat, under-construction, plot or self-build — we line up the lender most likely to say yes.",
+        "line": "Ready flat, under-construction flat, plot or self-build. We compare lenders that may suit your profile.",
         "featured": "yes"
       },
       {
         "category": "Home & Property",
         "icon": "Building2",
-        "goal": "Unlock your property's value",
+        "goal": "Use your property to raise funds",
         "product": "Loan Against Property",
         "slug": "loan-against-property",
-        "line": "Raise serious funds and keep using the property.",
+        "line": "Borrow against a property you own and keep using it.",
         "featured": ""
       },
       {
         "category": "Home & Property",
         "icon": "TrendingDown",
-        "goal": "Shrink your EMI",
+        "goal": "Lower your EMI",
         "product": "Balance Transfer",
         "slug": "balance-transfer",
-        "line": "Move to a sharper rate, with a top-up if you need one.",
+        "line": "Compare other lenders and move your loan if better terms are available. A top-up may be possible.",
         "featured": ""
       },
       {
@@ -3193,16 +3193,16 @@
         "goal": "Grow your business",
         "product": "Business Loan",
         "slug": "business-loan",
-        "line": "Stock, staff or a new branch — no collateral needed.",
+        "line": "Funds for stock, staff or a new branch, without collateral.",
         "featured": ""
       },
       {
         "category": "Business & Cash Flow",
         "icon": "RefreshCw",
-        "goal": "Keep cash flowing",
+        "goal": "Keep your cash flowing",
         "product": "Working Capital",
         "slug": "working-capital",
-        "line": "Cash credit, overdraft and bill discounting sized to your business cycle.",
+        "line": "Cash credit, overdraft and bill discounting to match your business cycle.",
         "featured": ""
       },
       {
@@ -3211,25 +3211,25 @@
         "goal": "Fund a personal plan",
         "product": "Personal Loan",
         "slug": "personal-loan",
-        "line": "Wedding, travel, medical or a makeover — sorted in days.",
+        "line": "For a wedding, travel or medical needs. No collateral needed.",
         "featured": ""
       },
       {
         "category": "Personal Goals",
         "icon": "Car",
-        "goal": "Drive home a new car",
+        "goal": "Buy a new car",
         "product": "Car Loan",
         "slug": "new-car-loan",
-        "line": "Up to 100% on-road funding, new or pre-owned.",
+        "line": "Finance for a new or used car, up to 100% of the on-road price for eligible profiles.",
         "featured": ""
       },
       {
         "category": "Personal Goals",
         "icon": "GraduationCap",
-        "goal": "Study anywhere",
+        "goal": "Study in India or abroad",
         "product": "Education Loan",
         "slug": "education-loan",
-        "line": "Tuition, stay and travel — with tax benefits on interest.",
+        "line": "Tuition, stay and travel costs. Tax benefits on interest may apply.",
         "featured": ""
       }
     ],
