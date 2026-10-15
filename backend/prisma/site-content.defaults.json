@@ -1821,7 +1821,7 @@
       "path": "/tools",
       "label": "Calculators & tools",
       "title": "Loan Calculators & Tools | Growth Capital Services",
-      "description": "Ten free calculators — EMI, eligibility, stamp duty, prepayment, balance transfer, loan comparison, working capital, CGTMSE fee, LAP eligibility and a credit score estimator."
+      "description": "Nine free calculators — EMI, eligibility, stamp duty, prepayment, balance transfer, loan comparison, working capital, CGTMSE fee and LAP eligibility."
     },
     {
       "path": "/rates",
@@ -2837,6 +2837,26 @@
         "to": "/partner/freelancer"
       }
     ],
+    "nav.cibil": [
+      {
+        "icon": "FileText",
+        "label": "Credit Report",
+        "desc": "Request your CIBIL or other bureau report",
+        "to": "/cibil"
+      },
+      {
+        "icon": "Gauge",
+        "label": "Credit Score Estimator",
+        "desc": "An indicative range, not a bureau pull",
+        "to": "/credit-score-estimator"
+      },
+      {
+        "icon": "Compass",
+        "label": "CIBIL Advisory Services",
+        "desc": "Understand your report and plan the next steps",
+        "to": "/cibil-advisory"
+      }
+    ],
     "nav.tools": [
       {
         "label": "EMI Calculator",
@@ -2882,11 +2902,6 @@
         "label": "Loan Against Property LTV",
         "desc": "What your property can unlock",
         "hash": "lap-ltv"
-      },
-      {
-        "label": "Credit Score Estimator",
-        "desc": "Indicative range, not a bureau pull",
-        "hash": "credit-score"
       }
     ],
     "footer.explore": [
@@ -3371,11 +3386,6 @@
         "id": "lap-ltv",
         "label": "Loan Against Property LTV",
         "sub": "What your property can unlock"
-      },
-      {
-        "id": "credit-score",
-        "label": "Credit Score Estimator",
-        "sub": "Indicative range, not a bureau pull"
       }
     ],
     "services.groups": [
@@ -4233,7 +4243,7 @@
       "key": "nav.header",
       "page": "Menu & footer",
       "label": "Top menu",
-      "hint": "The links in the top menu. Our Services and Tools keep their drop-down panels.",
+      "hint": "The links in the top menu. Our Services, Calculators, CIBIL and Become Partner keep their drop-down panels.",
       "fields": [
         {
           "key": "label",
@@ -4252,6 +4262,34 @@
       "page": "Menu & footer",
       "label": "Become Partner drop-down",
       "hint": "The partner types listed under Become Partner. Page address is e.g. /partner/builder.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "label",
+          "label": "Name",
+          "kind": "text"
+        },
+        {
+          "key": "desc",
+          "label": "Short line",
+          "kind": "text"
+        },
+        {
+          "key": "to",
+          "label": "Page address",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "nav.cibil",
+      "page": "Menu & footer",
+      "label": "CIBIL drop-down",
+      "hint": "The pages listed under CIBIL in the top menu.",
       "fields": [
         {
           "key": "icon",
@@ -4704,6 +4742,7 @@
     "Clock",
     "Compass",
     "FileText",
+    "Gauge",
     "Gem",
     "Globe",
     "GraduationCap",
