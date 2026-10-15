@@ -6,6 +6,6 @@ import { TurnstileService } from "./turnstile.service";
 @Module({
   controllers: [LeadsController, PublicLeadsController],
   providers: [LeadsService, TurnstileService],
-  exports: [LeadsService],
+  exports: [LeadsService, TurnstileService],
 })
 export class LeadsModule {}

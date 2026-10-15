@@ -57,6 +57,11 @@ export class LeadsController {
     return this.leads.findAll(query, user);
   }
 
+  @Get("segments")
+  segments(@CurrentUser() user: AuthUser) {
+    return this.leads.segmentCounts(user);
+  }
+
   @Get("duplicates")
   duplicates(@Query("phone") phone: string | undefined, @CurrentUser() user: AuthUser) {
     return this.leads.findDuplicates(phone ?? "", user);

@@ -9,6 +9,7 @@ import { LeadsModule } from "./leads/leads.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { ApplicationsModule } from "./applications/applications.module";
 import { LendersModule } from "./lenders/lenders.module";
+import { LenderPoliciesModule } from "./lender-policies/lender-policies.module";
 import { SanctionsModule } from "./sanctions/sanctions.module";
 import { AuditModule } from "./audit/audit.module";
 import { TeamModule } from "./team/team.module";
@@ -34,6 +35,7 @@ import { MarketingModule } from "./marketing/marketing.module";
 import { CreditModule } from "./credit/credit.module";
 import { WebsiteModule } from "./website/website.module";
 import { SecurityModule } from "./security/security.module";
+import { ChatAuthModule } from "./chat-auth/chat-auth.module";
 
 @Module({
   imports: [
@@ -55,6 +57,7 @@ import { SecurityModule } from "./security/security.module";
     DashboardModule,
     ApplicationsModule,
     LendersModule,
+    LenderPoliciesModule,
     SanctionsModule,
     AuditModule,
     TeamModule,
@@ -75,6 +78,7 @@ import { SecurityModule } from "./security/security.module";
     MarketingModule,
     CreditModule,
     WebsiteModule,
+    ChatAuthModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

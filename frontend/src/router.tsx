@@ -29,6 +29,7 @@ import { DisbursementsPage } from "./routes/disbursements";
 import { PartnersPage } from "./routes/partners";
 import { CommissionsPage } from "./routes/commissions";
 import { LendersPage } from "./routes/lenders";
+import { LenderPoliciesPage } from "./components/lender-policies";
 import { AttendancePage } from "./routes/attendance";
 import { ReportsPage } from "./routes/reports";
 import { CibilPage } from "./routes/cibil";
@@ -201,6 +202,7 @@ const routeTree = rootRoute.addChildren([
       component: CommissionsPage,
     }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/lenders", component: LendersPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/lender-policies", component: LenderPoliciesPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/partners", component: PartnersPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/team", component: TeamPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/audit", component: AuditPage }),

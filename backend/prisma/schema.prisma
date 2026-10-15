@@ -137,6 +137,7 @@ model Lender {
 
   applications Application[]
   contacts     LenderContact[]
+  policies     LenderPolicy[]
 
   @@index([active, isPublic])
 }
@@ -174,6 +175,7 @@ model LoanProduct {
   leads          Lead[]
   applications   Application[]
   checklistItems ChecklistItem[]
+  lenderPolicies LenderPolicy[]
 }
 
 model SourcingPartner {
@@ -228,6 +230,24 @@ model Setting {
 
 // ─── Leads ──────────────────────────────────────────────────
 
+// How a lead is worked, in priority order (the order here is the order they sort in):
+// HOT = details and documents complete, ready for a meeting; WARM = good potential but
+// something is missing; FOLLOW_UP = interested, will decide later; COLD = nothing to go on yet.
+enum LeadSegment {
+  HOT
+  WARM
+  FOLLOW_UP
+  COLD
+}
+
+// Documents the customer has handed over so far (documents proper attach to an application,
+// which only exists once a lead is converted, so for a lead the team records it here).
+enum DocumentsStatus {
+  NONE
+  PARTIAL
+  COMPLETE
+}
+
 enum LeadStatus {
   NEW
   CONTACTED
@@ -274,6 +294,13 @@ model Lead {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
+  // Priority segment. Worked out automatically from the lead's details, documents and follow-up
+  // date (see leads/lead-segment.ts) unless staff pin it (segmentLocked). Null once a lead is closed.
+  documentsStatus DocumentsStatus @default(NONE)
+  segment         LeadSegment?
+  segmentLocked   Boolean         @default(false)
+  segmentNote     String?
+
   // Where the lead came from, for marketing reports: the channel (Google Search Ads,
   // Society activation, Referral …), the campaign, and the raw tracking tags the website passed along.
   channel     String?
@@ -284,11 +311,17 @@ model Lead {
   utmTerm     String?
   landingPage String?
 
+  // Set when this person proved they own the number with a one-time code in the website chat.
+  // Those leads are the "Chatbot contacts" in the CRM.
+  chatVerifiedAt DateTime?
+
   application Application?
   followUps   FollowUp[]
   submissions WebsiteSubmission[]
 
+  @@index([chatVerifiedAt])
   @@index([status, nextFollowUpAt])
+  @@index([segment, nextFollowUpAt])
   @@index([assignedOfficerId])
   @@index([phone])
   @@index([createdAt])
@@ -296,6 +329,39 @@ model Lead {
   @@index([sourcingPartnerId])
   @@index([channel, createdAt])
   @@index([archivedAt])
+}
+
+// ─── Website chat sign-in ───────────────────────────────────
+
+// A one-time code sent to a visitor's mobile before the website chat opens. Only a hash of the
+// code is kept. A code is good for a few minutes and a handful of tries, then it is dead.
+model ChatOtp {
+  id        String    @id @default(cuid())
+  phone     String
+  codeHash  String
+  name      String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  ip        String?
+  createdAt DateTime  @default(now())
+
+  @@index([phone, createdAt])
+  @@index([expiresAt])
+}
+
+// A verified visitor's chat pass. The browser holds the token; only its hash is stored here.
+model ChatSession {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  phone     String
+  name      String
+  leadId    String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@index([expiresAt])
 }
 
 model FollowUp {
@@ -962,4 +1028,145 @@ model SiteImage {
   data        Bytes
   createdAt   DateTime @default(now())
   createdByName String?
+}
+
+
+// ─── Lender policy database ──────────────────────────────────────────────────
+// One record per lender + loan product: the rules GCS keeps about what that lender will do, with
+// where the rule came from and when someone last checked it. The matcher only trusts a record that
+// is active, in date and recently verified; anything else goes to a human instead.
+model LenderPolicy {
+  id            String      @id @default(cuid())
+  lenderId      String
+  lender        Lender      @relation(fields: [lenderId], references: [id], onDelete: Cascade)
+  loanProductId String
+  loanProduct   LoanProduct @relation(fields: [loanProductId], references: [id], onDelete: Cascade)
+
+  active        Boolean   @default(true)
+  version       Int       @default(1)
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+  // Where the rules came from (policy circular, RM email …) and who last confirmed them.
+  source         String?
+  lastVerifiedAt DateTime?
+  verifiedById   String?
+  verifiedByName String?
+  reviewEveryDays Int      @default(90)
+
+  // What the lender offers
+  minAmount       Decimal? @db.Decimal(14, 2)
+  maxAmount       Decimal? @db.Decimal(14, 2)
+  minRate         Decimal? @db.Decimal(5, 2)
+  maxRate         Decimal? @db.Decimal(5, 2)
+  processingFee   String?
+  maxTenureMonths Int?
+  specialScheme   String?
+
+  // Who it is for
+  employmentTypes          String[]
+  minAge                   Int?
+  maxAgeAtApplication      Int?
+  maxAgeAtMaturity         Int?
+  minMonthlyIncome         Decimal? @db.Decimal(14, 2)
+  minBusinessVintageMonths Int?
+  minAnnualTurnover        Decimal? @db.Decimal(14, 2)
+  minAnnualProfit          Decimal? @db.Decimal(14, 2)
+  minCreditScore           Int?
+  acceptedConstitutions    String[]
+  gstRequired              Boolean  @default(false)
+
+  // Money rules. Each band is { upTo: number | null, value: number } in rupees / percent.
+  foirBands           Json?
+  ltvBands            Json?
+  acceptedPropertyTypes String[]
+
+  // Where it is available. Blank cities on a non-all-India policy means "not confirmed".
+  allIndia Boolean  @default(false)
+  cities   String[]
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  changes    LenderPolicyChange[]
+  exceptions PolicyException[]
+
+  @@unique([lenderId, loanProductId])
+  @@index([active, lastVerifiedAt])
+}
+
+/** Every save of a policy keeps the version it replaced, so any past match can be explained. */
+model LenderPolicyChange {
+  id            String       @id @default(cuid())
+  policyId      String
+  policy        LenderPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  version       Int
+  snapshot      Json
+  changedById   String?
+  changedByName String?
+  reason        String?
+  createdAt     DateTime     @default(now())
+
+  @@index([policyId, version])
+}
+
+/** What experienced staff know that a rule sheet does not: when a lender bends a rule, and who must agree. */
+model PolicyException {
+  id                String       @id @default(cuid())
+  policyId          String
+  policy            LenderPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  scenario          String
+  normalRule        String?
+  possibleException String?
+  requiredApproval  String?
+  source            String?
+  lastVerifiedAt    DateTime?
+  expertNote        String?
+  active            Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+
+  @@index([policyId])
+}
+
+/** One run of the matcher with the exact answers used and the result, kept for audit and review. */
+model MatchRun {
+  id           String   @id @default(cuid())
+  leadId       String?
+  profile      Json
+  results      Json
+  createdById  String?
+  createdByName String?
+  reviewStatus String   @default("PENDING")
+  reviewedById String?
+  reviewedByName String?
+  reviewNote   String?
+  reviewedAt   DateTime?
+  createdAt    DateTime @default(now())
+
+  @@index([leadId, createdAt])
+}
+
+/** How each case ended, by lender and product, so GCS learns what really gets sanctioned. */
+model CaseOutcome {
+  id              String    @id @default(cuid())
+  leadId          String?
+  applicationId   String?
+  lenderId        String?
+  loanProductId   String?
+  recommended     Boolean   @default(false)
+  submittedAt     DateTime?
+  outcome         String    @default("SUBMITTED")
+  sanctionAmount  Decimal?  @db.Decimal(14, 2)
+  rate            Decimal?  @db.Decimal(5, 2)
+  turnaroundDays  Int?
+  rejectionReason String?
+  disbursed       Boolean   @default(false)
+  profile         Json?
+  notes           String?
+  createdById     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([lenderId, loanProductId])
+  @@index([leadId])
 }

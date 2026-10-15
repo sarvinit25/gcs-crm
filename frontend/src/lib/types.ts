@@ -26,6 +26,29 @@ export const LEAD_STATUS_LABEL: Record<LeadStatus, string> = {
   LOST: "Lost",
 };
 
+/** The four working segments, in priority order. */
+export type LeadSegment = "HOT" | "WARM" | "FOLLOW_UP" | "COLD";
+export const LEAD_SEGMENTS: LeadSegment[] = ["HOT", "WARM", "FOLLOW_UP", "COLD"];
+export const LEAD_SEGMENT_LABEL: Record<LeadSegment, string> = {
+  HOT: "Hot",
+  WARM: "Warm",
+  FOLLOW_UP: "Follow-up",
+  COLD: "Cold",
+};
+export const LEAD_SEGMENT_HINT: Record<LeadSegment, string> = {
+  HOT: "Details and documents complete. Ready for a meeting.",
+  WARM: "Good potential, but something is still missing.",
+  FOLLOW_UP: "Interested, will decide later.",
+  COLD: "Too little to go on yet.",
+};
+
+export type DocumentsStatus = "NONE" | "PARTIAL" | "COMPLETE";
+export const DOCUMENTS_STATUS_LABEL: Record<DocumentsStatus, string> = {
+  NONE: "Not received",
+  PARTIAL: "Some received",
+  COMPLETE: "All received",
+};
+
 export const LOST_REASONS = [
   "Not interested",
   "Not eligible",
@@ -65,6 +88,12 @@ export type Lead = {
   amount: string | null;
   source: string;
   status: LeadStatus;
+  segment: LeadSegment | null;
+  segmentNote: string | null;
+  /** When the person confirmed their mobile with a code to use the website chat. Set means a chatbot contact. */
+  chatVerifiedAt: string | null;
+  segmentLocked: boolean;
+  documentsStatus: DocumentsStatus;
   nextFollowUpAt: string | null;
   notes: string | null;
   lostReason: string | null;
@@ -97,6 +126,8 @@ export type FollowUp = {
 };
 
 export type LeadDetail = Lead & {
+  /** What is still needed before this lead is ready for a meeting. */
+  missingForMeeting: string[];
   followUps: FollowUp[];
   application: { id: string; applicationNo: string; status: string } | null;
 };

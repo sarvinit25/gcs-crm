@@ -1,6 +1,7 @@
 import { channelFromUtm, cleanLandingPage, cleanTag } from "../marketing/channel.util";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { AuditAction, AuditActorType, LeadStatus, Prisma, Role, SubmissionOutcome } from "@prisma/client";
+import { BadRequestException, Injectable, Logger, NotFoundException, type OnApplicationBootstrap } from "@nestjs/common";
+import { AuditAction, AuditActorType, LeadSegment, LeadStatus, Prisma, Role, SubmissionOutcome } from "@prisma/client";
+import { classifyLead, missingForMeeting } from "./lead-segment";
 import { entryCount, isFuller, nameTokens, namesMatch, type Entry } from "./lead-dedupe";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
@@ -23,8 +24,28 @@ const LIST_INCLUDE = {
   sourcingPartner: { select: { id: true, name: true } },
 } satisfies Prisma.LeadInclude;
 
+/** The fields the segment rules read. */
+const SEGMENT_SELECT = {
+  id: true,
+  status: true,
+  loanProductId: true,
+  amount: true,
+  city: true,
+  employmentType: true,
+  monthlyIncome: true,
+  documentsStatus: true,
+  nextFollowUpAt: true,
+  segment: true,
+  segmentLocked: true,
+  segmentNote: true,
+} satisfies Prisma.LeadSelect;
+
+type Db = PrismaService | Prisma.TransactionClient;
+
 @Injectable()
-export class LeadsService {
+export class LeadsService implements OnApplicationBootstrap {
+  private readonly logger = new Logger(LeadsService.name);
+
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
@@ -56,6 +77,58 @@ export class LeadsService {
       // A channel chosen by staff wins; otherwise it is read from the tracking tags.
       channel: cleanTag(dto.channel, 60) ?? channelFromUtm(utmSource, utmMedium) ?? undefined,
     };
+  }
+
+  /**
+   * Works out the lead's segment and saves it when it changed. A lead staff pinned keeps its segment
+   * until they hand it back, unless it gets closed (a closed lead has none).
+   */
+  async refreshSegment(id: string, db: Db = this.prisma) {
+    const lead = await db.lead.findUnique({ where: { id }, select: SEGMENT_SELECT });
+    if (!lead) return;
+    const closed = lead.status === LeadStatus.CONVERTED || lead.status === LeadStatus.LOST;
+    if (lead.segmentLocked && !closed) return;
+    const { segment, note } = classifyLead(lead);
+    if (segment === lead.segment && note === lead.segmentNote && !(closed && lead.segmentLocked)) return;
+    await db.lead.update({ where: { id }, data: { segment, segmentNote: note, ...(closed && { segmentLocked: false }) } });
+  }
+
+  /** Counts per segment for the Leads page chips: open, unarchived leads the caller may see. */
+  async segmentCounts(user: AuthUser) {
+    const rows = await this.prisma.lead.groupBy({
+      by: ["segment"],
+      where: { ...this.scopeFor(user), archivedAt: null, segment: { not: null } },
+      _count: { _all: true },
+    });
+    const counts = { HOT: 0, WARM: 0, FOLLOW_UP: 0, COLD: 0, followUpsDue: 0, chatbot: 0 };
+    for (const r of rows) if (r.segment) counts[r.segment] = r._count._all;
+    counts.followUpsDue = await this.prisma.lead.count({
+      where: { ...this.scopeFor(user), archivedAt: null, segment: { not: null }, nextFollowUpAt: { lte: new Date() } },
+    });
+    // People who confirmed their number with a code to use the website chat, whatever their segment.
+    counts.chatbot = await this.prisma.lead.count({
+      where: { ...this.scopeFor(user), archivedAt: null, chatVerifiedAt: { not: null } },
+    });
+    return counts;
+  }
+
+  /** Leads that existed before segments did, or came in through a path that missed one, get theirs on start-up. */
+  onApplicationBootstrap() {
+    void this.backfillSegments().catch((e: unknown) =>
+      this.logger.warn(`Could not work out lead segments: ${e instanceof Error ? e.message : String(e)}`),
+    );
+  }
+
+  async backfillSegments() {
+    for (;;) {
+      const batch = await this.prisma.lead.findMany({
+        where: { segment: null, segmentLocked: false, archivedAt: null, status: { notIn: [LeadStatus.CONVERTED, LeadStatus.LOST] } },
+        select: { id: true },
+        take: 200,
+      });
+      if (batch.length === 0) return;
+      for (const { id } of batch) await this.refreshSegment(id);
+    }
   }
 
   /**
@@ -126,6 +199,7 @@ export class LeadsService {
           select: { id: true, leadNo: true },
         });
         await log(SubmissionOutcome.NEW_LEAD, lead.id, open.length > 0);
+        await this.refreshSegment(lead.id, tx);
         return { id: lead.id, leadNo: lead.leadNo, isNew: true };
       }
 
@@ -161,6 +235,7 @@ export class LeadsService {
         landingPage: same.landingPage ?? attribution.landingPage,
       } satisfies Prisma.LeadUncheckedUpdateInput;
       await tx.lead.update({ where: { id: same.id }, data });
+      await this.refreshSegment(same.id, tx);
       await log(SubmissionOutcome.DUPLICATE_UPDATED, same.id);
       await this.audit.recordUpdate({
         actor: { name: "Website form" },
@@ -175,7 +250,7 @@ export class LeadsService {
   }
 
   async create(dto: CreateLeadDto, user: AuthUser) {
-    return this.prisma.lead.create({
+    const created = await this.prisma.lead.create({
       data: {
         name: dto.name.trim(),
         phone: dto.phone,
@@ -199,9 +274,12 @@ export class LeadsService {
         monthlyIncome: dto.monthlyIncome,
         meetingMode: dto.meetingMode,
         meetingPlace: dto.meetingPlace,
+        documentsStatus: dto.documentsStatus,
       },
       include: LIST_INCLUDE,
     });
+    await this.refreshSegment(created.id);
+    return this.prisma.lead.findUniqueOrThrow({ where: { id: created.id }, include: LIST_INCLUDE });
   }
 
   async findAll(query: ListLeadsQuery, user: AuthUser) {
@@ -212,7 +290,9 @@ export class LeadsService {
       ...this.scopeFor(user),
       archivedAt: query.archived === "true" ? { not: null } : null,
       ...(query.status && { status: query.status }),
+      ...(query.segment && { segment: query.segment }),
       ...(query.source && { source: query.source }),
+      ...(query.chatbot === "true" && { chatVerifiedAt: { not: null } }),
       ...(query.assignedOfficerId && { assignedOfficerId: query.assignedOfficerId }),
       ...(query.loanProductId && { loanProductId: query.loanProductId }),
       ...(query.channel && { channel: query.channel === "none" ? null : query.channel }),
@@ -231,7 +311,13 @@ export class LeadsService {
       this.prisma.lead.findMany({
         where,
         include: LIST_INCLUDE,
-        orderBy: { createdAt: "desc" },
+        // Priority order: Hot, Warm, Follow-up, Cold (the enum's own order). Inside a segment the
+        // soonest follow-up, or the one most overdue, comes first, then the newest enquiry.
+        orderBy: [
+          { segment: { sort: "asc", nulls: "last" } },
+          { nextFollowUpAt: { sort: "asc", nulls: "last" } },
+          { createdAt: "desc" },
+        ],
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
@@ -258,6 +344,7 @@ export class LeadsService {
     const { application, ...rest } = lead;
     return {
       ...rest,
+      missingForMeeting: missingForMeeting(lead),
       application: application && {
         id: application.id,
         status: application.status,
@@ -269,7 +356,16 @@ export class LeadsService {
   async update(id: string, dto: UpdateLeadDto, user: AuthUser, ip?: string) {
     const before = await this.findOne(id, user);
 
-    const data: Prisma.LeadUncheckedUpdateInput = { ...dto };
+    // The segment is handled on its own below: staff either pin one or hand it back to the rules.
+    const { segment: requestedSegment, ...fields } = dto;
+    const data: Prisma.LeadUncheckedUpdateInput = { ...fields };
+    if (requestedSegment === "AUTO") {
+      data.segmentLocked = false;
+    } else if (requestedSegment) {
+      data.segment = requestedSegment;
+      data.segmentLocked = true;
+      data.segmentNote = `Set by ${user.name}.`;
+    }
     // Clearing a field in the form stores nothing, not an empty string.
     if (dto.channel !== undefined) data.channel = dto.channel?.trim() || null;
     if (dto.campaign !== undefined) data.campaign = dto.campaign?.trim() || null;
@@ -282,11 +378,9 @@ export class LeadsService {
       data.lostReason = null;
     }
 
-    const lead = await this.prisma.lead.update({
-      where: { id },
-      data,
-      include: LIST_INCLUDE,
-    });
+    await this.prisma.lead.update({ where: { id }, data });
+    await this.refreshSegment(id);
+    const lead = await this.prisma.lead.findUniqueOrThrow({ where: { id }, include: LIST_INCLUDE });
 
     await this.audit.recordUpdate({
       actor: user,
@@ -418,7 +512,7 @@ export class LeadsService {
       }
       seen.add(phone);
 
-      await this.prisma.lead.create({
+      const imported = await this.prisma.lead.create({
         data: {
           name: row.name.trim(),
           phone,
@@ -430,7 +524,9 @@ export class LeadsService {
           loanProductId,
           assignedOfficerId: owner,
         },
+        select: { id: true },
       });
+      await this.refreshSegment(imported.id);
       results.push({ row: line, name: row.name, status: "created" });
     }
 
@@ -468,6 +564,7 @@ export class LeadsService {
         where: { id },
         data: { nextFollowUpAt: dto.dueAt },
       });
+      await this.refreshSegment(id);
     }
     return followUp;
   }
