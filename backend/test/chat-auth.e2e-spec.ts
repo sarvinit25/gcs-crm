@@ -76,7 +76,7 @@ describe("chat sign-in", () => {
     expect(res.body.token.length).toBeGreaterThan(30);
 
     const ok = await post("/public/chat-auth/session", { token: res.body.token });
-    expect(ok.body).toEqual({ valid: true, name: "Asha Rao" });
+    expect(ok.body).toEqual({ valid: true, name: "Asha Rao", blockedUntil: null });
     expect((await post("/public/chat-auth/session", { token: "x".repeat(43) })).body).toEqual({ valid: false });
 
     const stored = await prisma.chatSession.findFirstOrThrow({ where: { phone: p } });
@@ -184,6 +184,73 @@ describe("chat sign-in", () => {
     const { token } = (await verify(p, lastCode(p))).body;
     await post("/public/chat-auth/end", { token });
     expect((await post("/public/chat-auth/session", { token })).body).toEqual({ valid: false });
+  });
+
+  describe("off-topic strikes", () => {
+    const signedIn = async () => {
+      const p = phone();
+      await send(p);
+      return { p, token: (await verify(p, lastCode(p))).body.token as string };
+    };
+    const strike = (token: string) => post("/public/chat-auth/strike", { token });
+
+    it("counts each off-topic message and pauses the chat on the third", async () => {
+      const { token } = await signedIn();
+      const first = await strike(token);
+      expect(first.body).toMatchObject({ valid: true, strikes: 1, left: 2, blockedUntil: null });
+      expect((await strike(token)).body).toMatchObject({ strikes: 2, left: 1, blockedUntil: null });
+
+      const third = await strike(token);
+      expect(third.body).toMatchObject({ strikes: 3, left: 0 });
+      const until = new Date(third.body.blockedUntil).getTime();
+      expect(until).toBeGreaterThan(Date.now() + 55 * 60_000);
+
+      const check = await post("/public/chat-auth/session", { token });
+      expect(check.body).toMatchObject({ valid: true, blockedUntil: third.body.blockedUntil });
+    });
+
+    it("does not extend a pause that is already running", async () => {
+      const { token } = await signedIn();
+      await strike(token);
+      await strike(token);
+      const blocked = (await strike(token)).body;
+      const again = (await strike(token)).body;
+      expect(again.blockedUntil).toBe(blocked.blockedUntil);
+      expect(again.strikes).toBe(3);
+    });
+
+    it("keeps the count when the same number signs in again", async () => {
+      const { p, token } = await signedIn();
+      await strike(token);
+      await strike(token);
+      await cooled(p);
+      await send(p);
+      const fresh = (await verify(p, lastCode(p))).body.token;
+      expect((await strike(fresh)).body).toMatchObject({ strikes: 3, left: 0 });
+      expect((await post("/public/chat-auth/session", { token: fresh })).body.blockedUntil).not.toBeNull();
+    });
+
+    it("starts again once the pause is over", async () => {
+      const { p, token } = await signedIn();
+      await strike(token);
+      await strike(token);
+      await strike(token);
+      await prisma.chatStrike.update({ where: { phone: p }, data: { blockedUntil: new Date(Date.now() - 1000) } });
+      expect((await post("/public/chat-auth/session", { token })).body.blockedUntil).toBeNull();
+      expect((await strike(token)).body).toMatchObject({ strikes: 1, left: 2, blockedUntil: null });
+    });
+
+    it("forgets a lone strike after a few quiet hours", async () => {
+      const { p, token } = await signedIn();
+      await strike(token);
+      await strike(token);
+      await prisma.chatStrike.update({ where: { phone: p }, data: { lastStrikeAt: new Date(Date.now() - 7 * 3_600_000) } });
+      expect((await strike(token)).body).toMatchObject({ strikes: 1, left: 2 });
+    });
+
+    it("ignores a pass that is not valid", async () => {
+      expect((await strike("x".repeat(43))).body).toEqual({ valid: false });
+    });
   });
 
   it("stops a pass working once it has expired", async () => {

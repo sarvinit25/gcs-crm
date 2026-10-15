@@ -22,6 +22,10 @@ export const OTP_MAX_PER_DAY = 10;
 export const OTP_MAX_TRIES = 5;
 /** A verified visitor stays signed in on that browser this long. */
 export const SESSION_DAYS = 7;
+/** Off-topic messages allowed before the chat is paused, how long the pause lasts, and how long a lone strike is remembered. */
+export const STRIKE_LIMIT = 3;
+export const BLOCK_MINUTES = 60;
+export const STRIKE_MEMORY_HOURS = 6;
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -165,14 +169,54 @@ export class ChatAuthService {
     return result.id;
   }
 
-  /** Is this chat pass still good? Asked by the website's server before each answer. */
+  /** Is this chat pass still good, and is the chat paused for this number? Asked by the website's server before each answer. */
   async check(token: string) {
     const session = await this.prisma.chatSession.findUnique({
       where: { tokenHash: this.hashToken(token) },
-      select: { name: true, expiresAt: true },
+      select: { name: true, phone: true, expiresAt: true },
     });
     if (!session || session.expiresAt.getTime() <= Date.now()) return { valid: false as const };
-    return { valid: true as const, name: session.name };
+    const strike = await this.prisma.chatStrike.findUnique({ where: { phone: session.phone } });
+    const blocked = strike?.blockedUntil && strike.blockedUntil.getTime() > Date.now() ? strike.blockedUntil : null;
+    return { valid: true as const, name: session.name, blockedUntil: blocked ? blocked.toISOString() : null };
+  }
+
+  /**
+   * Counts one off-topic message against the visitor's number. Strikes from long ago are forgotten, and the
+   * third one pauses the chat for an hour. Returns where that leaves them.
+   */
+  async strike(token: string) {
+    const session = await this.prisma.chatSession.findUnique({
+      where: { tokenHash: this.hashToken(token) },
+      select: { phone: true, expiresAt: true },
+    });
+    if (!session || session.expiresAt.getTime() <= Date.now()) return { valid: false as const };
+
+    const now = Date.now();
+    const row = await this.prisma.chatStrike.findUnique({ where: { phone: session.phone } });
+    const wasBlocked = row?.blockedUntil && row.blockedUntil.getTime() > now;
+    // a finished pause, or a long quiet spell, starts the count again
+    const stale =
+      !row ||
+      (row.blockedUntil && row.blockedUntil.getTime() <= now) ||
+      (row.lastStrikeAt && now - row.lastStrikeAt.getTime() > STRIKE_MEMORY_HOURS * HOUR);
+    const strikes = wasBlocked ? row.strikes : (stale ? 0 : row.strikes) + 1;
+    const blockedUntil = wasBlocked
+      ? row.blockedUntil
+      : strikes >= STRIKE_LIMIT
+        ? new Date(now + BLOCK_MINUTES * MINUTE)
+        : null;
+    const saved = await this.prisma.chatStrike.upsert({
+      where: { phone: session.phone },
+      create: { phone: session.phone, strikes, lastStrikeAt: new Date(now), blockedUntil },
+      update: { strikes, lastStrikeAt: new Date(now), blockedUntil },
+    });
+    return {
+      valid: true as const,
+      strikes: saved.strikes,
+      left: Math.max(0, STRIKE_LIMIT - saved.strikes),
+      blockedUntil: saved.blockedUntil ? saved.blockedUntil.toISOString() : null,
+    };
   }
 
   async end(token: string) {

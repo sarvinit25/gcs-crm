@@ -350,6 +350,16 @@ model ChatOtp {
   @@index([expiresAt])
 }
 
+// Off-topic messages counted against a verified mobile number, so signing in again does not wipe them.
+// A few in a row pause the chat for that number for a while.
+model ChatStrike {
+  phone        String    @id
+  strikes      Int       @default(0)
+  lastStrikeAt DateTime?
+  blockedUntil DateTime?
+  updatedAt    DateTime  @updatedAt
+}
+
 // A verified visitor's chat pass. The browser holds the token; only its hash is stored here.
 model ChatSession {
   id        String   @id @default(cuid())

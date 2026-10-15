@@ -38,6 +38,14 @@ export class ChatAuthController {
     return this.auth.check(dto.token);
   }
 
+  // Also called by the website's server: it saw an off-topic message and counts it against the number.
+  @Public()
+  @SkipThrottle()
+  @Post("strike")
+  strike(@Body() dto: CheckSessionDto) {
+    return this.auth.strike(dto.token);
+  }
+
   @Public()
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post("end")
