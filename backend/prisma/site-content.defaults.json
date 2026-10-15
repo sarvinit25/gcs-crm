@@ -1160,20 +1160,25 @@
   "services": {
     "income-tax-return-filing": {
       "division": "CA Services",
-      "title": "Income Tax Return Filing",
-      "summary": "ITR filing support for salaried individuals, professionals, business owners and firms, matched to the correct ITR form for your income type. We handle everything from Form 16 reconciliation to e-filing and the acknowledgement receipt.",
-      "whoNeedsIt": "Anyone with taxable income who needs to file a return — salaried, self-employed or a firm. Also useful if you've missed a filing deadline in a prior year and need to catch up correctly.",
+      "title": "Income Tax Return (ITR) Filing",
+      "summary": "Income Tax Return (ITR) filing is the process of reporting your income, deductions and taxes to the Income Tax Department. We help salaried people, professionals, business owners and firms prepare and file the right return for their income.",
+      "whoNeedsIt": "Salaried employees, self-employed people, freelancers, business owners, firms, and anyone with rental, interest, investment or capital gains income. Filing requirements depend on your income, transactions and the Income Tax rules that apply.",
       "process": [
-        "Share your income sources and documents for review",
-        "Correct ITR form identified and return prepared",
-        "Return shared with you for confirmation before filing",
-        "Filed and acknowledgement shared with you"
+        "Share your income details and documents",
+        "Review and preparation, including selecting the right ITR form",
+        "Your confirmation of the return before filing",
+        "ITR filing with the Income Tax Department",
+        "Filing acknowledgement shared for your records"
       ],
       "documents": [
-        "PAN, Aadhaar and address proof",
-        "Form 16 or income proof",
-        "Bank statements",
-        "Investment/deduction proofs, if applicable"
+        "Basic KYC and personal details",
+        "Salary documents",
+        "Bank and interest income",
+        "Tax statements and TDS",
+        "Investments and deductions",
+        "House property and rental income",
+        "Capital gains and property sale",
+        "Business, professional and firm records"
       ]
     },
     "tax-planning-advisory": {
