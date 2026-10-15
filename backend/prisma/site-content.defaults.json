@@ -226,7 +226,7 @@
       ]
     },
     "balance-transfer": {
-      "title": "Balance Transfer",
+      "title": "Balance Transfer & Top-Up",
       "tagline": "Same loan, smaller bill.",
       "about": "A balance transfer means moving your current loan to another lender that may offer better terms. We put your existing loan next to offers from other lenders, in writing, so you can compare before you decide. If you choose to switch, we guide you through the whole process. A top-up may also be possible if your profile qualifies.",
       "features": [
@@ -694,6 +694,45 @@
         }
       ]
     },
+    "machine-loan": {
+      "title": "Machine Loan",
+      "tagline": "Take your business to the next level.",
+      "about": "A machine loan helps you buy new machinery or equipment, or raise money against machinery you already own. It can help a business set up, expand or upgrade its production. We compare options from Banks and NBFCs that may suit your business and guide you through the paperwork.",
+      "features": [
+        "Loan for buying machinery, or against different types of machinery",
+        "Funding of up to 100%* of the machinery cost, including GST on machinery up to ₹35 Lakh, as per lender policy",
+        "Fewer documents for loans up to ₹35 Lakh, as per lender policy",
+        "Loan amount from ₹10 Lakh to ₹3 Crore, with repayment of up to 60 months",
+        "For some profiles, financial statements may not be needed for loans up to ₹3 Crore"
+      ],
+      "eligibility": [
+        "An established business, usually 2 years or more",
+        "Profitable accounts for the last 2 years",
+        "A healthy average balance in the business bank account",
+        "Machinery that is useful for the business and keeps its value",
+        "Ownership of property or a factory may be considered",
+        "A consumer CIBIL score of 700 or more"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Business proof (GST returns, ITR with financials, 12-month banking)",
+        "Machinery quotation or invoice from the supplier"
+      ],
+      "facts": [
+        {
+          "label": "Funding",
+          "value": "Up to 100%*"
+        },
+        {
+          "label": "Loan amount",
+          "value": "₹10 Lakh to ₹3 Cr"
+        },
+        {
+          "label": "Tenure",
+          "value": "Up to 60 months"
+        }
+      ]
+    },
     "personal-loan": {
       "title": "Personal Loan",
       "tagline": "Money for life's plans, minus the paperwork.",
@@ -999,6 +1038,43 @@
         {
           "label": "Tenure",
           "value": "12 — 60 months"
+        }
+      ]
+    },
+    "commercial-vehicle": {
+      "title": "Commercial Vehicle",
+      "tagline": "Get the right vehicle for your business.",
+      "about": "Financing for new and used commercial vehicles such as trucks, buses and light goods vehicles. It helps a business add or replace vehicles without putting a large amount of its own money upfront. We compare options from Banks and NBFCs that may suit your business.",
+      "features": [
+        "Finance for new and used commercial vehicles",
+        "Funding of up to 100%* of the vehicle value for eligible profiles",
+        "Used commercial vehicles: up to 80% finance",
+        "Repayment of up to 7 years",
+        "No penalty for early repayment on eligible loans, as per lender terms",
+        "Simpler documents"
+      ],
+      "eligibility": [
+        "A business or person who will use the vehicle for commercial work",
+        "Income or business proof to show that you can repay the loan",
+        "Final eligibility, amount and terms depend on the lender's policy and the vehicle"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Income or business proof (ITR, bank statements)",
+        "Vehicle quotation, or registration papers for a used vehicle"
+      ],
+      "facts": [
+        {
+          "label": "Funding",
+          "value": "Up to 100%* LTV"
+        },
+        {
+          "label": "Repayment",
+          "value": "Up to 7 years"
+        },
+        {
+          "label": "Used vehicles",
+          "value": "Up to 80% finance"
         }
       ]
     },
@@ -1827,7 +1903,7 @@
     },
     {
       "path": "/services/balance-transfer",
-      "label": "Loan: Balance Transfer",
+      "label": "Loan: Balance Transfer & Top-Up",
       "title": "",
       "description": ""
     },
@@ -1904,6 +1980,12 @@
       "description": ""
     },
     {
+      "path": "/services/machine-loan",
+      "label": "Loan: Machine Loan",
+      "title": "",
+      "description": ""
+    },
+    {
       "path": "/services/personal-loan",
       "label": "Loan: Personal Loan",
       "title": "",
@@ -1952,6 +2034,12 @@
       "description": ""
     },
     {
+      "path": "/services/commercial-vehicle",
+      "label": "Loan: Commercial Vehicle",
+      "title": "",
+      "description": ""
+    },
+    {
       "path": "/services/private-funding",
       "label": "Loan: Private Funding",
       "title": "",
@@ -1959,7 +2047,7 @@
     },
     {
       "path": "/ca-legal-services/income-tax-return-filing",
-      "label": "CA & legal: Income Tax Return Filing",
+      "label": "CA & legal: Income Tax Return (ITR) Filing",
       "title": "",
       "description": ""
     },
@@ -2417,7 +2505,7 @@
         "label": "Bank & NBFC Partners"
       },
       {
-        "value": "25+",
+        "value": "27+",
         "label": "Loan Products"
       },
       {
@@ -2649,7 +2737,7 @@
     ],
     "services.stats": [
       {
-        "value": "25+",
+        "value": "27+",
         "label": "Loan Products"
       },
       {
@@ -2873,7 +2961,7 @@
         "to": "/services#education-loan"
       },
       {
-        "label": "Balance Transfer",
+        "label": "Balance Transfer & Top-Up",
         "to": "/services#balance-transfer"
       },
       {
@@ -2907,7 +2995,7 @@
         "slug": "education-loan"
       },
       {
-        "title": "Balance Transfer",
+        "title": "Balance Transfer & Top-Up",
         "slug": "balance-transfer"
       },
       {
@@ -3187,7 +3275,7 @@
         "category": "Home & Property",
         "icon": "TrendingDown",
         "goal": "Lower your EMI",
-        "product": "Balance Transfer",
+        "product": "Balance Transfer & Top-Up",
         "slug": "balance-transfer",
         "line": "Compare other lenders and move your loan if better terms are available. A top-up may be possible.",
         "featured": ""
@@ -3510,7 +3598,7 @@
         "visible": "yes"
       },
       {
-        "title": "Balance Transfer",
+        "title": "Balance Transfer & Top-Up",
         "slug": "balance-transfer",
         "visible": "yes"
       },
@@ -3575,6 +3663,11 @@
         "visible": "yes"
       },
       {
+        "title": "Machine Loan",
+        "slug": "machine-loan",
+        "visible": "yes"
+      },
+      {
         "title": "Personal Loan",
         "slug": "personal-loan",
         "visible": "yes"
@@ -3612,6 +3705,11 @@
       {
         "title": "Car Refinance",
         "slug": "car-refinance",
+        "visible": "yes"
+      },
+      {
+        "title": "Commercial Vehicle",
+        "slug": "commercial-vehicle",
         "visible": "yes"
       },
       {
