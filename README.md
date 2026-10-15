@@ -70,6 +70,8 @@ every request as one client.
 | Dashboard | done (time range, conversion metrics, loan distribution) | done (range filter, CSV export, punch card) |
 | Lead priority segments (Hot / Warm / Follow-up / Cold) | done (automatic from the lead's details, documents received and follow-up date; staff can pin one; rules in `backend/src/leads/lead-segment.ts`) | done (priority cards with counts, Priority column, Priority card on the lead) |
 | Website chat sign-in (code by SMS, then the visitor is a "Chatbot contact") | done (`backend/src/chat-auth`; codes expire in 10 minutes, 5 tries, 30 s between sends, 5 an hour per number; SMS via MSG91 when `SMS_PROVIDER` is set, otherwise dev prints the code in the log) | done (Chatbot contacts card, filter and column on Leads) |
+| Chat stays on topic (off-topic messages are turned away without calling the AI; 3 strikes pause the chat for that number for an hour) | done (`ChatStrike` table, `POST /public/chat-auth/strike`; kept per mobile number so signing in again does not reset it) | not shown in the CRM yet |
+| GCS ID directory (every client file number and tracking code, lead number and partner code in one list; main admin only) | done (`backend/src/id-directory`, admin-only endpoint; search by number, code, name or phone) | done (People > GCS IDs: Clients, Leads and Partners tabs, tracking codes hidden until shown, copy buttons) |
 | Leads (+ follow-ups, public intake) | done (+ bulk CSV import, lost reasons) | done (list, filters by loan type / time, detail, status, follow-ups, import/export) |
 | Applications | done | done (Application and Login Status tabs, filters, detail, applicants, references, lender) |
 | Sanctions | done | done (register + per-application panel) |
