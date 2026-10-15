@@ -3,7 +3,7 @@
     "contact": [
       {
         "q": "How long until I hear back?",
-        "a": "A senior advisor typically calls back within one business day, with an indicative offer following shortly after."
+        "a": "A senior expert typically calls back within one business day, with an indicative offer following shortly after."
       },
       {
         "q": "Are there any upfront charges?",
@@ -33,7 +33,7 @@
       },
       {
         "q": "Do I need a license or certification to refer clients?",
-        "a": "No. As a referral partner, you introduce us to the client — our licensed advisors handle eligibility, documentation and lender matching."
+        "a": "No. As a referral partner, you introduce us to the client — our licensed experts handle eligibility, documentation and lender matching."
       },
       {
         "q": "Is there a limit on how many clients I can refer?",
@@ -58,8 +58,8 @@
         "a": "CCTV Towers, Andheri-Ghatkopar Road, Ghatkopar West, Mumbai 400084 — a short walk from Ghatkopar station on both the suburban line and Metro Line 1."
       },
       {
-        "q": "Can I meet an advisor in person?",
-        "a": "Yes, by appointment, Monday to Saturday, 10 AM to 6 PM. Call ahead so the right advisor for your loan type is free."
+        "q": "Can I meet an expert in person?",
+        "a": "Yes, by appointment, Monday to Saturday, 10 AM to 6 PM. Call ahead so the right expert for your loan type is free."
       },
       {
         "q": "Do you cover all of Mumbai, or just the western suburbs?",
@@ -73,7 +73,7 @@
       },
       {
         "q": "Does that slow things down compared to a local DSA?",
-        "a": "Usually the opposite — no branch queue, and your advisor is reachable directly on phone or WhatsApp through the whole process."
+        "a": "Usually the opposite — no branch queue, and your expert is reachable directly on phone or WhatsApp through the whole process."
       },
       {
         "q": "Which lenders do you work with for Thane customers?",
@@ -1803,12 +1803,12 @@
       "path": "/",
       "label": "Home",
       "title": "Growth Capital Services | Loan Experts in Mumbai, Thane & Pune",
-      "description": "Tailored home, property, business and personal loan solutions from leading Banks and NBFCs. Trusted loan advisors since 2017 across Mumbai, Thane, Navi Mumbai and Pune."
+      "description": "Tailored home, property, business and personal loan solutions from leading Banks and NBFCs. Trusted loan experts since 2017 across Mumbai, Thane, Navi Mumbai and Pune."
     },
     {
       "path": "/about",
       "label": "About us",
-      "title": "About Growth Capital Services | Trusted Loan Advisors Since 2017",
+      "title": "About Growth Capital Services | Trusted Loan Experts Since 2017",
       "description": "Growth Capital Services, established in 2017, is a leading partnership firm offering custom-fit loan solutions from various Banks and NBFCs across Mumbai, Thane, Navi Mumbai and Pune."
     },
     {
@@ -1856,7 +1856,7 @@
     {
       "path": "/why-us",
       "label": "Why us",
-      "title": "Why Choose Growth Capital Services | Loan Advisors Since 2017",
+      "title": "Why Choose Growth Capital Services | Loan Experts Since 2017",
       "description": "Trust, transparency, a paperless process and end-to-end support — how Growth Capital Services solves the real hurdles of borrowing."
     },
     {
@@ -2462,7 +2462,7 @@
         "body": "Move an existing loan to a better rate — top-up included.",
         "whyIcon": "Target",
         "whyTitle": "End-to-End Guidance",
-        "whyBody": "One advisor from picking the product to after the money lands."
+        "whyBody": "One expert from picking the product to after the money lands."
       },
       {
         "icon": "Landmark",
@@ -2519,8 +2519,8 @@
         "body": "75+ banks and NBFCs in our network, so your file gets more than one shot at approval."
       },
       {
-        "title": "Senior Advisors, Not a Call Centre",
-        "body": "The same experienced advisor stays with your file from the first call to disbursal."
+        "title": "Senior Experts, Not a Call Centre",
+        "body": "The same experienced expert stays with your file from the first call to disbursal."
       },
       {
         "title": "Built For Speed",
@@ -2672,7 +2672,7 @@
       {
         "icon": "PhoneCall",
         "title": "We Take It From There",
-        "body": "A senior advisor reaches out, assesses eligibility and manages the file."
+        "body": "A senior expert reaches out, assesses eligibility and manages the file."
       },
       {
         "icon": "Calendar",
@@ -2720,7 +2720,7 @@
     "partner.reasons": [
       {
         "q": "No License or Certification Needed",
-        "a": "Unlike a registered loan agent, you don't need any certification to refer clients to us — just an introduction and a phone number. Our licensed advisors handle the lending process end to end."
+        "a": "Unlike a registered loan agent, you don't need any certification to refer clients to us — just an introduction and a phone number. Our licensed experts handle the lending process end to end."
       },
       {
         "q": "No Exclusivity Required",
@@ -2732,7 +2732,7 @@
       },
       {
         "q": "Grow Your Professional Network",
-        "a": "Every successful referral builds a track record with senior advisors across our network of 75+ banks and NBFCs."
+        "a": "Every successful referral builds a track record with senior experts across our network of 75+ banks and NBFCs."
       }
     ],
     "services.stats": [
@@ -3458,29 +3458,29 @@
       {
         "slug": "mumbai",
         "city": "Mumbai",
-        "intro": "Our advisory office sits on the Andheri-Ghatkopar Road in Ghatkopar West, in the middle of Mumbai's western suburbs. If you're anywhere from Andheri to Mulund, Bandra to Chembur, a senior advisor is a short trip away — or a phone call, if that's easier.",
+        "intro": "Our advisory office sits on the Andheri-Ghatkopar Road in Ghatkopar West, in the middle of Mumbai's western suburbs. If you're anywhere from Andheri to Mulund, Bandra to Chembur, a senior expert is a short trip away — or a phone call, if that's easier.",
         "serviceNote": "Walk in by appointment for a face-to-face file review, or handle the entire process over phone, WhatsApp and email — most Mumbai clients do a mix of both.",
         "hasOffice": "yes"
       },
       {
         "slug": "thane",
         "city": "Thane",
-        "intro": "We don't have a branch counter in Thane — most of our Thane clients never needed one. Your file moves through us digitally from wherever you are, with a senior advisor on call throughout.",
-        "serviceNote": "Documents collected digitally or by doorstep pickup, video or phone consultations with a senior advisor, and an in-person meeting at our Ghatkopar West office when a file genuinely needs it.",
+        "intro": "We don't have a branch counter in Thane — most of our Thane clients never needed one. Your file moves through us digitally from wherever you are, with a senior expert on call throughout.",
+        "serviceNote": "Documents collected digitally or by doorstep pickup, video or phone consultations with a senior expert, and an in-person meeting at our Ghatkopar West office when a file genuinely needs it.",
         "hasOffice": "no"
       },
       {
         "slug": "navi-mumbai",
         "city": "Navi Mumbai",
-        "intro": "From Vashi to Kharghar to Panvel, we handle Navi Mumbai files the same way we handle everything else — digitally, with a named advisor who stays on the case start to finish.",
-        "serviceNote": "Documents collected digitally or by doorstep pickup, video or phone consultations with a senior advisor, and an in-person meeting at our Ghatkopar West office when a file genuinely needs it.",
+        "intro": "From Vashi to Kharghar to Panvel, we handle Navi Mumbai files the same way we handle everything else — digitally, with a named expert who stays on the case start to finish.",
+        "serviceNote": "Documents collected digitally or by doorstep pickup, video or phone consultations with a senior expert, and an in-person meeting at our Ghatkopar West office when a file genuinely needs it.",
         "hasOffice": "no"
       },
       {
         "slug": "pune",
         "city": "Pune",
         "intro": "Pune is the farthest city we actively serve, and it works because almost nothing in the process needs you to be in the same room as us — documents, discussion and disbursal all move digitally.",
-        "serviceNote": "Documents collected digitally or by courier, video or phone consultations with a senior advisor, and an in-person meeting at our Ghatkopar West, Mumbai office for the rare file that needs it.",
+        "serviceNote": "Documents collected digitally or by courier, video or phone consultations with a senior expert, and an in-person meeting at our Ghatkopar West, Mumbai office for the rare file that needs it.",
         "hasOffice": "no"
       }
     ],

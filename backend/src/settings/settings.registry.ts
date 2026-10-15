@@ -62,7 +62,7 @@ export const SETTINGS: SettingDef[] = [
     help: "Use {name}, {org} and {phone} for the customer's first name, your company name and your phone.",
     type: "text",
     default:
-      "Hi {name},\n\nThank you for contacting {org}. We have your enquiry and a senior advisor will call you within one business day.\n\nIn a hurry? Call us on {phone}.\n\nRegards,\n{org}",
+      "Hi {name},\n\nThank you for contacting {org}. We have your enquiry and a senior expert will call you within one business day.\n\nIn a hurry? Call us on {phone}.\n\nRegards,\n{org}",
   },
   // ── Organisation ──────────────────────────────────────────
   {
