@@ -24,6 +24,7 @@ import { ApplicationsPage } from "./routes/applications";
 import { ApplicationDetailPage } from "./routes/application-detail";
 import { SanctionsPage } from "./routes/sanctions";
 import { TeamPage } from "./routes/team";
+import { IdDirectoryPage } from "./routes/id-directory";
 import { AuditPage } from "./routes/audit";
 import { DisbursementsPage } from "./routes/disbursements";
 import { PartnersPage } from "./routes/partners";
@@ -205,6 +206,11 @@ const routeTree = rootRoute.addChildren([
     createRoute({ getParentRoute: () => protectedRoute, path: "/lender-policies", component: LenderPoliciesPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/partners", component: PartnersPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/team", component: TeamPage }),
+    createRoute({
+      getParentRoute: () => protectedRoute,
+      path: "/id-directory",
+      component: IdDirectoryPage,
+    }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/audit", component: AuditPage }),
     createRoute({
       getParentRoute: () => protectedRoute,

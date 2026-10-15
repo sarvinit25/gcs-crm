@@ -36,6 +36,7 @@ import { CreditModule } from "./credit/credit.module";
 import { WebsiteModule } from "./website/website.module";
 import { SecurityModule } from "./security/security.module";
 import { ChatAuthModule } from "./chat-auth/chat-auth.module";
+import { IdDirectoryModule } from "./id-directory/id-directory.module";
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { ChatAuthModule } from "./chat-auth/chat-auth.module";
     CreditModule,
     WebsiteModule,
     ChatAuthModule,
+    IdDirectoryModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

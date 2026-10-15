@@ -1,8 +1,9 @@
 import { LogoFull } from "../components/logo";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { useBorrowerAuth } from "../lib/borrower-auth";
+import { takeHandoff } from "../lib/track-handoff";
 
 export function TrackLoginPage() {
   const { login } = useBorrowerAuth();
@@ -11,6 +12,31 @@ export function TrackLoginPage() {
   const [accessCode, setAccessCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const signIn = async (phoneNo: string, code: string) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await login(phoneNo, code);
+      await navigate({ to: "/track" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign in failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Arriving from the website's Track Application page: the details are already typed, so sign in at once.
+  useEffect(() => {
+    const note = takeHandoff("client");
+    if (!note) return;
+    setPhone(note.phone);
+    if (note.code) {
+      setAccessCode(note.code);
+      void signIn(note.phone, note.code);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +61,7 @@ export function TrackLoginPage() {
           <LogoFull className="-mt-3 mb-4" />
           <h1 className="text-base font-bold text-navy">Track your file</h1>
           <p className="mt-1 text-[13px] text-muted">
-            Enter your mobile number and the access code your advisor shared with you.
+            Enter your mobile number and the GCS ID (access code) your expert shared with you.
           </p>
 
           <label className="mt-5 block text-[13px] font-semibold text-navy">
@@ -76,7 +102,7 @@ export function TrackLoginPage() {
           </button>
 
           <p className="mt-4 text-center text-[12px] text-muted">
-            Don't have an access code? Ask your GCS advisor for it.
+            Don't have a GCS ID? Ask your GCS expert for it.
           </p>
         </form>
       </div>

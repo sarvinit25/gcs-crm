@@ -11,6 +11,7 @@ import {
   Globe,
   History,
   Handshake,
+  IdCard,
   Scale,
   LayoutDashboard,
   LogOut,
@@ -55,6 +56,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
     items: [
       { to: "/partners", label: "Sourcing Partners", icon: Handshake, roles: ["ADMIN", "MANAGER"] },
       { to: "/lender-policies", label: "Lender policies", icon: Scale, roles: ["ADMIN", "MANAGER"] },
+      { to: "/id-directory", label: "GCS IDs", icon: IdCard, roles: ["ADMIN"] },
       { to: "/team", label: "Team", icon: UserSquare, roles: ["ADMIN"] },
     ],
   },

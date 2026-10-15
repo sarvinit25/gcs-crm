@@ -116,7 +116,7 @@ export function TrackDashboardPage() {
         <h1 className="text-lg font-bold text-navy">{app.loanProduct}</h1>
         <p className="mt-0.5 text-[13px] text-muted">
           {app.applicationNo} · Applied {formatDate(app.createdAt)}
-          {app.advisor && ` · Advisor: ${app.advisor}`}
+          {app.advisor && ` · Expert: ${app.advisor}`}
         </p>
       </div>
 

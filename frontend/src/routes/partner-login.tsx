@@ -1,8 +1,9 @@
 import { LogoFull } from "../components/logo";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { usePartnerAuth } from "../lib/partner-auth";
+import { takeHandoff } from "../lib/track-handoff";
 
 export function PartnerLoginPage() {
   const { login } = usePartnerAuth();
@@ -11,6 +12,12 @@ export function PartnerLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Arriving from the website's Track Application page: the mobile number is already filled in.
+  useEffect(() => {
+    const note = takeHandoff("partner");
+    if (note) setPhone(note.phone);
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

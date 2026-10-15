@@ -31,7 +31,8 @@ export async function borrowerApi<T>(path: string, init: RequestInit = {}): Prom
     },
   });
 
-  if (res.status === 401) {
+  // A wrong code on the sign-in form is a 401 too: show the server's message instead of reloading the page.
+  if (res.status === 401 && !path.startsWith("/borrower/auth/")) {
     borrowerTokenStore.clear();
     window.location.href = "/crm/track-login";
     throw new BorrowerApiError(401, "Session expired");

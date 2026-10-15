@@ -31,7 +31,8 @@ export async function partnerApi<T>(path: string, init: RequestInit = {}): Promi
     },
   });
 
-  if (res.status === 401) {
+  // A wrong password on the sign-in form is a 401 too: show the server's message instead of reloading the page.
+  if (res.status === 401 && !path.startsWith("/partner/auth/")) {
     partnerTokenStore.clear();
     window.location.href = "/crm/partner-login";
     throw new PartnerApiError(401, "Session expired");
