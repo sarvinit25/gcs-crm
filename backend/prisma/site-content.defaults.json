@@ -155,6 +155,46 @@
         }
       ]
     },
+    "balance-transfer": {
+      "title": "Balance Transfer & Top-Up",
+      "tagline": "Same loan, smaller bill.",
+      "about": "A balance transfer means moving your current loan to another lender that may offer better terms. We put your existing loan next to offers from other lenders, in writing, so you can compare before you decide. If you choose to switch, we guide you through the whole process. A top-up may also be possible if your profile qualifies.",
+      "features": [
+        "Better pricing available on home, LAP and business loans",
+        "Top-up sanctioned at mortgage-linked pricing, not personal-loan pricing",
+        "Trim the EMI or shorten the tenure — you choose which",
+        "We liaise with your existing lender on foreclosure and transfer"
+      ],
+      "eligibility": [
+        "A track record of on-time EMIs for at least the last 12 months",
+        "No recent bounces or delayed payments on the existing loan",
+        "Income documents and property papers ready for a fresh credit review",
+        "Resident Indian with an existing home loan; NRIs can transfer with select lenders (see the NRI section below)",
+        "Salaried, self-employed professional or self-employed business owner",
+        "If salaried, generally at least 1 year with your current employer",
+        "A CIBIL score of around 700 or above may help you get the better rate; lower scores are reviewed case by case",
+        "A residential property already mortgaged, with its papers in order"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Current loan statement, sanction letter and foreclosure letter",
+        "Property papers (agreement, title chain, tax receipts)"
+      ],
+      "facts": [
+        {
+          "label": "Use case",
+          "value": "Home / LAP / Business"
+        },
+        {
+          "label": "Benefit",
+          "value": "Lower rate + top-up"
+        },
+        {
+          "label": "Savings",
+          "value": "Shown in writing first"
+        }
+      ]
+    },
     "loan-against-property": {
       "title": "Loan Against Property",
       "tagline": "Your property's value, working for you.",
@@ -237,46 +277,6 @@
         }
       ]
     },
-    "balance-transfer": {
-      "title": "Balance Transfer & Top-Up",
-      "tagline": "Same loan, smaller bill.",
-      "about": "A balance transfer means moving your current loan to another lender that may offer better terms. We put your existing loan next to offers from other lenders, in writing, so you can compare before you decide. If you choose to switch, we guide you through the whole process. A top-up may also be possible if your profile qualifies.",
-      "features": [
-        "Better pricing available on home, LAP and business loans",
-        "Top-up sanctioned at mortgage-linked pricing, not personal-loan pricing",
-        "Trim the EMI or shorten the tenure — you choose which",
-        "We liaise with your existing lender on foreclosure and transfer"
-      ],
-      "eligibility": [
-        "A track record of on-time EMIs for at least the last 12 months",
-        "No recent bounces or delayed payments on the existing loan",
-        "Income documents and property papers ready for a fresh credit review",
-        "Resident Indian with an existing home loan; NRIs can transfer with select lenders (see the NRI section below)",
-        "Salaried, self-employed professional or self-employed business owner",
-        "If salaried, generally at least 1 year with your current employer",
-        "A CIBIL score of around 700 or above may help you get the better rate; lower scores are reviewed case by case",
-        "A residential property already mortgaged, with its papers in order"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Current loan statement, sanction letter and foreclosure letter",
-        "Property papers (agreement, title chain, tax receipts)"
-      ],
-      "facts": [
-        {
-          "label": "Use case",
-          "value": "Home / LAP / Business"
-        },
-        {
-          "label": "Benefit",
-          "value": "Lower rate + top-up"
-        },
-        {
-          "label": "Savings",
-          "value": "Shown in writing first"
-        }
-      ]
-    },
     "dlod": {
       "title": "Drop-Line Overdraft (Secured)",
       "tagline": "A credit line that shrinks as you pay.",
@@ -311,6 +311,48 @@
         {
           "label": "Interest rate",
           "value": "From 9.75%* p.a. on the drawn balance"
+        }
+      ]
+    },
+    "project-funding": {
+      "title": "Project Funding",
+      "tagline": "Finance that builds as you build.",
+      "about": "Funding for construction and development projects. The amount depends on your approvals, project cost and expected sales. The money is released in stages as the work moves ahead, not all at once.",
+      "features": [
+        "Residential, commercial and industrial developments",
+        "Combined land-and-construction funding where needed",
+        "Repayment structured through escrow and sales receivables",
+        "Legal, technical and valuation checks coordinated on your behalf"
+      ],
+      "eligibility": [
+        "Sanctioned building plans and clear, marketable land title",
+        "The developer's own contribution already committed to the project",
+        "A track record of completed projects is preferred, though not always mandatory",
+        "A developer or company registered in India",
+        "A good credit record for the developer, its promoters and group companies",
+        "Residential, commercial or mixed-use projects"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Project report with cost and sales projections",
+        "Approvals, plans and land title documents"
+      ],
+      "facts": [
+        {
+          "label": "Funding",
+          "value": "Up to 75% of project cost"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 12%* p.a."
+        },
+        {
+          "label": "Use",
+          "value": "Construction & development"
+        },
+        {
+          "label": "Release",
+          "value": "Stage by stage"
         }
       ]
     },
@@ -395,27 +437,77 @@
         }
       ]
     },
-    "unsecured-term-loan": {
-      "title": "Unsecured Term Loan",
-      "tagline": "Fixed EMIs, zero security.",
-      "about": "A term loan without collateral for businesses with clean, audited financials. The loan has a fixed period and a fixed EMI. The lender decides the amount based on your bank turnover and filings, not only a quick GST check.",
+    "machine-loan": {
+      "title": "Machine Loan",
+      "tagline": "Take your business to the next level.",
+      "about": "A machine loan helps you buy new machinery or equipment, or raise money against machinery you already own. It can help a business set up, expand or upgrade its production. We compare options from Banks and NBFCs that may suit your business and guide you through the paperwork.",
       "features": [
-        "Fixed EMI on a defined repayment schedule",
-        "Offers benchmarked across several lenders before you commit",
-        "Part-prepayment allowed once the initial lock-in ends",
-        "Top-up available after a clean repayment run"
+        "Loan for buying machinery, or against different types of machinery",
+        "Funding of up to 100%* of the machinery cost, including GST on machinery up to ₹35 Lakh, as per lender policy",
+        "Fewer documents for loans up to ₹35 Lakh, as per lender policy",
+        "Loan amount from ₹10 Lakh to ₹3 Crore, with repayment of up to 60 months",
+        "For some profiles, financial statements may not be needed for loans up to ₹3 Crore"
       ],
       "eligibility": [
-        "At least 3 years in business with audited or CA-certified financials",
-        "Consistent bank credits through the preceding 12 months",
-        "A CIBIL score of 680 or higher for the business and its promoters",
-        "Business owner or self-employed professional with a steady business income",
+        "An established business, usually 2 years or more",
+        "Profitable accounts for the last 2 years",
+        "A healthy average balance in the business bank account",
+        "Machinery that is useful for the business and keeps its value",
+        "Ownership of property or a factory may be considered",
+        "A consumer CIBIL score of 700 or more",
         "Proprietorship, partnership, LLP or company"
       ],
       "documents": [
-        "KYC (PAN, Aadhaar, address proof)"
+        "KYC (PAN, Aadhaar, address proof)",
+        "Machinery quotation or invoice from the supplier"
       ],
       "facts": [
+        {
+          "label": "Funding",
+          "value": "Up to 100%*"
+        },
+        {
+          "label": "Loan amount",
+          "value": "₹10 Lakh to ₹3 Cr"
+        },
+        {
+          "label": "Tenure",
+          "value": "Up to 60 months"
+        }
+      ]
+    },
+    "working-capital-term-loan": {
+      "title": "Working Capital Term Loan",
+      "tagline": "Fixed EMIs to reset a stretched cash cycle.",
+      "about": "A working capital term loan gives your business a term loan with a fixed repayment plan and a fixed EMI. It can turn an overdrawn or irregular working-capital account into a loan your cash flow can handle, or fund your day-to-day needs. It can be offered without collateral to businesses with clean, audited financials. The lender decides the amount based on your bank turnover and filings, not only a quick GST check.",
+      "features": [
+        "Fixed EMI on a defined repayment schedule",
+        "Regularises stretched cash-credit or overdraft accounts",
+        "Consolidates several short-term dues into one facility",
+        "Can be offered without collateral to businesses with clean financials",
+        "Offers compared across several lenders before you commit",
+        "Part-prepayment allowed once the initial lock-in ends",
+        "Top-up available after a clean repayment run",
+        "Moratorium period available with select lenders",
+        "Can run alongside a freshly sanctioned working-capital limit"
+      ],
+      "eligibility": [
+        "A viable business with an identifiable working-capital gap",
+        "Audited or CA-certified financial statements, usually for 2 to 3 years, as per the lender",
+        "Consistent bank credits through the preceding 12 months",
+        "A good credit record; a CIBIL score of 680 or higher may be asked for the business and its promoters",
+        "Promoter contribution where the lender asks for one",
+        "Business owner or self-employed professional with a steady income, as a proprietorship, partnership, LLP or company"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Audited financials and existing sanction letters"
+      ],
+      "facts": [
+        {
+          "label": "Structure",
+          "value": "Term loan with fixed EMIs"
+        },
         {
           "label": "Loan amount",
           "value": "Up to ₹5 Cr"
@@ -427,123 +519,6 @@
         {
           "label": "Tenure",
           "value": "12 — 60 months"
-        },
-        {
-          "label": "Security",
-          "value": "None"
-        }
-      ]
-    },
-    "unsecured-dod": {
-      "title": "Unsecured DOD",
-      "tagline": "Standby cash, no EMI from day one.",
-      "about": "An overdraft without collateral where the limit reduces over the loan period. Use the money when your business needs it and repay when you can. You pay interest only on the amount you have used.",
-      "features": [
-        "Draw and repay as often as needed",
-        "Interest charged only on the amount outstanding",
-        "The limit steps down over the tenure",
-        "No property or asset pledge required"
-      ],
-      "eligibility": [
-        "At least 3 years of business operations",
-        "A healthy average balance across current accounts",
-        "No adverse remarks on existing credit facilities",
-        "Self-employed business owner or professional running a current account",
-        "A good credit record for the business and its owners; a CIBIL score of around 700 or above may help"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)"
-      ],
-      "facts": [
-        {
-          "label": "Structure",
-          "value": "Unsecured drop-line overdraft"
-        },
-        {
-          "label": "Limit",
-          "value": "Up to ₹2 Cr"
-        },
-        {
-          "label": "Interest rate",
-          "value": "From 13.50%* p.a. on the drawn balance"
-        }
-      ]
-    },
-    "project-funding": {
-      "title": "Project Funding",
-      "tagline": "Finance that builds as you build.",
-      "about": "Funding for construction and development projects. The amount depends on your approvals, project cost and expected sales. The money is released in stages as the work moves ahead, not all at once.",
-      "features": [
-        "Residential, commercial and industrial developments",
-        "Combined land-and-construction funding where needed",
-        "Repayment structured through escrow and sales receivables",
-        "Legal, technical and valuation checks coordinated on your behalf"
-      ],
-      "eligibility": [
-        "Sanctioned building plans and clear, marketable land title",
-        "The developer's own contribution already committed to the project",
-        "A track record of completed projects is preferred, though not always mandatory",
-        "A developer or company registered in India",
-        "A good credit record for the developer, its promoters and group companies",
-        "Residential, commercial or mixed-use projects"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Project report with cost and sales projections",
-        "Approvals, plans and land title documents"
-      ],
-      "facts": [
-        {
-          "label": "Funding",
-          "value": "Up to 75% of project cost"
-        },
-        {
-          "label": "Interest rate",
-          "value": "From 12%* p.a."
-        },
-        {
-          "label": "Use",
-          "value": "Construction & development"
-        },
-        {
-          "label": "Release",
-          "value": "Stage by stage"
-        }
-      ]
-    },
-    "working-capital": {
-      "title": "Working Capital",
-      "tagline": "Keep the wheels of business turning.",
-      "about": "Working capital is the money a business needs for its day-to-day running. The limit is set around your stock, the payments you are waiting for from customers, and your salary and payment cycle. You can get a new limit, increase an existing one, or move your account from your current bank if its terms no longer suit you.",
-      "features": [
-        "Cash credit, overdraft and bill-discounting limits",
-        "Enhancement or takeover of a limit you already run",
-        "Stock and debtor statements prepared and filed for you",
-        "Consortium or multiple-banking arrangements structured where useful"
-      ],
-      "eligibility": [
-        "At least 3 years of business operations",
-        "Annual turnover of ₹2 Cr or above, with audited financial statements",
-        "A visible working-capital gap in the balance sheet",
-        "Proprietorship, partnership, LLP or company",
-        "A good credit record for the business and its promoters; a CIBIL score of around 700 or above may help"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Audited financials and stock / debtor statements"
-      ],
-      "facts": [
-        {
-          "label": "Facility",
-          "value": "OD / CC / BD"
-        },
-        {
-          "label": "Limit",
-          "value": "Linked to turnover"
-        },
-        {
-          "label": "Renewal",
-          "value": "Annual"
         }
       ]
     },
@@ -690,78 +665,75 @@
         }
       ]
     },
-    "working-capital-term-loan": {
-      "title": "Working Capital Term Loan",
-      "tagline": "Reset a stretched cash cycle.",
-      "about": "This turns an overdrawn or irregular working-capital account into a term loan with a fixed repayment plan. The plan is set so that it matches what your cash flow can handle.",
+    "bill-discounting": {
+      "title": "Bill Discounting",
+      "tagline": "Get paid on your invoices, without waiting.",
+      "about": "Bill discounting helps a business get money against its unpaid invoices, instead of waiting for the customer to pay. The lender gives you a part of the invoice value now, and you repay when your customer pays. It can help you keep cash flowing between selling and getting paid. Lenders set their own limits and charges.",
       "features": [
-        "Regularises stretched cash-credit or overdraft accounts",
-        "Consolidates several short-term dues into one facility",
-        "Moratorium period available with select lenders",
-        "Can run alongside a freshly sanctioned working-capital limit"
+        "Funds against genuine invoices raised on your customers",
+        "Helps cover the gap between selling and getting paid",
+        "Repayment is linked to your customer's payment",
+        "Can work alongside a cash credit or overdraft limit, as per lender policy",
+        "Limits and charges depend on the lender and on your customers"
       ],
       "eligibility": [
-        "A viable business with an identifiable working-capital gap",
-        "Two years of audited financial statements",
-        "Promoter contribution where the lender asks for one",
-        "Proprietorship, partnership, LLP or company",
-        "A good credit record for the business and its promoters"
+        "A business that sells goods or services to other businesses on credit",
+        "Genuine invoices from customers with a good payment record",
+        "Business and banking records that show a steady turnover",
+        "Final eligibility depends on the lender's policy and credit assessment"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Audited financials and existing sanction letters"
+        "Business proof (GST returns, ITR with financials, 12-month banking)",
+        "Invoices and customer ledger (debtor statement)"
+      ],
+      "facts": [
+        {
+          "label": "Facility",
+          "value": "Funds against your invoices"
+        },
+        {
+          "label": "Repayment",
+          "value": "When your customer pays"
+        },
+        {
+          "label": "Best for",
+          "value": "Businesses that sell on credit"
+        }
+      ]
+    },
+    "unsecured-dod": {
+      "title": "Unsecured DOD",
+      "tagline": "Standby cash, no EMI from day one.",
+      "about": "An overdraft without collateral where the limit reduces over the loan period. Use the money when your business needs it and repay when you can. You pay interest only on the amount you have used.",
+      "features": [
+        "Draw and repay as often as needed",
+        "Interest charged only on the amount outstanding",
+        "The limit steps down over the tenure",
+        "No property or asset pledge required"
+      ],
+      "eligibility": [
+        "At least 3 years of business operations",
+        "A healthy average balance across current accounts",
+        "No adverse remarks on existing credit facilities",
+        "Self-employed business owner or professional running a current account",
+        "A good credit record for the business and its owners; a CIBIL score of around 700 or above may help"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)"
       ],
       "facts": [
         {
           "label": "Structure",
-          "value": "Term loan on WC gap"
+          "value": "Unsecured drop-line overdraft"
         },
         {
-          "label": "Tenure",
-          "value": "12 — 60 months"
+          "label": "Limit",
+          "value": "Up to ₹2 Cr"
         },
         {
-          "label": "Use",
-          "value": "Cycle reset & consolidation"
-        }
-      ]
-    },
-    "machine-loan": {
-      "title": "Machine Loan",
-      "tagline": "Take your business to the next level.",
-      "about": "A machine loan helps you buy new machinery or equipment, or raise money against machinery you already own. It can help a business set up, expand or upgrade its production. We compare options from Banks and NBFCs that may suit your business and guide you through the paperwork.",
-      "features": [
-        "Loan for buying machinery, or against different types of machinery",
-        "Funding of up to 100%* of the machinery cost, including GST on machinery up to ₹35 Lakh, as per lender policy",
-        "Fewer documents for loans up to ₹35 Lakh, as per lender policy",
-        "Loan amount from ₹10 Lakh to ₹3 Crore, with repayment of up to 60 months",
-        "For some profiles, financial statements may not be needed for loans up to ₹3 Crore"
-      ],
-      "eligibility": [
-        "An established business, usually 2 years or more",
-        "Profitable accounts for the last 2 years",
-        "A healthy average balance in the business bank account",
-        "Machinery that is useful for the business and keeps its value",
-        "Ownership of property or a factory may be considered",
-        "A consumer CIBIL score of 700 or more",
-        "Proprietorship, partnership, LLP or company"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Machinery quotation or invoice from the supplier"
-      ],
-      "facts": [
-        {
-          "label": "Funding",
-          "value": "Up to 100%*"
-        },
-        {
-          "label": "Loan amount",
-          "value": "₹10 Lakh to ₹3 Cr"
-        },
-        {
-          "label": "Tenure",
-          "value": "Up to 60 months"
+          "label": "Interest rate",
+          "value": "From 13.50%* p.a. on the drawn balance"
         }
       ]
     },
@@ -806,117 +778,6 @@
         {
           "label": "Minimum ticket size",
           "value": "₹2 Lakh"
-        }
-      ]
-    },
-    "loan-against-securities": {
-      "title": "Loan Against Securities",
-      "tagline": "Borrow on your portfolio, stay invested.",
-      "about": "You can pledge shares, bonds or insurance policies to get an overdraft limit, instead of selling them. Your investments stay in place, and the limit is there when you need it. Lenders accept only certain securities and set their own limits.",
-      "features": [
-        "Shares, bonds, insurance policies and debt instruments accepted",
-        "The limit moves with the value of the pledged portfolio",
-        "No EMI — interest applies only to what's drawn",
-        "Quick setup on lender-approved securities"
-      ],
-      "eligibility": [
-        "Approved securities held in the applicant's own name",
-        "A demat account with a recognised depository",
-        "Resident Indian, 21 years or older"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Demat holding statement",
-        "Portfolio / policy documents"
-      ],
-      "facts": [
-        {
-          "label": "LTV",
-          "value": "Up to 80% on debt instruments, 50% on listed shares"
-        },
-        {
-          "label": "Structure",
-          "value": "Overdraft limit"
-        },
-        {
-          "label": "Interest rate",
-          "value": "From 9.75%* p.a."
-        }
-      ]
-    },
-    "loan-against-mutual-funds": {
-      "title": "Loan Against Mutual Funds",
-      "tagline": "Borrow against your units, without redeeming them.",
-      "about": "The lender marks a lien on your mutual fund units through the registrar (CAMS or KFintech). Your SIPs and investments continue as before, and you can draw money against the units as an overdraft.",
-      "features": [
-        "Equity, debt and hybrid schemes accepted as collateral",
-        "Units remain invested and keep earning returns",
-        "No EMI — interest applies only to the amount drawn",
-        "Digital lien marking, usually completed the same day"
-      ],
-      "eligibility": [
-        "Mutual fund units held in the applicant's own name",
-        "Scheme falls on the lender's approved AMC/fund list",
-        "Resident Indian, 18 years or older"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Mutual fund statement / CAS",
-        "Folio details"
-      ],
-      "facts": [
-        {
-          "label": "LTV",
-          "value": "Up to 85% on debt funds, 75% on equity funds"
-        },
-        {
-          "label": "Structure",
-          "value": "Overdraft limit"
-        },
-        {
-          "label": "Interest rate",
-          "value": "From 9.99%* p.a."
-        }
-      ]
-    },
-    "professional-loan": {
-      "title": "Professional Loan",
-      "tagline": "Built for doctors, CAs and other qualified professionals.",
-      "about": "A loan without collateral for doctors, CAs, architects and other registered professionals. You can use it to start or grow a practice, buy equipment or meet working capital needs. Depending on the lender's policy, the terms may be better than a regular personal loan because of your professional qualification.",
-      "features": [
-        "Preferential pricing tied to your professional registration",
-        "No collateral for most ticket sizes",
-        "Usable for practice setup, equipment purchase or working capital",
-        "Faster turnaround with lighter documentation than a business loan"
-      ],
-      "eligibility": [
-        "A recognised professional qualification or registration (MBBS, CA, CS, architecture, engineering, etc.)",
-        "A minimum number of years in active practice, as set by the lender",
-        "A credit score in the low-to-mid 700s is typical for the better rate slabs",
-        "Resident Indian professional in independent practice",
-        "A steady practice income that shows in your bank statements"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Income proof (salary slips, ITR, bank statements)",
-        "Professional registration / degree certificate"
-      ],
-      "facts": [
-        {
-          "label": "Loan amount",
-          "value": "Up to ₹75 lakh"
-        },
-        {
-          "label": "Interest rate",
-          "value": "From 10.99%* p.a."
-        },
-        {
-          "label": "Tenure",
-          "value": "12 — 84 months"
-        },
-        {
-          "label": "Collateral",
-          "value": "Usually unsecured"
         }
       ]
     },
@@ -1122,6 +983,84 @@
         }
       ]
     },
+    "loan-against-securities": {
+      "title": "Loan Against Securities",
+      "tagline": "Borrow on your portfolio, stay invested.",
+      "about": "You can pledge shares, mutual funds, bonds or insurance policies to get an overdraft limit, instead of selling them. For mutual funds, the lender marks a lien on your units through the registrar (CAMS or KFintech). Your investments stay in place, and the limit is there when you need it. Lenders accept only certain securities and set their own limits.",
+      "features": [
+        "Shares, mutual funds, bonds, insurance policies and debt instruments accepted",
+        "Mutual fund units stay in your name and keep earning returns",
+        "The limit moves with the value of the pledged portfolio",
+        "No EMI — interest applies only to what's drawn",
+        "Quick setup on lender-approved securities"
+      ],
+      "eligibility": [
+        "Approved securities or mutual fund units held in the applicant's own name",
+        "A demat account for shares and bonds, or a mutual fund folio for units",
+        "Securities or schemes that are on the lender's approved list",
+        "Resident Indian, 21 years or older"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Demat holding statement, or mutual fund statement (CAS)",
+        "Portfolio, folio or policy documents"
+      ],
+      "facts": [
+        {
+          "label": "Pledge",
+          "value": "Shares, mutual funds and bonds"
+        },
+        {
+          "label": "LTV",
+          "value": "Up to 50%–80% of the pledge value"
+        },
+        {
+          "label": "Facility",
+          "value": "Overdraft, interest only on what you use"
+        }
+      ]
+    },
+    "professional-loan": {
+      "title": "Professional Loan",
+      "tagline": "Built for doctors, CAs and other qualified professionals.",
+      "about": "A loan without collateral for doctors, CAs, architects and other registered professionals. You can use it to start or grow a practice, buy equipment or meet working capital needs. Depending on the lender's policy, the terms may be better than a regular personal loan because of your professional qualification.",
+      "features": [
+        "Preferential pricing tied to your professional registration",
+        "No collateral for most ticket sizes",
+        "Usable for practice setup, equipment purchase or working capital",
+        "Faster turnaround with lighter documentation than a business loan"
+      ],
+      "eligibility": [
+        "A recognised professional qualification or registration (MBBS, CA, CS, architecture, engineering, etc.)",
+        "A minimum number of years in active practice, as set by the lender",
+        "A credit score in the low-to-mid 700s is typical for the better rate slabs",
+        "Resident Indian professional in independent practice",
+        "A steady practice income that shows in your bank statements"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Income proof (salary slips, ITR, bank statements)",
+        "Professional registration / degree certificate"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "Up to ₹75 lakh"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 10.99%* p.a."
+        },
+        {
+          "label": "Tenure",
+          "value": "12 — 84 months"
+        },
+        {
+          "label": "Collateral",
+          "value": "Usually unsecured"
+        }
+      ]
+    },
     "private-funding": {
       "title": "Private Funding",
       "tagline": "Fast money when the clock is ticking.",
@@ -1238,8 +1177,8 @@
       "category": "Working Capital · Seasonal Cash-Flow Bridge",
       "headline": "₹68 lakh working capital — released before the order was lost",
       "amountLabel": "₹68 Lakh",
-      "productSlug": "working-capital",
-      "productLabel": "Working Capital",
+      "productSlug": "working-capital-term-loan",
+      "productLabel": "Working Capital Term Loan",
       "clientProfile": "A garment exporter in Navi Mumbai with a strong seasonal order book, but cash tied up in receivables right when a large new order needed raw-material payment upfront.",
       "challenge": "The business's own cash was locked in 60-90 day receivables, and the new order's supplier wanted advance payment — a timing mismatch that had nothing to do with the business's underlying health.",
       "structuring": "GCS structured a cash credit facility sized to the business's stock and receivables cycle, rather than a fixed-term loan that wouldn't flex with the seasonal pattern.",
@@ -1771,6 +1710,11 @@
         "rateFrom": "9.75%"
       },
       {
+        "product": "Project Funding",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "12%"
+      },
+      {
         "product": "Business Loan",
         "bank": "Our network of banks & NBFCs",
         "rateFrom": "14%"
@@ -1781,7 +1725,7 @@
         "rateFrom": "9%"
       },
       {
-        "product": "Unsecured Term Loan",
+        "product": "Working Capital Term Loan",
         "bank": "Our network of banks & NBFCs",
         "rateFrom": "11.50%"
       },
@@ -1791,29 +1735,9 @@
         "rateFrom": "13.50%"
       },
       {
-        "product": "Project Funding",
-        "bank": "Our network of banks & NBFCs",
-        "rateFrom": "12%"
-      },
-      {
         "product": "Personal Loan",
         "bank": "Our network of banks & NBFCs",
         "rateFrom": "10.49%"
-      },
-      {
-        "product": "Loan Against Securities",
-        "bank": "Our network of banks & NBFCs",
-        "rateFrom": "9.75%"
-      },
-      {
-        "product": "Loan Against Mutual Funds",
-        "bank": "Our network of banks & NBFCs",
-        "rateFrom": "9.99%"
-      },
-      {
-        "product": "Professional Loan",
-        "bank": "Our network of banks & NBFCs",
-        "rateFrom": "10.99%"
       },
       {
         "product": "Education Loan",
@@ -1834,6 +1758,11 @@
         "product": "Car Refinance",
         "bank": "Our network of banks & NBFCs",
         "rateFrom": "12.50%"
+      },
+      {
+        "product": "Professional Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "10.99%"
       },
       {
         "product": "Private Funding",
@@ -1934,6 +1863,12 @@
       "description": ""
     },
     {
+      "path": "/services/balance-transfer",
+      "label": "Loan: Balance Transfer & Top-Up",
+      "title": "",
+      "description": ""
+    },
+    {
       "path": "/services/loan-against-property",
       "label": "Loan: Loan Against Property",
       "title": "",
@@ -1946,14 +1881,14 @@
       "description": ""
     },
     {
-      "path": "/services/balance-transfer",
-      "label": "Loan: Balance Transfer & Top-Up",
+      "path": "/services/dlod",
+      "label": "Loan: Drop-Line Overdraft (Secured)",
       "title": "",
       "description": ""
     },
     {
-      "path": "/services/dlod",
-      "label": "Loan: Drop-Line Overdraft (Secured)",
+      "path": "/services/project-funding",
+      "label": "Loan: Project Funding",
       "title": "",
       "description": ""
     },
@@ -1970,26 +1905,14 @@
       "description": ""
     },
     {
-      "path": "/services/unsecured-term-loan",
-      "label": "Loan: Unsecured Term Loan",
+      "path": "/services/machine-loan",
+      "label": "Loan: Machine Loan",
       "title": "",
       "description": ""
     },
     {
-      "path": "/services/unsecured-dod",
-      "label": "Loan: Unsecured DOD",
-      "title": "",
-      "description": ""
-    },
-    {
-      "path": "/services/project-funding",
-      "label": "Loan: Project Funding",
-      "title": "",
-      "description": ""
-    },
-    {
-      "path": "/services/working-capital",
-      "label": "Loan: Working Capital",
+      "path": "/services/working-capital-term-loan",
+      "label": "Loan: Working Capital Term Loan",
       "title": "",
       "description": ""
     },
@@ -2018,38 +1941,20 @@
       "description": ""
     },
     {
-      "path": "/services/working-capital-term-loan",
-      "label": "Loan: Working Capital Term Loan",
+      "path": "/services/bill-discounting",
+      "label": "Loan: Bill Discounting",
       "title": "",
       "description": ""
     },
     {
-      "path": "/services/machine-loan",
-      "label": "Loan: Machine Loan",
+      "path": "/services/unsecured-dod",
+      "label": "Loan: Unsecured DOD",
       "title": "",
       "description": ""
     },
     {
       "path": "/services/personal-loan",
       "label": "Loan: Personal Loan",
-      "title": "",
-      "description": ""
-    },
-    {
-      "path": "/services/loan-against-securities",
-      "label": "Loan: Loan Against Securities",
-      "title": "",
-      "description": ""
-    },
-    {
-      "path": "/services/loan-against-mutual-funds",
-      "label": "Loan: Loan Against Mutual Funds",
-      "title": "",
-      "description": ""
-    },
-    {
-      "path": "/services/professional-loan",
-      "label": "Loan: Professional Loan",
       "title": "",
       "description": ""
     },
@@ -2080,6 +1985,18 @@
     {
       "path": "/services/commercial-vehicle",
       "label": "Loan: Commercial Vehicle",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/loan-against-securities",
+      "label": "Loan: Loan Against Securities",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/professional-loan",
+      "label": "Loan: Professional Loan",
       "title": "",
       "description": ""
     },
@@ -2549,7 +2466,7 @@
         "label": "Bank & NBFC Partners"
       },
       {
-        "value": "27+",
+        "value": "25+",
         "label": "Loan Products"
       },
       {
@@ -2781,7 +2698,7 @@
     ],
     "services.stats": [
       {
-        "value": "27+",
+        "value": "25+",
         "label": "Loan Products"
       },
       {
@@ -3032,8 +2949,8 @@
         "to": "/services#balance-transfer"
       },
       {
-        "label": "Working Capital Loans",
-        "to": "/services#working-capital"
+        "label": "Working Capital Term Loan",
+        "to": "/services#working-capital-term-loan"
       }
     ],
     "form.loanTypes": [
@@ -3066,8 +2983,8 @@
         "slug": "balance-transfer"
       },
       {
-        "title": "Working Capital Loans",
-        "slug": "working-capital"
+        "title": "Working Capital Term Loan",
+        "slug": "working-capital-term-loan"
       },
       {
         "title": "Overdraft Facility",
@@ -3360,9 +3277,9 @@
         "category": "Business & Cash Flow",
         "icon": "RefreshCw",
         "goal": "Keep your cash flowing",
-        "product": "Working Capital",
-        "slug": "working-capital",
-        "line": "Cash credit, overdraft and bill discounting to match your business cycle.",
+        "product": "Working Capital Term Loan",
+        "slug": "working-capital-term-loan",
+        "line": "Working capital term loans, cash credit, overdraft and bill discounting to match your business cycle.",
         "featured": ""
       },
       {
@@ -3457,14 +3374,9 @@
         "description": "The day-to-day financial plumbing — credit lines, guarantees and limits that keep operations from stalling."
       },
       {
-        "name": "Personal & Education",
-        "heading": "For life's big moments.",
-        "description": "For the moments that don't wait — a medical bill, a degree abroad, or funds against what you've already invested."
-      },
-      {
-        "name": "Vehicles & Special Cases",
-        "heading": "Wheels, bridges and urgent deadlines.",
-        "description": "A new car, a better rate on the one you're driving, or funding when a deadline won't wait."
+        "name": "Personal, Education, Vehicle & Other Loans",
+        "heading": "Personal, education, vehicle and other loans.",
+        "description": "For personal needs, studies, cars and commercial vehicles, or funds against the shares and mutual funds you already hold."
       }
     ],
     "cibil.bureaus": [
@@ -3650,6 +3562,11 @@
         "visible": "yes"
       },
       {
+        "title": "Balance Transfer & Top-Up",
+        "slug": "balance-transfer",
+        "visible": "yes"
+      },
+      {
         "title": "Loan Against Property",
         "slug": "loan-against-property",
         "visible": "yes"
@@ -3660,13 +3577,13 @@
         "visible": "yes"
       },
       {
-        "title": "Balance Transfer & Top-Up",
-        "slug": "balance-transfer",
+        "title": "Drop-Line Overdraft (Secured)",
+        "slug": "dlod",
         "visible": "yes"
       },
       {
-        "title": "Drop-Line Overdraft (Secured)",
-        "slug": "dlod",
+        "title": "Project Funding",
+        "slug": "project-funding",
         "visible": "yes"
       },
       {
@@ -3680,23 +3597,13 @@
         "visible": "yes"
       },
       {
-        "title": "Unsecured Term Loan",
-        "slug": "unsecured-term-loan",
+        "title": "Machine Loan",
+        "slug": "machine-loan",
         "visible": "yes"
       },
       {
-        "title": "Unsecured DOD",
-        "slug": "unsecured-dod",
-        "visible": "yes"
-      },
-      {
-        "title": "Project Funding",
-        "slug": "project-funding",
-        "visible": "yes"
-      },
-      {
-        "title": "Working Capital",
-        "slug": "working-capital",
+        "title": "Working Capital Term Loan",
+        "slug": "working-capital-term-loan",
         "visible": "yes"
       },
       {
@@ -3720,33 +3627,18 @@
         "visible": "yes"
       },
       {
-        "title": "Working Capital Term Loan",
-        "slug": "working-capital-term-loan",
+        "title": "Bill Discounting",
+        "slug": "bill-discounting",
         "visible": "yes"
       },
       {
-        "title": "Machine Loan",
-        "slug": "machine-loan",
+        "title": "Unsecured DOD",
+        "slug": "unsecured-dod",
         "visible": "yes"
       },
       {
         "title": "Personal Loan",
         "slug": "personal-loan",
-        "visible": "yes"
-      },
-      {
-        "title": "Loan Against Securities",
-        "slug": "loan-against-securities",
-        "visible": "yes"
-      },
-      {
-        "title": "Loan Against Mutual Funds",
-        "slug": "loan-against-mutual-funds",
-        "visible": "yes"
-      },
-      {
-        "title": "Professional Loan",
-        "slug": "professional-loan",
         "visible": "yes"
       },
       {
@@ -3772,6 +3664,16 @@
       {
         "title": "Commercial Vehicle",
         "slug": "commercial-vehicle",
+        "visible": "yes"
+      },
+      {
+        "title": "Loan Against Securities",
+        "slug": "loan-against-securities",
+        "visible": "yes"
+      },
+      {
+        "title": "Professional Loan",
+        "slug": "professional-loan",
         "visible": "yes"
       },
       {
@@ -3827,6 +3729,50 @@
       },
       {
         "slug": "home-loan",
+        "label": "Loan Amount Required",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 50,00,000",
+        "amount": "yes",
+        "key": "loanAmount",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "loan-against-property",
+        "label": "Property Type",
+        "type": "select",
+        "options": "Builder Purchase, Resale, Self-Owned",
+        "placeholder": "",
+        "amount": "",
+        "key": "propertyType",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "loan-against-property",
+        "label": "Property Status",
+        "type": "select",
+        "options": "Ready to Move, Under Construction",
+        "placeholder": "",
+        "amount": "",
+        "key": "propertyStatus",
+        "showWhenKey": "propertyType",
+        "showWhenValues": "Builder Purchase"
+      },
+      {
+        "slug": "loan-against-property",
+        "label": "Expected Possession Date",
+        "type": "date",
+        "options": "",
+        "placeholder": "",
+        "amount": "",
+        "key": "possessionDate",
+        "showWhenKey": "propertyStatus",
+        "showWhenValues": "Under Construction"
+      },
+      {
+        "slug": "loan-against-property",
         "label": "Loan Amount Required",
         "type": "text",
         "options": "",
