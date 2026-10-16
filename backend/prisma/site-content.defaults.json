@@ -395,155 +395,78 @@
         }
       ]
     },
-    "unsecured-term-loan": {
-      "title": "Unsecured Term Loan",
-      "tagline": "Fixed EMIs, zero security.",
-      "about": "A term loan without collateral for businesses with clean, audited financials. The loan has a fixed period and a fixed EMI. The lender decides the amount based on your bank turnover and filings, not only a quick GST check.",
+    "machine-loan": {
+      "title": "Machine Loan",
+      "tagline": "Take your business to the next level.",
+      "about": "A machine loan helps you buy new machinery or equipment, or raise money against machinery you already own. It can help a business set up, expand or upgrade its production. We compare options from Banks and NBFCs that may suit your business and guide you through the paperwork.",
       "features": [
-        "Fixed EMI on a defined repayment schedule",
-        "Offers benchmarked across several lenders before you commit",
-        "Part-prepayment allowed once the initial lock-in ends",
-        "Top-up available after a clean repayment run"
+        "Loan for buying machinery, or against different types of machinery",
+        "Funding of up to 100%* of the machinery cost, including GST on machinery up to ₹35 Lakh, as per lender policy",
+        "Fewer documents for loans up to ₹35 Lakh, as per lender policy",
+        "Loan amount from ₹10 Lakh to ₹3 Crore, with repayment of up to 60 months",
+        "For some profiles, financial statements may not be needed for loans up to ₹3 Crore"
       ],
       "eligibility": [
-        "At least 3 years in business with audited or CA-certified financials",
-        "Consistent bank credits through the preceding 12 months",
-        "A CIBIL score of 680 or higher for the business and its promoters",
-        "Business owner or self-employed professional with a steady business income",
+        "An established business, usually 2 years or more",
+        "Profitable accounts for the last 2 years",
+        "A healthy average balance in the business bank account",
+        "Machinery that is useful for the business and keeps its value",
+        "Ownership of property or a factory may be considered",
+        "A consumer CIBIL score of 700 or more",
         "Proprietorship, partnership, LLP or company"
       ],
       "documents": [
-        "KYC (PAN, Aadhaar, address proof)"
+        "KYC (PAN, Aadhaar, address proof)",
+        "Machinery quotation or invoice from the supplier"
       ],
       "facts": [
         {
-          "label": "Loan amount",
-          "value": "Up to ₹5 Cr"
+          "label": "Funding",
+          "value": "Up to 100%*"
         },
         {
-          "label": "Interest rate",
-          "value": "From 11.50%* p.a."
+          "label": "Loan amount",
+          "value": "₹10 Lakh to ₹3 Cr"
+        },
+        {
+          "label": "Tenure",
+          "value": "Up to 60 months"
+        }
+      ]
+    },
+    "working-capital-term-loan": {
+      "title": "Working Capital Term Loan",
+      "tagline": "Reset a stretched cash cycle.",
+      "about": "This turns an overdrawn or irregular working-capital account into a term loan with a fixed repayment plan. The plan is set so that it matches what your cash flow can handle.",
+      "features": [
+        "Regularises stretched cash-credit or overdraft accounts",
+        "Consolidates several short-term dues into one facility",
+        "Moratorium period available with select lenders",
+        "Can run alongside a freshly sanctioned working-capital limit"
+      ],
+      "eligibility": [
+        "A viable business with an identifiable working-capital gap",
+        "Two years of audited financial statements",
+        "Promoter contribution where the lender asks for one",
+        "Proprietorship, partnership, LLP or company",
+        "A good credit record for the business and its promoters"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Audited financials and existing sanction letters"
+      ],
+      "facts": [
+        {
+          "label": "Structure",
+          "value": "Term loan on WC gap"
         },
         {
           "label": "Tenure",
           "value": "12 — 60 months"
         },
         {
-          "label": "Security",
-          "value": "None"
-        }
-      ]
-    },
-    "unsecured-dod": {
-      "title": "Unsecured DOD",
-      "tagline": "Standby cash, no EMI from day one.",
-      "about": "An overdraft without collateral where the limit reduces over the loan period. Use the money when your business needs it and repay when you can. You pay interest only on the amount you have used.",
-      "features": [
-        "Draw and repay as often as needed",
-        "Interest charged only on the amount outstanding",
-        "The limit steps down over the tenure",
-        "No property or asset pledge required"
-      ],
-      "eligibility": [
-        "At least 3 years of business operations",
-        "A healthy average balance across current accounts",
-        "No adverse remarks on existing credit facilities",
-        "Self-employed business owner or professional running a current account",
-        "A good credit record for the business and its owners; a CIBIL score of around 700 or above may help"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)"
-      ],
-      "facts": [
-        {
-          "label": "Structure",
-          "value": "Unsecured drop-line overdraft"
-        },
-        {
-          "label": "Limit",
-          "value": "Up to ₹2 Cr"
-        },
-        {
-          "label": "Interest rate",
-          "value": "From 13.50%* p.a. on the drawn balance"
-        }
-      ]
-    },
-    "project-funding": {
-      "title": "Project Funding",
-      "tagline": "Finance that builds as you build.",
-      "about": "Funding for construction and development projects. The amount depends on your approvals, project cost and expected sales. The money is released in stages as the work moves ahead, not all at once.",
-      "features": [
-        "Residential, commercial and industrial developments",
-        "Combined land-and-construction funding where needed",
-        "Repayment structured through escrow and sales receivables",
-        "Legal, technical and valuation checks coordinated on your behalf"
-      ],
-      "eligibility": [
-        "Sanctioned building plans and clear, marketable land title",
-        "The developer's own contribution already committed to the project",
-        "A track record of completed projects is preferred, though not always mandatory",
-        "A developer or company registered in India",
-        "A good credit record for the developer, its promoters and group companies",
-        "Residential, commercial or mixed-use projects"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Project report with cost and sales projections",
-        "Approvals, plans and land title documents"
-      ],
-      "facts": [
-        {
-          "label": "Funding",
-          "value": "Up to 75% of project cost"
-        },
-        {
-          "label": "Interest rate",
-          "value": "From 12%* p.a."
-        },
-        {
           "label": "Use",
-          "value": "Construction & development"
-        },
-        {
-          "label": "Release",
-          "value": "Stage by stage"
-        }
-      ]
-    },
-    "working-capital": {
-      "title": "Working Capital",
-      "tagline": "Keep the wheels of business turning.",
-      "about": "Working capital is the money a business needs for its day-to-day running. The limit is set around your stock, the payments you are waiting for from customers, and your salary and payment cycle. You can get a new limit, increase an existing one, or move your account from your current bank if its terms no longer suit you.",
-      "features": [
-        "Cash credit, overdraft and bill-discounting limits",
-        "Enhancement or takeover of a limit you already run",
-        "Stock and debtor statements prepared and filed for you",
-        "Consortium or multiple-banking arrangements structured where useful"
-      ],
-      "eligibility": [
-        "At least 3 years of business operations",
-        "Annual turnover of ₹2 Cr or above, with audited financial statements",
-        "A visible working-capital gap in the balance sheet",
-        "Proprietorship, partnership, LLP or company",
-        "A good credit record for the business and its promoters; a CIBIL score of around 700 or above may help"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Audited financials and stock / debtor statements"
-      ],
-      "facts": [
-        {
-          "label": "Facility",
-          "value": "OD / CC / BD"
-        },
-        {
-          "label": "Limit",
-          "value": "Linked to turnover"
-        },
-        {
-          "label": "Renewal",
-          "value": "Annual"
+          "value": "Cycle reset & consolidation"
         }
       ]
     },
@@ -690,78 +613,117 @@
         }
       ]
     },
-    "working-capital-term-loan": {
-      "title": "Working Capital Term Loan",
-      "tagline": "Reset a stretched cash cycle.",
-      "about": "This turns an overdrawn or irregular working-capital account into a term loan with a fixed repayment plan. The plan is set so that it matches what your cash flow can handle.",
+    "bill-discounting": {
+      "title": "Bill Discounting",
+      "tagline": "Get paid on your invoices, without waiting.",
+      "about": "Bill discounting helps a business get money against its unpaid invoices, instead of waiting for the customer to pay. The lender gives you a part of the invoice value now, and you repay when your customer pays. It can help you keep cash flowing between selling and getting paid. Lenders set their own limits and charges.",
       "features": [
-        "Regularises stretched cash-credit or overdraft accounts",
-        "Consolidates several short-term dues into one facility",
-        "Moratorium period available with select lenders",
-        "Can run alongside a freshly sanctioned working-capital limit"
+        "Funds against genuine invoices raised on your customers",
+        "Helps cover the gap between selling and getting paid",
+        "Repayment is linked to your customer's payment",
+        "Can work alongside a cash credit or overdraft limit, as per lender policy",
+        "Limits and charges depend on the lender and on your customers"
       ],
       "eligibility": [
-        "A viable business with an identifiable working-capital gap",
-        "Two years of audited financial statements",
-        "Promoter contribution where the lender asks for one",
-        "Proprietorship, partnership, LLP or company",
-        "A good credit record for the business and its promoters"
+        "A business that sells goods or services to other businesses on credit",
+        "Genuine invoices from customers with a good payment record",
+        "Business and banking records that show a steady turnover",
+        "Final eligibility depends on the lender's policy and credit assessment"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Audited financials and existing sanction letters"
+        "Business proof (GST returns, ITR with financials, 12-month banking)",
+        "Invoices and customer ledger (debtor statement)"
+      ],
+      "facts": [
+        {
+          "label": "Facility",
+          "value": "Funds against your invoices"
+        },
+        {
+          "label": "Repayment",
+          "value": "When your customer pays"
+        },
+        {
+          "label": "Best for",
+          "value": "Businesses that sell on credit"
+        }
+      ]
+    },
+    "unsecured-dod": {
+      "title": "Unsecured DOD",
+      "tagline": "Standby cash, no EMI from day one.",
+      "about": "An overdraft without collateral where the limit reduces over the loan period. Use the money when your business needs it and repay when you can. You pay interest only on the amount you have used.",
+      "features": [
+        "Draw and repay as often as needed",
+        "Interest charged only on the amount outstanding",
+        "The limit steps down over the tenure",
+        "No property or asset pledge required"
+      ],
+      "eligibility": [
+        "At least 3 years of business operations",
+        "A healthy average balance across current accounts",
+        "No adverse remarks on existing credit facilities",
+        "Self-employed business owner or professional running a current account",
+        "A good credit record for the business and its owners; a CIBIL score of around 700 or above may help"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)"
       ],
       "facts": [
         {
           "label": "Structure",
-          "value": "Term loan on WC gap"
+          "value": "Unsecured drop-line overdraft"
         },
         {
-          "label": "Tenure",
-          "value": "12 — 60 months"
+          "label": "Limit",
+          "value": "Up to ₹2 Cr"
         },
         {
-          "label": "Use",
-          "value": "Cycle reset & consolidation"
+          "label": "Interest rate",
+          "value": "From 13.50%* p.a. on the drawn balance"
         }
       ]
     },
-    "machine-loan": {
-      "title": "Machine Loan",
-      "tagline": "Take your business to the next level.",
-      "about": "A machine loan helps you buy new machinery or equipment, or raise money against machinery you already own. It can help a business set up, expand or upgrade its production. We compare options from Banks and NBFCs that may suit your business and guide you through the paperwork.",
+    "project-funding": {
+      "title": "Project Funding",
+      "tagline": "Finance that builds as you build.",
+      "about": "Funding for construction and development projects. The amount depends on your approvals, project cost and expected sales. The money is released in stages as the work moves ahead, not all at once.",
       "features": [
-        "Loan for buying machinery, or against different types of machinery",
-        "Funding of up to 100%* of the machinery cost, including GST on machinery up to ₹35 Lakh, as per lender policy",
-        "Fewer documents for loans up to ₹35 Lakh, as per lender policy",
-        "Loan amount from ₹10 Lakh to ₹3 Crore, with repayment of up to 60 months",
-        "For some profiles, financial statements may not be needed for loans up to ₹3 Crore"
+        "Residential, commercial and industrial developments",
+        "Combined land-and-construction funding where needed",
+        "Repayment structured through escrow and sales receivables",
+        "Legal, technical and valuation checks coordinated on your behalf"
       ],
       "eligibility": [
-        "An established business, usually 2 years or more",
-        "Profitable accounts for the last 2 years",
-        "A healthy average balance in the business bank account",
-        "Machinery that is useful for the business and keeps its value",
-        "Ownership of property or a factory may be considered",
-        "A consumer CIBIL score of 700 or more",
-        "Proprietorship, partnership, LLP or company"
+        "Sanctioned building plans and clear, marketable land title",
+        "The developer's own contribution already committed to the project",
+        "A track record of completed projects is preferred, though not always mandatory",
+        "A developer or company registered in India",
+        "A good credit record for the developer, its promoters and group companies",
+        "Residential, commercial or mixed-use projects"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Machinery quotation or invoice from the supplier"
+        "Project report with cost and sales projections",
+        "Approvals, plans and land title documents"
       ],
       "facts": [
         {
           "label": "Funding",
-          "value": "Up to 100%*"
+          "value": "Up to 75% of project cost"
         },
         {
-          "label": "Loan amount",
-          "value": "₹10 Lakh to ₹3 Cr"
+          "label": "Interest rate",
+          "value": "From 12%* p.a."
         },
         {
-          "label": "Tenure",
-          "value": "Up to 60 months"
+          "label": "Use",
+          "value": "Construction & development"
+        },
+        {
+          "label": "Release",
+          "value": "Stage by stage"
         }
       ]
     },
@@ -1205,8 +1167,8 @@
       "category": "Working Capital · Seasonal Cash-Flow Bridge",
       "headline": "₹68 lakh working capital — released before the order was lost",
       "amountLabel": "₹68 Lakh",
-      "productSlug": "working-capital",
-      "productLabel": "Working Capital",
+      "productSlug": "working-capital-term-loan",
+      "productLabel": "Working Capital Term Loan",
       "clientProfile": "A garment exporter in Navi Mumbai with a strong seasonal order book, but cash tied up in receivables right when a large new order needed raw-material payment upfront.",
       "challenge": "The business's own cash was locked in 60-90 day receivables, and the new order's supplier wanted advance payment — a timing mismatch that had nothing to do with the business's underlying health.",
       "structuring": "GCS structured a cash credit facility sized to the business's stock and receivables cycle, rather than a fixed-term loan that wouldn't flex with the seasonal pattern.",
@@ -1748,11 +1710,6 @@
         "rateFrom": "9%"
       },
       {
-        "product": "Unsecured Term Loan",
-        "bank": "Our network of banks & NBFCs",
-        "rateFrom": "11.50%"
-      },
-      {
         "product": "Unsecured DOD",
         "bank": "Our network of banks & NBFCs",
         "rateFrom": "13.50%"
@@ -1927,26 +1884,14 @@
       "description": ""
     },
     {
-      "path": "/services/unsecured-term-loan",
-      "label": "Loan: Unsecured Term Loan",
+      "path": "/services/machine-loan",
+      "label": "Loan: Machine Loan",
       "title": "",
       "description": ""
     },
     {
-      "path": "/services/unsecured-dod",
-      "label": "Loan: Unsecured DOD",
-      "title": "",
-      "description": ""
-    },
-    {
-      "path": "/services/project-funding",
-      "label": "Loan: Project Funding",
-      "title": "",
-      "description": ""
-    },
-    {
-      "path": "/services/working-capital",
-      "label": "Loan: Working Capital",
+      "path": "/services/working-capital-term-loan",
+      "label": "Loan: Working Capital Term Loan",
       "title": "",
       "description": ""
     },
@@ -1975,14 +1920,20 @@
       "description": ""
     },
     {
-      "path": "/services/working-capital-term-loan",
-      "label": "Loan: Working Capital Term Loan",
+      "path": "/services/bill-discounting",
+      "label": "Loan: Bill Discounting",
       "title": "",
       "description": ""
     },
     {
-      "path": "/services/machine-loan",
-      "label": "Loan: Machine Loan",
+      "path": "/services/unsecured-dod",
+      "label": "Loan: Unsecured DOD",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/project-funding",
+      "label": "Loan: Project Funding",
       "title": "",
       "description": ""
     },
@@ -2500,7 +2451,7 @@
         "label": "Bank & NBFC Partners"
       },
       {
-        "value": "26+",
+        "value": "25+",
         "label": "Loan Products"
       },
       {
@@ -2732,7 +2683,7 @@
     ],
     "services.stats": [
       {
-        "value": "26+",
+        "value": "25+",
         "label": "Loan Products"
       },
       {
@@ -2983,8 +2934,8 @@
         "to": "/services#balance-transfer"
       },
       {
-        "label": "Working Capital Loans",
-        "to": "/services#working-capital"
+        "label": "Working Capital Term Loan",
+        "to": "/services#working-capital-term-loan"
       }
     ],
     "form.loanTypes": [
@@ -3017,8 +2968,8 @@
         "slug": "balance-transfer"
       },
       {
-        "title": "Working Capital Loans",
-        "slug": "working-capital"
+        "title": "Working Capital Term Loan",
+        "slug": "working-capital-term-loan"
       },
       {
         "title": "Overdraft Facility",
@@ -3311,9 +3262,9 @@
         "category": "Business & Cash Flow",
         "icon": "RefreshCw",
         "goal": "Keep your cash flowing",
-        "product": "Working Capital",
-        "slug": "working-capital",
-        "line": "Cash credit, overdraft and bill discounting to match your business cycle.",
+        "product": "Working Capital Term Loan",
+        "slug": "working-capital-term-loan",
+        "line": "Working capital term loans, cash credit, overdraft and bill discounting to match your business cycle.",
         "featured": ""
       },
       {
@@ -3626,23 +3577,13 @@
         "visible": "yes"
       },
       {
-        "title": "Unsecured Term Loan",
-        "slug": "unsecured-term-loan",
+        "title": "Machine Loan",
+        "slug": "machine-loan",
         "visible": "yes"
       },
       {
-        "title": "Unsecured DOD",
-        "slug": "unsecured-dod",
-        "visible": "yes"
-      },
-      {
-        "title": "Project Funding",
-        "slug": "project-funding",
-        "visible": "yes"
-      },
-      {
-        "title": "Working Capital",
-        "slug": "working-capital",
+        "title": "Working Capital Term Loan",
+        "slug": "working-capital-term-loan",
         "visible": "yes"
       },
       {
@@ -3666,13 +3607,18 @@
         "visible": "yes"
       },
       {
-        "title": "Working Capital Term Loan",
-        "slug": "working-capital-term-loan",
+        "title": "Bill Discounting",
+        "slug": "bill-discounting",
         "visible": "yes"
       },
       {
-        "title": "Machine Loan",
-        "slug": "machine-loan",
+        "title": "Unsecured DOD",
+        "slug": "unsecured-dod",
+        "visible": "yes"
+      },
+      {
+        "title": "Project Funding",
+        "slug": "project-funding",
         "visible": "yes"
       },
       {
