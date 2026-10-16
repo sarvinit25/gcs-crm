@@ -123,9 +123,13 @@
       ],
       "eligibility": [
         "Resident Indian, generally 21–65 (up to around 70 for self-employed) at loan maturity",
+        "NRIs with a stable overseas income can apply too, with a few extra documents. See the NRI section below",
         "Salaried with take-home income from about ₹25,000/month, or self-employed with 2–3 years of ITR",
         "Cash salary accepted as income proof too, not just bank-credited salary",
-        "A CIBIL score near 700 or above may help you get a better rate; lower scores are reviewed case by case"
+        "A CIBIL score near 700 or above may help you get a better rate; lower scores are reviewed case by case",
+        "Salaried, self-employed professional or self-employed business owner",
+        "If salaried, generally at least 1 year with your current employer",
+        "Residential property: a ready or under-construction flat, a plot, or a house you plan to build"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -164,7 +168,12 @@
       "eligibility": [
         "Property owner, generally 21–70 years of age when the loan matures",
         "Clean and marketable title with the full ownership chain on record",
-        "Demonstrable repayment capacity via income, business banking or rental receipts — cash salary accepted too, not just bank-credited salary"
+        "Demonstrable repayment capacity via income, business banking or rental receipts — cash salary accepted too, not just bank-credited salary",
+        "Indian citizen with a property in India to offer as security; NRIs can apply with select lenders (see the NRI section below)",
+        "Salaried, self-employed professional or self-employed business owner",
+        "If salaried, generally at least 1 year with your current employer",
+        "A CIBIL score of around 750 or above may help you get better terms; lower scores are reviewed case by case",
+        "Residential, commercial or industrial property that can be pledged as security"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -203,7 +212,10 @@
       "eligibility": [
         "A registered lease with sufficient residual tenure to run",
         "A dependable tenant with an uninterrupted rent-payment record",
-        "Property title held in the borrower's own name"
+        "Property title held in the borrower's own name",
+        "Resident Indian owners can apply; NRIs can apply with select lenders (see the NRI section below)",
+        "Commercial property, such as offices, shops or warehouses, that is already let out",
+        "A clean credit history; a CIBIL score of around 750 or above may help you get better terms"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -238,11 +250,15 @@
       "eligibility": [
         "A track record of on-time EMIs for at least the last 12 months",
         "No recent bounces or delayed payments on the existing loan",
-        "Income documents and property papers ready for a fresh credit review"
+        "Income documents and property papers ready for a fresh credit review",
+        "Resident Indian with an existing home loan; NRIs can transfer with select lenders (see the NRI section below)",
+        "Salaried, self-employed professional or self-employed business owner",
+        "If salaried, generally at least 1 year with your current employer",
+        "A CIBIL score of around 700 or above may help you get the better rate; lower scores are reviewed case by case",
+        "A residential property already mortgaged, with its papers in order"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Income proof (salary slips, ITR, bank statements)",
         "Current loan statement, sanction letter and foreclosure letter",
         "Property papers (agreement, title chain, tax receipts)"
       ],
@@ -274,11 +290,13 @@
       "eligibility": [
         "Clear, marketable title in the applicant's name",
         "At least two years of business or professional income",
-        "A steady banking track record over the preceding 12 months"
+        "A steady banking track record over the preceding 12 months",
+        "Self-employed professional or business owner with a steady income",
+        "Residential, commercial or industrial property that can be pledged as security",
+        "A good credit history; a CIBIL score of around 700 or above may help"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Business proof (GST returns, ITR with financials, 12-month banking)",
         "Property papers (agreement, title chain, tax receipts)"
       ],
       "facts": [
@@ -309,11 +327,13 @@
       "eligibility": [
         "At least 2 years of business vintage",
         "Annual turnover of roughly ₹40 lakh or above",
-        "The last two years of ITR and GST returns filed on time"
+        "The last two years of ITR and GST returns filed on time",
+        "Proprietorship, partnership, LLP, company or self-employed professional",
+        "A steady business income that shows in your bank statements",
+        "A CIBIL score of around 700 or above for the owner may help you get better terms; lower scores are reviewed case by case"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Business proof (GST returns, ITR with financials, 12-month banking)",
         "Proof of business ownership"
       ],
       "facts": [
@@ -352,11 +372,12 @@
       "eligibility": [
         "Udyam-registered as a micro or small enterprise",
         "At least 1 year of operating history",
-        "A workable business/project plan and a clean credit history"
+        "A workable business/project plan and a clean credit history",
+        "A business in India in manufacturing or services; some activities, such as retail trade, may not be covered",
+        "Proprietorship, partnership, LLP or company"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Business proof (GST returns, ITR with financials, 12-month banking)",
         "Udyam registration and project report"
       ],
       "facts": [
@@ -387,11 +408,12 @@
       "eligibility": [
         "At least 3 years in business with audited or CA-certified financials",
         "Consistent bank credits through the preceding 12 months",
-        "A CIBIL score of 680 or higher for the business and its promoters"
+        "A CIBIL score of 680 or higher for the business and its promoters",
+        "Business owner or self-employed professional with a steady business income",
+        "Proprietorship, partnership, LLP or company"
       ],
       "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Business proof (GST returns, ITR with financials, 12-month banking)"
+        "KYC (PAN, Aadhaar, address proof)"
       ],
       "facts": [
         {
@@ -425,11 +447,12 @@
       "eligibility": [
         "At least 3 years of business operations",
         "A healthy average balance across current accounts",
-        "No adverse remarks on existing credit facilities"
+        "No adverse remarks on existing credit facilities",
+        "Self-employed business owner or professional running a current account",
+        "A good credit record for the business and its owners; a CIBIL score of around 700 or above may help"
       ],
       "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Business proof (GST returns, ITR with financials, 12-month banking)"
+        "KYC (PAN, Aadhaar, address proof)"
       ],
       "facts": [
         {
@@ -459,7 +482,10 @@
       "eligibility": [
         "Sanctioned building plans and clear, marketable land title",
         "The developer's own contribution already committed to the project",
-        "A track record of completed projects is preferred, though not always mandatory"
+        "A track record of completed projects is preferred, though not always mandatory",
+        "A developer or company registered in India",
+        "A good credit record for the developer, its promoters and group companies",
+        "Residential, commercial or mixed-use projects"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -498,11 +524,12 @@
       "eligibility": [
         "At least 3 years of business operations",
         "Annual turnover of ₹2 Cr or above, with audited financial statements",
-        "A visible working-capital gap in the balance sheet"
+        "A visible working-capital gap in the balance sheet",
+        "Proprietorship, partnership, LLP or company",
+        "A good credit record for the business and its promoters; a CIBIL score of around 700 or above may help"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Business proof (GST returns, ITR with financials, 12-month banking)",
         "Audited financials and stock / debtor statements"
       ],
       "facts": [
@@ -533,11 +560,12 @@
       "eligibility": [
         "A trading or manufacturing business with a regular stock cycle",
         "Audited financials and GST filings in good order",
-        "Satisfactory conduct on existing current accounts"
+        "Satisfactory conduct on existing current accounts",
+        "Proprietorship, partnership, LLP or company",
+        "A good credit record for the business and its promoters"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Business proof (GST returns, ITR with financials, 12-month banking)",
         "Stock and debtor ageing statements"
       ],
       "facts": [
@@ -568,11 +596,12 @@
       "eligibility": [
         "An active current account with regular credits",
         "Documented proof of business or professional income",
-        "A clean credit report with no ongoing defaults"
+        "A clean credit report with no ongoing defaults",
+        "Self-employed business owner or professional with a steady income",
+        "Proprietorship, partnership, LLP or company"
       ],
       "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Business proof (GST returns, ITR with financials, 12-month banking)"
+        "KYC (PAN, Aadhaar, address proof)"
       ],
       "facts": [
         {
@@ -602,11 +631,12 @@
       "eligibility": [
         "An existing or freshly opened banking relationship",
         "Margin money or suitable collateral to back the guarantee",
-        "Tender or contract documents supporting the request"
+        "Tender or contract documents supporting the request",
+        "Proprietorship, partnership, LLP or company",
+        "A good credit standing for the business and its promoters"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Business proof (GST returns, ITR with financials, 12-month banking)",
         "Tender / contract copy and BG format"
       ],
       "facts": [
@@ -637,11 +667,12 @@
       "eligibility": [
         "An established trading or manufacturing business",
         "A sanctioned LC limit, or full cash margin in its absence",
-        "A supplier contract or proforma invoice on file"
+        "A supplier contract or proforma invoice on file",
+        "Proprietorship, partnership, LLP or company",
+        "A good credit standing for the business and its promoters"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Business proof (GST returns, ITR with financials, 12-month banking)",
         "Proforma invoice and supplier agreement"
       ],
       "facts": [
@@ -672,11 +703,12 @@
       "eligibility": [
         "A viable business with an identifiable working-capital gap",
         "Two years of audited financial statements",
-        "Promoter contribution where the lender asks for one"
+        "Promoter contribution where the lender asks for one",
+        "Proprietorship, partnership, LLP or company",
+        "A good credit record for the business and its promoters"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Business proof (GST returns, ITR with financials, 12-month banking)",
         "Audited financials and existing sanction letters"
       ],
       "facts": [
@@ -711,11 +743,11 @@
         "A healthy average balance in the business bank account",
         "Machinery that is useful for the business and keeps its value",
         "Ownership of property or a factory may be considered",
-        "A consumer CIBIL score of 700 or more"
+        "A consumer CIBIL score of 700 or more",
+        "Proprietorship, partnership, LLP or company"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Business proof (GST returns, ITR with financials, 12-month banking)",
         "Machinery quotation or invoice from the supplier"
       ],
       "facts": [
@@ -746,11 +778,13 @@
       "eligibility": [
         "Between roughly 21 and 60 years of age",
         "Salaried take-home from about ₹25,000/month, or 2 years of ITR if self-employed",
-        "A CIBIL score of 700+ may help you get a better rate; scores from the mid-600s may still be considered at a higher rate"
+        "A CIBIL score of 700+ may help you get a better rate; scores from the mid-600s may still be considered at a higher rate",
+        "Resident Indian",
+        "Salaried, or a self-employed professional or business owner",
+        "If salaried, generally at least 1 year with your current employer"
       ],
       "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Income proof (salary slips, ITR, bank statements)"
+        "KYC (PAN, Aadhaar, address proof)"
       ],
       "facts": [
         {
@@ -858,7 +892,9 @@
       "eligibility": [
         "A recognised professional qualification or registration (MBBS, CA, CS, architecture, engineering, etc.)",
         "A minimum number of years in active practice, as set by the lender",
-        "A credit score in the low-to-mid 700s is typical for the better rate slabs"
+        "A credit score in the low-to-mid 700s is typical for the better rate slabs",
+        "Resident Indian professional in independent practice",
+        "A steady practice income that shows in your bank statements"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -897,12 +933,14 @@
       "eligibility": [
         "Confirmed admission to a recognised institution in India or abroad",
         "An earning co-applicant based in India",
-        "Collateral typically expected once the loan crosses the unsecured threshold, especially for overseas study"
+        "Collateral typically expected once the loan crosses the unsecured threshold, especially for overseas study",
+        "Indian student, with a resident Indian co-applicant who is usually a parent or guardian",
+        "A co-applicant who is salaried or self-employed with a steady income",
+        "A good credit record for the co-applicant helps"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
         "Admission letter and fee structure",
-        "Co-applicant income proof",
         "Academic records"
       ],
       "facts": [
@@ -941,11 +979,11 @@
       "eligibility": [
         "Typically 21–65 years old, with a regular, documented income",
         "At least 1 year in the current job or business",
-        "A CIBIL score of 650+ is usually considered; 750+ may help you get better rates"
+        "A CIBIL score of 650+ is usually considered; 750+ may help you get better rates",
+        "Resident Indian, salaried or self-employed"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Income proof (salary slips, ITR, bank statements)",
         "Dealer's vehicle quotation"
       ],
       "facts": [
@@ -976,11 +1014,13 @@
       "eligibility": [
         "Around 21–65 years old, with income that can be documented",
         "The car falls within the lender's maximum age limit",
-        "A clean RC, with no lapses in the insurance history"
+        "A clean RC, with no lapses in the insurance history",
+        "Resident Indian, salaried or self-employed",
+        "At least 1 year in your current job or business",
+        "A CIBIL score of around 700 or above may help you get a better rate; lower scores are reviewed case by case"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Income proof (salary slips, ITR, bank statements)",
         "RC copy, insurance and valuation report"
       ],
       "facts": [
@@ -1015,11 +1055,12 @@
       "eligibility": [
         "Car registered in the applicant's own name",
         "No existing loan on the car, or one that can be taken over cleanly",
-        "Documented income and a credit report free of active defaults"
+        "Documented income and a credit report free of active defaults",
+        "Resident Indian, salaried or self-employed",
+        "A CIBIL score of around 700 or above may help you get better terms; lower scores are reviewed case by case"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Income proof (salary slips, ITR, bank statements)",
         "RC, insurance and any current loan statement"
       ],
       "facts": [
@@ -1056,7 +1097,10 @@
       "eligibility": [
         "A business or person who will use the vehicle for commercial work",
         "Income or business proof to show that you can repay the loan",
-        "Final eligibility, amount and terms depend on the lender's policy and the vehicle"
+        "Final eligibility, amount and terms depend on the lender's policy and the vehicle",
+        "Resident Indian: an individual transporter, proprietorship, firm or company",
+        "At least 1 year of experience in transport or the business the vehicle is for",
+        "A CIBIL score of around 700 or above may help you get better terms; lower scores are reviewed case by case"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -2813,6 +2857,10 @@
         "to": "/partner"
       },
       {
+        "label": "Track Application",
+        "to": "/track-application"
+      },
+      {
         "label": "Contact Us",
         "to": "/contact"
       }
@@ -2944,6 +2992,10 @@
       {
         "label": "Become Partner",
         "to": "/partner"
+      },
+      {
+        "label": "Track Application",
+        "to": "/track-application"
       },
       {
         "label": "Contact Us",
@@ -3736,25 +3788,42 @@
         "options": "Home Loan, Balance Transfer, Top-Up, Other",
         "placeholder": "",
         "amount": "",
-        "key": "loanRequirement"
+        "key": "loanRequirement",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "home-loan",
         "label": "Property Type",
         "type": "select",
-        "options": "Builder Purchase, Resale",
+        "options": "Builder Purchase, Resale, Self-Owned",
         "placeholder": "",
         "amount": "",
-        "key": "propertyType"
+        "key": "propertyType",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "home-loan",
-        "label": "Possession Date",
+        "label": "Property Status",
+        "type": "select",
+        "options": "Ready to Move, Under Construction",
+        "placeholder": "",
+        "amount": "",
+        "key": "propertyStatus",
+        "showWhenKey": "propertyType",
+        "showWhenValues": "Builder Purchase"
+      },
+      {
+        "slug": "home-loan",
+        "label": "Expected Possession Date",
         "type": "date",
         "options": "",
         "placeholder": "",
         "amount": "",
-        "key": "possessionDate"
+        "key": "possessionDate",
+        "showWhenKey": "propertyStatus",
+        "showWhenValues": "Under Construction"
       },
       {
         "slug": "home-loan",
@@ -3763,7 +3832,9 @@
         "options": "",
         "placeholder": "e.g. 50,00,000",
         "amount": "yes",
-        "key": "loanAmount"
+        "key": "loanAmount",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "education-loan",
@@ -3772,7 +3843,9 @@
         "options": "",
         "placeholder": "e.g. 15,00,000",
         "amount": "yes",
-        "key": "loanAmount"
+        "key": "loanAmount",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "education-loan",
@@ -3781,7 +3854,9 @@
         "options": "",
         "placeholder": "",
         "amount": "",
-        "key": "courseName"
+        "key": "courseName",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "education-loan",
@@ -3790,7 +3865,9 @@
         "options": "",
         "placeholder": "e.g. 2 years",
         "amount": "",
-        "key": "courseDuration"
+        "key": "courseDuration",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "education-loan",
@@ -3799,7 +3876,9 @@
         "options": "",
         "placeholder": "",
         "amount": "",
-        "key": "courseStartDate"
+        "key": "courseStartDate",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "education-loan",
@@ -3808,7 +3887,9 @@
         "options": "",
         "placeholder": "",
         "amount": "",
-        "key": "universityName"
+        "key": "universityName",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "education-loan",
@@ -3817,7 +3898,9 @@
         "options": "",
         "placeholder": "",
         "amount": "",
-        "key": "country"
+        "key": "country",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "new-car-loan",
@@ -3826,7 +3909,9 @@
         "options": "Dealer, Resale",
         "placeholder": "",
         "amount": "",
-        "key": "purchaseFrom"
+        "key": "purchaseFrom",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "new-car-loan",
@@ -3835,7 +3920,9 @@
         "options": "",
         "placeholder": "e.g. 8,00,000",
         "amount": "yes",
-        "key": "loanAmount"
+        "key": "loanAmount",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "used-car-loan",
@@ -3844,7 +3931,9 @@
         "options": "Dealer, Resale",
         "placeholder": "",
         "amount": "",
-        "key": "purchaseFrom"
+        "key": "purchaseFrom",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "used-car-loan",
@@ -3853,7 +3942,9 @@
         "options": "",
         "placeholder": "e.g. 8,00,000",
         "amount": "yes",
-        "key": "loanAmount"
+        "key": "loanAmount",
+        "showWhenKey": "",
+        "showWhenValues": ""
       },
       {
         "slug": "car-refinance",
@@ -3862,7 +3953,9 @@
         "options": "",
         "placeholder": "e.g. 5,00,000",
         "amount": "yes",
-        "key": "loanAmount"
+        "key": "loanAmount",
+        "showWhenKey": "",
+        "showWhenValues": ""
       }
     ]
   },
@@ -4687,7 +4780,7 @@
       "key": "intake.fields",
       "page": "Forms",
       "label": "Checklist download: extra questions",
-      "hint": "Extra questions asked before a checklist downloads. Put the loan's website slug in each row (e.g. education-loan). Type is text, select or date; for select, list the options separated by commas. Keep the id (key) of an existing question unchanged; leave it empty on new ones.",
+      "hint": "Extra questions asked before a checklist downloads. Put the loan's website slug in each row (e.g. education-loan). Type is text, select or date; for select, list the options separated by commas. Keep the id (key) of an existing question unchanged; leave it empty on new ones. To show a question only after another one is answered, give that question's id and the answers that should reveal it.",
       "fields": [
         {
           "key": "slug",
@@ -4722,6 +4815,16 @@
         {
           "key": "key",
           "label": "Id (leave empty on new)",
+          "kind": "text"
+        },
+        {
+          "key": "showWhenKey",
+          "label": "Show only when this question (its id) ...",
+          "kind": "text"
+        },
+        {
+          "key": "showWhenValues",
+          "label": "... has one of these answers, separated by commas",
           "kind": "text"
         }
       ]
