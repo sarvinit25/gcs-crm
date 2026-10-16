@@ -809,117 +809,6 @@
         }
       ]
     },
-    "loan-against-securities": {
-      "title": "Loan Against Securities",
-      "tagline": "Borrow on your portfolio, stay invested.",
-      "about": "You can pledge shares, bonds or insurance policies to get an overdraft limit, instead of selling them. Your investments stay in place, and the limit is there when you need it. Lenders accept only certain securities and set their own limits.",
-      "features": [
-        "Shares, bonds, insurance policies and debt instruments accepted",
-        "The limit moves with the value of the pledged portfolio",
-        "No EMI — interest applies only to what's drawn",
-        "Quick setup on lender-approved securities"
-      ],
-      "eligibility": [
-        "Approved securities held in the applicant's own name",
-        "A demat account with a recognised depository",
-        "Resident Indian, 21 years or older"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Demat holding statement",
-        "Portfolio / policy documents"
-      ],
-      "facts": [
-        {
-          "label": "LTV",
-          "value": "Up to 80% on debt instruments, 50% on listed shares"
-        },
-        {
-          "label": "Structure",
-          "value": "Overdraft limit"
-        },
-        {
-          "label": "Interest rate",
-          "value": "From 9.75%* p.a."
-        }
-      ]
-    },
-    "loan-against-mutual-funds": {
-      "title": "Loan Against Mutual Funds",
-      "tagline": "Borrow against your units, without redeeming them.",
-      "about": "The lender marks a lien on your mutual fund units through the registrar (CAMS or KFintech). Your SIPs and investments continue as before, and you can draw money against the units as an overdraft.",
-      "features": [
-        "Equity, debt and hybrid schemes accepted as collateral",
-        "Units remain invested and keep earning returns",
-        "No EMI — interest applies only to the amount drawn",
-        "Digital lien marking, usually completed the same day"
-      ],
-      "eligibility": [
-        "Mutual fund units held in the applicant's own name",
-        "Scheme falls on the lender's approved AMC/fund list",
-        "Resident Indian, 18 years or older"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Mutual fund statement / CAS",
-        "Folio details"
-      ],
-      "facts": [
-        {
-          "label": "LTV",
-          "value": "Up to 85% on debt funds, 75% on equity funds"
-        },
-        {
-          "label": "Structure",
-          "value": "Overdraft limit"
-        },
-        {
-          "label": "Interest rate",
-          "value": "From 9.99%* p.a."
-        }
-      ]
-    },
-    "professional-loan": {
-      "title": "Professional Loan",
-      "tagline": "Built for doctors, CAs and other qualified professionals.",
-      "about": "A loan without collateral for doctors, CAs, architects and other registered professionals. You can use it to start or grow a practice, buy equipment or meet working capital needs. Depending on the lender's policy, the terms may be better than a regular personal loan because of your professional qualification.",
-      "features": [
-        "Preferential pricing tied to your professional registration",
-        "No collateral for most ticket sizes",
-        "Usable for practice setup, equipment purchase or working capital",
-        "Faster turnaround with lighter documentation than a business loan"
-      ],
-      "eligibility": [
-        "A recognised professional qualification or registration (MBBS, CA, CS, architecture, engineering, etc.)",
-        "A minimum number of years in active practice, as set by the lender",
-        "A credit score in the low-to-mid 700s is typical for the better rate slabs",
-        "Resident Indian professional in independent practice",
-        "A steady practice income that shows in your bank statements"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Income proof (salary slips, ITR, bank statements)",
-        "Professional registration / degree certificate"
-      ],
-      "facts": [
-        {
-          "label": "Loan amount",
-          "value": "Up to ₹75 lakh"
-        },
-        {
-          "label": "Interest rate",
-          "value": "From 10.99%* p.a."
-        },
-        {
-          "label": "Tenure",
-          "value": "12 — 84 months"
-        },
-        {
-          "label": "Collateral",
-          "value": "Usually unsecured"
-        }
-      ]
-    },
     "education-loan": {
       "title": "Education Loan",
       "tagline": "Invest in the degree, not the worry.",
@@ -1119,6 +1008,84 @@
         {
           "label": "Used vehicles",
           "value": "Up to 80% finance"
+        }
+      ]
+    },
+    "loan-against-securities": {
+      "title": "Loan Against Securities",
+      "tagline": "Borrow on your portfolio, stay invested.",
+      "about": "You can pledge shares, mutual funds, bonds or insurance policies to get an overdraft limit, instead of selling them. For mutual funds, the lender marks a lien on your units through the registrar (CAMS or KFintech). Your investments stay in place, and the limit is there when you need it. Lenders accept only certain securities and set their own limits.",
+      "features": [
+        "Shares, mutual funds, bonds, insurance policies and debt instruments accepted",
+        "Mutual fund units stay in your name and keep earning returns",
+        "The limit moves with the value of the pledged portfolio",
+        "No EMI — interest applies only to what's drawn",
+        "Quick setup on lender-approved securities"
+      ],
+      "eligibility": [
+        "Approved securities or mutual fund units held in the applicant's own name",
+        "A demat account for shares and bonds, or a mutual fund folio for units",
+        "Securities or schemes that are on the lender's approved list",
+        "Resident Indian, 21 years or older"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Demat holding statement, or mutual fund statement (CAS)",
+        "Portfolio, folio or policy documents"
+      ],
+      "facts": [
+        {
+          "label": "Pledge",
+          "value": "Shares, mutual funds and bonds"
+        },
+        {
+          "label": "LTV",
+          "value": "Up to 50%–80% of the pledge value"
+        },
+        {
+          "label": "Facility",
+          "value": "Overdraft, interest only on what you use"
+        }
+      ]
+    },
+    "professional-loan": {
+      "title": "Professional Loan",
+      "tagline": "Built for doctors, CAs and other qualified professionals.",
+      "about": "A loan without collateral for doctors, CAs, architects and other registered professionals. You can use it to start or grow a practice, buy equipment or meet working capital needs. Depending on the lender's policy, the terms may be better than a regular personal loan because of your professional qualification.",
+      "features": [
+        "Preferential pricing tied to your professional registration",
+        "No collateral for most ticket sizes",
+        "Usable for practice setup, equipment purchase or working capital",
+        "Faster turnaround with lighter documentation than a business loan"
+      ],
+      "eligibility": [
+        "A recognised professional qualification or registration (MBBS, CA, CS, architecture, engineering, etc.)",
+        "A minimum number of years in active practice, as set by the lender",
+        "A credit score in the low-to-mid 700s is typical for the better rate slabs",
+        "Resident Indian professional in independent practice",
+        "A steady practice income that shows in your bank statements"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Income proof (salary slips, ITR, bank statements)",
+        "Professional registration / degree certificate"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "Up to ₹75 lakh"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 10.99%* p.a."
+        },
+        {
+          "label": "Tenure",
+          "value": "12 — 84 months"
+        },
+        {
+          "label": "Collateral",
+          "value": "Usually unsecured"
         }
       ]
     },
@@ -1801,21 +1768,6 @@
         "rateFrom": "10.49%"
       },
       {
-        "product": "Loan Against Securities",
-        "bank": "Our network of banks & NBFCs",
-        "rateFrom": "9.75%"
-      },
-      {
-        "product": "Loan Against Mutual Funds",
-        "bank": "Our network of banks & NBFCs",
-        "rateFrom": "9.99%"
-      },
-      {
-        "product": "Professional Loan",
-        "bank": "Our network of banks & NBFCs",
-        "rateFrom": "10.99%"
-      },
-      {
         "product": "Education Loan",
         "bank": "Our network of banks & NBFCs",
         "rateFrom": "8.15%"
@@ -1834,6 +1786,11 @@
         "product": "Car Refinance",
         "bank": "Our network of banks & NBFCs",
         "rateFrom": "12.50%"
+      },
+      {
+        "product": "Professional Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "10.99%"
       },
       {
         "product": "Private Funding",
@@ -2036,24 +1993,6 @@
       "description": ""
     },
     {
-      "path": "/services/loan-against-securities",
-      "label": "Loan: Loan Against Securities",
-      "title": "",
-      "description": ""
-    },
-    {
-      "path": "/services/loan-against-mutual-funds",
-      "label": "Loan: Loan Against Mutual Funds",
-      "title": "",
-      "description": ""
-    },
-    {
-      "path": "/services/professional-loan",
-      "label": "Loan: Professional Loan",
-      "title": "",
-      "description": ""
-    },
-    {
       "path": "/services/education-loan",
       "label": "Loan: Education Loan",
       "title": "",
@@ -2080,6 +2019,18 @@
     {
       "path": "/services/commercial-vehicle",
       "label": "Loan: Commercial Vehicle",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/loan-against-securities",
+      "label": "Loan: Loan Against Securities",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/professional-loan",
+      "label": "Loan: Professional Loan",
       "title": "",
       "description": ""
     },
@@ -2549,7 +2500,7 @@
         "label": "Bank & NBFC Partners"
       },
       {
-        "value": "27+",
+        "value": "26+",
         "label": "Loan Products"
       },
       {
@@ -2781,7 +2732,7 @@
     ],
     "services.stats": [
       {
-        "value": "27+",
+        "value": "26+",
         "label": "Loan Products"
       },
       {
@@ -3457,14 +3408,9 @@
         "description": "The day-to-day financial plumbing — credit lines, guarantees and limits that keep operations from stalling."
       },
       {
-        "name": "Personal & Education",
-        "heading": "For life's big moments.",
-        "description": "For the moments that don't wait — a medical bill, a degree abroad, or funds against what you've already invested."
-      },
-      {
-        "name": "Vehicles & Special Cases",
-        "heading": "Wheels, bridges and urgent deadlines.",
-        "description": "A new car, a better rate on the one you're driving, or funding when a deadline won't wait."
+        "name": "Personal, Education, Vehicle & Other Loans",
+        "heading": "Personal, education, vehicle and other loans.",
+        "description": "For personal needs, studies, cars and commercial vehicles, or funds against the shares and mutual funds you already hold."
       }
     ],
     "cibil.bureaus": [
@@ -3735,21 +3681,6 @@
         "visible": "yes"
       },
       {
-        "title": "Loan Against Securities",
-        "slug": "loan-against-securities",
-        "visible": "yes"
-      },
-      {
-        "title": "Loan Against Mutual Funds",
-        "slug": "loan-against-mutual-funds",
-        "visible": "yes"
-      },
-      {
-        "title": "Professional Loan",
-        "slug": "professional-loan",
-        "visible": "yes"
-      },
-      {
         "title": "Education Loan",
         "slug": "education-loan",
         "visible": "yes"
@@ -3772,6 +3703,16 @@
       {
         "title": "Commercial Vehicle",
         "slug": "commercial-vehicle",
+        "visible": "yes"
+      },
+      {
+        "title": "Loan Against Securities",
+        "slug": "loan-against-securities",
+        "visible": "yes"
+      },
+      {
+        "title": "Professional Loan",
+        "slug": "professional-loan",
         "visible": "yes"
       },
       {
@@ -3827,6 +3768,50 @@
       },
       {
         "slug": "home-loan",
+        "label": "Loan Amount Required",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 50,00,000",
+        "amount": "yes",
+        "key": "loanAmount",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "loan-against-property",
+        "label": "Property Type",
+        "type": "select",
+        "options": "Builder Purchase, Resale, Self-Owned",
+        "placeholder": "",
+        "amount": "",
+        "key": "propertyType",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "loan-against-property",
+        "label": "Property Status",
+        "type": "select",
+        "options": "Ready to Move, Under Construction",
+        "placeholder": "",
+        "amount": "",
+        "key": "propertyStatus",
+        "showWhenKey": "propertyType",
+        "showWhenValues": "Builder Purchase"
+      },
+      {
+        "slug": "loan-against-property",
+        "label": "Expected Possession Date",
+        "type": "date",
+        "options": "",
+        "placeholder": "",
+        "amount": "",
+        "key": "possessionDate",
+        "showWhenKey": "propertyStatus",
+        "showWhenValues": "Under Construction"
+      },
+      {
+        "slug": "loan-against-property",
         "label": "Loan Amount Required",
         "type": "text",
         "options": "",
