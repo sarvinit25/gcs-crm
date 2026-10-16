@@ -10,10 +10,11 @@ const prisma = new PrismaClient();
 // can resolve a product from the form it came from.
 const PRODUCTS: [slug: string, name: string, category: string][] = [
   ["home-loan", "Home Loan", "Property Finance"],
+  ["balance-transfer", "Balance Transfer & Top-Up", "Property Finance"],
   ["loan-against-property", "Loan Against Property", "Property Finance"],
   ["lease-rental-discounting", "Lease Rental Discounting", "Property Finance"],
-  ["balance-transfer", "Balance Transfer & Top-Up", "Property Finance"],
   ["dlod", "Drop-Line Overdraft (Secured)", "Property Finance"],
+  ["project-funding", "Project Funding", "Property Finance"],
   ["business-loan", "Business Loan", "Business Growth"],
   ["cgtmse", "CGTMSE Funding", "Cash Flow & Trade"],
   ["machine-loan", "Machine Loan", "Cash Flow & Trade"],
@@ -24,7 +25,6 @@ const PRODUCTS: [slug: string, name: string, category: string][] = [
   ["letter-of-credit", "Letter of Credit", "Cash Flow & Trade"],
   ["bill-discounting", "Bill Discounting", "Cash Flow & Trade"],
   ["unsecured-dod", "Unsecured DOD", "Business Growth"],
-  ["project-funding", "Project Funding", "Property Finance"],
   ["personal-loan", "Personal Loan", "Personal, Education, Vehicle & Other Loans"],
   ["education-loan", "Education Loan", "Personal, Education, Vehicle & Other Loans"],
   ["new-car-loan", "New Car Loan", "Personal, Education, Vehicle & Other Loans"],

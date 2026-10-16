@@ -155,6 +155,46 @@
         }
       ]
     },
+    "balance-transfer": {
+      "title": "Balance Transfer & Top-Up",
+      "tagline": "Same loan, smaller bill.",
+      "about": "A balance transfer means moving your current loan to another lender that may offer better terms. We put your existing loan next to offers from other lenders, in writing, so you can compare before you decide. If you choose to switch, we guide you through the whole process. A top-up may also be possible if your profile qualifies.",
+      "features": [
+        "Better pricing available on home, LAP and business loans",
+        "Top-up sanctioned at mortgage-linked pricing, not personal-loan pricing",
+        "Trim the EMI or shorten the tenure — you choose which",
+        "We liaise with your existing lender on foreclosure and transfer"
+      ],
+      "eligibility": [
+        "A track record of on-time EMIs for at least the last 12 months",
+        "No recent bounces or delayed payments on the existing loan",
+        "Income documents and property papers ready for a fresh credit review",
+        "Resident Indian with an existing home loan; NRIs can transfer with select lenders (see the NRI section below)",
+        "Salaried, self-employed professional or self-employed business owner",
+        "If salaried, generally at least 1 year with your current employer",
+        "A CIBIL score of around 700 or above may help you get the better rate; lower scores are reviewed case by case",
+        "A residential property already mortgaged, with its papers in order"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Current loan statement, sanction letter and foreclosure letter",
+        "Property papers (agreement, title chain, tax receipts)"
+      ],
+      "facts": [
+        {
+          "label": "Use case",
+          "value": "Home / LAP / Business"
+        },
+        {
+          "label": "Benefit",
+          "value": "Lower rate + top-up"
+        },
+        {
+          "label": "Savings",
+          "value": "Shown in writing first"
+        }
+      ]
+    },
     "loan-against-property": {
       "title": "Loan Against Property",
       "tagline": "Your property's value, working for you.",
@@ -237,46 +277,6 @@
         }
       ]
     },
-    "balance-transfer": {
-      "title": "Balance Transfer & Top-Up",
-      "tagline": "Same loan, smaller bill.",
-      "about": "A balance transfer means moving your current loan to another lender that may offer better terms. We put your existing loan next to offers from other lenders, in writing, so you can compare before you decide. If you choose to switch, we guide you through the whole process. A top-up may also be possible if your profile qualifies.",
-      "features": [
-        "Better pricing available on home, LAP and business loans",
-        "Top-up sanctioned at mortgage-linked pricing, not personal-loan pricing",
-        "Trim the EMI or shorten the tenure — you choose which",
-        "We liaise with your existing lender on foreclosure and transfer"
-      ],
-      "eligibility": [
-        "A track record of on-time EMIs for at least the last 12 months",
-        "No recent bounces or delayed payments on the existing loan",
-        "Income documents and property papers ready for a fresh credit review",
-        "Resident Indian with an existing home loan; NRIs can transfer with select lenders (see the NRI section below)",
-        "Salaried, self-employed professional or self-employed business owner",
-        "If salaried, generally at least 1 year with your current employer",
-        "A CIBIL score of around 700 or above may help you get the better rate; lower scores are reviewed case by case",
-        "A residential property already mortgaged, with its papers in order"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Current loan statement, sanction letter and foreclosure letter",
-        "Property papers (agreement, title chain, tax receipts)"
-      ],
-      "facts": [
-        {
-          "label": "Use case",
-          "value": "Home / LAP / Business"
-        },
-        {
-          "label": "Benefit",
-          "value": "Lower rate + top-up"
-        },
-        {
-          "label": "Savings",
-          "value": "Shown in writing first"
-        }
-      ]
-    },
     "dlod": {
       "title": "Drop-Line Overdraft (Secured)",
       "tagline": "A credit line that shrinks as you pay.",
@@ -311,6 +311,48 @@
         {
           "label": "Interest rate",
           "value": "From 9.75%* p.a. on the drawn balance"
+        }
+      ]
+    },
+    "project-funding": {
+      "title": "Project Funding",
+      "tagline": "Finance that builds as you build.",
+      "about": "Funding for construction and development projects. The amount depends on your approvals, project cost and expected sales. The money is released in stages as the work moves ahead, not all at once.",
+      "features": [
+        "Residential, commercial and industrial developments",
+        "Combined land-and-construction funding where needed",
+        "Repayment structured through escrow and sales receivables",
+        "Legal, technical and valuation checks coordinated on your behalf"
+      ],
+      "eligibility": [
+        "Sanctioned building plans and clear, marketable land title",
+        "The developer's own contribution already committed to the project",
+        "A track record of completed projects is preferred, though not always mandatory",
+        "A developer or company registered in India",
+        "A good credit record for the developer, its promoters and group companies",
+        "Residential, commercial or mixed-use projects"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Project report with cost and sales projections",
+        "Approvals, plans and land title documents"
+      ],
+      "facts": [
+        {
+          "label": "Funding",
+          "value": "Up to 75% of project cost"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 12%* p.a."
+        },
+        {
+          "label": "Use",
+          "value": "Construction & development"
+        },
+        {
+          "label": "Release",
+          "value": "Stage by stage"
         }
       ]
     },
@@ -436,20 +478,26 @@
     },
     "working-capital-term-loan": {
       "title": "Working Capital Term Loan",
-      "tagline": "Reset a stretched cash cycle.",
-      "about": "This turns an overdrawn or irregular working-capital account into a term loan with a fixed repayment plan. The plan is set so that it matches what your cash flow can handle.",
+      "tagline": "Fixed EMIs to reset a stretched cash cycle.",
+      "about": "A working capital term loan gives your business a term loan with a fixed repayment plan and a fixed EMI. It can turn an overdrawn or irregular working-capital account into a loan your cash flow can handle, or fund your day-to-day needs. It can be offered without collateral to businesses with clean, audited financials. The lender decides the amount based on your bank turnover and filings, not only a quick GST check.",
       "features": [
+        "Fixed EMI on a defined repayment schedule",
         "Regularises stretched cash-credit or overdraft accounts",
         "Consolidates several short-term dues into one facility",
+        "Can be offered without collateral to businesses with clean financials",
+        "Offers compared across several lenders before you commit",
+        "Part-prepayment allowed once the initial lock-in ends",
+        "Top-up available after a clean repayment run",
         "Moratorium period available with select lenders",
         "Can run alongside a freshly sanctioned working-capital limit"
       ],
       "eligibility": [
         "A viable business with an identifiable working-capital gap",
-        "Two years of audited financial statements",
+        "Audited or CA-certified financial statements, usually for 2 to 3 years, as per the lender",
+        "Consistent bank credits through the preceding 12 months",
+        "A good credit record; a CIBIL score of 680 or higher may be asked for the business and its promoters",
         "Promoter contribution where the lender asks for one",
-        "Proprietorship, partnership, LLP or company",
-        "A good credit record for the business and its promoters"
+        "Business owner or self-employed professional with a steady income, as a proprietorship, partnership, LLP or company"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -458,15 +506,19 @@
       "facts": [
         {
           "label": "Structure",
-          "value": "Term loan on WC gap"
+          "value": "Term loan with fixed EMIs"
+        },
+        {
+          "label": "Loan amount",
+          "value": "Up to ₹5 Cr"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 11.50%* p.a."
         },
         {
           "label": "Tenure",
           "value": "12 — 60 months"
-        },
-        {
-          "label": "Use",
-          "value": "Cycle reset & consolidation"
         }
       ]
     },
@@ -682,48 +734,6 @@
         {
           "label": "Interest rate",
           "value": "From 13.50%* p.a. on the drawn balance"
-        }
-      ]
-    },
-    "project-funding": {
-      "title": "Project Funding",
-      "tagline": "Finance that builds as you build.",
-      "about": "Funding for construction and development projects. The amount depends on your approvals, project cost and expected sales. The money is released in stages as the work moves ahead, not all at once.",
-      "features": [
-        "Residential, commercial and industrial developments",
-        "Combined land-and-construction funding where needed",
-        "Repayment structured through escrow and sales receivables",
-        "Legal, technical and valuation checks coordinated on your behalf"
-      ],
-      "eligibility": [
-        "Sanctioned building plans and clear, marketable land title",
-        "The developer's own contribution already committed to the project",
-        "A track record of completed projects is preferred, though not always mandatory",
-        "A developer or company registered in India",
-        "A good credit record for the developer, its promoters and group companies",
-        "Residential, commercial or mixed-use projects"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)",
-        "Project report with cost and sales projections",
-        "Approvals, plans and land title documents"
-      ],
-      "facts": [
-        {
-          "label": "Funding",
-          "value": "Up to 75% of project cost"
-        },
-        {
-          "label": "Interest rate",
-          "value": "From 12%* p.a."
-        },
-        {
-          "label": "Use",
-          "value": "Construction & development"
-        },
-        {
-          "label": "Release",
-          "value": "Stage by stage"
         }
       ]
     },
@@ -1700,6 +1710,11 @@
         "rateFrom": "9.75%"
       },
       {
+        "product": "Project Funding",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "12%"
+      },
+      {
         "product": "Business Loan",
         "bank": "Our network of banks & NBFCs",
         "rateFrom": "14%"
@@ -1710,14 +1725,14 @@
         "rateFrom": "9%"
       },
       {
+        "product": "Working Capital Term Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "11.50%"
+      },
+      {
         "product": "Unsecured DOD",
         "bank": "Our network of banks & NBFCs",
         "rateFrom": "13.50%"
-      },
-      {
-        "product": "Project Funding",
-        "bank": "Our network of banks & NBFCs",
-        "rateFrom": "12%"
       },
       {
         "product": "Personal Loan",
@@ -1848,6 +1863,12 @@
       "description": ""
     },
     {
+      "path": "/services/balance-transfer",
+      "label": "Loan: Balance Transfer & Top-Up",
+      "title": "",
+      "description": ""
+    },
+    {
       "path": "/services/loan-against-property",
       "label": "Loan: Loan Against Property",
       "title": "",
@@ -1860,14 +1881,14 @@
       "description": ""
     },
     {
-      "path": "/services/balance-transfer",
-      "label": "Loan: Balance Transfer & Top-Up",
+      "path": "/services/dlod",
+      "label": "Loan: Drop-Line Overdraft (Secured)",
       "title": "",
       "description": ""
     },
     {
-      "path": "/services/dlod",
-      "label": "Loan: Drop-Line Overdraft (Secured)",
+      "path": "/services/project-funding",
+      "label": "Loan: Project Funding",
       "title": "",
       "description": ""
     },
@@ -1928,12 +1949,6 @@
     {
       "path": "/services/unsecured-dod",
       "label": "Loan: Unsecured DOD",
-      "title": "",
-      "description": ""
-    },
-    {
-      "path": "/services/project-funding",
-      "label": "Loan: Project Funding",
       "title": "",
       "description": ""
     },
@@ -3547,6 +3562,11 @@
         "visible": "yes"
       },
       {
+        "title": "Balance Transfer & Top-Up",
+        "slug": "balance-transfer",
+        "visible": "yes"
+      },
+      {
         "title": "Loan Against Property",
         "slug": "loan-against-property",
         "visible": "yes"
@@ -3557,13 +3577,13 @@
         "visible": "yes"
       },
       {
-        "title": "Balance Transfer & Top-Up",
-        "slug": "balance-transfer",
+        "title": "Drop-Line Overdraft (Secured)",
+        "slug": "dlod",
         "visible": "yes"
       },
       {
-        "title": "Drop-Line Overdraft (Secured)",
-        "slug": "dlod",
+        "title": "Project Funding",
+        "slug": "project-funding",
         "visible": "yes"
       },
       {
@@ -3614,11 +3634,6 @@
       {
         "title": "Unsecured DOD",
         "slug": "unsecured-dod",
-        "visible": "yes"
-      },
-      {
-        "title": "Project Funding",
-        "slug": "project-funding",
         "visible": "yes"
       },
       {
