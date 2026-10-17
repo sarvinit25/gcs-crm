@@ -16,7 +16,7 @@ export class PartnerAuthController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post("login")
   login(@Body() dto: PartnerLoginDto, @Ip() ip: string) {
-    return this.partnerAuth.login(dto.phone, dto.password, ip);
+    return this.partnerAuth.login(dto.phone, dto.password, ip, dto.code);
   }
 }
 

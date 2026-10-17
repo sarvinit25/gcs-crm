@@ -15,7 +15,7 @@ export type PartnerProfile = {
 type PartnerAuthContextValue = {
   partner: PartnerProfile | null;
   ready: boolean;
-  login: (phone: string, password: string) => Promise<void>;
+  login: (phone: string, password: string, code?: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -36,10 +36,10 @@ export function PartnerAuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setReady(true));
   }, []);
 
-  const login = async (phone: string, password: string) => {
+  const login = async (phone: string, password: string, code?: string) => {
     const res = await partnerApi<{ accessToken: string; partner: PartnerProfile }>(
       "/partner/auth/login",
-      { method: "POST", body: JSON.stringify({ phone, password }) },
+      { method: "POST", body: JSON.stringify({ phone, password, ...(code?.trim() ? { code: code.trim() } : {}) }) },
     );
     partnerTokenStore.set(res.accessToken);
     setPartner(res.partner);

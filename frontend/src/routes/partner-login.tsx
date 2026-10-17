@@ -9,6 +9,7 @@ export function PartnerLoginPage() {
   const { login } = usePartnerAuth();
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
+  const [gcsId, setGcsId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -16,7 +17,9 @@ export function PartnerLoginPage() {
   // Arriving from the website's Track Application page: the mobile number is already filled in.
   useEffect(() => {
     const note = takeHandoff("partner");
-    if (note) setPhone(note.phone);
+    if (!note) return;
+    setPhone(note.phone);
+    if (note.code) setGcsId(note.code);
   }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -24,7 +27,7 @@ export function PartnerLoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await login(phone, password);
+      await login(phone, password, gcsId);
       await navigate({ to: "/partner" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed");
@@ -57,6 +60,19 @@ export function PartnerLoginPage() {
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
               className="field mt-1.5 font-normal"
               placeholder="10-digit mobile number"
+            />
+          </label>
+
+          <label className="mt-4 block text-[13px] font-semibold text-navy">
+            GCS ID
+            <input
+              type="text"
+              required
+              autoComplete="off"
+              value={gcsId}
+              onChange={(e) => setGcsId(e.target.value.toUpperCase())}
+              className="field mt-1.5 font-normal uppercase tracking-widest"
+              placeholder="e.g. GCS-BSA-001"
             />
           </label>
 

@@ -1,4 +1,4 @@
-import { IsString, Length, Matches } from "class-validator";
+import { IsOptional, IsString, Length, Matches } from "class-validator";
 
 export class PartnerLoginDto {
   @Matches(/^[6-9]\d{9}$/, { message: "phone must be a 10-digit Indian mobile number" })
@@ -7,4 +7,10 @@ export class PartnerLoginDto {
   @IsString()
   @Length(1, 128)
   password: string;
+
+  /** The partner's GCS ID (e.g. GCS-BSA-001). Optional for older callers; when given it must match the partner. */
+  @IsOptional()
+  @IsString()
+  @Length(0, 40)
+  code?: string;
 }

@@ -374,6 +374,24 @@ model ChatSession {
   @@index([expiresAt])
 }
 
+// A one-time code sent to a mobile number so a client or partner can be sent their GCS ID. Like ChatOtp, only a
+// hash of the code is kept, and it is good for a few minutes and a handful of tries.
+model IdRecoveryOtp {
+  id        String    @id @default(cuid())
+  phone     String
+  // "client" or "partner": which kind of GCS ID the person asked for.
+  kind      String
+  codeHash  String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  ip        String?
+  createdAt DateTime  @default(now())
+
+  @@index([phone, createdAt])
+  @@index([expiresAt])
+}
+
 model FollowUp {
   id        String    @id @default(cuid())
   leadId    String
