@@ -3156,16 +3156,6 @@
         "small": ""
       },
       {
-        "name": "Bajaj Finance",
-        "logo": "/banks/network/bajaj-finance.png",
-        "small": ""
-      },
-      {
-        "name": "Deutsche Bank",
-        "logo": "/banks/network/deutsche-bank.png",
-        "small": ""
-      },
-      {
         "name": "ICICI Home Finance",
         "logo": "/banks/network/icici-home-finance.png",
         "small": ""
@@ -3188,11 +3178,6 @@
       {
         "name": "Bank of India",
         "logo": "/banks/network/bank-of-india.png",
-        "small": ""
-      },
-      {
-        "name": "L&T Finance",
-        "logo": "/banks/network/l-t-finance.png",
         "small": ""
       },
       {
