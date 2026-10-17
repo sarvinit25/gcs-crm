@@ -3,6 +3,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
   ServiceUnavailableException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -39,7 +40,11 @@ const tooMany = (message: string) => new HttpException(message, HttpStatus.TOO_M
  */
 @Injectable()
 export class ChatAuthService {
+  private readonly log = new Logger(ChatAuthService.name);
   private readonly secret: string;
+  /** Test numbers that always get one fixed code and no SMS (CHAT_OTP_TEST_PHONES + CHAT_OTP_TEST_CODE). Empty unless both are set. */
+  private readonly testPhones: Set<string>;
+  private readonly testCode: string;
 
   constructor(
     private prisma: PrismaService,
@@ -49,6 +54,16 @@ export class ChatAuthService {
     config: ConfigService,
   ) {
     this.secret = config.get<string>("JWT_SECRET") ?? "";
+    const code = (config.get<string>("CHAT_OTP_TEST_CODE") ?? "").trim();
+    const phones = (config.get<string>("CHAT_OTP_TEST_PHONES") ?? "")
+      .split(",")
+      .map((p) => p.replace(/\D/g, "").slice(-10))
+      .filter((p) => /^[6-9]\d{9}$/.test(p));
+    this.testCode = /^\d{6}$/.test(code) ? code : "";
+    this.testPhones = new Set(this.testCode ? phones : []);
+    if (this.testPhones.size > 0) {
+      this.log.warn(`Chat sign-in TEST MODE: ${this.testPhones.size} number(s) use a fixed code and get no SMS. Remove CHAT_OTP_TEST_PHONES once SMS is set up.`);
+    }
   }
 
   private hashCode(phone: string, code: string) {
@@ -77,7 +92,8 @@ export class ChatAuthService {
       throw tooMany("Too many codes were requested for this number today. Please call us instead.");
     }
 
-    const code = String(randomInt(100_000, 1_000_000));
+    const isTest = this.testPhones.has(dto.phone);
+    const code = isTest ? this.testCode : String(randomInt(100_000, 1_000_000));
     // Only the newest code counts: asking again kills the earlier one.
     await this.prisma.chatOtp.updateMany({ where: { phone: dto.phone, usedAt: null }, data: { usedAt: new Date() } });
     const row = await this.prisma.chatOtp.create({
@@ -91,7 +107,7 @@ export class ChatAuthService {
       select: { id: true },
     });
 
-    if (!(await this.sender.send(dto.phone, code, OTP_VALID_MINUTES))) {
+    if (!isTest && !(await this.sender.send(dto.phone, code, OTP_VALID_MINUTES))) {
       await this.prisma.chatOtp.update({ where: { id: row.id }, data: { usedAt: new Date() } });
       throw new ServiceUnavailableException("We couldn't send the code just now. Please try again, or call us.");
     }

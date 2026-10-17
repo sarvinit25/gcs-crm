@@ -6,6 +6,9 @@ import { PrismaService } from "../src/prisma/prisma.service";
 import { OtpSenderService } from "../src/chat-auth/otp-sender.service";
 
 const API = "/crm/api";
+// Set before the app starts: this number is a test number with a fixed code.
+process.env["CHAT_OTP_TEST_PHONES"] = "9888800001";
+process.env["CHAT_OTP_TEST_CODE"] = "246810";
 
 /** The website chat opens only after a code sent to the visitor's mobile, and the person lands in the CRM. */
 describe("chat sign-in", () => {
@@ -60,6 +63,24 @@ describe("chat sign-in", () => {
     const row = await prisma.chatOtp.findFirstOrThrow({ where: { phone: p } });
     expect(row.codeHash).not.toContain(lastCode(p));
     expect(row.codeHash).toHaveLength(64);
+  });
+
+  it("a test number gets the fixed code and no SMS, while other numbers are unaffected", async () => {
+    const test = "9888800001";
+    const before = sent.length;
+    expect((await send(test, "Test User")).status).toBe(201);
+    expect(sent.length).toBe(before);
+    const wrongTry = await verify(test, "111111");
+    expect(wrongTry.status).toBe(400);
+    const ok = await verify(test, "246810");
+    expect(ok.status).toBe(201);
+    expect(ok.body.name).toBe("Test User");
+
+    const other = phone();
+    await send(other);
+    expect(sent.length).toBe(before + 1);
+    expect(lastCode(other)).not.toBe("246810");
+    expect((await verify(other, "246810")).status).toBe(400);
   });
 
   it("rejects a number that is not an Indian mobile, and a missing name", async () => {
