@@ -1794,7 +1794,7 @@
       "path": "/tools",
       "label": "Calculators & tools",
       "title": "Loan Calculators & Tools | Growth Capital Services",
-      "description": "Nine free calculators — EMI, eligibility, stamp duty, prepayment, balance transfer, loan comparison, working capital, CGTMSE fee and LAP eligibility."
+      "description": "Ten free calculators — EMI, eligibility, stamp duty, prepayment, money saver, balance transfer, loan comparison, working capital, CGTMSE fee and LAP eligibility."
     },
     {
       "path": "/rates",
@@ -2834,16 +2834,6 @@
         "hash": "eligibility"
       },
       {
-        "label": "Stamp Duty Calculator",
-        "desc": "State-wise registration costs",
-        "hash": "stamp-duty"
-      },
-      {
-        "label": "Prepayment Calculator",
-        "desc": "Tenure & interest you'll save",
-        "hash": "prepayment"
-      },
-      {
         "label": "Balance Transfer Calculator",
         "desc": "Is switching lenders worth it",
         "hash": "balance-transfer"
@@ -2852,6 +2842,21 @@
         "label": "Loan Comparison",
         "desc": "Compare offers side by side",
         "hash": "loan-comparison"
+      },
+      {
+        "label": "Prepayment Calculator",
+        "desc": "Tenure & interest you'll save",
+        "hash": "prepayment"
+      },
+      {
+        "label": "Money Saver Calculator",
+        "desc": "Interest saved on spare cash",
+        "hash": "money-saver"
+      },
+      {
+        "label": "Loan Against Property LTV",
+        "desc": "What your property can unlock",
+        "hash": "lap-ltv"
       },
       {
         "label": "Working Capital Estimator",
@@ -2864,9 +2869,9 @@
         "hash": "cgtmse"
       },
       {
-        "label": "Loan Against Property LTV",
-        "desc": "What your property can unlock",
-        "hash": "lap-ltv"
+        "label": "Stamp Duty Calculator",
+        "desc": "State-wise registration costs",
+        "hash": "stamp-duty"
       }
     ],
     "footer.explore": [
@@ -3322,16 +3327,6 @@
         "sub": "Find your maximum loan amount"
       },
       {
-        "id": "stamp-duty",
-        "label": "Stamp Duty Calculator",
-        "sub": "State-wise registration costs"
-      },
-      {
-        "id": "prepayment",
-        "label": "Prepayment Calculator",
-        "sub": "Tenure & interest you'll save"
-      },
-      {
         "id": "balance-transfer",
         "label": "Balance Transfer Calculator",
         "sub": "Is switching lenders worth it"
@@ -3340,6 +3335,21 @@
         "id": "loan-comparison",
         "label": "Loan Comparison",
         "sub": "Compare offers side by side"
+      },
+      {
+        "id": "prepayment",
+        "label": "Prepayment Calculator",
+        "sub": "Tenure & interest you'll save"
+      },
+      {
+        "id": "money-saver",
+        "label": "Money Saver Calculator",
+        "sub": "Interest saved on spare cash"
+      },
+      {
+        "id": "lap-ltv",
+        "label": "Loan Against Property LTV",
+        "sub": "What your property can unlock"
       },
       {
         "id": "working-capital",
@@ -3352,9 +3362,9 @@
         "sub": "Fee on a collateral-free business loan"
       },
       {
-        "id": "lap-ltv",
-        "label": "Loan Against Property LTV",
-        "sub": "What your property can unlock"
+        "id": "stamp-duty",
+        "label": "Stamp Duty Calculator",
+        "sub": "State-wise registration costs"
       }
     ],
     "services.groups": [
