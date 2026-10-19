@@ -253,7 +253,7 @@
         "A registered lease with sufficient residual tenure to run",
         "A dependable tenant with an uninterrupted rent-payment record",
         "Property title held in the borrower's own name",
-        "Resident Indian owners can apply; NRIs can apply with select lenders (see the NRI section below)",
+        "Resident Indian owners of a let-out commercial property can apply",
         "Commercial property, such as offices, shops or warehouses, that is already let out",
         "A clean credit history; a CIBIL score of around 750 or above may help you get better terms"
       ],
@@ -440,13 +440,15 @@
     "machine-loan": {
       "title": "Machine Loan",
       "tagline": "Take your business to the next level.",
-      "about": "A machine loan helps you buy new machinery or equipment, or raise money against machinery you already own. It can help a business set up, expand or upgrade its production. We compare options from Banks and NBFCs that may suit your business and guide you through the paperwork.",
+      "about": "A machine loan helps you buy new machinery or equipment, or raise money against machinery you already own. Medical equipment, gensets and equipment leasing are covered too. It can help a business set up, expand or upgrade its production. We compare options from Banks and NBFCs that may suit your business and guide you through the paperwork.",
       "features": [
-        "Loan for buying machinery, or against different types of machinery",
-        "Funding of up to 100%* of the machinery cost, including GST on machinery up to ₹35 Lakh, as per lender policy",
-        "Fewer documents for loans up to ₹35 Lakh, as per lender policy",
-        "Loan amount from ₹10 Lakh to ₹3 Crore, with repayment of up to 60 months",
-        "For some profiles, financial statements may not be needed for loans up to ₹3 Crore"
+        "Machinery loan of up to ₹10 Crore, with up to 100% funding on loans below ₹25 Lakh (including GST) and up to 85% above that, repayable over up to 72 months",
+        "Medical equipment loan of up to ₹10 Crore, with up to 100% funding on loans below ₹50 Lakh (including GST) and up to 90% above that, repayable over up to 84 months",
+        "Genset loan of up to ₹5 Crore, with funding of up to 85% (including GST), repayable over up to 48 months",
+        "Equipment leasing from ₹20 Lakh to ₹7.5 Crore for 1 to 3 years, for businesses with a turnover of ₹1 Crore or more",
+        "Leasing can improve cash flow, lower the capital you put in and help with tax planning, as per your accountant's advice",
+        "Simplified documentation and a quick online process, with fewer documents for smaller loans, as per lender policy",
+        "Funding percentage, tenure and charges depend on the lender, the equipment and your profile"
       ],
       "eligibility": [
         "An established business, usually 2 years or more",
@@ -468,11 +470,15 @@
         },
         {
           "label": "Loan amount",
-          "value": "₹10 Lakh to ₹3 Cr"
+          "value": "Up to ₹10 Cr"
         },
         {
           "label": "Tenure",
-          "value": "Up to 60 months"
+          "value": "Up to 84 months"
+        },
+        {
+          "label": "Also available",
+          "value": "Medical equipment, genset and leasing"
         }
       ]
     },
@@ -986,18 +992,24 @@
     "loan-against-securities": {
       "title": "Loan Against Securities",
       "tagline": "Borrow on your portfolio, stay invested.",
-      "about": "You can pledge shares, mutual funds, bonds or insurance policies to get an overdraft limit, instead of selling them. For mutual funds, the lender marks a lien on your units through the registrar (CAMS or KFintech). Your investments stay in place, and the limit is there when you need it. Lenders accept only certain securities and set their own limits.",
+      "about": "Loan Against Securities (LAS) is an overdraft facility that lets you borrow money by pledging financial assets like stocks, mutual funds or bonds, without selling them. For mutual funds, the lender marks a lien on your units through the registrar (CAMS or KFintech). Your investments stay in place, and the limit is there when you need it. Lenders accept only certain securities and set their own limits.",
       "features": [
-        "Shares, mutual funds, bonds, insurance policies and debt instruments accepted",
-        "Mutual fund units stay in your name and keep earning returns",
-        "The limit moves with the value of the pledged portfolio",
-        "No EMI — interest applies only to what's drawn",
-        "Quick setup on lender-approved securities"
+        "You keep earning dividends on your assets",
+        "You keep ownership of your goal-based investments",
+        "Rates are usually lower than personal loans",
+        "No prepayment charges and no foreclosure charges, as per lender policy",
+        "Interest is charged only on the amount you use, and only for the days you use it",
+        "Funding of up to 50% of the market value of your pledged assets, on the lender's approved list",
+        "Promoter funding: a special type of LAS where promoters pledge company shares to raise funds, subject to the lender's approved company list",
+        "Up to ₹1 Cr: a fully digital process",
+        "₹1 Cr to ₹3 Cr: a mix of digital and paper process, with no ITR required",
+        "Above ₹3 Cr: a mix of digital and paper process, with 3 years of ITR required"
       ],
       "eligibility": [
-        "Approved securities or mutual fund units held in the applicant's own name",
-        "A demat account for shares and bonds, or a mutual fund folio for units",
+        "Stocks, ETFs or mutual fund units held in the applicant's own name",
+        "A demat account for shares and ETFs, or a mutual fund folio for units",
         "Securities or schemes that are on the lender's approved list",
+        "For promoter funding, a company that is on the lender's approved list",
         "Resident Indian, 21 years or older"
       ],
       "documents": [
@@ -1008,15 +1020,19 @@
       "facts": [
         {
           "label": "Pledge",
-          "value": "Shares, mutual funds and bonds"
+          "value": "Stocks, ETFs and mutual funds"
         },
         {
-          "label": "LTV",
-          "value": "Up to 50%–80% of the pledge value"
+          "label": "Funding",
+          "value": "Up to 50% of market value (approved list applies)"
         },
         {
           "label": "Facility",
           "value": "Overdraft, interest only on what you use"
+        },
+        {
+          "label": "Up to ₹1 Cr",
+          "value": "Fully digital process"
         }
       ]
     },
@@ -1064,22 +1080,37 @@
     "private-funding": {
       "title": "Private Funding",
       "tagline": "Fast money when the clock is ticking.",
-      "about": "Short-term funds without collateral from private lenders, for self-employed people who need cash quickly. Private credit usually costs much more than bank loans, so we share every rate and repayment term in writing before you decide.",
+      "about": "Short-term funds without collateral from private lenders, for self-employed businesses with a steady turnover who need cash quickly. This product is not for salaried individuals. Minimum business turnover is generally ₹20 Cr+ for Mumbai, Hyderabad, Bangalore and Chennai, and ₹100 Cr+ for the rest of India, as per lender policy. Private credit usually costs much more than bank loans, so we share every rate and repayment term in writing before you decide.",
       "features": [
-        "Full funding amount — whatever your eligible business requirement calls for",
+        "Loan amounts from ₹1 Cr to ₹50 Cr, for a short period of 4 to 8 months",
+        "Funding for expansion, working capital or short-term business needs",
         "Fast turnaround — funding arranged within 24–48 hours",
         "Rate and terms evaluated on your business profile, turnover and profitability",
         "Structured without collateral, subject to the case and profile",
+        "Minimal documentation. The checklist is the same for an individual, a partnership firm and a company",
+        "Repayment is secured through post-dated cheques (PDCs), as per the lender's structure",
         "Flexible EMI/repayment terms, discussed and structured to your need",
         "Interest is never cut upfront — you receive the full agreed funding amount",
         "Processing fee and documentation charges as per the applicable structure"
       ],
-      "eligibility": [],
-      "documents": [],
+      "eligibility": [
+        "Self-employed businesses only: an individual, a partnership firm or a company. This product is not for salaried individuals",
+        "A business with consistent turnover",
+        "Turnover of ₹20 Cr+ for Mumbai, Hyderabad, Bangalore and Chennai, and ₹100 Cr+ for the rest of India, as per lender policy",
+        "Repayment secured through post-dated cheques (PDCs), as per the lender's structure"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)",
+        "Purpose note and repayment plan"
+      ],
       "facts": [
         {
-          "label": "Security",
-          "value": "No property required"
+          "label": "Loan amount",
+          "value": "₹1 Cr to ₹50 Cr"
+        },
+        {
+          "label": "Tenure",
+          "value": "4 – 8 months"
         },
         {
           "label": "Interest rate",
@@ -1090,12 +1121,8 @@
           "value": "24 – 48 hours"
         },
         {
-          "label": "Repayment",
-          "value": "EMI charged twice a month"
-        },
-        {
-          "label": "Eligibility",
-          "value": "Self-employed, turnover up to ₹30 Cr"
+          "label": "Security",
+          "value": "No property required"
         }
       ]
     }
@@ -2477,23 +2504,23 @@
     "about.why": [
       {
         "title": "Real Choice, Not One Bank",
-        "body": "75+ banks and NBFCs in our network, so your file gets more than one shot at approval."
+        "body": "We work with 75+ banks and NBFCs, so your file has more than one chance to get approved."
       },
       {
         "title": "Senior Experts, Not a Call Centre",
-        "body": "The same experienced expert stays with your file from the first call to disbursal."
+        "body": "The same experienced expert looks after your file from the first call until the money reaches you."
       },
       {
         "title": "Built For Speed",
-        "body": "Documentation and structuring done right the first time, so approvals don't stall."
+        "body": "We get your papers and loan details right the first time, so your approval is not delayed."
       },
       {
         "title": "Nothing Hidden",
-        "body": "Rate, fees and terms — all in writing, before you sign anything."
+        "body": "The interest rate, fees and terms are given to you in writing before you sign anything."
       },
       {
-        "title": "Structured Around You",
-        "body": "Your loan packaged around your actual profile, not squeezed into a lender's template."
+        "title": "Planned Around You",
+        "body": "Your loan is planned around your own income and needs, not forced into a bank's fixed format."
       }
     ],
     "about.process": [
@@ -2762,10 +2789,6 @@
         "to": "/cibil"
       },
       {
-        "label": "Case Studies",
-        "to": "/case-studies"
-      },
-      {
         "label": "CA & Legal",
         "to": "/ca-legal-services"
       },
@@ -2776,10 +2799,6 @@
       {
         "label": "Track Application",
         "to": "/track-application"
-      },
-      {
-        "label": "Contact Us",
-        "to": "/contact"
       }
     ],
     "nav.partner": [
@@ -2825,16 +2844,16 @@
     "nav.tools": [
       {
         "label": "EMI Calculator",
-        "desc": "Estimate your monthly EMI",
+        "desc": "Monthly payment",
         "hash": "emi"
       },
       {
-        "label": "Eligibility Calculator",
-        "desc": "Find your max loan amount",
+        "label": "Loan Eligibility",
+        "desc": "Maximum loan amount",
         "hash": "eligibility"
       },
       {
-        "label": "Balance Transfer Calculator",
+        "label": "Loan Balance Transfer",
         "desc": "Is switching lenders worth it",
         "hash": "balance-transfer"
       },
@@ -2844,17 +2863,17 @@
         "hash": "loan-comparison"
       },
       {
-        "label": "Prepayment Calculator",
-        "desc": "Tenure & interest you'll save",
+        "label": "Loan Prepayment",
+        "desc": "Interest savings",
         "hash": "prepayment"
       },
       {
-        "label": "Money Saver Calculator",
+        "label": "Money Saver",
         "desc": "Interest saved on spare cash",
         "hash": "money-saver"
       },
       {
-        "label": "Loan Against Property LTV",
+        "label": "Loan Against Property – LTV",
         "desc": "What your property can unlock",
         "hash": "lap-ltv"
       },
@@ -2869,8 +2888,8 @@
         "hash": "cgtmse"
       },
       {
-        "label": "Stamp Duty Calculator",
-        "desc": "State-wise registration costs",
+        "label": "Stamp Duty",
+        "desc": "Property registration",
         "hash": "stamp-duty"
       }
     ],
@@ -3031,6 +3050,11 @@
         "small": ""
       },
       {
+        "name": "Auxilo",
+        "logo": "/banks/network/auxilo.png",
+        "small": ""
+      },
+      {
         "name": "Bandhan Bank",
         "logo": "/banks/network/bandhan-bank.png",
         "small": ""
@@ -3041,8 +3065,13 @@
         "small": ""
       },
       {
-        "name": "Fullerton India",
-        "logo": "/banks/network/fullerton-india.png",
+        "name": "SMFG Grihashakti",
+        "logo": "/banks/network/smfg-grihashakti.png",
+        "small": ""
+      },
+      {
+        "name": "Avanse Financial Services",
+        "logo": "/banks/network/avanse-financial-services.png",
         "small": ""
       },
       {
@@ -3061,6 +3090,11 @@
         "small": ""
       },
       {
+        "name": "Bajaj Housing Finance",
+        "logo": "/banks/network/bajaj-housing-finance.png",
+        "small": ""
+      },
+      {
         "name": "IDBI Bank",
         "logo": "/banks/network/idbi-bank.png",
         "small": ""
@@ -3073,6 +3107,11 @@
       {
         "name": "Kotak Mahindra Bank",
         "logo": "/banks/network/kotak-mahindra-bank.svg",
+        "small": ""
+      },
+      {
+        "name": "City Union Bank",
+        "logo": "/banks/network/city-union-bank.png",
         "small": ""
       },
       {
@@ -3091,6 +3130,11 @@
         "small": ""
       },
       {
+        "name": "CLIX Capital",
+        "logo": "/banks/network/clix-capital.png",
+        "small": ""
+      },
+      {
         "name": "SBI Home Loans",
         "logo": "/banks/network/sbi-home-loans.png",
         "small": ""
@@ -3106,8 +3150,13 @@
         "small": ""
       },
       {
-        "name": "Shriram Finance",
-        "logo": "/banks/network/shriram-finance.png",
+        "name": "HDB Financial Services",
+        "logo": "/banks/network/hdb-financial-services.png",
+        "small": ""
+      },
+      {
+        "name": "Truhome Finance",
+        "logo": "/banks/network/truhome-finance.png",
         "small": ""
       },
       {
@@ -3118,6 +3167,11 @@
       {
         "name": "DCB Bank",
         "logo": "/banks/network/dcb-bank.png",
+        "small": ""
+      },
+      {
+        "name": "Jana Small Finance Bank",
+        "logo": "/banks/network/jana-small-finance-bank.png",
         "small": ""
       },
       {
@@ -3136,13 +3190,13 @@
         "small": ""
       },
       {
-        "name": "Indiabulls Housing Finance",
-        "logo": "/banks/network/indiabulls-housing-finance.png",
+        "name": "Jio Credit",
+        "logo": "/banks/network/jio-credit.png",
         "small": ""
       },
       {
-        "name": "HDFC Sales",
-        "logo": "/banks/network/hdfc-sales.png",
+        "name": "Sammaan Capital",
+        "logo": "/banks/network/sammaan-capital.png",
         "small": ""
       },
       {
@@ -3153,6 +3207,11 @@
       {
         "name": "Aditya Birla Finance",
         "logo": "/banks/network/aditya-birla-finance.png",
+        "small": ""
+      },
+      {
+        "name": "Kuhoo",
+        "logo": "/banks/network/kuhoo.png",
         "small": ""
       },
       {
@@ -3171,6 +3230,11 @@
         "small": ""
       },
       {
+        "name": "Saraswat Bank",
+        "logo": "/banks/network/saraswat-bank.png",
+        "small": ""
+      },
+      {
         "name": "ICICI Home Finance",
         "logo": "/banks/network/icici-home-finance.png",
         "small": ""
@@ -3183,6 +3247,11 @@
       {
         "name": "Edelweiss",
         "logo": "/banks/network/edelweiss.png",
+        "small": ""
+      },
+      {
+        "name": "Utkarsh Small Finance Bank",
+        "logo": "/banks/network/utkarsh-small-finance-bank.png",
         "small": ""
       },
       {
@@ -3231,8 +3300,8 @@
         "small": ""
       },
       {
-        "name": "Profectus Capital",
-        "logo": "/banks/network/profectus-capital.png",
+        "name": "UGRO Capital",
+        "logo": "/banks/network/ugro-capital.png",
         "small": ""
       },
       {
@@ -3319,16 +3388,16 @@
       {
         "id": "emi",
         "label": "EMI Calculator",
-        "sub": "Estimate your monthly EMI"
+        "sub": "Monthly payment"
       },
       {
         "id": "eligibility",
-        "label": "Eligibility Calculator",
-        "sub": "Find your maximum loan amount"
+        "label": "Loan Eligibility",
+        "sub": "Maximum loan amount"
       },
       {
         "id": "balance-transfer",
-        "label": "Balance Transfer Calculator",
+        "label": "Loan Balance Transfer",
         "sub": "Is switching lenders worth it"
       },
       {
@@ -3338,23 +3407,23 @@
       },
       {
         "id": "prepayment",
-        "label": "Prepayment Calculator",
-        "sub": "Tenure & interest you'll save"
+        "label": "Loan Prepayment",
+        "sub": "Interest savings"
       },
       {
         "id": "money-saver",
-        "label": "Money Saver Calculator",
+        "label": "Money Saver",
         "sub": "Interest saved on spare cash"
       },
       {
         "id": "lap-ltv",
-        "label": "Loan Against Property LTV",
+        "label": "Loan Against Property – LTV",
         "sub": "What your property can unlock"
       },
       {
         "id": "working-capital",
         "label": "Working Capital Estimator",
-        "sub": "MSME limit — exclusive to GCS"
+        "sub": "Business limit estimate"
       },
       {
         "id": "cgtmse",
@@ -3363,8 +3432,8 @@
       },
       {
         "id": "stamp-duty",
-        "label": "Stamp Duty Calculator",
-        "sub": "State-wise registration costs"
+        "label": "Stamp Duty",
+        "sub": "Property registration"
       }
     ],
     "services.groups": [
