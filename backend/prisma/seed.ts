@@ -79,13 +79,13 @@ const LENDERS: [name: string, type: LenderType, logo: string][] = [
 
 // Published rate card — the exact figures from GCS's DSA partner recruitment sheet.
 const RATE_CARDS: [label: string, min: number, max: number, avg: string, earning: string][] = [
-  ["Home Loan", 0.2, 0.5, "\u20b930L \u2013 \u20b91Cr", "\u20b96,000 \u2013 \u20b950,000"],
-  ["Loan Against Property", 0.5, 1.0, "\u20b920L \u2013 \u20b975L", "\u20b910,000 \u2013 \u20b975,000"],
-  ["Business Loan", 1.0, 2.0, "\u20b910L \u2013 \u20b950L", "\u20b910,000 \u2013 \u20b91,00,000"],
-  ["Personal Loan", 1.0, 2.5, "\u20b92L \u2013 \u20b925L", "\u20b92,000 \u2013 \u20b962,500"],
-  ["Working Capital Loan", 0.5, 1.5, "\u20b910L \u2013 \u20b91Cr", "\u20b95,000 \u2013 \u20b91,50,000"],
-  ["Loan Against Securities", 0.3, 0.8, "\u20b910L \u2013 \u20b95Cr", "\u20b93,000 \u2013 \u20b94,00,000"],
-  ["Project Funding", 0.5, 1.0, "\u20b950L \u2013 \u20b910Cr", "\u20b925,000 \u2013 \u20b910,00,000"],
+  ["Home Loan", 0.1, 0.3, "\u20b930L \u2013 \u20b91Cr", "\u20b93,000 \u2013 \u20b930,000"],
+  ["Loan Against Property", 0.1, 0.4, "\u20b920L \u2013 \u20b975L", "\u20b92,000 \u2013 \u20b930,000"],
+  ["Business Loan", 0.1, 0.6, "\u20b910L \u2013 \u20b950L", "\u20b91,000 \u2013 \u20b930,000"],
+  ["Personal Loan", 0.1, 0.6, "\u20b92L \u2013 \u20b925L", "\u20b9200 \u2013 \u20b915,000"],
+  ["Working Capital Loan", 0.1, 0.4, "\u20b910L \u2013 \u20b91Cr", "\u20b91,000 \u2013 \u20b940,000"],
+  ["Loan Against Securities", 0.1, 0.3, "\u20b910L \u2013 \u20b95Cr", "\u20b91,000 \u2013 \u20b91,50,000"],
+  ["Project Funding", 0.1, 0.3, "\u20b950L \u2013 \u20b910Cr", "\u20b95,000 \u2013 \u20b93,00,000"],
 ];
 
 // Document checklist master data, distilled from real lender checklists
