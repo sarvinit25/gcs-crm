@@ -64,7 +64,7 @@ export function PartnerLoginPage() {
           </label>
 
           <label className="mt-4 block text-[13px] font-semibold text-navy">
-            GCS ID
+            Partner ID
             <input
               type="text"
               required
