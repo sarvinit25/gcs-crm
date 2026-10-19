@@ -3245,19 +3245,19 @@
       {
         "category": "Home & Property",
         "icon": "Home",
-        "goal": "Buy or build your home",
+        "goal": "Buy, Build or Create Your Dream Home",
         "product": "Home Loan",
         "slug": "home-loan",
-        "line": "Ready flat, under-construction flat, plot or self-build. We compare lenders that may suit your profile.",
+        "line": "Finance your ready or under-construction home, plot purchase or self-construction. We help you compare suitable loan options from multiple Banks & NBFCs based on your profile.",
         "featured": "yes"
       },
       {
         "category": "Home & Property",
         "icon": "Building2",
-        "goal": "Use your property to raise funds",
+        "goal": "Get Funds Against Your Property",
         "product": "Loan Against Property",
         "slug": "loan-against-property",
-        "line": "Borrow against a property you own and keep using it.",
+        "line": "Use your owned residential, commercial, industrial or specialised property to raise funds while continuing to use it.",
         "featured": ""
       },
       {
@@ -3275,7 +3275,7 @@
         "goal": "Grow your business",
         "product": "Business Loan",
         "slug": "business-loan",
-        "line": "Funds for stock, staff or a new branch, without collateral.",
+        "line": "Unsecured funds for business expansion, stock purchase, renovation, and short-term cash flow needs.",
         "featured": ""
       },
       {
@@ -3311,7 +3311,7 @@
         "goal": "Fund your education, build your future",
         "product": "Education Loan",
         "slug": "education-loan",
-        "line": "Get financial support for higher education in India or abroad, with loan options suited to your profile. You can cover tuition, stay and travel.",
+        "line": "Get financial support for higher education in India or abroad, including tuition fees, accommodation, travel and other eligible education expenses.",
         "featured": ""
       }
     ],
