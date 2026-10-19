@@ -78,14 +78,15 @@ const LENDERS: [name: string, type: LenderType, logo: string][] = [
 
 
 // Published rate card — the exact figures from GCS's DSA partner recruitment sheet.
-const RATE_CARDS: [label: string, min: number, max: number, avg: string, earning: string][] = [
-  ["Home Loan", 0.1, 0.3, "\u20b930L \u2013 \u20b91Cr", "\u20b93,000 \u2013 \u20b930,000"],
-  ["Loan Against Property", 0.1, 0.4, "\u20b920L \u2013 \u20b975L", "\u20b92,000 \u2013 \u20b930,000"],
-  ["Business Loan", 0.1, 0.6, "\u20b910L \u2013 \u20b950L", "\u20b91,000 \u2013 \u20b930,000"],
-  ["Personal Loan", 0.1, 0.6, "\u20b92L \u2013 \u20b925L", "\u20b9200 \u2013 \u20b915,000"],
-  ["Working Capital Loan", 0.1, 0.4, "\u20b910L \u2013 \u20b91Cr", "\u20b91,000 \u2013 \u20b940,000"],
-  ["Loan Against Securities", 0.1, 0.3, "\u20b910L \u2013 \u20b95Cr", "\u20b91,000 \u2013 \u20b91,50,000"],
-  ["Project Funding", 0.1, 0.3, "\u20b950L \u2013 \u20b910Cr", "\u20b95,000 \u2013 \u20b93,00,000"],
+const RATE_CARDS: [label: string, min: number, max: number, avg: string, earning: string, active?: boolean][] = [
+  ["Home Loan", 0.1, 0.3, "₹30L – ₹1Cr", "₹3,000 – ₹30,000"],
+  ["Loan Against Property", 0.1, 0.5, "₹20L – ₹1Cr", "₹2,000 – ₹50,000"],
+  ["Business Loan", 0.1, 1.0, "₹10L – ₹1Cr", "₹1,000 – ₹1,00,000"],
+  ["Personal Loan", 0.1, 1.0, "₹2L – ₹50L", "₹200 – ₹50,000"],
+  ["Working Capital Loan", 0.1, 0.3, "₹10L – ₹1Cr", "₹1,000 – ₹30,000"],
+  // No longer on the partner rate card; kept here, switched off, so the row order (and ids) do not shift.
+  ["Loan Against Securities", 0.1, 0.3, "₹10L – ₹5Cr", "₹1,000 – ₹1,50,000", false],
+  ["Project Funding", 0.05, 0.1, "₹1Cr – ₹10Cr", "₹5,000 – ₹1,00,000"],
 ];
 
 // Document checklist master data, distilled from real lender checklists
@@ -253,10 +254,10 @@ async function main() {
     });
   }
 
-  for (const [i, [label, min, max, avg, earning]] of RATE_CARDS.entries()) {
+  for (const [i, [label, min, max, avg, earning, active = true]] of RATE_CARDS.entries()) {
     await prisma.commissionRateCard.upsert({
       where: { id: `seed-rate-card-${i}` },
-      update: { label, minRate: min, maxRate: max, avgAmountLabel: avg, earningLabel: earning, sortOrder: i },
+      update: { label, minRate: min, maxRate: max, avgAmountLabel: avg, earningLabel: earning, sortOrder: i, active },
       create: {
         id: `seed-rate-card-${i}`,
         label,
@@ -265,6 +266,7 @@ async function main() {
         avgAmountLabel: avg,
         earningLabel: earning,
         sortOrder: i,
+        active,
       },
     });
   }
