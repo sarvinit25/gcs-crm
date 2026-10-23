@@ -1685,7 +1685,13 @@
         "Coordination with the POA holder/local representative as needed"
       ],
       "documents": [
-        "Passport/OCI details",
+        "Valid Passport.",
+        "Overseas address proof.",
+        "Indian address proof, if available or required.",
+        "PAN Card.",
+        "Recent passport-size photographs, if required.",
+        "Overseas residence permit, visa or other residency-status evidence, where applicable.",
+        "NRI status and tax-residency details, as relevant to the transaction.",
         "Property title documents",
         "POA, if a representative will act locally"
       ]
