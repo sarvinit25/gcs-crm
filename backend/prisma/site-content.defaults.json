@@ -1625,17 +1625,23 @@
     "society-redevelopment-documentation": {
       "division": "Legal Services",
       "title": "Society Redevelopment Documentation",
-      "summary": "Documentation support for housing society redevelopment, for individual members, managing committees and developers. We help track consents, agreements and approvals across what's usually a multi-year process.",
-      "whoNeedsIt": "Society members or committees navigating the documentation side of a redevelopment project. Also useful for an individual member trying to understand their own rights and paperwork within a larger redevelopment.",
+      "summary": "Legal documentation assistance for housing society redevelopment, including scrutiny and preparation of consents, resolutions, agreements and requisite approvals, with coordination among society members, Managing Committee and developers throughout the redevelopment process.",
+      "whoNeedsIt": "We provide documentation and legal assistance to housing society members and managing committees throughout the redevelopment process, including the preparation and review of necessary documents, agreements, consents and approvals. We also assist individual members in understanding their legal rights, obligations and documentation requirements to ensure their interests are adequately protected during the redevelopment process.",
       "process": [
         "Stage of the redevelopment and documentation gap reviewed",
         "Required agreements/consents identified",
         "Documentation prepared and coordinated with the relevant parties"
       ],
       "documents": [
-        "Society registration documents",
-        "Existing member/share documents",
-        "Developer agreement, where applicable"
+        "Original land title documents and previous conveyance deeds.",
+        "Latest Property Card / 7/12 Extract and relevant mutation entries.",
+        "City Survey records, CTS number, survey plan and land measurement records, as applicable.",
+        "Development Agreement or Lease Deed, if the land is leasehold or subject to development rights.",
+        "Existing building's sanctioned plan and available commencement and occupancy certificates.",
+        "Existing building's approved layout, completion records and other municipal approvals.",
+        "Property tax bills, land revenue receipts and other relevant dues records.",
+        "Documents relating to reservations, easements, mortgages, litigation or third-party claims affecting the land.",
+        "Deemed conveyance application and supporting records, if conveyance has not been completed."
       ]
     },
     "legal-drafting-agreements-affidavits": {
@@ -1671,8 +1677,8 @@
     "nri-property-documentation": {
       "division": "Legal Services",
       "title": "NRI Property Documentation",
-      "summary": "Documentation support for NRIs on property purchase, sale, transfer and Power of Attorney matters. We structure the paperwork for remote execution, so a trip back to India isn't always necessary.",
-      "whoNeedsIt": "NRIs handling a property matter in India remotely, or through a Power of Attorney holder. Especially useful when time zones and travel make in-person visits to registrars or societies impractical.",
+      "summary": "Legal documentation assistance for NRIs in property purchase, sale, transfer and Power of Attorney matters, including preparation and coordination of documents for remote execution, attestation and registration, subject to applicable laws and procedural requirements.",
+      "whoNeedsIt": "We provide legal documentation assistance to NRIs for managing property transactions in India remotely or through a duly authorised Power of Attorney holder, including registration and housing society formalities.",
       "process": [
         "Requirement and location of the property confirmed",
         "Documents drafted and shared for remote execution",
