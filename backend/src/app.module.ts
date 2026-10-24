@@ -45,7 +45,10 @@ import { IdDirectoryModule } from "./id-directory/id-directory.module";
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60_000, limit: 120 }],
       // Test runs sign in dozens of times a minute; the one test about throttling turns it back on.
-      skipIf: () => process.env.NODE_ENV === "test" && process.env.ENABLE_THROTTLE_IN_TESTS !== "true",
+      skipIf: () =>
+        (process.env.NODE_ENV === "test" && process.env.ENABLE_THROTTLE_IN_TESTS !== "true") ||
+        // Local testing only: set DISABLE_THROTTLE=true in .env. Never set it on a live server.
+        (process.env.NODE_ENV !== "production" && process.env.DISABLE_THROTTLE === "true"),
     }),
     PrismaModule,
     SecurityModule,

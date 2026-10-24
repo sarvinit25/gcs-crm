@@ -76,23 +76,25 @@ export class ChatAuthService {
 
   async sendCode(dto: SendOtpDto, ip?: string) {
     const now = Date.now();
+    const isTest = this.testPhones.has(dto.phone);
     const recent = await this.prisma.chatOtp.findMany({
       where: { phone: dto.phone, createdAt: { gt: new Date(now - DAY) } },
       select: { createdAt: true },
       orderBy: { createdAt: "desc" },
     });
-    const last = recent[0]?.createdAt.getTime() ?? 0;
-    if (now - last < OTP_RESEND_SECONDS * 1000) {
-      throw tooMany(`Please wait ${OTP_RESEND_SECONDS} seconds before asking for another code.`);
+    // A test number can ask again at once, as often as needed.
+    if (!isTest) {
+      const last = recent[0]?.createdAt.getTime() ?? 0;
+      if (now - last < OTP_RESEND_SECONDS * 1000) {
+        throw tooMany(`Please wait ${OTP_RESEND_SECONDS} seconds before asking for another code.`);
+      }
+      if (recent.filter((r) => now - r.createdAt.getTime() < HOUR).length >= OTP_MAX_PER_HOUR) {
+        throw tooMany("Too many codes were requested for this number. Please try again in an hour.");
+      }
+      if (recent.length >= OTP_MAX_PER_DAY) {
+        throw tooMany("Too many codes were requested for this number today. Please call us instead.");
+      }
     }
-    if (recent.filter((r) => now - r.createdAt.getTime() < HOUR).length >= OTP_MAX_PER_HOUR) {
-      throw tooMany("Too many codes were requested for this number. Please try again in an hour.");
-    }
-    if (recent.length >= OTP_MAX_PER_DAY) {
-      throw tooMany("Too many codes were requested for this number today. Please call us instead.");
-    }
-
-    const isTest = this.testPhones.has(dto.phone);
     const code = isTest ? this.testCode : String(randomInt(100_000, 1_000_000));
     // Only the newest code counts: asking again kills the earlier one.
     await this.prisma.chatOtp.updateMany({ where: { phone: dto.phone, usedAt: null }, data: { usedAt: new Date() } });

@@ -90,15 +90,19 @@ export class IdRecoveryService {
       select: { createdAt: true },
       orderBy: { createdAt: "desc" },
     });
-    const last = recent[0]?.createdAt.getTime() ?? 0;
-    if (now - last < OTP_RESEND_SECONDS * 1000) {
-      throw tooMany(`Please wait ${OTP_RESEND_SECONDS} seconds before asking for another code.`);
-    }
-    if (recent.filter((r) => now - r.createdAt.getTime() < HOUR).length >= OTP_MAX_PER_HOUR) {
-      throw tooMany("Too many codes were requested for this number. Please try again in an hour.");
-    }
-    if (recent.length >= OTP_MAX_PER_DAY) {
-      throw tooMany("Too many codes were requested for this number today. Please call us instead.");
+    // A test number can ask again at once, as often as needed.
+    const isTestNo = this.testPhones.has(dto.phone);
+    if (!isTestNo) {
+      const last = recent[0]?.createdAt.getTime() ?? 0;
+      if (now - last < OTP_RESEND_SECONDS * 1000) {
+        throw tooMany(`Please wait ${OTP_RESEND_SECONDS} seconds before asking for another code.`);
+      }
+      if (recent.filter((r) => now - r.createdAt.getTime() < HOUR).length >= OTP_MAX_PER_HOUR) {
+        throw tooMany("Too many codes were requested for this number. Please try again in an hour.");
+      }
+      if (recent.length >= OTP_MAX_PER_DAY) {
+        throw tooMany("Too many codes were requested for this number today. Please call us instead.");
+      }
     }
 
     const known = (await this.idsFor(dto.kind, dto.phone)).length > 0;
