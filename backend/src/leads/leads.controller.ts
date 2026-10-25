@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Ip, Param, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Header, Ip, Param, Patch, Post, Query, StreamableFile, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { Throttle } from "@nestjs/throttler";
 import { Role } from "@prisma/client";
 import { CurrentUser, Public, Roles, type AuthUser } from "../auth/auth.decorators";
@@ -55,6 +56,26 @@ export class LeadsController {
   @Get()
   findAll(@Query() query: ListLeadsQuery, @CurrentUser() user: AuthUser) {
     return this.leads.findAll(query, user);
+  }
+
+  /** The blank Excel sheet to fill in and upload. */
+  @Get("import-template")
+  @Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+  @Header("Content-Disposition", 'attachment; filename="gcs-leads-import-template.xlsx"')
+  async importTemplate() {
+    return new StreamableFile(await this.leads.importTemplate());
+  }
+
+  /** Upload an Excel (.xlsx) or CSV file of up to 500 leads. */
+  @Post("import")
+  @UseInterceptors(FileInterceptor("file", { limits: { fileSize: 2 * 1024 * 1024 } }))
+  importFile(@UploadedFile() file: Express.Multer.File | undefined, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.leads.importFile(file, user, ip);
+  }
+
+  @Get("loan-types")
+  loanTypes(@CurrentUser() user: AuthUser) {
+    return this.leads.loanTypeCounts(user);
   }
 
   @Get("segments")

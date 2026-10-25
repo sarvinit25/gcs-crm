@@ -31,6 +31,11 @@ export class LendersController {
     return this.lenders.findAll(includeInactive === "true");
   }
 
+  @Get(":id")
+  findOne(@Param("id") id: string) {
+    return this.lenders.findOne(id);
+  }
+
   @Post()
   @Roles(Role.ADMIN)
   create(@Body() dto: CreateLenderDto, @CurrentUser() user: AuthUser, @Ip() ip: string) {

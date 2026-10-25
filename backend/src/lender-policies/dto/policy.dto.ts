@@ -1,6 +1,7 @@
 import { Type } from "class-transformer";
 import {
   ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsDateString,
@@ -32,7 +33,10 @@ export class PolicyFieldsDto {
   @IsOptional() @IsNumber() @Min(0) @Max(100) minRate?: number | null;
   @IsOptional() @IsNumber() @Min(0) @Max(100) maxRate?: number | null;
   @IsOptional() @IsString() @Length(0, 200) processingFee?: string | null;
+  @IsOptional() @IsInt() @Min(1) @Max(600) minTenureMonths?: number | null;
   @IsOptional() @IsInt() @Min(1) @Max(600) maxTenureMonths?: number | null;
+  @IsOptional() @IsIn(["FLOATING", "FIXED"]) rateType?: string | null;
+  @IsOptional() @IsNumber() @Min(0) @Max(100) commissionPercent?: number | null;
   @IsOptional() @IsString() @Length(0, 200) specialScheme?: string | null;
 
   @apply(list()) employmentTypes?: string[];
@@ -59,6 +63,14 @@ export class PolicyFieldsDto {
 export class CreatePolicyDto extends PolicyFieldsDto {
   @IsString() lenderId: string;
   @IsString() loanProductId: string;
+}
+
+/** One loan type's terms, added to several lenders at once. Lenders that already have it are left alone. */
+export class BulkPolicyDto extends PolicyFieldsDto {
+  @IsArray() @ArrayMinSize(1) @ArrayMaxSize(200) @IsString({ each: true }) lenderIds: string[];
+  @IsString() loanProductId: string;
+  /** A single FOIR ceiling, stored as one band. */
+  @IsOptional() @IsNumber() @Min(1) @Max(100) maxFoirPercent?: number;
 }
 
 export class UpdatePolicyDto extends PolicyFieldsDto {

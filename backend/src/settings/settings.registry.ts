@@ -5,7 +5,6 @@
  * from this registry.
  */
 
-import { DEFAULT_CHANNELS } from "../marketing/channel.util";
 import { DEFAULT_CONSENT_TEXT } from "../credit/credit-bands";
 
 export type SettingType = "string" | "text" | "number" | "boolean" | "list" | "email" | "phone" | "time";
@@ -206,6 +205,38 @@ export const SETTINGS: SettingDef[] = [
     default: true,
   },
   {
+    key: "teams.autoAssignCases",
+    group: "Pipeline",
+    label: "Auto case assignment",
+    help: "New leads that arrive with no owner (website, chat, WhatsApp) go to the next advisor in turn — advisors on a team first. Off, they wait in the unassigned pool for a manager to hand out.",
+    type: "boolean",
+    default: false,
+  },
+  {
+    key: "teams.autoAssignFiles",
+    group: "Pipeline",
+    label: "Auto file assignment",
+    help: "A file raised from a lead goes to that lead's owner, rather than to whoever clicked Create.",
+    type: "boolean",
+    default: true,
+  },
+  {
+    key: "teams.hideClosedLeads",
+    group: "Pipeline",
+    label: "Hide closed leads",
+    help: "Converted and Lost leads stay out of the lead list unless you filter by those statuses. Off, they stay listed until archived.",
+    type: "boolean",
+    default: false,
+  },
+  {
+    key: "teams.routeToTeamLead",
+    group: "Pipeline",
+    label: "Team routing",
+    help: "A lead from a sourcing partner goes to the lead of the team their relationship manager works in.",
+    type: "boolean",
+    default: false,
+  },
+  {
     key: "pipeline.sanctionSanityMultiple",
     group: "Pipeline",
     label: "Reject sanctions above this multiple of the requested amount",
@@ -243,14 +274,6 @@ export const SETTINGS: SettingDef[] = [
     max: 100,
   },
   {
-    key: "marketing.channels",
-    group: "Marketing",
-    label: "Marketing channels",
-    help: "Where leads can come from. Leads are credited to one of these, and spend is logged against them — add your own as new activities start.",
-    type: "list",
-    default: DEFAULT_CHANNELS,
-  },
-  {
     key: "credit.provider",
     group: "Credit checks",
     label: "Credit-check provider",
@@ -267,6 +290,46 @@ export const SETTINGS: SettingDef[] = [
     default: 30,
     min: 0,
     max: 365,
+  },
+  {
+    key: "credit.minDscr",
+    group: "Credit checks",
+    label: "Lowest comfortable DSCR",
+    help: "Debt service cover for business files: yearly earnings divided by yearly EMIs. Below this, the credit evaluation flags the file.",
+    type: "number",
+    default: 1.25,
+    min: 1,
+    max: 5,
+  },
+  {
+    key: "credit.maxFoirPercent",
+    group: "Credit checks",
+    label: "Highest FOIR (%)",
+    help: "Share of monthly income going to EMIs, existing and proposed. Above this, the credit evaluation flags the file. Each lender's own limit is on Lender policies.",
+    type: "number",
+    default: 55,
+    min: 10,
+    max: 100,
+  },
+  {
+    key: "credit.maxLtvPercent",
+    group: "Credit checks",
+    label: "Highest LTV (%)",
+    help: "Loan as a share of the property value on secured loans. Above this, the credit evaluation flags the file.",
+    type: "number",
+    default: 80,
+    min: 10,
+    max: 100,
+  },
+  {
+    key: "credit.turnoverVariancePercent",
+    group: "Credit checks",
+    label: "Turnover mismatch allowed (%)",
+    help: "How far bank credits or GST turnover may differ from the turnover the customer states before the evaluation flags it.",
+    type: "number",
+    default: 20,
+    min: 1,
+    max: 100,
   },
   {
     key: "credit.consentText",

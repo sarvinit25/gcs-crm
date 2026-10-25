@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { AuditAction, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService, diff } from "../audit/audit.service";
-import { SettingsService } from "../settings/settings.service";
+import { LeadSourcesService } from "../lead-sources/lead-sources.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { describeRange, istToday, rangeFilter, resolveRange } from "../common/date.util";
 import { cleanTag } from "./channel.util";
@@ -31,11 +31,12 @@ export class MarketingService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
-    private settings: SettingsService,
+    private leadSources: LeadSourcesService,
   ) {}
 
+  /** The sources on offer, from the Lead Sources screen. */
   channels() {
-    return this.settings.get<string[]>("marketing.channels");
+    return this.leadSources.activeNames();
   }
 
   /** Dates a request means, as a spend-date window (spend is dated by day, not by moment). */

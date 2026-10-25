@@ -18,17 +18,51 @@ const ROSTER_SELECT = {
   phone: true,
   email: true,
   city: true,
+  state: true,
+  pan: true,
+  gstin: true,
+  bankName: true,
+  ifsc: true,
+  accountHolder: true,
+  // Read so the roster can show the last four digits; withPortalFlag removes the full number before it is sent.
+  accountNumber: true,
   commissionRate: true,
   active: true,
   createdAt: true,
   passwordHash: true,
 } as const;
 
+const last4 = (v: string | null | undefined) => (v ? `••••${v.slice(-4)}` : v ?? null);
+
+/** Account and PAN numbers are masked in the audit log, so the log can be read without exposing them. */
+function maskedChanges(changes: ReturnType<typeof diff>) {
+  if (!changes) return changes;
+  const out = { ...changes };
+  for (const key of ["accountNumber", "pan"] as const) {
+    const c = out[key];
+    if (c) out[key] = { from: last4(c.from as string | null), to: last4(c.to as string | null) };
+  }
+  return out;
+}
+
 /** Never send the hash to the client — only whether portal access is set up. */
-const withPortalFlag = <T extends { passwordHash: string | null }>({
+const withPortalFlag = <T extends { passwordHash: string | null; accountNumber: string | null }>({
   passwordHash,
+  accountNumber,
   ...rest
-}: T) => ({ ...rest, hasPortalAccess: passwordHash !== null });
+}: T) => ({ ...rest, accountLast4: accountNumber ? accountNumber.slice(-4) : null, hasPortalAccess: passwordHash !== null });
+
+const DETAIL_TEXT = ["address", "state", "pincode", "pan", "gstin", "bankName", "accountNumber", "ifsc", "accountHolder", "notes"] as const;
+
+/** A detail left empty on the form is stored as "not recorded", not as an empty string. */
+function blankToNull(dto: object) {
+  const out: Record<string, null> = {};
+  for (const k of DETAIL_TEXT) {
+    const v = (dto as Record<string, unknown>)[k];
+    if (typeof v === "string" && !v.trim()) out[k] = null;
+  }
+  return out;
+}
 
 @Injectable()
 export class PartnersService {
@@ -112,6 +146,7 @@ export class PartnersService {
     const partner = await this.prisma.sourcingPartner.create({
       data: {
         ...rest,
+        ...blankToNull(rest),
         managerId: rest.managerId || undefined,
         code: await this.nextCode(),
         passwordHash: password ? await bcrypt.hash(password, 10) : undefined,
@@ -166,7 +201,7 @@ export class PartnersService {
 
     const partner = await this.prisma.sourcingPartner.update({
       where: { id },
-      data: { ...dto, ...(dto.managerId !== undefined && { managerId: dto.managerId || null }) },
+      data: { ...dto, ...blankToNull(dto), ...(dto.managerId !== undefined && { managerId: dto.managerId || null }) },
       select: ROSTER_SELECT,
     });
 
@@ -176,7 +211,7 @@ export class PartnersService {
       entity: "SourcingPartner",
       entityId: id,
       entityLabel: partner.name,
-      changes: diff(before as unknown as Record<string, unknown>, dto as Record<string, unknown>),
+      changes: maskedChanges(diff(before as unknown as Record<string, unknown>, dto as Record<string, unknown>)),
       ip,
     });
 
@@ -203,6 +238,6 @@ export class PartnersService {
     });
     if (!partner) throw new NotFoundException("Sourcing partner not found");
     const { passwordHash, ...rest } = partner;
-    return { ...rest, hasPortalAccess: passwordHash !== null };
+    return { ...rest, accountLast4: rest.accountNumber ? rest.accountNumber.slice(-4) : null, hasPortalAccess: passwordHash !== null };
   }
 }

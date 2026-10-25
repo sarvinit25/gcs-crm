@@ -36,7 +36,7 @@ export function DashboardSkeleton() {
           </div>
         ))}
       </div>
-      <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_320px]">
+      <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="card space-y-3 p-5">
           <div className="skeleton h-4 w-28" />
           {Array.from({ length: 6 }, (_, i) => (

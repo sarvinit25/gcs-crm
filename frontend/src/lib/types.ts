@@ -90,6 +90,19 @@ export type Lead = {
   status: LeadStatus;
   segment: LeadSegment | null;
   segmentNote: string | null;
+  secondaryPhone?: string | null;
+  dateOfBirth?: string | null;
+  pan?: string | null;
+  address?: string | null;
+  pincode?: string | null;
+  employerName?: string | null;
+  designation?: string | null;
+  experienceYears?: string | null;
+  workLocation?: string | null;
+  officialEmail?: string | null;
+  /** The newest call or note logged on the lead, and how many there are. Only the list carries these. */
+  lastContactAt?: string | null;
+  contactCount?: number;
   /** When the person confirmed their mobile with a code to use the website chat. Set means a chatbot contact. */
   chatVerifiedAt: string | null;
   segmentLocked: boolean;
@@ -226,20 +239,9 @@ export type ChecklistItemStatus = "GIVEN" | "PENDING";
 
 export type ApplicationChecklist = {
   bucket: ChecklistApplicantType | null;
-  items: { id: string; label: string; category: string; status: ChecklistItemStatus }[];
+  items: { id: string; label: string; description: string | null; category: string; status: ChecklistItemStatus }[];
   total: number;
   given: number;
-};
-
-export type ChecklistItem = {
-  id: string;
-  loanProductId: string | null;
-  loanProduct: { id: string; name: string } | null;
-  applicantType: ChecklistApplicantType | null;
-  label: string;
-  category: string;
-  sortOrder: number;
-  active: boolean;
 };
 
 export type Reference = {
@@ -277,6 +279,8 @@ export type ApplicationDetail = Application & {
   lead: { id: string; leadNo: number; name: string; source: string } | null;
   sanction: unknown | null;
   disbursements: unknown[];
+  /** Money on the file; commission is null for advisors, who do not see it. */
+  summary: { sanctionedAmount: number; disbursedAmount: number; processingFee: number; commissionAmount: number | null };
 };
 
 export type Lender = { id: string; name: string; type: "BANK" | "NBFC" };

@@ -4,6 +4,7 @@ import {
   ArrayMinSize,
   IsArray,
   IsBooleanString,
+  IsEmail,
   IsEnum,
   IsIn,
   IsInt,
@@ -12,6 +13,7 @@ import {
   IsString,
   Length,
   Matches,
+  Max,
   Min,
   ValidateNested,
 } from "class-validator";
@@ -113,7 +115,7 @@ export class UpdateLeadDto {
   @IsOptional() @IsString() email?: string;
   @IsOptional() @IsString() city?: string;
   @IsOptional() @IsString() loanProductId?: string;
-  @IsOptional() @IsNumber() @Min(0) amount?: number;
+  @IsOptional() @IsNumber() @Min(0) amount?: number | null;
   @IsOptional() @IsEnum(LeadStatus) status?: LeadStatus;
   @IsOptional() @IsString() @Length(0, 120) lostReason?: string;
   @IsOptional() @IsString() assignedOfficerId?: string;
@@ -121,8 +123,21 @@ export class UpdateLeadDto {
   @IsOptional() @IsString() sourcingPartnerId?: string;
   @IsOptional() @DateInput() nextFollowUpAt?: string;
   @IsOptional() @IsString() @Length(0, 4000) notes?: string;
-  @IsOptional() @IsEnum(EmploymentType) employmentType?: EmploymentType;
-  @IsOptional() @IsNumber() @Min(0) monthlyIncome?: number;
+  @IsOptional() @IsEnum(EmploymentType) employmentType?: EmploymentType | null;
+  @IsOptional() @IsNumber() @Min(0) monthlyIncome?: number | null;
+
+  /** A second number to reach them on. A blank clears it. */
+  @IsOptional() @Matches(PHONE) secondaryPhone?: string | null;
+  @IsOptional() @DateInput() dateOfBirth?: string | null;
+  @IsOptional() @Transform(({ value }) => (typeof value === "string" ? value.trim().toUpperCase() : value)) @Matches(/^[A-Z]{5}\d{4}[A-Z]$/, { message: "pan must look like ABCDE1234F" }) pan?: string | null;
+  @IsOptional() @IsString() @Length(0, 300) address?: string | null;
+  @IsOptional() @Matches(/^\d{6}$/, { message: "pincode must be 6 digits" }) pincode?: string | null;
+  @IsOptional() @IsString() @Length(0, 160) employerName?: string | null;
+  @IsOptional() @IsString() @Length(0, 120) designation?: string | null;
+  @IsOptional() @IsNumber() @Min(0) @Max(60) experienceYears?: number | null;
+  @IsOptional() @IsString() @Length(0, 120) workLocation?: string | null;
+  @IsOptional() @IsEmail() officialEmail?: string | null;
+
   @IsOptional() @IsString() @Length(0, 40) meetingMode?: string;
   @IsOptional() @IsString() @Length(0, 200) meetingPlace?: string;
   @IsOptional() @IsString() @Length(0, 60) channel?: string | null;
@@ -136,7 +151,10 @@ export class ListLeadsQuery {
   @IsOptional() @IsEnum(LeadStatus) status?: LeadStatus;
   @IsOptional() @IsEnum(LeadSegment) segment?: LeadSegment;
   @IsOptional() @IsString() search?: string;
+  /** A staff member's id, or "none" for leads nobody owns yet. */
   @IsOptional() @IsString() assignedOfficerId?: string;
+  /** A sourcing partner's id, or "none" for leads we got ourselves. */
+  @IsOptional() @IsString() sourcingPartnerId?: string;
   @IsOptional() @IsString() source?: string;
   /** "true" lists only the people who signed in to the website chat with a mobile code. */
   @IsOptional() @IsBooleanString() chatbot?: string;
@@ -173,6 +191,8 @@ export class BulkLeadRowDto {
   /** Loan product slug or display name. */
   @IsOptional() @IsString() @Length(0, 80) product?: string;
   @IsOptional() @IsNumber() @Min(0) amount?: number;
+  /** The lead source (channel) it came from. */
+  @IsOptional() @IsString() @Length(0, 60) channel?: string;
   @IsOptional() @IsString() @Length(0, 2000) notes?: string;
 }
 

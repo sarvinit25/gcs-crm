@@ -248,7 +248,7 @@ export class CustomerFormService {
       product: app.loanProduct.name,
       phone: app.applicants[0]?.phone ?? null,
       form,
-      checklist: items.map((i) => ({ label: i.label, category: i.category, received: have.has(i.category) })),
+      checklist: items.map((i) => ({ label: i.name, description: i.description, category: i.category, received: have.has(i.category) })),
       categories,
       documents: invite.documents.map((d) => ({ id: d.id, category: d.category, fileName: d.fileName, sizeBytes: d.sizeBytes })),
       limits: {

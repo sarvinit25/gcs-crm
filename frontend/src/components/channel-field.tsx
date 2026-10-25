@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
-/** The marketing channels leads can be credited to (set under Settings → Marketing). */
+/** The marketing channels leads can be credited to (the active ones under Lead sources). */
 export const useChannels = () =>
   useQuery({ queryKey: ["marketing-channels"], queryFn: () => api<string[]>("/marketing/channels"), staleTime: 10 * 60_000 });
 

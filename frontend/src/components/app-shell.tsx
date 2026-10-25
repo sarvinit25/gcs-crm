@@ -16,6 +16,11 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Layers,
+  Landmark,
+  UsersRound,
+  FileCheck2,
+  Megaphone,
   Settings,
   X,
   ShieldCheck,
@@ -55,9 +60,14 @@ const NAV: { section: string; items: NavItem[] }[] = [
     section: "People",
     items: [
       { to: "/partners", label: "Sourcing Partners", icon: Handshake, roles: ["ADMIN", "MANAGER"] },
+      { to: "/lead-sources", label: "Lead sources", icon: Megaphone, roles: ["ADMIN"] },
+      { to: "/loan-types", label: "Loan types", icon: Layers, roles: ["ADMIN"] },
+      { to: "/document-types", label: "Document types", icon: FileCheck2, roles: ["ADMIN"] },
+      { to: "/lenders", label: "Lenders", icon: Landmark },
       { to: "/lender-policies", label: "Lender policies", icon: Scale, roles: ["ADMIN", "MANAGER"] },
       { to: "/id-directory", label: "GCS IDs", icon: IdCard, roles: ["ADMIN"] },
       { to: "/team", label: "Team", icon: UserSquare, roles: ["ADMIN"] },
+      { to: "/teams", label: "Teams", icon: UsersRound, roles: ["ADMIN"] },
     ],
   },
   {
@@ -112,7 +122,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 </p>
                 {items.map((item) => {
                   const active =
-                    item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+                    item.to === "/" ? pathname === "/" : pathname === item.to || pathname.startsWith(`${item.to}/`);
                   return (
                     <Link
                       key={item.to}

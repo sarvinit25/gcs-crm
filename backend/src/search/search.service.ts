@@ -38,9 +38,12 @@ const PAGES: { label: string; path: string; hash?: string; roles?: Role[]; keywo
   { label: "Sanctions", path: "/sanctions", keywords: "sanctioned loans technical financial legal evaluation approval sanction letter" },
   { label: "Disbursements", path: "/disbursements", keywords: "payout disbursed utr loan account processing fee roi insurance part disbursement" },
   { label: "Commissions", path: "/commissions", roles: [Role.ADMIN, Role.MANAGER], keywords: "commission ledger payout split stakeholder partner share earnings" },
-  { label: "Banks & NBFCs", path: "/settings", hash: "lenders", roles: [Role.ADMIN], keywords: "lender directory banks nbfc lenders bank master partner banks masters" },
-  { label: "Lender Directory", path: "/lenders", roles: [Role.MANAGER, Role.ADVISOR], keywords: "banks nbfc lenders bank master partner banks" },
+  { label: "Lenders", path: "/lenders", keywords: "banks nbfc lender directory partner banks broker code commission relationship manager portal branch bulk add product" },
   { label: "Sourcing Partners", path: "/partners", roles: [Role.ADMIN, Role.MANAGER], keywords: "bsa dsa referrers partner portal password commission rate" },
+  { label: "Lead sources", path: "/lead-sources", roles: [Role.ADMIN], keywords: "channels where leads come from walk-in referral source code colour icon marketing" },
+  { label: "Loan types", path: "/loan-types", roles: [Role.ADMIN], keywords: "loan products types master list code icon colour secured amount range category" },
+  { label: "Document types", path: "/document-types", roles: [Role.ADMIN], keywords: "documents required checklist kyc per loan type applicant profile category master list" },
+  { label: "Teams", path: "/teams", roles: [Role.ADMIN], keywords: "team lead members auto assign round robin routing hide closed leads assign files" },
   { label: "Team", path: "/team", roles: [Role.ADMIN], keywords: "staff employees users roles hierarchy reports to add staff reset password" },
   { label: "Attendance & Payroll", path: "/attendance", roles: [Role.ADMIN, Role.MANAGER], keywords: "attendance payroll salary leave holiday half day check in check out present absent" },
   { label: "Reports", path: "/reports", keywords: "analytics export excel csv print pdf funnel lead sources loan mix officers stalled cases report builder records" },
@@ -49,8 +52,6 @@ const PAGES: { label: string; path: string; hash?: string; roles?: Role[]; keywo
 ];
 
 const SETTINGS_TABS: { label: string; hash: string; keywords: string }[] = [
-  { label: "Loan products", hash: "products", keywords: "loan types products master list" },
-  { label: "Document checklist", hash: "checklist", keywords: "documents required checklist kyc per product" },
   { label: "Commission rate cards", hash: "ratecards", keywords: "rate card commission structure partner earning" },
 ];
 
@@ -366,8 +367,8 @@ export class SearchService {
         id: l.id,
         title: l.name,
         subtitle: `${l.type === "BANK" ? "Bank" : "NBFC"}${l.active ? "" : " · inactive"}`,
-        where: admin ? "Settings › Banks & NBFCs" : "Lender Directory",
-        path: admin ? "/settings" : "/lenders",
+        where: "Lenders",
+        path: "/lenders",
         hash: `lender-${l.id}`,
         matches: pickMatches([{ label: "Lender", value: l.name }, { label: "Type", value: l.type }], tokens),
       })),
@@ -399,8 +400,8 @@ export class SearchService {
         id: c.id,
         title: c.name,
         subtitle: [c.designation, c.lender.name, c.phone].filter(Boolean).join(" · "),
-        where: `${admin ? "Settings › Banks & NBFCs" : "Lender Directory"} › ${c.lender.name} › Contacts`,
-        path: admin ? "/settings" : "/lenders",
+        where: `Lenders › ${c.lender.name} › Contacts`,
+        path: "/lenders",
         hash: `lender-${c.lender.id}`,
         matches: pickMatches(
           [
@@ -509,27 +510,25 @@ export class SearchService {
       id: p.id,
       title: p.name,
       subtitle: `Loan product${p.category ? ` · ${p.category}` : ""}`,
-      where: admin ? "Settings › Loan products" : "Loan products",
-      path: admin ? "/settings" : "/leads",
-      hash: admin ? "products" : undefined,
+      where: admin ? "People › Loan types" : "Loan products",
+      path: admin ? "/loan-types" : "/leads",
       matches: pickMatches([{ label: "Loan product", value: p.name }, { label: "Category", value: p.category ?? "" }], tokens),
     }));
 
     if (admin) {
-      const items = await this.prisma.checklistItem.findMany({
-        where: this.allTokens(tokens, (t) => [has("label", t), has("category", t), { loanProduct: has("name", t) }]),
-        include: { loanProduct: { select: { name: true } } },
+      const items = await this.prisma.documentType.findMany({
+        where: this.allTokens(tokens, (t) => [has("name", t), has("category", t), { loanProducts: { some: has("name", t) } }]),
+        include: { loanProducts: { select: { name: true }, take: 1 } },
         take: limit,
       });
       for (const c of items.slice(0, Math.max(0, limit - hits.length))) {
         hits.push({
           id: c.id,
-          title: c.label,
-          subtitle: `Required document · ${c.loanProduct?.name ?? "all products"}`,
-          where: "Settings › Document checklist",
-          path: "/settings",
-          hash: "checklist",
-          matches: pickMatches([{ label: "Document", value: c.label }, { label: "Category", value: c.category }], tokens),
+          title: c.name,
+          subtitle: `Document type · ${c.loanProducts.length ? `${c.loanProducts[0].name}${c.loanProducts.length > 1 ? " and more" : ""}` : "all loan types"}`,
+          where: "People › Document types",
+          path: "/document-types",
+          matches: pickMatches([{ label: "Document", value: c.name }, { label: "Category", value: c.category }], tokens),
         });
       }
       const cards = await this.prisma.commissionRateCard.findMany({

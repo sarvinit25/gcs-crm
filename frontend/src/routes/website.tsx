@@ -301,7 +301,7 @@ export function WebsitePage() {
                           <td className="px-4 py-3 whitespace-nowrap">
                             {formLabel(s.form)}
                           </td>
-                          <td className="max-w-sm px-4 py-3">
+                          <td className="wrap max-w-sm px-4 py-3">
                             <p className="text-[12px] font-semibold text-muted">
                               {s.entries} of 7 fields filled
                             </p>

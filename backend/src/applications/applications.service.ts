@@ -44,6 +44,8 @@ export class ApplicationsService {
 
   async create(dto: CreateApplicationDto, user: AuthUser) {
     let applicants = dto.applicants ?? [];
+    // A file raised from a lead keeps that lead's owner when "Auto file assignment" is on.
+    let inheritedOwnerId: string | null = null;
 
     if (dto.leadId) {
       const lead = await this.prisma.lead.findUnique({
@@ -51,12 +53,28 @@ export class ApplicationsService {
         include: { application: { select: { id: true } } },
       });
       if (!lead) throw new NotFoundException("Lead not found");
+      if (this.settings.get<boolean>("teams.autoAssignFiles")) inheritedOwnerId = lead.assignedOfficerId;
       if (lead.application) {
         throw new BadRequestException("This lead already has an application");
       }
       // Seed the primary applicant from the lead so nothing is retyped.
       if (!applicants.length) {
-        applicants = [{ name: lead.name, phone: lead.phone, email: lead.email ?? undefined, city: lead.city ?? undefined, isPrimary: true }];
+        applicants = [
+          {
+            name: lead.name,
+            phone: lead.phone,
+            email: lead.email ?? undefined,
+            city: lead.city ?? undefined,
+            address: lead.address ?? undefined,
+            pincode: lead.pincode ?? undefined,
+            pan: lead.pan ?? undefined,
+            dateOfBirth: lead.dateOfBirth ? lead.dateOfBirth.toISOString() : undefined,
+            employmentType: lead.employmentType ?? undefined,
+            employerName: lead.employerName ?? undefined,
+            monthlyIncome: lead.monthlyIncome ? lead.monthlyIncome.toNumber() : undefined,
+            isPrimary: true,
+          },
+        ];
       }
     }
 
@@ -69,7 +87,7 @@ export class ApplicationsService {
           tenureMonths: dto.tenureMonths,
           purpose: dto.purpose,
           lenderId: dto.lenderId,
-          ownerId: dto.ownerId ?? user.id,
+          ownerId: dto.ownerId ?? inheritedOwnerId ?? user.id,
           portalAccessCode: generatePortalAccessCode(),
           applicants: {
             create: applicants.map((a, i) => ({
@@ -158,7 +176,20 @@ export class ApplicationsService {
       },
     });
     if (!app) throw new NotFoundException("Application not found");
-    return this.decorate(app);
+
+    // The money on the file at a glance. Commission is what the lender pays us, so advisors do not see it.
+    const sum = (rows: (Prisma.Decimal | null)[]) => rows.reduce((n, d) => n + (d ? d.toNumber() : 0), 0);
+    const commission =
+      user.role === Role.ADVISOR
+        ? null
+        : (await this.prisma.commission.aggregate({ where: { disbursement: { applicationId: id } }, _sum: { grossAmount: true } }))._sum.grossAmount?.toNumber() ?? 0;
+    const summary = {
+      sanctionedAmount: app.sanction?.sanctionedAmount?.toNumber() ?? 0,
+      disbursedAmount: sum(app.disbursements.map((d) => d.amount)),
+      processingFee: sum(app.disbursements.map((d) => d.processingFee)),
+      commissionAmount: commission,
+    };
+    return { ...this.decorate(app), summary };
   }
 
   async update(id: string, dto: UpdateApplicationDto, user: AuthUser, ip?: string) {

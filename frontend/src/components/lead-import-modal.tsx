@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { CheckCircle2, Download, FileUp, Loader2 } from "lucide-react";
-import { api } from "../lib/api";
+import { CheckCircle2, Download, FileSpreadsheet, Info, Loader2, Upload } from "lucide-react";
+import { ApiError, tokenStore } from "../lib/api";
 import { Modal } from "./modal";
 
-type Row = { name: string; phone: string; email?: string; city?: string; product?: string; amount?: number; notes?: string };
 type Result = {
   created: number;
   duplicates: number;
@@ -12,87 +11,40 @@ type Result = {
   results: { row: number; name: string; status: "duplicate" | "invalid"; message?: string }[];
 };
 
-const HEADERS = ["name", "phone", "email", "city", "product", "amount", "notes"] as const;
-const TEMPLATE = `${HEADERS.join(",")}\nAsha Patil,9876500001,asha@example.com,Pune,home-loan,4500000,Referred by existing client\n`;
-
-/** Minimal RFC 4180 reader: quoted fields, doubled quotes, CRLF. */
-export function parseCsv(text: string): string[][] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let field = "";
-  let quoted = false;
-  const src = text.replace(/^﻿/, "");
-  for (let i = 0; i < src.length; i++) {
-    const c = src[i];
-    if (quoted) {
-      if (c === '"' && src[i + 1] === '"') {
-        field += '"';
-        i++;
-      } else if (c === '"') quoted = false;
-      else field += c;
-    } else if (c === '"') quoted = true;
-    else if (c === ",") {
-      row.push(field);
-      field = "";
-    } else if (c === "\n" || c === "\r") {
-      if (c === "\r" && src[i + 1] === "\n") i++;
-      row.push(field);
-      field = "";
-      if (row.some((v) => v.trim())) rows.push(row);
-      row = [];
-    } else field += c;
-  }
-  row.push(field);
-  if (row.some((v) => v.trim())) rows.push(row);
-  return rows;
+/** The server reads the file, so a spreadsheet and a CSV take the same road. */
+async function sendFile(file: File): Promise<Result> {
+  const body = new FormData();
+  body.append("file", file);
+  const res = await fetch("/crm/api/leads/import", { method: "POST", headers: { Authorization: `Bearer ${tokenStore.get()}` }, body });
+  const json = await res.json().catch(() => null);
+  if (!res.ok) throw new ApiError(res.status, (Array.isArray(json?.message) ? json.message.join(", ") : json?.message) ?? "The file could not be imported");
+  return json as Result;
 }
 
-export function toRows(text: string): { rows: Row[]; error?: string } {
-  const table = parseCsv(text);
-  if (table.length < 2) return { rows: [], error: "The file has no data rows." };
-  const header = table[0].map((h) => h.trim().toLowerCase());
-  if (!header.includes("name") || !header.includes("phone")) {
-    return { rows: [], error: 'The first row must include "name" and "phone" columns — download the template.' };
-  }
-  const col = (r: string[], key: string) => r[header.indexOf(key)]?.trim() || undefined;
-  const rows = table.slice(1).map((r) => {
-    const amount = col(r, "amount");
-    return {
-      name: col(r, "name") ?? "",
-      phone: col(r, "phone") ?? "",
-      email: col(r, "email"),
-      city: col(r, "city"),
-      product: col(r, "product"),
-      amount: amount ? Number(amount.replace(/[,₹\s]/g, "")) : undefined,
-      notes: col(r, "notes"),
-    };
-  });
-  return { rows };
+async function downloadTemplate() {
+  const res = await fetch("/crm/api/leads/import-template", { headers: { Authorization: `Bearer ${tokenStore.get()}` } });
+  if (!res.ok) throw new Error("Could not build the template");
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "gcs-leads-import-template.xlsx";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export function LeadImportModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
-  const [rows, setRows] = useState<Row[]>([]);
-  const [fileName, setFileName] = useState("");
-  const [parseError, setParseError] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [templateError, setTemplateError] = useState<string | null>(null);
+  const input = useRef<HTMLInputElement>(null);
 
   const upload = useMutation({
-    mutationFn: () => api<Result>("/leads/bulk", { method: "POST", body: JSON.stringify({ rows }) }),
+    mutationFn: () => sendFile(file!),
     onSuccess: onDone,
   });
-
-  const downloadTemplate = () => {
-    const url = URL.createObjectURL(new Blob([TEMPLATE], { type: "text/csv" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "gcs-leads-template.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const result = upload.data;
 
   return (
-    <Modal title="Import leads" subtitle="Upload a CSV — up to 500 leads at a time" onClose={onClose} maxWidth="max-w-xl">
+    <Modal title="Import leads from Excel" onClose={onClose} maxWidth="max-w-lg">
       {result ? (
         <div>
           <p className="flex items-center gap-2 text-[14px] font-semibold text-emerald-700">
@@ -111,9 +63,7 @@ export function LeadImportModal({ onClose, onDone }: { onClose: () => void; onDo
                       <tr key={r.row} className="border-b border-line/70 last:border-0">
                         <td className="px-3 py-2 text-muted">Row {r.row + 1}</td>
                         <td className="px-3 py-2 font-semibold text-navy">{r.name}</td>
-                        <td className={`px-3 py-2 ${r.status === "invalid" ? "text-red-600" : "text-amber-600"}`}>
-                          {r.message}
-                        </td>
+                        <td className={`px-3 py-2 ${r.status === "invalid" ? "text-red-600" : "text-amber-600"}`}>{r.message}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -121,58 +71,60 @@ export function LeadImportModal({ onClose, onDone }: { onClose: () => void; onDo
               </div>
             </>
           )}
-          <button onClick={onClose} className="btn-primary mt-4">
-            Done
-          </button>
+          <div className="mt-4 flex justify-end">
+            <button onClick={onClose} className="btn-primary">
+              Done
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="space-y-3">
-          <p className="text-[13px] text-muted">
-            Columns: <span className="font-mono text-[12px]">{HEADERS.join(", ")}</span>. Only name and phone are
-            required. <span className="font-mono text-[12px]">product</span> can be a loan product name or slug.
-            Phones already in the CRM are skipped.
-          </p>
-          <button onClick={downloadTemplate} className="btn-ghost">
-            <Download className="h-4 w-4" /> Download template
-          </button>
-
-          <label className="flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border border-dashed border-line px-4 py-6 text-center hover:bg-bg-light">
-            <FileUp className="h-5 w-5 text-muted" />
-            <span className="text-[13px] font-semibold text-navy">{fileName || "Choose a .csv file"}</span>
-            <input
-              type="file"
-              accept=".csv,text/csv"
-              className="hidden"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                setFileName(file.name);
-                const parsed = toRows(await file.text());
-                setRows(parsed.rows);
-                setParseError(parsed.error ?? null);
-                upload.reset();
-              }}
-            />
-          </label>
-
-          {parseError && <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">{parseError}</p>}
-          {rows.length > 500 && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">
-              {rows.length} rows found — split the file into batches of 500.
+        <div className="space-y-4">
+          <div className="flex items-start gap-2 rounded-lg bg-sky-50 px-3 py-2.5 text-[13px] text-sky-900">
+            <Info className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              <button
+                type="button"
+                onClick={() => downloadTemplate().then(() => setTemplateError(null), (e: Error) => setTemplateError(e.message))}
+                className="inline-flex items-center gap-1 font-semibold underline underline-offset-2"
+              >
+                <Download className="h-3.5 w-3.5" /> Download import template
+              </button>{" "}
+              — fill in your leads and upload the file below. Name and phone are required; up to 500 leads at a time; phone numbers already in the CRM are skipped.
             </p>
-          )}
-          {upload.isError && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">{(upload.error as Error).message}</p>
-          )}
+          </div>
+          {templateError && <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">{templateError}</p>}
 
-          <button
-            onClick={() => upload.mutate()}
-            disabled={!rows.length || rows.length > 500 || upload.isPending}
-            className="btn-primary"
-          >
-            {upload.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            {rows.length ? `Import ${rows.length} lead${rows.length === 1 ? "" : "s"}` : "Import"}
-          </button>
+          <div>
+            <p className="mb-1.5 text-[12px] font-semibold text-navy">Select Excel file (.xlsx) or CSV</p>
+            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-line bg-white px-3 py-2 text-[13px] hover:bg-bg-light">
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-bg-light px-3 py-1 font-semibold text-navy">
+                <FileSpreadsheet className="h-4 w-4" /> Choose file
+              </span>
+              <span className="truncate text-muted">{file?.name ?? "No file chosen"}</span>
+              <input
+                ref={input}
+                type="file"
+                accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+                className="hidden"
+                onChange={(e) => {
+                  setFile(e.target.files?.[0] ?? null);
+                  upload.reset();
+                }}
+              />
+            </label>
+          </div>
+
+          {upload.isError && <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">{(upload.error as Error).message}</p>}
+
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={onClose} className="btn-ghost">
+              Cancel
+            </button>
+            <button onClick={() => upload.mutate()} disabled={!file || upload.isPending} className="btn-primary">
+              {upload.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              Upload
+            </button>
+          </div>
         </div>
       )}
     </Modal>

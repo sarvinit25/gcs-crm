@@ -32,6 +32,11 @@ import { MaintenanceModule } from "./maintenance/maintenance.module";
 import { HealthModule } from "./health/health.module";
 import { CustomerFormModule } from "./customer-form/customer-form.module";
 import { MarketingModule } from "./marketing/marketing.module";
+import { LeadSourcesModule } from "./lead-sources/lead-sources.module";
+import { CreditEvaluationModule } from "./credit-evaluation/credit-evaluation.module";
+import { TeamsModule } from "./teams/teams.module";
+import { LoanTypesModule } from "./loan-types/loan-types.module";
+import { DocumentTypesModule } from "./document-types/document-types.module";
 import { CreditModule } from "./credit/credit.module";
 import { WebsiteModule } from "./website/website.module";
 import { SecurityModule } from "./security/security.module";
@@ -80,6 +85,11 @@ import { IdDirectoryModule } from "./id-directory/id-directory.module";
     BorrowerPortalModule,
     CustomerFormModule,
     MarketingModule,
+    LeadSourcesModule,
+    LoanTypesModule,
+    TeamsModule,
+    CreditEvaluationModule,
+    DocumentTypesModule,
     CreditModule,
     WebsiteModule,
     ChatAuthModule,

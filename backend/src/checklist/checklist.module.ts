@@ -1,8 +1,5 @@
 import { Module } from "@nestjs/common";
-import {
-  ApplicationChecklistController,
-  ChecklistItemsAdminController,
-} from "./checklist.controller";
+import { ApplicationChecklistController } from "./checklist.controller";
 import {
   ChecklistDocumentsAdminController,
   PublicChecklistDocumentsController,
@@ -12,7 +9,6 @@ import { ChecklistService } from "./checklist.service";
 @Module({
   controllers: [
     ApplicationChecklistController,
-    ChecklistItemsAdminController,
     ChecklistDocumentsAdminController,
     PublicChecklistDocumentsController,
   ],

@@ -64,7 +64,7 @@ function Stat({
         <Icon className="h-5 w-5" />
       </span>
       <div className="min-w-0">
-        <p className="text-[11px] font-bold tracking-wide text-muted uppercase">{label}</p>
+        <p className="truncate text-[10px] font-bold tracking-normal text-muted uppercase sm:text-[11px] sm:tracking-wide">{label}</p>
         <p className="mt-0.5 truncate text-xl font-bold text-navy">{value}</p>
       </div>
     </div>
@@ -141,7 +141,7 @@ export function DashboardPage() {
             <button
               onClick={() => query.data && exportSummary(query.data)}
               disabled={!query.data}
-              className="btn-primary"
+              className="btn-primary whitespace-nowrap"
             >
               <Download className="h-4 w-4" /> Export report
             </button>
@@ -211,7 +211,7 @@ export function DashboardPage() {
               )}
             </div>
 
-            <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_320px]">
+            <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
               <section className="card p-5">
                 <h2 className="text-sm font-bold text-navy">Lead pipeline</h2>
                 <div className="mt-4 space-y-2.5">

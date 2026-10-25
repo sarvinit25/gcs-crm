@@ -6,6 +6,9 @@ import { entryCount, isFuller, nameTokens, namesMatch, type Entry } from "./lead
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { AuditService, diff } from "../audit/audit.service";
+import { LeadAssignmentService } from "../teams/lead-assignment.service";
+import { LeadSourcesService } from "../lead-sources/lead-sources.service";
+import { buildLeadTemplate, parseLeadFile } from "./lead-import";
 import { SettingsService } from "../settings/settings.service";
 import { rangeFilter, resolveRange } from "../common/date.util";
 import {
@@ -22,6 +25,12 @@ const LIST_INCLUDE = {
   assignedOfficer: { select: { id: true, name: true } },
   assignedManager: { select: { id: true, name: true } },
   sourcingPartner: { select: { id: true, name: true } },
+} satisfies Prisma.LeadInclude;
+
+/** The newest logged call or note, shown on the list as "Last contact". */
+const LAST_CONTACT = {
+  followUps: { select: { createdAt: true }, orderBy: { createdAt: "desc" as const }, take: 1 },
+  _count: { select: { followUps: true } },
 } satisfies Prisma.LeadInclude;
 
 /** The fields the segment rules read. */
@@ -42,6 +51,17 @@ const SEGMENT_SELECT = {
 
 type Db = PrismaService | Prisma.TransactionClient;
 
+/** Text boxes on the lead form: emptying one clears the value. */
+const CLEARABLE_TEXT = ["email", "city", "secondaryPhone", "pan", "address", "pincode", "employerName", "designation", "workLocation", "officialEmail", "notes"] as const;
+
+/** A PAN number is shown by its last four characters in the audit log. */
+function maskPan(changes: ReturnType<typeof diff>) {
+  const pan = changes?.pan;
+  if (!changes || !pan) return changes;
+  const last4 = (v: unknown) => (typeof v === "string" && v ? `••••${v.slice(-4)}` : null);
+  return { ...changes, pan: { from: last4(pan.from), to: last4(pan.to) } };
+}
+
 @Injectable()
 export class LeadsService implements OnApplicationBootstrap {
   private readonly logger = new Logger(LeadsService.name);
@@ -50,6 +70,8 @@ export class LeadsService implements OnApplicationBootstrap {
     private prisma: PrismaService,
     private audit: AuditService,
     private settings: SettingsService,
+    private assignment: LeadAssignmentService,
+    private sources: LeadSourcesService,
   ) {}
 
   /** Advisors only ever see their own leads; managers and admins see everything. */
@@ -195,6 +217,7 @@ export class LeadsService implements OnApplicationBootstrap {
             loanProductId: product?.id,
             amount: dto.amount,
             notes: incoming.detail,
+            assignedOfficerId: (await this.assignment.pickOfficer(tx, {})) ?? undefined,
           },
           select: { id: true, leadNo: true },
         });
@@ -250,6 +273,12 @@ export class LeadsService implements OnApplicationBootstrap {
   }
 
   async create(dto: CreateLeadDto, user: AuthUser) {
+    const creatorOwns = user.role === Role.ADVISOR && this.settings.get<boolean>("pipeline.autoAssignToCreator");
+    const officerId =
+      dto.assignedOfficerId ??
+      (creatorOwns ? user.id : undefined) ??
+      (await this.assignment.pickOfficer(this.prisma, { sourcingPartnerId: dto.sourcingPartnerId })) ??
+      undefined;
     const created = await this.prisma.lead.create({
       data: {
         name: dto.name.trim(),
@@ -263,11 +292,7 @@ export class LeadsService implements OnApplicationBootstrap {
         ...this.attribution(dto),
         sourcingPartnerId: dto.sourcingPartnerId,
         // An advisor creating a lead owns it unless someone else is named.
-        assignedOfficerId:
-          dto.assignedOfficerId ??
-          (user.role === Role.ADVISOR && this.settings.get<boolean>("pipeline.autoAssignToCreator")
-            ? user.id
-            : undefined),
+        assignedOfficerId: officerId,
         assignedManagerId: dto.assignedManagerId,
         nextFollowUpAt: dto.nextFollowUpAt,
         employmentType: dto.employmentType,
@@ -289,11 +314,17 @@ export class LeadsService implements OnApplicationBootstrap {
     const where: Prisma.LeadWhereInput = {
       ...this.scopeFor(user),
       archivedAt: query.archived === "true" ? { not: null } : null,
-      ...(query.status && { status: query.status }),
+      // Closed leads stay out of the working list unless a status is picked (Teams → Hide closed leads).
+      ...(query.status
+        ? { status: query.status }
+        : this.settings.get<boolean>("teams.hideClosedLeads") && query.archived !== "true"
+          ? { status: { notIn: [LeadStatus.CONVERTED, LeadStatus.LOST] } }
+          : {}),
       ...(query.segment && { segment: query.segment }),
       ...(query.source && { source: query.source }),
       ...(query.chatbot === "true" && { chatVerifiedAt: { not: null } }),
-      ...(query.assignedOfficerId && { assignedOfficerId: query.assignedOfficerId }),
+      ...(query.assignedOfficerId && { assignedOfficerId: query.assignedOfficerId === "none" ? null : query.assignedOfficerId }),
+      ...(query.sourcingPartnerId && { sourcingPartnerId: query.sourcingPartnerId === "none" ? null : query.sourcingPartnerId }),
       ...(query.loanProductId && { loanProductId: query.loanProductId }),
       ...(query.channel && { channel: query.channel === "none" ? null : query.channel }),
       ...(rangeFilter(resolveRange(query)) && { createdAt: rangeFilter(resolveRange(query)) }),
@@ -310,7 +341,7 @@ export class LeadsService implements OnApplicationBootstrap {
     const [items, total] = await this.prisma.$transaction([
       this.prisma.lead.findMany({
         where,
-        include: LIST_INCLUDE,
+        include: { ...LIST_INCLUDE, ...LAST_CONTACT },
         // Priority order: Hot, Warm, Follow-up, Cold (the enum's own order). Inside a segment the
         // soonest follow-up, or the one most overdue, comes first, then the newest enquiry.
         orderBy: [
@@ -324,7 +355,38 @@ export class LeadsService implements OnApplicationBootstrap {
       this.prisma.lead.count({ where }),
     ]);
 
-    return { items, total, page, pageSize };
+    return {
+      items: items.map(({ followUps, _count, ...lead }) => ({ ...lead, lastContactAt: followUps[0]?.createdAt ?? null, contactCount: _count.followUps })),
+      total,
+      page,
+      pageSize,
+    };
+  }
+
+  /** How many working leads each loan type has, for the tabs above the list. */
+  async loanTypeCounts(user: AuthUser) {
+    const hideClosed = this.settings.get<boolean>("teams.hideClosedLeads");
+    const rows = await this.prisma.lead.groupBy({
+      by: ["loanProductId"],
+      where: {
+        ...this.scopeFor(user),
+        archivedAt: null,
+        ...(hideClosed && { status: { notIn: [LeadStatus.CONVERTED, LeadStatus.LOST] } }),
+      },
+      _count: { _all: true },
+      orderBy: { loanProductId: "asc" },
+    });
+    const products = await this.prisma.loanProduct.findMany({
+      where: { id: { in: rows.flatMap((r) => (r.loanProductId ? [r.loanProductId] : [])) } },
+      select: { id: true, name: true },
+    });
+    const name = new Map(products.map((p) => [p.id, p.name]));
+    return {
+      total: rows.reduce((n, r) => n + r._count._all, 0),
+      types: rows
+        .flatMap((r) => (r.loanProductId && name.has(r.loanProductId) ? [{ loanProductId: r.loanProductId, name: name.get(r.loanProductId)!, count: r._count._all }] : []))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
+    };
   }
 
   async findOne(id: string, user: AuthUser) {
@@ -367,6 +429,13 @@ export class LeadsService implements OnApplicationBootstrap {
       data.segmentNote = `Set by ${user.name}.`;
     }
     // Clearing a field in the form stores nothing, not an empty string.
+    for (const key of CLEARABLE_TEXT) {
+      const v = (fields as Record<string, unknown>)[key];
+      if (typeof v === "string") (data as Record<string, unknown>)[key] = v.trim() || null;
+    }
+    if (typeof dto.email === "string" && dto.email.trim()) data.email = dto.email.trim().toLowerCase();
+    if (dto.officialEmail) data.officialEmail = dto.officialEmail.trim().toLowerCase();
+    if (dto.dateOfBirth !== undefined) data.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : null;
     if (dto.channel !== undefined) data.channel = dto.channel?.trim() || null;
     if (dto.campaign !== undefined) data.campaign = dto.campaign?.trim() || null;
     if (dto.status === LeadStatus.LOST) {
@@ -387,7 +456,7 @@ export class LeadsService implements OnApplicationBootstrap {
       entity: "Lead",
       entityId: id,
       entityLabel: `#${lead.leadNo} ${lead.name}`,
-      changes: diff(before as unknown as Record<string, unknown>, data as Record<string, unknown>),
+      changes: maskPan(diff(before as unknown as Record<string, unknown>, data as Record<string, unknown>)),
       ip,
     });
 
@@ -473,6 +542,23 @@ export class LeadsService implements OnApplicationBootstrap {
    * one so a single bad row never sinks the batch; the caller gets a per-row
    * outcome to fix and re-upload.
    */
+  /** An uploaded Excel or CSV file, read and imported like a pasted batch; problems are reported against the file's own row numbers. */
+  async importFile(file: Express.Multer.File | undefined, user: AuthUser, ip?: string) {
+    if (!file) throw new BadRequestException("Choose a file to upload.");
+    const { rows, sheetRows } = await parseLeadFile(file.buffer, file.originalname);
+    const result = await this.bulkCreate({ rows }, user, ip);
+    return { ...result, results: result.results.map((r) => ({ ...r, row: sheetRows[r.row - 1] - 1 })) };
+  }
+
+  /** The blank import sheet, with drop-downs of the loan types and lead sources in use. */
+  async importTemplate() {
+    const [products, sources] = await Promise.all([
+      this.prisma.loanProduct.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" }, select: { name: true } }),
+      this.sources.activeNames(),
+    ]);
+    return buildLeadTemplate(products.map((p) => p.name), sources);
+  }
+
   async bulkCreate(dto: BulkLeadsDto, user: AuthUser, ip?: string) {
     const products = await this.prisma.loanProduct.findMany({ select: { id: true, slug: true, name: true } });
     const productKey = new Map<string, string>();
@@ -521,8 +607,9 @@ export class LeadsService implements OnApplicationBootstrap {
           amount: row.amount,
           notes: row.notes,
           source: "bulk-upload",
+          channel: row.channel?.trim() || undefined,
           loanProductId,
-          assignedOfficerId: owner,
+          assignedOfficerId: owner ?? (await this.assignment.pickOfficer(this.prisma, {})) ?? undefined,
         },
         select: { id: true },
       });

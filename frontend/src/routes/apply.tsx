@@ -24,7 +24,7 @@ type Open = {
   product: string;
   phone: string | null;
   form: ServerForm;
-  checklist: { label: string; category: string; received: boolean }[];
+  checklist: { label: string; description?: string | null; category: string; received: boolean }[];
   categories: string[];
   documents: { id: string; category: string; fileName: string; sizeBytes: number }[];
   limits: { maxFileMb: number; maxFiles: number; referencesRequired: number };
@@ -536,6 +536,7 @@ function DocumentsStep({ token, view, onChanged }: { token: string; view: Open; 
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[13px] font-semibold text-navy">{item.label}</p>
+                    {item.description && <p className="mt-0.5 text-[12px] text-muted">{item.description}</p>}
                     {item.received && <p className="mt-0.5 flex items-center gap-1 text-[12px] font-semibold text-emerald-700"><Check className="h-3 w-3" /> Received</p>}
                   </div>
                   {picker(item.category, mine.length || item.received ? "Add more" : "Upload")}

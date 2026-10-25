@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, FileText, Loader2, Pencil, Plus } from "lucide-react";
 import { api } from "../lib/api";
 import { SmartMatchPanel } from "../components/smart-match-panel";
-import { formatAmount, formatDate, formatDateTime, humanize } from "../lib/format";
+import { formatAmount, formatCompact, formatDate, formatDateTime, humanize } from "../lib/format";
 import {
   DOCUMENTS_STATUS_LABEL,
   EMPLOYMENT_TYPE_LABEL,
@@ -36,76 +36,189 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
       <p className="text-[11px] font-bold tracking-wide text-muted uppercase">{label}</p>
-      <p className="mt-0.5 text-[13px] text-ink">{value ?? "—"}</p>
+      <p className="mt-0.5 text-[13px] break-words text-ink">{value ?? "—"}</p>
     </div>
   );
 }
 
 type ProductOption = { id: string; name: string };
 
-/** Fill in what a lead is missing: the details lenders ask for before a meeting. */
+const BLOCK = "grid content-start gap-1 text-[12px] font-semibold text-navy";
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="sm:col-span-6">
+      <p className="mb-2 border-t border-line pt-3 text-[11px] font-bold tracking-wide text-muted uppercase">{title}</p>
+      <div className="grid gap-3 sm:grid-cols-6">{children}</div>
+    </section>
+  );
+}
+
+/** Everything a lender asks before a meeting: the loan, the person, their work and where they live. */
 function DetailsModal({ lead, onClose, onSaved }: { lead: LeadDetail; onClose: () => void; onSaved: () => void }) {
   const products = useQuery({ queryKey: ["loan-products"], queryFn: () => api<ProductOption[]>("/loan-products") });
+  const [amount, setAmount] = useState(lead.amount ? String(Number(lead.amount)) : "");
   const save = useMutation({
     mutationFn: (body: Record<string, unknown>) => api(`/leads/${lead.id}`, { method: "PATCH", body: JSON.stringify(body) }),
     onSuccess: onSaved,
   });
   return (
-    <Modal title="Lead details" subtitle="The more that is filled in, the higher this lead ranks" onClose={onClose}>
+    <Modal title="Lead details" subtitle="The more that is filled in, the higher this lead ranks" onClose={onClose} maxWidth="max-w-3xl">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           const f = new FormData(e.currentTarget);
           const text = (k: string) => ((f.get(k) as string) ?? "").trim();
-          const num = (k: string) => (text(k) ? Number(text(k)) : undefined);
+          const num = (k: string) => (text(k) ? Number(text(k)) : null);
+          // An emptied box goes as null, which clears what was there.
           save.mutate({
-            ...(text("city") && { city: text("city") }),
-            ...(text("email") && { email: text("email") }),
-            ...(text("loanProductId") && { loanProductId: text("loanProductId") }),
-            ...(num("amount") !== undefined && { amount: num("amount") }),
-            ...(text("employmentType") && { employmentType: text("employmentType") }),
-            ...(num("monthlyIncome") !== undefined && { monthlyIncome: num("monthlyIncome") }),
+            name: text("name"),
+            phone: text("phone"),
+            email: text("email"),
+            secondaryPhone: text("secondaryPhone") || null,
+            loanProductId: text("loanProductId") || undefined,
+            amount: num("amount"),
+            dateOfBirth: text("dateOfBirth") || null,
+            pan: text("pan") || null,
+            employmentType: text("employmentType") || null,
+            employerName: text("employerName") || null,
+            designation: text("designation") || null,
+            experienceYears: num("experienceYears"),
+            monthlyIncome: num("monthlyIncome"),
+            workLocation: text("workLocation") || null,
+            officialEmail: text("officialEmail") || null,
+            address: text("address") || null,
+            city: text("city"),
+            pincode: text("pincode") || null,
+            notes: text("notes"),
           });
         }}
-        className="grid gap-2.5 sm:grid-cols-2"
+        className="grid gap-3 sm:grid-cols-6"
       >
         {save.isError && (
-          <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700 sm:col-span-2">{(save.error as Error).message}</p>
+          <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700 sm:col-span-6">{(save.error as Error).message}</p>
         )}
-        <select name="loanProductId" defaultValue={lead.loanProduct?.id ?? ""} className="field sm:col-span-2">
-          <option value="">Loan product</option>
-          {products.data?.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-        <input name="amount" type="number" min={0} defaultValue={lead.amount ? Number(lead.amount) : ""} placeholder="Loan amount" className="field" />
-        <input name="city" defaultValue={lead.city ?? ""} placeholder="City" className="field" />
-        <select name="employmentType" defaultValue={lead.employmentType ?? ""} className="field">
-          <option value="">Employment type</option>
-          {(Object.keys(EMPLOYMENT_TYPE_LABEL) as EmploymentType[]).map((k) => (
-            <option key={k} value={k}>
-              {EMPLOYMENT_TYPE_LABEL[k]}
-            </option>
-          ))}
-        </select>
-        <input
-          name="monthlyIncome"
-          type="number"
-          min={0}
-          defaultValue={lead.monthlyIncome ? Number(lead.monthlyIncome) : ""}
-          placeholder="Monthly income"
-          className="field"
-        />
-        <input name="email" type="email" defaultValue={lead.email ?? ""} placeholder="Email" className="field sm:col-span-2" />
-        <div className="flex gap-2 sm:col-span-2">
-          <button type="submit" disabled={save.isPending} className="btn-primary">
-            {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save details
-          </button>
+
+        <Section title="Loan requirement">
+          <label className={`${BLOCK} sm:col-span-3`}>
+            Loan type
+            <select name="loanProductId" defaultValue={lead.loanProduct?.id ?? ""} className="field font-normal">
+              <option value="">-- Select loan type --</option>
+              {products.data?.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={`${BLOCK} sm:col-span-3`}>
+            Loan amount (₹)
+            <input name="amount" type="number" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Enter loan amount" className="field font-normal" />
+            {amount && Number(amount) > 0 && <span className="text-[11px] font-normal text-muted">{formatCompact(amount)}</span>}
+          </label>
+        </Section>
+
+        <Section title="Contact details">
+          <label className={`${BLOCK} sm:col-span-3`}>
+            <span>
+              Contact person name <span className="text-red-600">*</span>
+            </span>
+            <input name="name" required minLength={2} maxLength={120} defaultValue={lead.name} className="field font-normal" />
+          </label>
+          <label className={`${BLOCK} sm:col-span-3`}>
+            Email
+            <input name="email" type="email" defaultValue={lead.email ?? ""} placeholder="Enter email address" className="field font-normal" />
+          </label>
+          <label className={`${BLOCK} sm:col-span-3`}>
+            <span>
+              Phone <span className="text-red-600">*</span>
+            </span>
+            <input name="phone" required inputMode="numeric" pattern="[6-9][0-9]{9}" title="10-digit mobile number" defaultValue={lead.phone} className="field font-normal" />
+          </label>
+          <label className={`${BLOCK} sm:col-span-3`}>
+            Secondary phone
+            <input name="secondaryPhone" inputMode="numeric" pattern="[6-9][0-9]{9}" title="10-digit mobile number" defaultValue={lead.secondaryPhone ?? ""} placeholder="Optional" className="field font-normal" />
+          </label>
+        </Section>
+
+        <Section title="Applicant details">
+          <label className={`${BLOCK} sm:col-span-3`}>
+            Date of birth
+            <DatePicker name="dateOfBirth" defaultValue={lead.dateOfBirth?.slice(0, 10)} max={todayIST()} minYear={1930} maxYear={Number(todayIST().slice(0, 4))} placeholder="Pick a date" />
+          </label>
+          <label className={`${BLOCK} sm:col-span-3`}>
+            PAN number
+            <input name="pan" maxLength={10} pattern="[A-Za-z]{5}[0-9]{4}[A-Za-z]" title="Like ABCDE1234F" defaultValue={lead.pan ?? ""} placeholder="ABCDE1234F" className="field font-mono font-normal uppercase" />
+          </label>
+        </Section>
+
+        <Section title="Employment details">
+          <label className={`${BLOCK} sm:col-span-2`}>
+            Employment type
+            <select name="employmentType" defaultValue={lead.employmentType ?? ""} className="field font-normal">
+              <option value="">Not known</option>
+              {(Object.keys(EMPLOYMENT_TYPE_LABEL) as EmploymentType[]).map((k) => (
+                <option key={k} value={k}>
+                  {EMPLOYMENT_TYPE_LABEL[k]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={`${BLOCK} sm:col-span-2`}>
+            Company / business name
+            <input name="employerName" maxLength={160} defaultValue={lead.employerName ?? ""} placeholder="Current employer name" className="field font-normal" />
+          </label>
+          <label className={`${BLOCK} sm:col-span-2`}>
+            Designation
+            <input name="designation" maxLength={120} defaultValue={lead.designation ?? ""} placeholder="Job title" className="field font-normal" />
+          </label>
+          <label className={`${BLOCK} sm:col-span-2`}>
+            Experience (years)
+            <input name="experienceYears" type="number" min={0} max={60} step="0.5" defaultValue={lead.experienceYears ? Number(lead.experienceYears) : ""} placeholder="Years" className="field font-normal" />
+          </label>
+          <label className={`${BLOCK} sm:col-span-2`}>
+            Monthly income (₹)
+            <input name="monthlyIncome" type="number" min={0} defaultValue={lead.monthlyIncome ? Number(lead.monthlyIncome) : ""} placeholder="Net monthly income" className="field font-normal" />
+          </label>
+          <label className={`${BLOCK} sm:col-span-2`}>
+            Work location
+            <input name="workLocation" maxLength={120} defaultValue={lead.workLocation ?? ""} placeholder="Office city" className="field font-normal" />
+          </label>
+          <label className={`${BLOCK} sm:col-span-6`}>
+            Official email
+            <input name="officialEmail" type="email" defaultValue={lead.officialEmail ?? ""} placeholder="work@company.com" className="field font-normal" />
+          </label>
+        </Section>
+
+        <Section title="Address">
+          <label className={`${BLOCK} sm:col-span-6`}>
+            Address
+            <input name="address" maxLength={300} defaultValue={lead.address ?? ""} placeholder="House / building, street, area" className="field font-normal" />
+          </label>
+          <label className={`${BLOCK} sm:col-span-3`}>
+            City
+            <input name="city" maxLength={80} defaultValue={lead.city ?? ""} className="field font-normal" />
+          </label>
+          <label className={`${BLOCK} sm:col-span-3`}>
+            Pincode
+            <input name="pincode" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} title="6 digits" defaultValue={lead.pincode ?? ""} className="field font-normal" />
+          </label>
+        </Section>
+
+        <Section title="Notes">
+          <label className={`${BLOCK} sm:col-span-6`}>
+            Notes
+            <textarea name="notes" rows={3} maxLength={4000} defaultValue={lead.notes ?? ""} placeholder="Add any additional notes…" className="field font-normal" />
+          </label>
+        </Section>
+
+        <div className="flex justify-end gap-2 sm:col-span-6">
           <button type="button" onClick={onClose} className="btn-ghost">
             Cancel
+          </button>
+          <button type="submit" disabled={save.isPending} className="btn-primary">
+            {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            Update lead
           </button>
         </div>
       </form>
@@ -275,7 +388,7 @@ export function LeadDetailPage() {
         </Modal>
       )}
 
-      <div className="grid gap-5 px-6 py-5 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-5 px-6 py-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <div className="space-y-5">
           {lead.segment !== null && (
             <section className="card p-5">
@@ -362,6 +475,18 @@ export function LeadDetailPage() {
                 label="Meeting"
                 value={[lead.meetingMode, lead.meetingPlace].filter(Boolean).join(" · ") || null}
               />
+              {/* The details a lender asks for show once they are known, so the card stays short until then. */}
+              {lead.secondaryPhone && <Field label="Secondary phone" value={lead.secondaryPhone} />}
+              {lead.dateOfBirth && <Field label="Date of birth" value={formatDate(lead.dateOfBirth)} />}
+              {lead.pan && <Field label="PAN" value={<span className="font-mono">{lead.pan}</span>} />}
+              {lead.employerName && <Field label="Company" value={lead.employerName} />}
+              {lead.designation && <Field label="Designation" value={lead.designation} />}
+              {lead.experienceYears && <Field label="Experience" value={`${Number(lead.experienceYears)} years`} />}
+              {lead.workLocation && <Field label="Work location" value={lead.workLocation} />}
+              {lead.officialEmail && <Field label="Official email" value={lead.officialEmail} />}
+              {(lead.address || lead.pincode) && (
+                <Field label="Address" value={[lead.address, lead.pincode].filter(Boolean).join(" · ")} />
+              )}
             </div>
 
             <div className="mt-5 grid gap-3 border-t border-line pt-4 sm:grid-cols-3">
@@ -452,7 +577,7 @@ export function LeadDetailPage() {
               </p>
             )}
             {lead.notes && (
-              <p className="mt-5 rounded-md bg-bg-light px-3 py-2.5 text-[13px] whitespace-pre-wrap text-muted">
+              <p className="mt-5 rounded-md bg-bg-light px-3 py-2.5 text-[13px] break-words whitespace-pre-wrap text-muted">
                 {lead.notes}
               </p>
             )}
@@ -493,6 +618,13 @@ export function LeadDetailPage() {
                   city: lead.city ?? undefined,
                   loanProductId: lead.loanProduct?.id,
                   requestedAmount: lead.amount ?? undefined,
+                  pan: lead.pan ?? undefined,
+                  dateOfBirth: lead.dateOfBirth?.slice(0, 10),
+                  address: lead.address ?? undefined,
+                  pincode: lead.pincode ?? undefined,
+                  employmentType: lead.employmentType ?? undefined,
+                  employerName: lead.employerName ?? undefined,
+                  monthlyIncome: lead.monthlyIncome ? Number(lead.monthlyIncome) : undefined,
                 }}
                 onClose={() => setShowWizard(false)}
                 onCreated={(applicationId) => {

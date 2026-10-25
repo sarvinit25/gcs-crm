@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Download, Loader2, Plus, Search, Upload } from "lucide-react";
+import { AlertCircle, ChevronDown, Download, Loader2, Plus, Search, Upload } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
 import { downloadReport } from "../lib/download-report";
 import { todayIST } from "../lib/date";
-import { formatAmount, formatDate, humanize, isOverdue } from "../lib/format";
+import { formatAmount, formatDate, humanize, initials, isOverdue } from "../lib/format";
+import { useAuth } from "../lib/auth";
 import {
   EMPLOYMENT_TYPE_LABEL,
   LEAD_SEGMENTS,
@@ -28,6 +29,7 @@ import { PeriodSelect } from "../components/period-select";
 import { DatePicker } from "../components/date-picker";
 import { TableSkeleton } from "../components/skeleton";
 import { ArchivedBadge } from "../components/archive-button";
+import { ContactLinks } from "../components/lender-contacts";
 
 type Partner = { id: string; name: string };
 type Duplicate = {
@@ -43,6 +45,8 @@ type Duplicate = {
 
 type Product = { id: string; name: string; slug: string };
 type Assignable = { id: string; name: string };
+
+const LABEL = "grid content-start gap-1 text-[12px] font-semibold text-navy";
 
 function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const products = useQuery({
@@ -74,7 +78,7 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
   });
 
   return (
-    <Modal title="New Lead" subtitle="Add a new prospect to the system" onClose={onClose}>
+    <Modal title="Quick add lead" subtitle="Name and phone are enough. Add the rest now or later." onClose={onClose} maxWidth="max-w-lg">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -102,25 +106,36 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
             source: "manual-entry",
           });
         }}
-        className="grid gap-2.5 sm:grid-cols-2"
+        className="grid gap-3"
       >
         {create.isError && (
-          <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700 sm:col-span-2">
+          <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">
             {(create.error as Error).message}
           </p>
         )}
-        <input name="name" required placeholder="Full name" className="field sm:col-span-2" />
-        <input
-          name="phone"
-          required
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="10-digit phone"
-          className="field"
-        />
-        <input name="email" type="email" placeholder="Email (optional)" className="field" />
+
+        <label className={LABEL}>
+          <span>
+            Contact person name <span className="text-red-600">*</span>
+          </span>
+          <input name="name" required maxLength={120} placeholder="Enter contact person name" className="field font-normal" />
+        </label>
+        <label className={LABEL}>
+          <span>
+            Phone <span className="text-red-600">*</span>
+          </span>
+          <input
+            name="phone"
+            required
+            inputMode="numeric"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="10-digit mobile number"
+            className="field font-normal"
+          />
+        </label>
         {duplicates.data && duplicates.data.length > 0 && (
-          <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2.5 text-[12px] text-amber-900 sm:col-span-2">
+          <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2.5 text-[12px] text-amber-900">
             <p className="font-semibold">This number is already in the CRM</p>
             <ul className="mt-1 space-y-0.5">
               {duplicates.data.map((d) => (
@@ -145,123 +160,160 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
             <p className="mt-1 text-amber-800/80">You can still create it if this is a genuinely separate enquiry.</p>
           </div>
         )}
-        <input name="city" placeholder="City" className="field" />
-        <input name="amount" type="number" placeholder="Loan amount" className="field" />
-        <select name="productSlug" defaultValue="" className="field sm:col-span-2">
-          <option value="">Loan product (optional)</option>
-          {products.data?.map((p) => (
-            <option key={p.id} value={p.slug}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-        <label className="text-[12px] font-semibold text-muted">
-          Relationship officer
-          <select name="assignedOfficerId" defaultValue="" className="field mt-1">
-            <option value="">Unassigned</option>
-            {staff.data?.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+        <label className={LABEL}>
+          Email
+          <input name="email" type="email" placeholder="Enter email address" className="field font-normal" />
         </label>
-        <label className="text-[12px] font-semibold text-muted">
-          Sales manager
-          <select name="assignedManagerId" defaultValue="" className="field mt-1">
-            <option value="">None</option>
-            {staff.data?.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-[12px] font-semibold text-muted">
-          Reference type
-          <select
-            value={reference}
-            onChange={(e) => setReference(e.target.value as "self" | "partner")}
-            className="field mt-1"
-          >
-            <option value="self">Self</option>
-            <option value="partner">Sourcing partner</option>
-          </select>
-        </label>
-        {reference === "partner" ? (
-          <label className="text-[12px] font-semibold text-muted">
-            Partner
-            <select name="sourcingPartnerId" required defaultValue="" className="field mt-1">
-              <option value="" disabled>
-                Select partner
-              </option>
-              {partners.data?.map((p) => (
-                <option key={p.id} value={p.id}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className={LABEL}>
+            Loan type
+            <select name="productSlug" defaultValue="" className="field font-normal">
+              <option value="">-- Select loan type --</option>
+              {products.data?.map((p) => (
+                <option key={p.id} value={p.slug}>
                   {p.name}
                 </option>
               ))}
             </select>
           </label>
-        ) : (
-          <span />
-        )}
-        <label className="text-[12px] font-semibold text-muted">
-          Employment type
-          <select name="employmentType" defaultValue="" className="field mt-1">
-            <option value="">Not known</option>
-            {(Object.keys(EMPLOYMENT_TYPE_LABEL) as EmploymentType[]).map((t) => (
-              <option key={t} value={t}>
-                {EMPLOYMENT_TYPE_LABEL[t]}
-              </option>
-            ))}
-          </select>
+          <label className={LABEL}>
+            Loan amount
+            <input name="amount" type="number" min={0} placeholder="Enter loan amount" className="field font-normal" />
+          </label>
+        </div>
+        <label className={LABEL}>
+          Lead source
+          <ChannelInput name="channel" id="new-lead-channels" placeholder="Pick or type where this lead came from" className="field font-normal" />
         </label>
-        <label className="text-[12px] font-semibold text-muted">
-          Monthly income (₹)
-          <input name="monthlyIncome" type="number" min={0} placeholder="e.g. 50000" className="field mt-1" />
-        </label>
-        <label className="text-[12px] font-semibold text-muted">
-          Next meeting / follow-up
-          <DatePicker name="nextFollowUpAt" className="mt-1" min={todayIST()} placeholder="Pick a date" />
-        </label>
-        <label className="text-[12px] font-semibold text-muted">
-          Meeting mode
-          <select name="meetingMode" defaultValue="" className="field mt-1">
-            <option value="">Not set</option>
-            <option value="In-person">In-person</option>
-            <option value="Phone">Phone</option>
-            <option value="Video">Video</option>
-          </select>
-        </label>
-        <input name="meetingPlace" placeholder="Place of contact" className="field sm:col-span-2" />
-        <label className="text-[12px] font-semibold text-muted">
-          Where did this lead come from?
-          <ChannelInput name="channel" id="new-lead-channels" className="field mt-1 font-normal" />
-        </label>
-        <label className="text-[12px] font-semibold text-muted">
-          Campaign / activity (optional)
-          <input name="campaign" maxLength={120} placeholder="e.g. Andheri society drive" className="field mt-1 font-normal" />
-        </label>
-        <textarea
-          name="detail"
-          placeholder="Notes (optional)"
-          className="field min-h-[70px] resize-none sm:col-span-2"
-        />
-        <button type="submit" disabled={create.isPending} className="btn-primary sm:col-span-2">
-          {create.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Plus className="h-4 w-4" />
-          )}
-          Create lead
-        </button>
+
+        <details className="group rounded-lg border border-line">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2.5 text-[13px] font-semibold text-navy">
+            More details
+            <ChevronDown className="h-4 w-4 text-muted transition group-open:rotate-180" />
+          </summary>
+          <div className="grid gap-3 border-t border-line px-3 py-3 sm:grid-cols-2">
+            <label className={LABEL}>
+              City
+              <input name="city" placeholder="City" className="field font-normal" />
+            </label>
+            <label className={LABEL}>
+              Campaign / activity
+              <input name="campaign" maxLength={120} placeholder="e.g. Andheri society drive" className="field font-normal" />
+            </label>
+            <label className={LABEL}>
+              Relationship officer
+              <select name="assignedOfficerId" defaultValue="" className="field font-normal">
+                <option value="">Automatic (set on the Teams page)</option>
+                {staff.data?.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={LABEL}>
+              Sales manager
+              <select name="assignedManagerId" defaultValue="" className="field font-normal">
+                <option value="">None</option>
+                {staff.data?.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={LABEL}>
+              Reference type
+              <select
+                value={reference}
+                onChange={(e) => setReference(e.target.value as "self" | "partner")}
+                className="field font-normal"
+              >
+                <option value="self">Self</option>
+                <option value="partner">Sourcing partner</option>
+              </select>
+            </label>
+            {reference === "partner" ? (
+              <label className={LABEL}>
+                Partner
+                <select name="sourcingPartnerId" required defaultValue="" className="field font-normal">
+                  <option value="" disabled>
+                    Select partner
+                  </option>
+                  {partners.data?.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <span className="hidden sm:block" />
+            )}
+            <label className={LABEL}>
+              Employment type
+              <select name="employmentType" defaultValue="" className="field font-normal">
+                <option value="">Not known</option>
+                {(Object.keys(EMPLOYMENT_TYPE_LABEL) as EmploymentType[]).map((t) => (
+                  <option key={t} value={t}>
+                    {EMPLOYMENT_TYPE_LABEL[t]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={LABEL}>
+              Monthly income (₹)
+              <input name="monthlyIncome" type="number" min={0} placeholder="e.g. 50000" className="field font-normal" />
+            </label>
+            <label className={LABEL}>
+              Next meeting / follow-up
+              <DatePicker name="nextFollowUpAt" min={todayIST()} placeholder="Pick a date" />
+            </label>
+            <label className={LABEL}>
+              Meeting mode
+              <select name="meetingMode" defaultValue="" className="field font-normal">
+                <option value="">Not set</option>
+                <option value="In-person">In-person</option>
+                <option value="Phone">Phone</option>
+                <option value="Video">Video</option>
+              </select>
+            </label>
+            <label className={`${LABEL} sm:col-span-2`}>
+              Place of contact
+              <input name="meetingPlace" placeholder="Place of contact" className="field font-normal" />
+            </label>
+            <label className={`${LABEL} sm:col-span-2`}>
+              Notes
+              <textarea name="detail" placeholder="Notes (optional)" className="field min-h-[70px] resize-none font-normal" />
+            </label>
+          </div>
+        </details>
+
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="btn-ghost">
+            Cancel
+          </button>
+          <button type="submit" disabled={create.isPending} className="btn-primary">
+            {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            Create lead
+          </button>
+        </div>
       </form>
     </Modal>
   );
 }
 
+/** "today", "yesterday", "3 days ago" — how long since the last call or note. */
+function ago(iso: string) {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  return days <= 0 ? "today" : days === 1 ? "yesterday" : days < 30 ? `${days} days ago` : formatDate(iso);
+}
+
 export function LeadsPage() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  // Advisors only ever see their own leads, so choosing an owner would mean nothing to them.
+  const canFilterOwner = user?.role !== "ADVISOR";
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [segment, setSegment] = useState<LeadSegment | "">("");
@@ -269,6 +321,8 @@ export function LeadsPage() {
   const [dueOnly, setDueOnly] = useState(false);
   const [loanProductId, setLoanProductId] = useState("");
   const [channel, setChannel] = useState("");
+  const [ownerId, setOwnerId] = useState("");
+  const [partnerId, setPartnerId] = useState("");
   const channels = useChannels();
   const [timeRange, setTimeRange] = useState("all");
   const [page, setPage] = useState(1);
@@ -281,16 +335,30 @@ export function LeadsPage() {
     queryFn: () => api<Product[]>("/loan-products"),
   });
 
+  const staff = useQuery({
+    queryKey: ["team-assignable"],
+    queryFn: () => api<Assignable[]>("/team/assignable"),
+    enabled: canFilterOwner,
+  });
+  const partners = useQuery({
+    queryKey: ["partners-assignable"],
+    queryFn: () => api<Partner[]>("/partners/assignable"),
+  });
+  const typeCounts = useQuery({
+    queryKey: ["leads", "loan-types"],
+    queryFn: () => api<{ total: number; types: { loanProductId: string; name: string; count: number }[] }>("/leads/loan-types"),
+  });
+
   const counts = useQuery({
     queryKey: ["leads", "segments"],
     queryFn: () => api<Record<LeadSegment, number> & { followUpsDue: number; chatbot: number }>("/leads/segments"),
   });
 
   const query = useQuery({
-    queryKey: ["leads", { search, status, segment, chatbot, dueOnly, loanProductId, channel, timeRange, page, archived }],
+    queryKey: ["leads", { search, status, segment, chatbot, dueOnly, loanProductId, channel, ownerId, partnerId, timeRange, page, archived }],
     queryFn: () =>
       api<Paginated<Lead>>(
-        `/leads${qs({ search, status, segment, chatbot: chatbot ? "true" : undefined, loanProductId, channel, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, page })}`,
+        `/leads${qs({ search, status, segment, chatbot: chatbot ? "true" : undefined, loanProductId, channel, assignedOfficerId: ownerId, sourcingPartnerId: partnerId, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, page })}`,
       ),
   });
 
@@ -339,6 +407,30 @@ export function LeadsPage() {
       )}
 
       <div className="px-6 py-5">
+        {/* Loan-type tabs with counts: the busiest few, the rest through the loan-type filter below. */}
+        {typeCounts.data && typeCounts.data.types.length > 0 && (
+          <div className="mb-4 flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Loan type">
+            {[{ loanProductId: "", name: "All leads", count: typeCounts.data.total }, ...typeCounts.data.types.slice(0, 6)].map((t) => {
+              const on = loanProductId === t.loanProductId;
+              return (
+                <button
+                  key={t.loanProductId || "all"}
+                  role="tab"
+                  aria-selected={on}
+                  onClick={() => reset(() => setLoanProductId(t.loanProductId))}
+                  className={clsx(
+                    "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-[13px] font-semibold transition",
+                    on ? "border-navy bg-navy text-white" : "border-line bg-white text-muted hover:border-navy/30 hover:text-navy",
+                  )}
+                >
+                  {t.name}
+                  <span className={clsx("rounded-full px-1.5 text-[11px] font-bold", on ? "bg-white/20" : "bg-bg-light")}>{t.count}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* The four working segments, in priority order. Tap one to see only those leads. */}
         <div className="mb-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-6">
           <button
@@ -435,6 +527,28 @@ export function LeadsPage() {
             ))}
           </select>
 
+          {canFilterOwner && (
+            <select value={ownerId} onChange={(e) => reset(() => setOwnerId(e.target.value))} className="field w-44" aria-label="Assigned to">
+              <option value="">Assigned to — all</option>
+              <option value="none">Unassigned</option>
+              {staff.data?.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+          )}
+
+          <select value={partnerId} onChange={(e) => reset(() => setPartnerId(e.target.value))} className="field w-44" aria-label="Sourced by">
+            <option value="">Sourced by — all</option>
+            <option value="none">Ourselves</option>
+            {partners.data?.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+
           <PeriodSelect value={timeRange} onChange={(v) => reset(() => setTimeRange(v))} className="field w-56" />
 
           <button
@@ -471,6 +585,7 @@ export function LeadsPage() {
                   <th className="px-4 py-2.5 font-bold">Reference</th>
                   <th className="px-4 py-2.5 font-bold">Chatbot</th>
                   <th className="px-4 py-2.5 font-bold">Owner</th>
+                  <th className="px-4 py-2.5 font-bold">Last contact</th>
                   <th className="px-4 py-2.5 font-bold">Follow-up</th>
                   <th className="px-4 py-2.5 font-bold">Status</th>
                 </tr>
@@ -479,18 +594,28 @@ export function LeadsPage() {
                 {query.data.items.map((lead) => (
                   <tr key={lead.id} className="border-b border-line/70 last:border-0 hover:bg-bg-light/70">
                     <td className="px-4 py-3">
-                      <Link
-                        to="/leads/$leadId"
-                        params={{ leadId: lead.id }}
-                        className="font-semibold text-navy hover:text-gold-dark"
-                      >
-                        {lead.name}
-                      </Link>
-                      {lead.archivedAt && <ArchivedBadge />}
-                      <p className="text-[12px] text-muted">
-                        #{lead.leadNo} · {lead.phone}
-                        {lead.city && ` · ${lead.city}`}
-                      </p>
+                      <div className="flex items-center gap-3">
+                        <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-navy/10 text-[12px] font-bold text-navy">
+                          {initials(lead.name)}
+                        </span>
+                        <div>
+                          <Link
+                            to="/leads/$leadId"
+                            params={{ leadId: lead.id }}
+                            className="font-semibold text-navy hover:text-gold-dark"
+                          >
+                            {lead.name}
+                          </Link>
+                          {lead.archivedAt && <ArchivedBadge />}
+                          <p className="flex items-center text-[12px] text-muted">
+                            <span>
+                              #{lead.leadNo} · {lead.phone}
+                              {lead.city && ` · ${lead.city}`}
+                            </span>
+                            <ContactLinks phone={lead.phone} email={lead.email} />
+                          </p>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <SegmentBadge segment={lead.segment} note={lead.segmentNote} />
@@ -523,6 +648,15 @@ export function LeadsPage() {
                         <span className="text-amber-600">Unassigned</span>
                       )}
                     </td>
+                    <td className="px-4 py-3 text-muted">
+                      {lead.lastContactAt ? (
+                        <span title={`${lead.contactCount} call${lead.contactCount === 1 ? "" : "s"} or note${lead.contactCount === 1 ? "" : "s"} logged`}>
+                          {ago(lead.lastContactAt)}
+                        </span>
+                      ) : (
+                        <span className="text-muted/70">No contact yet</span>
+                      )}
+                    </td>
                     <td
                       className={clsx(
                         "px-4 py-3",
@@ -544,7 +678,7 @@ export function LeadsPage() {
         {query.data && query.data.total > query.data.pageSize && (
           <div className="mt-3 flex items-center justify-between text-[13px] text-muted">
             <span>
-              Page {query.data.page} of {Math.ceil(query.data.total / query.data.pageSize)}
+              Showing {(query.data.page - 1) * query.data.pageSize + 1} to {Math.min(query.data.page * query.data.pageSize, query.data.total)} of {query.data.total} leads
             </span>
             <div className="flex gap-2">
               <button

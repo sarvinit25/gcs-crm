@@ -3,7 +3,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
+import { formatCompact } from "../lib/format";
 import { Modal } from "./modal";
+import { DatePicker } from "./date-picker";
+import { todayIST } from "../lib/date";
 import {
   CONSTITUTION_LABEL,
   EMPLOYMENT_TYPE_LABEL,
@@ -12,7 +15,14 @@ import {
   type Lender,
 } from "../lib/types";
 
-type Product = { id: string; name: string; slug: string };
+type Product = {
+  id: string;
+  name: string;
+  slug: string;
+  secured?: boolean;
+  minAmount?: string | null;
+  maxAmount?: string | null;
+};
 type Assignable = { id: string; name: string };
 
 const EMPLOYMENT_TYPES = Object.keys(EMPLOYMENT_TYPE_LABEL) as EmploymentType[];
@@ -26,7 +36,19 @@ function ApplicantFields({
   defaults,
 }: {
   prefix: string;
-  defaults?: { name?: string; phone?: string; email?: string; city?: string };
+  defaults?: {
+    name?: string;
+    phone?: string;
+    email?: string;
+    city?: string;
+    pan?: string;
+    dateOfBirth?: string;
+    address?: string;
+    pincode?: string;
+    employmentType?: string;
+    employerName?: string;
+    monthlyIncome?: number;
+  };
 }) {
   return (
     <div className="grid gap-2.5 sm:grid-cols-2">
@@ -39,12 +61,13 @@ function ApplicantFields({
       />
       <input name={`${prefix}Phone`} defaultValue={defaults?.phone} placeholder="10-digit phone" className="field" />
       <input name={`${prefix}Email`} type="email" defaultValue={defaults?.email} placeholder="Email" className="field" />
-      <input name={`${prefix}Pan`} placeholder="PAN" className="field uppercase" />
+      <input name={`${prefix}Pan`} defaultValue={defaults?.pan} placeholder="PAN" className="field uppercase" />
+      <DatePicker name={`${prefix}DateOfBirth`} defaultValue={defaults?.dateOfBirth} max={todayIST()} minYear={1930} maxYear={Number(todayIST().slice(0, 4))} placeholder="Date of birth" />
       <input name={`${prefix}AadhaarLast4`} placeholder="Aadhaar (last 4)" maxLength={4} className="field" />
-      <input name={`${prefix}Address`} placeholder="Address" className="field sm:col-span-2" />
+      <input name={`${prefix}Address`} defaultValue={defaults?.address} placeholder="Address" className="field sm:col-span-2" />
       <input name={`${prefix}City`} defaultValue={defaults?.city} placeholder="City" className="field" />
-      <input name={`${prefix}Pincode`} placeholder="Pincode" className="field" />
-      <select name={`${prefix}EmploymentType`} defaultValue="" className="field">
+      <input name={`${prefix}Pincode`} defaultValue={defaults?.pincode} placeholder="Pincode" className="field" />
+      <select name={`${prefix}EmploymentType`} defaultValue={defaults?.employmentType ?? ""} className="field">
         <option value="">Employment type</option>
         {EMPLOYMENT_TYPES.map((t) => (
           <option key={t} value={t}>
@@ -60,8 +83,8 @@ function ApplicantFields({
           </option>
         ))}
       </select>
-      <input name={`${prefix}EmployerName`} placeholder="Employer / business name" className="field" />
-      <input name={`${prefix}MonthlyIncome`} type="number" placeholder="Monthly income" className="field" />
+      <input name={`${prefix}EmployerName`} defaultValue={defaults?.employerName} placeholder="Employer / business name" className="field" />
+      <input name={`${prefix}MonthlyIncome`} type="number" defaultValue={defaults?.monthlyIncome} placeholder="Monthly income" className="field" />
       <input name={`${prefix}CibilScore`} type="number" placeholder="CIBIL score" className="field" />
       <label className="flex items-center gap-2 text-[13px] text-muted">
         <input name={`${prefix}IsNRI`} type="checkbox" className="h-4 w-4" />
@@ -88,6 +111,7 @@ function applicantFromForm(f: FormData, prefix: string, isPrimary: boolean) {
     phone: str(f, `${prefix}Phone`),
     email: str(f, `${prefix}Email`),
     pan: str(f, `${prefix}Pan`)?.toUpperCase(),
+    dateOfBirth: str(f, `${prefix}DateOfBirth`),
     aadhaarLast4: str(f, `${prefix}AadhaarLast4`),
     address: str(f, `${prefix}Address`),
     city: str(f, `${prefix}City`),
@@ -127,11 +151,19 @@ export function NewApplicationWizard({
     city?: string;
     loanProductId?: string;
     requestedAmount?: string | number;
+    pan?: string;
+    dateOfBirth?: string;
+    address?: string;
+    pincode?: string;
+    employmentType?: string;
+    employerName?: string;
+    monthlyIncome?: number;
   };
   onClose: () => void;
   onCreated: (applicationId: string) => void;
 }) {
   const [step, setStep] = useState(0);
+  const [productId, setProductId] = useState(prefill?.loanProductId ?? "");
 
   const products = useQuery({
     queryKey: ["loan-products"],
@@ -142,6 +174,19 @@ export function NewApplicationWizard({
     queryKey: ["team-assignable"],
     queryFn: () => api<Assignable[]>("/team/assignable"),
   });
+
+  // What the loan type page says about the chosen loan: usual ticket size, and whether it needs collateral.
+  const chosen = products.data?.find((p) => p.id === productId);
+  const hint = chosen
+    ? [
+        chosen.minAmount || chosen.maxAmount
+          ? `Usual amount for ${chosen.name}: ${chosen.minAmount ? formatCompact(chosen.minAmount) : "any"} – ${chosen.maxAmount ? formatCompact(chosen.maxAmount) : "any"}.`
+          : "",
+        chosen.secured ? "Secured loan — collateral papers will be needed." : "",
+      ]
+        .filter(Boolean)
+        .join(" ")
+    : "";
 
   const create = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
@@ -248,7 +293,8 @@ export function NewApplicationWizard({
             <select
               name="loanProductId"
               required={step === 2}
-              defaultValue={prefill?.loanProductId ?? ""}
+              value={productId}
+              onChange={(e) => setProductId(e.target.value)}
               className="field sm:col-span-2"
             >
               <option value="" disabled>
@@ -269,6 +315,7 @@ export function NewApplicationWizard({
               placeholder="Requested amount"
               className="field"
             />
+            {hint && <p className="-mt-1 text-[12px] text-muted sm:col-span-2">{hint}</p>}
             <input name="tenureMonths" type="number" placeholder="Tenure (months)" className="field" />
             <select name="lenderId" defaultValue="" className="field">
               <option value="">Lender (optional)</option>

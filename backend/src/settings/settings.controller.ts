@@ -14,20 +14,6 @@ class UpdateSettingDto {
   value: unknown;
 }
 
-class CreateProductDto {
-  @IsString() @Length(2, 120) name: string;
-  @IsString() @Length(2, 120) slug: string;
-  @IsOptional() @IsString() @Length(0, 80) category?: string;
-  @IsOptional() @IsInt() @Min(0) sortOrder?: number;
-}
-
-class UpdateProductDto {
-  @IsOptional() @IsString() @Length(2, 120) name?: string;
-  @IsOptional() @IsString() @Length(0, 80) category?: string;
-  @IsOptional() @IsBoolean() active?: boolean;
-  @IsOptional() @IsInt() @Min(0) sortOrder?: number;
-}
-
 class CreateRateCardDto {
   @IsString() @Length(2, 80) label: string;
   @IsNumber() @Min(0) minRate: number;
@@ -103,64 +89,6 @@ export class SettingsController {
   @Roles(Role.ADMIN)
   reset(@Param("key") key: string, @CurrentUser() user: AuthUser, @Ip() ip: string) {
     return this.settings.reset(key, user, ip);
-  }
-}
-
-/** Loan products are master data the Settings screen owns. */
-@Controller("settings/loan-products")
-export class LoanProductsAdminController {
-  constructor(
-    private prisma: PrismaService,
-    private audit: AuditService,
-  ) {}
-
-  @Get()
-  @Roles(Role.ADMIN)
-  async findAll() {
-    const products = await this.prisma.loanProduct.findMany({ orderBy: { sortOrder: "asc" } });
-    const counts = await this.prisma.application.groupBy({
-      by: ["loanProductId"],
-      _count: { _all: true },
-      orderBy: { loanProductId: "asc" },
-    });
-    const used = new Map(counts.map((c) => [c.loanProductId, c._count._all]));
-    return products.map((p) => ({ ...p, applicationCount: used.get(p.id) ?? 0 }));
-  }
-
-  @Post()
-  @Roles(Role.ADMIN)
-  async create(@Body() dto: CreateProductDto, @CurrentUser() user: AuthUser, @Ip() ip: string) {
-    const product = await this.prisma.loanProduct.create({ data: { ...dto } });
-    await this.audit.record({
-      actor: user,
-      action: AuditAction.CREATE,
-      entity: "LoanProduct",
-      entityId: product.id,
-      entityLabel: product.name,
-      ip,
-    });
-    return product;
-  }
-
-  @Patch(":id")
-  @Roles(Role.ADMIN)
-  async update(
-    @Param("id") id: string,
-    @Body() dto: UpdateProductDto,
-    @CurrentUser() user: AuthUser,
-    @Ip() ip: string,
-  ) {
-    const before = await this.prisma.loanProduct.findUniqueOrThrow({ where: { id } });
-    const product = await this.prisma.loanProduct.update({ where: { id }, data: { ...dto } });
-    await this.audit.recordUpdate({
-      actor: user,
-      entity: "LoanProduct",
-      entityId: id,
-      entityLabel: product.name,
-      changes: diff(before as unknown as Record<string, unknown>, dto as Record<string, unknown>),
-      ip,
-    });
-    return product;
   }
 }
 

@@ -1,6 +1,5 @@
 import { Global, Module } from "@nestjs/common";
 import {
-  LoanProductsAdminController,
   PublicRateCardController,
   PublicSettingsController,
   RateCardAdminController,
@@ -16,8 +15,7 @@ import { SettingsService } from "./settings.service";
     SettingsController,
     PublicSettingsController,
     PublicRateCardController,
-    LoanProductsAdminController,
-    RateCardAdminController,
+      RateCardAdminController,
   ],
   providers: [SettingsService],
   exports: [SettingsService],

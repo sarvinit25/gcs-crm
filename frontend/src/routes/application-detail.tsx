@@ -14,6 +14,7 @@ import {
   type ApplicationStatus,
   type EmploymentType,
   type Lender,
+  type Sanction,
 } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
 import { ApplicationStatusBadge } from "../components/status-badge";
@@ -26,6 +27,8 @@ import { DocumentsPanel } from "../components/documents-panel";
 import { DisbursementPanel } from "../components/disbursement-panel";
 import { ChecklistPanel } from "../components/checklist-panel";
 import { ArchiveButton } from "../components/archive-button";
+import { CreditEvaluationPanel } from "../components/credit-evaluation-panel";
+import { FileSummary, SectionNav, StageTracker, emi } from "../components/file-overview";
 
 const EMPLOYMENT_TYPES = Object.keys(EMPLOYMENT_TYPE_LABEL) as EmploymentType[];
 const CONSTITUTIONS = Object.keys(CONSTITUTION_LABEL) as ApplicantConstitution[];
@@ -34,7 +37,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
       <p className="text-[11px] font-bold tracking-wide text-muted uppercase">{label}</p>
-      <p className="mt-0.5 text-[13px] text-ink">{value || "—"}</p>
+      <p className="mt-0.5 text-[13px] break-words text-ink">{value || "—"}</p>
     </div>
   );
 }
@@ -129,6 +132,8 @@ export function ApplicationDetailPage() {
   const app = query.data;
   const primary = app.applicants.find((a) => a.isPrimary);
   const coApplicants = app.applicants.filter((a) => !a.isPrimary);
+  const sanction = app.sanction as Sanction | null;
+  const emiAmount = sanction ? emi(Number(sanction.sanctionedAmount), Number(sanction.interestRate), sanction.tenureMonths ?? 0) : null;
   const mutationError = [patch, addApplicant, updateApplicant, addReference].find(
     (m) => m.isError,
   )?.error;
@@ -173,9 +178,15 @@ export function ApplicationDetailPage() {
           </p>
         )}
 
-        <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="mb-5 space-y-4">
+          <FileSummary app={app} />
+          <StageTracker status={app.status} />
+          <SectionNav />
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
           <div className="space-y-5">
-            <section className="card p-5">
+            <section id="loan" className="card p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-sm font-bold text-navy">Loan</h2>
                 <ApplicationStatusBadge status={app.status} />
@@ -188,6 +199,13 @@ export function ApplicationDetailPage() {
                   value={app.tenureMonths ? `${app.tenureMonths} months` : null}
                 />
                 <Field label="Owner" value={app.owner?.name} />
+                <Field label="Lender" value={app.lender?.name} />
+                <Field label="Interest rate" value={sanction?.interestRate ? `${Number(sanction.interestRate)}%` : null} />
+                <Field label="Sanctioned tenure" value={sanction?.tenureMonths ? `${sanction.tenureMonths} months` : null} />
+                <Field label="EMI (approx.)" value={emiAmount ? formatAmount(Math.round(emiAmount)) : null} />
+                <Field label="Processing fee paid" value={app.summary.processingFee ? formatAmount(app.summary.processingFee) : null} />
+                <Field label="CIBIL score" value={primary?.cibilScore} />
+                <Field label="Lender reference no." value={app.bankReferenceNo} />
               </div>
               {app.purpose && (
                 <p className="mt-5 rounded-md bg-bg-light px-3 py-2.5 text-[13px] text-muted">
@@ -214,6 +232,8 @@ export function ApplicationDetailPage() {
                 </label>
               </div>
             </section>
+
+            <CreditEvaluationPanel applicationId={applicationId} />
 
             <div id="login"><LoginStatusPanel applicationId={applicationId} /></div>
 

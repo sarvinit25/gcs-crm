@@ -39,8 +39,7 @@ export function ChecklistPanel({ applicationId }: { applicationId: string }) {
         <p className="text-[13px] text-red-600">{(query.error as Error).message}</p>
       ) : !query.data.items.length ? (
         <p className="text-[13px] text-muted">
-          No checklist defined for this loan product yet — add items under Settings → Document
-          checklist.
+          No documents are listed for this loan type yet — add them under People → Document types.
         </p>
       ) : (
         <>
@@ -59,14 +58,19 @@ export function ChecklistPanel({ applicationId }: { applicationId: string }) {
                 </p>
                 <ul className="space-y-1">
                   {items.map((item) => (
-                    <li key={item.id} className="flex items-center gap-2 text-[13px]">
+                    <li key={item.id} className="flex items-start gap-2 text-[13px]">
                       {item.status === "GIVEN" ? (
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
                       ) : (
-                        <Circle className="h-4 w-4 shrink-0 text-muted/50" />
+                        <Circle className="mt-0.5 h-4 w-4 shrink-0 text-muted/50" />
                       )}
-                      <span className={clsx(item.status === "GIVEN" && "text-muted line-through")}>
-                        {item.label}
+                      <span>
+                        <span className={clsx(item.status === "GIVEN" && "text-muted line-through")}>
+                          {item.label}
+                        </span>
+                        {item.description && (
+                          <span className="block text-[12px] text-muted">{item.description}</span>
+                        )}
                       </span>
                     </li>
                   ))}

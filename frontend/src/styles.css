@@ -69,6 +69,16 @@ body {
     transform: scale(0.97);
   }
 
+  /* Whatever staff or customers type (notes, names, addresses, a long unbroken token) wraps inside its box
+     instead of pushing the page sideways. Table cells keep their own rule below. */
+  main p,
+  main li,
+  main h1,
+  main h2,
+  main h3 {
+    overflow-wrap: anywhere;
+  }
+
   /* Register tables scroll sideways rather than squeezing; identifiers and names stay on one line. */
   .card table td,
   .card table th {
@@ -77,6 +87,7 @@ body {
   .card table td.wrap,
   .card table th.wrap {
     white-space: normal;
+    overflow-wrap: anywhere;
     min-width: 14rem;
   }
 }
@@ -300,5 +311,23 @@ main [id] {
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* Printing the credit appraisal memo: hide the rest of the file page, print only the memo. */
+@media print {
+  body.print-cam * {
+    visibility: hidden;
+  }
+  body.print-cam #cam-report,
+  body.print-cam #cam-report * {
+    visibility: visible;
+  }
+  body.print-cam #cam-report {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border: 0;
   }
 }

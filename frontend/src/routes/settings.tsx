@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
-import { LendersPanel } from "./lenders";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
 import clsx from "clsx";
@@ -8,16 +7,6 @@ import { api } from "../lib/api";
 import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
 import { WebsiteContent } from "../components/website-content";
-import {
-  CHECKLIST_APPLICANT_TYPE_LABEL,
-  type ChecklistApplicantType,
-  type ChecklistItem,
-} from "../lib/types";
-
-const CHECKLIST_APPLICANT_TYPES = Object.keys(
-  CHECKLIST_APPLICANT_TYPE_LABEL,
-) as ChecklistApplicantType[];
-
 type SettingType = "string" | "text" | "number" | "boolean" | "list" | "email" | "phone" | "time";
 
 type Setting = {
@@ -32,16 +21,6 @@ type Setting = {
   min?: number;
   max?: number;
   publicFacing?: boolean;
-};
-
-type Product = {
-  id: string;
-  name: string;
-  slug: string;
-  category: string | null;
-  active: boolean;
-  sortOrder: number;
-  applicationCount: number;
 };
 
 type RateCard = {
@@ -163,295 +142,6 @@ function SettingRow({
             <RotateCcw className="h-3.5 w-3.5" />
           </button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function LoanProducts() {
-  const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
-
-  const query = useQuery({
-    queryKey: ["admin-loan-products"],
-    queryFn: () => api<Product[]>("/settings/loan-products"),
-  });
-
-  const invalidate = () => {
-    void queryClient.invalidateQueries({ queryKey: ["admin-loan-products"] });
-    void queryClient.invalidateQueries({ queryKey: ["loan-products"] });
-  };
-
-  const create = useMutation({
-    mutationFn: (body: Record<string, unknown>) =>
-      api("/settings/loan-products", { method: "POST", body: JSON.stringify(body) }),
-    onSuccess: () => {
-      setShowForm(false);
-      invalidate();
-    },
-  });
-
-  const update = useMutation({
-    mutationFn: ({ id, ...body }: { id: string } & Record<string, unknown>) =>
-      api(`/settings/loan-products/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
-    onSuccess: invalidate,
-  });
-
-  const error = [create, update].find((m) => m.isError)?.error;
-
-  return (
-    <div>
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-[13px] text-muted">
-          The loan products offered across leads and applications.
-        </p>
-        <button onClick={() => setShowForm(!showForm)} className="btn-ghost">
-          <Plus className="h-4 w-4" /> Add product
-        </button>
-      </div>
-
-      {error && (
-        <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">
-          {(error as Error).message}
-        </p>
-      )}
-
-      {showForm && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const f = new FormData(e.currentTarget);
-            create.mutate({
-              name: f.get("name"),
-              slug: f.get("slug"),
-              category: f.get("category") || undefined,
-            });
-          }}
-          className="mb-3 grid gap-2 rounded-lg bg-bg-light p-3 sm:grid-cols-4"
-        >
-          <input name="name" required placeholder="Product name" className="field" />
-          <input
-            name="slug"
-            required
-            placeholder="url-slug"
-            pattern="[a-z0-9-]+"
-            title="Lowercase letters, numbers and hyphens"
-            className="field"
-          />
-          <input name="category" placeholder="Category" className="field" />
-          <button type="submit" disabled={create.isPending} className="btn-primary">
-            {create.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Plus className="h-4 w-4" />
-            )}
-            Add
-          </button>
-          <p className="text-[12px] text-muted sm:col-span-4">
-            The slug must match the website's product URL for lead intake to map enquiries to this
-            product.
-          </p>
-        </form>
-      )}
-
-      <div className="overflow-hidden rounded-lg border border-line">
-        {query.isPending ? (
-          <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading…
-          </div>
-        ) : (
-          <table className="w-full text-left text-[13px]">
-            <thead className="border-b border-line bg-bg-light/60 text-[11px] tracking-wide text-muted uppercase">
-              <tr>
-                <th className="px-4 py-2.5 font-bold">Product</th>
-                <th className="px-4 py-2.5 font-bold">Slug</th>
-                <th className="px-4 py-2.5 font-bold">Category</th>
-                <th className="px-4 py-2.5 font-bold">In use</th>
-                <th className="px-4 py-2.5 font-bold">Active</th>
-              </tr>
-            </thead>
-            <tbody>
-              {query.data?.map((p) => (
-                <tr
-                  key={p.id}
-                  className={clsx("border-b border-line/70 last:border-0", !p.active && "opacity-50")}
-                >
-                  <td className="px-4 py-2.5 font-semibold text-navy">{p.name}</td>
-                  <td className="px-4 py-2.5 font-mono text-[12px] text-muted">{p.slug}</td>
-                  <td className="px-4 py-2.5 text-muted">{p.category ?? "—"}</td>
-                  <td className="px-4 py-2.5 text-muted">{p.applicationCount}</td>
-                  <td className="px-4 py-2.5">
-                    <button
-                      onClick={() => update.mutate({ id: p.id, active: !p.active })}
-                      className="text-[12px] font-semibold text-muted hover:text-navy"
-                    >
-                      {p.active ? "Deactivate" : "Reactivate"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/** Master checklist data — which documents a case needs, by product and applicant profile. */
-function ChecklistItems() {
-  const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
-
-  const query = useQuery({
-    queryKey: ["admin-checklist-items"],
-    queryFn: () => api<ChecklistItem[]>("/settings/checklist-items"),
-  });
-  const products = useQuery({
-    queryKey: ["admin-loan-products"],
-    queryFn: () => api<Product[]>("/settings/loan-products"),
-  });
-
-  const invalidate = () => {
-    void queryClient.invalidateQueries({ queryKey: ["admin-checklist-items"] });
-    void queryClient.invalidateQueries({ queryKey: ["checklist"] });
-  };
-
-  const create = useMutation({
-    mutationFn: (body: Record<string, unknown>) =>
-      api("/settings/checklist-items", { method: "POST", body: JSON.stringify(body) }),
-    onSuccess: () => {
-      setShowForm(false);
-      invalidate();
-    },
-  });
-
-  const update = useMutation({
-    mutationFn: ({ id, ...body }: { id: string } & Record<string, unknown>) =>
-      api(`/settings/checklist-items/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
-    onSuccess: invalidate,
-  });
-
-  const remove = useMutation({
-    mutationFn: (id: string) => api(`/settings/checklist-items/${id}`, { method: "DELETE" }),
-    onSuccess: invalidate,
-  });
-
-  const error = [create, update, remove].find((m) => m.isError)?.error;
-
-  return (
-    <div>
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-[13px] text-muted">
-          What documents a case needs, branched by loan product and by the primary applicant's
-          profile. Leave "Any product" / "Any applicant type" to apply an item everywhere.
-        </p>
-        <button onClick={() => setShowForm(!showForm)} className="btn-ghost">
-          <Plus className="h-4 w-4" /> Add item
-        </button>
-      </div>
-
-      {error && (
-        <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">
-          {(error as Error).message}
-        </p>
-      )}
-
-      {showForm && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const f = new FormData(e.currentTarget);
-            create.mutate({
-              label: f.get("label"),
-              category: f.get("category"),
-              loanProductId: f.get("loanProductId") || undefined,
-              applicantType: f.get("applicantType") || undefined,
-            });
-            e.currentTarget.reset();
-          }}
-          className="mb-3 grid gap-2 rounded-lg bg-bg-light p-3 sm:grid-cols-4"
-        >
-          <input name="label" required placeholder="Document label" className="field sm:col-span-2" />
-          <input name="category" required placeholder="Category" className="field" />
-          <select name="loanProductId" defaultValue="" className="field">
-            <option value="">Any product</option>
-            {products.data?.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <select name="applicantType" defaultValue="" className="field">
-            <option value="">Any applicant type</option>
-            {CHECKLIST_APPLICANT_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {CHECKLIST_APPLICANT_TYPE_LABEL[t]}
-              </option>
-            ))}
-          </select>
-          <button type="submit" disabled={create.isPending} className="btn-primary sm:col-span-4">
-            {create.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Plus className="h-4 w-4" />
-            )}
-            Add item
-          </button>
-        </form>
-      )}
-
-      <div className="max-h-[560px] overflow-y-auto rounded-lg border border-line">
-        {query.isPending ? (
-          <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading…
-          </div>
-        ) : (
-          <table className="w-full text-left text-[13px]">
-            <thead className="sticky top-0 border-b border-line bg-bg-light/95 text-[11px] tracking-wide text-muted uppercase backdrop-blur">
-              <tr>
-                <th className="px-4 py-2.5 font-bold">Document</th>
-                <th className="px-4 py-2.5 font-bold">Category</th>
-                <th className="px-4 py-2.5 font-bold">Product</th>
-                <th className="px-4 py-2.5 font-bold">Applicant type</th>
-                <th className="px-4 py-2.5 font-bold">Active</th>
-                <th className="px-4 py-2.5 font-bold" />
-              </tr>
-            </thead>
-            <tbody>
-              {query.data?.map((item) => (
-                <tr
-                  key={item.id}
-                  className={clsx("border-b border-line/70 last:border-0", !item.active && "opacity-50")}
-                >
-                  <td className="px-4 py-2.5 font-semibold text-navy">{item.label}</td>
-                  <td className="px-4 py-2.5 text-muted">{item.category}</td>
-                  <td className="px-4 py-2.5 text-muted">{item.loanProduct?.name ?? "Any"}</td>
-                  <td className="px-4 py-2.5 text-muted">
-                    {item.applicantType ? CHECKLIST_APPLICANT_TYPE_LABEL[item.applicantType] : "Any"}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <button
-                      onClick={() => update.mutate({ id: item.id, active: !item.active })}
-                      className="text-[12px] font-semibold text-muted hover:text-navy"
-                    >
-                      {item.active ? "Deactivate" : "Reactivate"}
-                    </button>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <button
-                      onClick={() => remove.mutate(item.id)}
-                      className="rounded p-1 text-muted transition hover:bg-red-50 hover:text-red-600"
-                      title="Delete item"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
       </div>
     </div>
   );
@@ -822,15 +512,11 @@ export function SettingsPage() {
   // A link like /settings#setting-numbering.financialYear (from search) opens the right tab first.
   useEffect(() => {
     const named: Record<string, string> = {
-      lenders: "Banks & NBFCs",
-      products: "Loan products",
-      checklist: "Document checklist",
       ratecards: "Commission rate cards",
       websitechecklists: "Website checklists",
       websitecontent: "Website content",
     };
     if (named[hash]) setGroup(named[hash]);
-    else if (hash.startsWith("lender-")) setGroup("Banks & NBFCs");
     else if (hash.startsWith("setting-")) {
       const found = query.data?.settings.find((s) => `setting-${s.key}` === hash);
       if (found) setGroup(found.group);
@@ -848,7 +534,7 @@ export function SettingsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["settings"] }),
   });
 
-  const masters = ["Banks & NBFCs", "Loan products", "Document checklist", "Website checklists", "Website content", "Commission rate cards"];
+  const masters = ["Website checklists", "Website content", "Commission rate cards"];
   const preferences = [...(query.data?.groups ?? []), "Archive"];
   const inGroup = (query.data?.settings ?? []).filter((s) => s.group === group);
   const changed = (query.data?.settings ?? []).filter((s) => !s.isDefault).length;
@@ -896,12 +582,6 @@ export function SettingsPage() {
         <div key={group} className="card fade-enter p-5">
           {group === "Archive" ? (
             <ArchivePanel />
-          ) : group === "Banks & NBFCs" ? (
-            <LendersPanel embedded />
-          ) : group === "Loan products" ? (
-            <LoanProducts />
-          ) : group === "Document checklist" ? (
-            <ChecklistItems />
           ) : group === "Website content" ? (
             <WebsiteContent />
           ) : group === "Website checklists" ? (
@@ -930,9 +610,7 @@ export function SettingsPage() {
           )}
         </div>
 
-        {group !== "Loan products" &&
-          group !== "Document checklist" &&
-          group !== "Website checklists" &&
+        {group !== "Website checklists" &&
           group !== "Website content" &&
           group !== "Commission rate cards" && (
           <p className="mt-3 text-[12px] text-muted">

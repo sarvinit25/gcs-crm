@@ -2,6 +2,7 @@ import { LENDER_CONTACTS, NEW_LENDERS } from "./lender-contacts-data";
 import { CHECKLIST_DOCUMENTS } from "./checklist-documents.data";
 import { ChecklistApplicantType, LenderType, PrismaClient, Role } from "@prisma/client";
 import { PRODUCT_CHECKLIST_ITEMS } from "./checklist-data";
+import { LOAN_TYPE_ICONS, SECURED_LOAN_TYPES, loanTypeColor } from "./loan-type-looks";
 import * as bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -183,6 +184,19 @@ async function main() {
     });
   }
 
+  // Give the loan types that have no code yet a code, picture, colour and collateral flag.
+  for (const p of await prisma.loanProduct.findMany({ where: { code: null } })) {
+    await prisma.loanProduct.update({
+      where: { id: p.id },
+      data: {
+        code: p.slug.toUpperCase().replace(/-/g, "_"),
+        icon: LOAN_TYPE_ICONS[p.slug] ?? null,
+        color: loanTypeColor(p.category),
+        secured: SECURED_LOAN_TYPES.has(p.slug),
+      },
+    });
+  }
+
   const productIdBySlug = new Map(
     (await prisma.loanProduct.findMany({ select: { id: true, slug: true } })).map((p) => [
       p.slug,
@@ -190,29 +204,34 @@ async function main() {
     ]),
   );
 
-  for (const [i, [applicantType, productSlug, label, category]] of CHECKLIST_ITEMS.entries()) {
-    const id = `seed-checklist-${i}`;
-    const data = {
-      applicantType: applicantType ?? null,
-      loanProductId: (productSlug ? productIdBySlug.get(productSlug) : null) ?? null,
-      label,
-      category,
-      sortOrder: i,
-    };
-    await prisma.checklistItem.upsert({ where: { id }, update: data, create: { id, ...data } });
+  // One document type per (name, category): the loan types and applicant profiles it was listed
+  // under become its "applies to" choices, and a row listed for everyone makes it apply to everyone.
+  const rows: [ChecklistApplicantType | null, string | null, string, string][] = [
+    ...CHECKLIST_ITEMS,
+    ...PRODUCT_CHECKLIST_ITEMS.map(([slug, label, category]): [null, string, string, string] => [null, slug, label, category]),
+  ];
+  const types = new Map<string, { name: string; category: string; products: Set<string> | null; profiles: Set<ChecklistApplicantType> | null }>();
+  for (const [applicantType, productSlug, name, category] of rows) {
+    const key = `${name}|${category}`;
+    const t = types.get(key) ?? { name, category, products: new Set<string>(), profiles: new Set<ChecklistApplicantType>() };
+    if (!productSlug) t.products = null;
+    else t.products?.add(productSlug);
+    if (!applicantType) t.profiles = null;
+    else t.profiles?.add(applicantType);
+    types.set(key, t);
   }
-
-  // Product-specific items start after the hand-curated ones so existing ids stay stable.
-  for (const [j, [productSlug, label, category]] of PRODUCT_CHECKLIST_ITEMS.entries()) {
-    const id = `seed-checklist-pdf-${j}`;
+  let order = 0;
+  for (const t of types.values()) {
     const data = {
-      applicantType: null,
-      loanProductId: productIdBySlug.get(productSlug) ?? null,
-      label,
-      category,
-      sortOrder: CHECKLIST_ITEMS.length + j,
+      applicantTypes: t.profiles ? [...t.profiles] : [],
+      loanProducts: { set: [...(t.products ?? [])].flatMap((slug) => (productIdBySlug.get(slug) ? [{ id: productIdBySlug.get(slug)! }] : [])) },
+      sortOrder: order++,
     };
-    await prisma.checklistItem.upsert({ where: { id }, update: data, create: { id, ...data } });
+    await prisma.documentType.upsert({
+      where: { name_category: { name: t.name, category: t.category } },
+      update: {},
+      create: { name: t.name, category: t.category, ...data, loanProducts: { connect: data.loanProducts.set } },
+    });
   }
 
   for (const [i, [name, type, logoUrl]] of LENDERS.entries()) {
@@ -288,7 +307,7 @@ async function main() {
   });
 
   console.log(
-    `Seeded ${PRODUCTS.length} products, ${LENDERS.length} lenders, ${RATE_CARDS.length} rate cards, ${CHECKLIST_ITEMS.length + PRODUCT_CHECKLIST_ITEMS.length} checklist items, admin ${email} / ${password}`,
+    `Seeded ${PRODUCTS.length} products, ${LENDERS.length} lenders, ${RATE_CARDS.length} rate cards, ${types.size} document types, admin ${email} / ${password}`,
   );
 }
 

@@ -1,16 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import {
-  AuditAction,
-  ChecklistApplicantType,
-  EmploymentType,
-  Prisma,
-  Role,
-} from "@prisma/client";
+import { ChecklistApplicantType, EmploymentType, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
-import { AuditService } from "../audit/audit.service";
-import { diff } from "../audit/audit.service";
 import type { AuthUser } from "../auth/auth.decorators";
-import { CreateChecklistItemDto, UpdateChecklistItemDto } from "./dto/checklist-item.dto";
 
 type ApplicantProfile = {
   isNRI: boolean;
@@ -54,27 +45,25 @@ export function resolveChecklistBucket(applicant: ApplicantProfile | undefined |
 
 @Injectable()
 export class ChecklistService {
-  constructor(
-    private prisma: PrismaService,
-    private audit: AuditService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   private scopeFor(user: AuthUser): Prisma.ApplicationWhereInput {
     return user.role === Role.ADVISOR ? { ownerId: user.id } : {};
   }
 
-  /** The required-documents gap view for one application. */
-  /** The active checklist rows that apply to a product and applicant bucket. */
+  /** The active document types that apply to a loan type and applicant bucket. */
   itemsFor(loanProductId: string, bucket: ChecklistApplicantType | null) {
-    return this.prisma.checklistItem.findMany({
+    return this.prisma.documentType.findMany({
       where: {
         active: true,
         AND: [
-          { OR: [{ loanProductId: null }, { loanProductId }] },
-          bucket ? { OR: [{ applicantType: null }, { applicantType: bucket }] } : { applicantType: null },
+          { OR: [{ loanProducts: { none: {} } }, { loanProducts: { some: { id: loanProductId } } }] },
+          bucket
+            ? { OR: [{ applicantTypes: { isEmpty: true } }, { applicantTypes: { has: bucket } }] }
+            : { applicantTypes: { isEmpty: true } },
         ],
       },
-      orderBy: { sortOrder: "asc" },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     });
   }
 
@@ -96,7 +85,8 @@ export class ChecklistService {
 
     const result = items.map((i) => ({
       id: i.id,
-      label: i.label,
+      label: i.name,
+      description: i.description,
       category: i.category,
       status: uploadedCategories.has(i.category) ? ("GIVEN" as const) : ("PENDING" as const),
     }));
@@ -107,57 +97,5 @@ export class ChecklistService {
       total: result.length,
       given: result.filter((i) => i.status === "GIVEN").length,
     };
-  }
-
-  findAll(query: { loanProductId?: string; applicantType?: ChecklistApplicantType }) {
-    return this.prisma.checklistItem.findMany({
-      where: {
-        ...(query.loanProductId && { loanProductId: query.loanProductId }),
-        ...(query.applicantType && { applicantType: query.applicantType }),
-      },
-      include: { loanProduct: { select: { id: true, name: true } } },
-      orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
-    });
-  }
-
-  async create(dto: CreateChecklistItemDto, user: AuthUser, ip?: string) {
-    const item = await this.prisma.checklistItem.create({ data: { ...dto } });
-    await this.audit.record({
-      actor: user,
-      action: AuditAction.CREATE,
-      entity: "ChecklistItem",
-      entityId: item.id,
-      entityLabel: item.label,
-      ip,
-    });
-    return item;
-  }
-
-  async update(id: string, dto: UpdateChecklistItemDto, user: AuthUser, ip?: string) {
-    const before = await this.prisma.checklistItem.findUniqueOrThrow({ where: { id } });
-    const item = await this.prisma.checklistItem.update({ where: { id }, data: { ...dto } });
-    await this.audit.recordUpdate({
-      actor: user,
-      entity: "ChecklistItem",
-      entityId: id,
-      entityLabel: item.label,
-      changes: diff(before as unknown as Record<string, unknown>, dto as Record<string, unknown>),
-      ip,
-    });
-    return item;
-  }
-
-  async remove(id: string, user: AuthUser, ip?: string) {
-    const item = await this.prisma.checklistItem.findUniqueOrThrow({ where: { id } });
-    await this.prisma.checklistItem.delete({ where: { id } });
-    await this.audit.record({
-      actor: user,
-      action: AuditAction.DELETE,
-      entity: "ChecklistItem",
-      entityId: id,
-      entityLabel: item.label,
-      ip,
-    });
-    return { ok: true };
   }
 }

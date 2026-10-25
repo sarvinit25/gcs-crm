@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { api } from "../lib/api";
 import { PageHeader } from "../components/app-shell";
 import { TableSkeleton } from "../components/skeleton";
+import { PartnerForm } from "../components/partner-form";
 
 type Partner = {
   id: string;
@@ -16,6 +17,9 @@ type Partner = {
   phone: string;
   email: string | null;
   city: string | null;
+  state: string | null;
+  bankName: string | null;
+  accountLast4: string | null;
   commissionRate: string;
   active: boolean;
   hasPortalAccess: boolean;
@@ -25,8 +29,8 @@ type Partner = {
 
 export function PartnersPage() {
   const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Partner | null>(null);
+  // `null` = closed, `"new"` = adding, otherwise the partner being edited.
+  const [form, setForm] = useState<Partner | "new" | null>(null);
   const [settingPassword, setSettingPassword] = useState<Partner | null>(null);
   const [includeInactive, setIncludeInactive] = useState(false);
 
@@ -46,7 +50,7 @@ export function PartnersPage() {
     mutationFn: (body: Record<string, unknown>) =>
       api("/partners", { method: "POST", body: JSON.stringify(body) }),
     onSuccess: () => {
-      setShowForm(false);
+      setForm(null);
       void invalidate();
     },
   });
@@ -55,7 +59,7 @@ export function PartnersPage() {
     mutationFn: ({ id, ...body }: { id: string } & Record<string, unknown>) =>
       api(`/partners/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
     onSuccess: () => {
-      setEditing(null);
+      setForm(null);
       void invalidate();
     },
   });
@@ -69,7 +73,8 @@ export function PartnersPage() {
     },
   });
 
-  const error = [create, update, setPassword].find((m) => m.isError)?.error;
+  // Create and edit errors show inside their own dialog.
+  const error = [setPassword].find((m) => m.isError)?.error;
 
   return (
     <>
@@ -77,7 +82,7 @@ export function PartnersPage() {
         title="Sourcing Partners"
         subtitle="External referrers, each on their own commission rate"
         actions={
-          <button onClick={() => setShowForm(!showForm)} className="btn-primary">
+          <button onClick={() => setForm("new")} className="btn-primary">
             <UserPlus className="h-4 w-4" /> Add partner
           </button>
         }
@@ -88,68 +93,6 @@ export function PartnersPage() {
           <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">
             {(error as Error).message}
           </p>
-        )}
-
-        {showForm && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const f = new FormData(e.currentTarget);
-              create.mutate({
-                name: f.get("name"),
-                firm: f.get("firm") || undefined,
-                phone: f.get("phone"),
-                email: f.get("email") || undefined,
-                city: f.get("city") || undefined,
-                commissionRate: Number(f.get("commissionRate")),
-                managerId: f.get("managerId") || undefined,
-                password: f.get("password") || undefined,
-              });
-            }}
-            className="card mb-4 grid gap-2 p-4 sm:grid-cols-3"
-          >
-            <input name="name" required placeholder="Partner name" className="field" />
-            <input name="firm" placeholder="Firm (optional)" className="field" />
-            <input name="phone" required placeholder="10-digit phone" className="field" />
-            <input name="email" type="email" placeholder="Email" className="field" />
-            <input name="city" placeholder="City" className="field" />
-            <select name="managerId" defaultValue="" className="field" title="Reports to">
-              <option value="">Reports to — nobody yet</option>
-              {staff.data?.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
-            <input
-              name="commissionRate"
-              type="number"
-              step="0.01"
-              min={0}
-              max={100}
-              required
-              placeholder="Commission rate %"
-              className="field"
-            />
-            <input
-              name="password"
-              type="text"
-              placeholder="Portal password (optional — set later if left blank)"
-              className="field sm:col-span-2"
-            />
-            <button type="submit" disabled={create.isPending} className="btn-primary">
-              {create.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <UserPlus className="h-4 w-4" />
-              )}
-              Add partner
-            </button>
-            <p className="text-[12px] text-muted sm:col-span-3">
-              A phone number and password let the partner sign in to the Partner Portal to see
-              their own referrals and commission structure.
-            </p>
-          </form>
         )}
 
         <label className="mb-3 flex items-center gap-2 text-[13px] text-muted">
@@ -175,6 +118,7 @@ export function PartnersPage() {
                   <th className="px-4 py-2.5 font-bold">Contact</th>
                   <th className="px-4 py-2.5 font-bold">Reports to</th>
                   <th className="px-4 py-2.5 font-bold">Rate</th>
+                  <th className="px-4 py-2.5 font-bold">Payout account</th>
                   <th className="px-4 py-2.5 font-bold">Referred</th>
                   <th className="px-4 py-2.5 font-bold">Converted</th>
                   <th className="px-4 py-2.5 font-bold">Portal</th>
@@ -198,10 +142,20 @@ export function PartnersPage() {
                     </td>
                     <td className="px-4 py-3 text-muted">
                       {p.phone}
-                      {p.city && <p className="text-[12px]">{p.city}</p>}
+                      {(p.city || p.state) && <p className="text-[12px]">{[p.city, p.state].filter(Boolean).join(", ")}</p>}
                     </td>
                     <td className="px-4 py-3 text-muted">{p.manager?.name ?? "—"}</td>
                     <td className="px-4 py-3 font-semibold text-gold-dark">{p.commissionRate}%</td>
+                    <td className="px-4 py-3 text-muted">
+                      {p.accountLast4 ? (
+                        <>
+                          <p className="text-navy">{p.bankName ?? "Bank account"}</p>
+                          <p className="font-mono text-[12px]">••••{p.accountLast4}</p>
+                        </>
+                      ) : (
+                        <span className="text-amber-700">Not added</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">{p.leadCount}</td>
                     <td className="px-4 py-3">
                       {p.convertedCount}
@@ -226,7 +180,7 @@ export function PartnersPage() {
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-2">
                         <button
-                          onClick={() => setEditing(p)}
+                          onClick={() => setForm(p)}
                           className="text-[12px] font-semibold text-navy hover:text-gold-dark"
                         >
                           <Pencil className="mr-1 inline h-3 w-3" />
@@ -254,65 +208,19 @@ export function PartnersPage() {
           )}
         </div>
 
-        {editing && (
-          <div className="overlay-enter fixed inset-0 z-50 grid place-items-center bg-navy/40 p-4">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const f = new FormData(e.currentTarget);
-                update.mutate({
-                  id: editing.id,
-                  name: f.get("name") as string,
-                  firm: (f.get("firm") as string) || undefined,
-                  phone: f.get("phone") as string,
-                  email: (f.get("email") as string) || undefined,
-                  city: (f.get("city") as string) || undefined,
-                  commissionRate: Number(f.get("commissionRate")),
-                  managerId: (f.get("managerId") as string) || "",
-                });
-              }}
-              className="card dialog-enter w-full max-w-md p-5"
-            >
-              <h2 className="text-sm font-bold text-navy">Edit {editing.name}</h2>
-              <p className="mt-1 text-[13px] text-muted">
-                A rate change applies to cases referred from now on.
-              </p>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                <input name="name" defaultValue={editing.name} required className="field" />
-                <input name="firm" defaultValue={editing.firm ?? ""} placeholder="Firm" className="field" />
-                <input name="phone" defaultValue={editing.phone} required className="field" />
-                <input name="email" type="email" defaultValue={editing.email ?? ""} placeholder="Email" className="field" />
-                <input name="city" defaultValue={editing.city ?? ""} placeholder="City" className="field" />
-                <select name="managerId" defaultValue={editing.managerId ?? ""} className="field" title="Reports to">
-                  <option value="">Reports to — nobody</option>
-                  {staff.data?.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  name="commissionRate"
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  max={100}
-                  defaultValue={editing.commissionRate}
-                  required
-                  className="field"
-                />
-              </div>
-              <div className="mt-4 flex gap-2">
-                <button type="submit" disabled={update.isPending} className="btn-primary">
-                  {update.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Save
-                </button>
-                <button type="button" onClick={() => setEditing(null)} className="btn-ghost">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
+        {form && (
+          <PartnerForm
+            partner={form === "new" ? null : form}
+            staff={staff.data ?? []}
+            saving={create.isPending || update.isPending}
+            error={(form === "new" ? create : update).isError ? ((form === "new" ? create : update).error as Error).message : null}
+            onClose={() => {
+              create.reset();
+              update.reset();
+              setForm(null);
+            }}
+            onSave={(body) => (form === "new" ? create.mutate(body) : update.mutate({ id: form.id, ...body }))}
+          />
         )}
 
         {settingPassword && (

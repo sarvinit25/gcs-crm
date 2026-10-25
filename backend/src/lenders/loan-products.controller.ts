@@ -9,7 +9,7 @@ export class LoanProductsController {
   findAll() {
     return this.prisma.loanProduct.findMany({
       where: { active: true },
-      select: { id: true, name: true, slug: true, category: true },
+      select: { id: true, name: true, slug: true, category: true, icon: true, color: true, secured: true, minAmount: true, maxAmount: true },
       orderBy: { sortOrder: "asc" },
     });
   }

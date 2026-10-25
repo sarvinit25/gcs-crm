@@ -44,3 +44,12 @@ export const humanizeKey = (key: string) => {
   const spaced = key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase();
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 };
+
+/** "HDFC Bank" → "HB", "Rohit Verma" → "RV": the letters shown in an avatar. */
+export const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]!.toUpperCase())
+    .join("");

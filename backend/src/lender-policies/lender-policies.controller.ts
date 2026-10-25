@@ -3,6 +3,7 @@ import { Role } from "@prisma/client";
 import { CurrentUser, Roles, type AuthUser } from "../auth/auth.decorators";
 import { LenderPoliciesService } from "./lender-policies.service";
 import {
+  BulkPolicyDto,
   CreatePolicyDto,
   ExceptionDto,
   OutcomeDto,
@@ -29,6 +30,12 @@ export class LenderPoliciesController {
   @Roles(Role.ADMIN, Role.MANAGER)
   create(@Body() dto: CreatePolicyDto, @CurrentUser() user: AuthUser, @Ip() ip: string) {
     return this.policies.create(dto, user, ip);
+  }
+
+  @Post("bulk")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  createMany(@Body() dto: BulkPolicyDto, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.policies.createMany(dto, user, ip);
   }
 
   // Fixed paths come before ":id", so they are not read as a policy id.

@@ -50,6 +50,13 @@ model User {
   reports           User[]            @relation("Reporting")
   managedPartners   SourcingPartner[] @relation("PartnerManager")
 
+  // The one team this person works in, and the teams they lead. Drives lead routing.
+  teamId             String?
+  team               Team?     @relation("TeamMembers", fields: [teamId], references: [id], onDelete: SetNull)
+  teamsLed           Team[]    @relation("TeamLead")
+  // When auto-assignment last gave this person a lead, so the next one goes to whoever waited longest.
+  lastLeadAssignedAt DateTime?
+
   leadsAsOfficer   Lead[]              @relation("LeadOfficer")
   leadsAsManager   Lead[]              @relation("LeadManager")
   applications     Application[]       @relation("ApplicationOwner")
@@ -63,6 +70,25 @@ model User {
   creditChecks     CreditCheck[]
 
   @@index([role, active])
+}
+
+// ─── Teams ──────────────────────────────────────────────────
+
+/**
+ * A group of staff with a lead. Auto-assignment hands new leads out among team members, and routes partner leads to the lead.
+ */
+model Team {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  leadId      String?
+  lead        User?    @relation("TeamLead", fields: [leadId], references: [id], onDelete: SetNull)
+  members     User[]   @relation("TeamMembers")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([leadId])
 }
 
 // ─── Audit trail ────────────────────────────────────────────
@@ -135,6 +161,17 @@ model Lender {
   active    Boolean    @default(true)
   createdAt DateTime   @default(now())
 
+  // How the lender is addressed day to day, and the terms GCS works with it on.
+  shortName         String?
+  brokerCode        String?
+  // Payout GCS usually gets from this lender, as a percentage of the disbursed amount.
+  defaultCommission Decimal? @db.Decimal(5, 2)
+  portalUrl         String?
+  branchName        String?
+  branchCity        String?
+  branchAddress     String?
+  notes             String?
+
   applications Application[]
   contacts     LenderContact[]
   policies     LenderPolicy[]
@@ -165,16 +202,27 @@ model LenderContact {
 }
 
 model LoanProduct {
-  id        String  @id @default(cuid())
-  name      String  @unique
-  slug      String  @unique
-  category  String?
-  active    Boolean @default(true)
-  sortOrder Int     @default(0)
+  id          String   @id @default(cuid())
+  name        String   @unique
+  // Matches the website's product URL, so enquiries land on the right product.
+  slug        String   @unique
+  code        String?  @unique
+  category    String?
+  description String?
+  // Picture and colour chip shown for this loan type in the CRM.
+  icon        String?
+  color       String   @default("#6B7280")
+  // Needs collateral (property, vehicle, securities) — shown as a badge, and a cue to collect property papers.
+  secured     Boolean  @default(false)
+  // Usual ticket size, used as a hint when a file is opened.
+  minAmount   Decimal? @db.Decimal(14, 2)
+  maxAmount   Decimal? @db.Decimal(14, 2)
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
 
   leads          Lead[]
   applications   Application[]
-  checklistItems ChecklistItem[]
+  documentTypes  DocumentType[]
   lenderPolicies LenderPolicy[]
 }
 
@@ -187,6 +235,17 @@ model SourcingPartner {
   phone          String   @unique
   email          String?
   city           String?
+  address        String?
+  state          String?
+  pincode        String?
+  pan            String?
+  gstin          String?
+  // Where their commission is paid. Shown in full only to staff who can manage partners; masked in the audit log.
+  bankName       String?
+  accountNumber  String?
+  ifsc           String?
+  accountHolder  String?
+  notes          String?
   commissionRate Decimal  @db.Decimal(5, 2)
   // Null until an admin sets one — a partner created before the portal
   // existed, or one not yet given access, simply can't sign in.
@@ -284,15 +343,26 @@ model Lead {
   notes          String?
 
   // Why a lead was closed out — set when status becomes LOST, cleared if it is reopened.
-  lostReason     String?
+  lostReason      String?
   // Closed files are archived, never deleted: hidden from working lists, still searchable and in reports.
-  archivedAt     DateTime?
-  employmentType EmploymentType?
-  monthlyIncome  Decimal?        @db.Decimal(14, 2)
-  meetingMode    String?
-  meetingPlace   String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  archivedAt      DateTime?
+  employmentType  EmploymentType?
+  monthlyIncome   Decimal?        @db.Decimal(14, 2)
+  // What a lender asks before a meeting. All optional, and they carry over to the applicant when the lead becomes a file.
+  secondaryPhone  String?
+  dateOfBirth     DateTime?       @db.Date
+  pan             String?
+  address         String?
+  pincode         String?
+  employerName    String?
+  designation     String?
+  experienceYears Decimal?        @db.Decimal(4, 1)
+  workLocation    String?
+  officialEmail   String?
+  meetingMode     String?
+  meetingPlace    String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   // Priority segment. Worked out automatically from the lead's details, documents and follow-up
   // date (see leads/lead-segment.ts) unless staff pin it (segmentLocked). Null once a lead is closed.
@@ -329,6 +399,30 @@ model Lead {
   @@index([sourcingPartnerId])
   @@index([channel, createdAt])
   @@index([archivedAt])
+}
+
+// ─── Lead sources ───────────────────────────────────────────
+
+/**
+ * Where leads come from (Walk-in, Website, Referral, Google Search Ads …), kept as a table so the admin can add,
+ * rename, colour, reorder and switch them off. A lead stores the source's name in Lead.channel, so renaming one
+ * here does not rewrite old leads; switching it off just stops it being offered.
+ */
+model LeadSource {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  // A short upper-case tag such as WALKIN or REF, for reports and imports.
+  code        String?  @unique
+  description String?
+  // The name of an icon from the CRM's own set (see frontend/src/lib/lead-source-icons.ts).
+  icon        String?
+  color       String   @default("#6B7280")
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active, sortOrder])
 }
 
 // ─── Website chat sign-in ───────────────────────────────────
@@ -490,6 +584,8 @@ model Application {
   statementScans      BankStatementAnalysis[]
   educationLoanDetail EducationLoanDetail?
   invites             ApplicationInvite[]
+  existingLoans       ExistingLoan[]
+  creditEvaluation    CreditEvaluation?
 
   @@index([status])
   @@index([ownerId])
@@ -779,25 +875,89 @@ enum ChecklistApplicantType {
 }
 
 /**
- * Master reference data for "what documents does this case need" — not
- * per-application state. A null loanProductId means the item applies to every
- * product; a null applicantType means it applies regardless of the primary
- * applicant's profile (e.g. PAN card). The application-level checklist view
- * resolves the applicable rows and cross-checks them against uploaded
- * Documents by category to show Given/Pending.
+ * Master list of the documents a case can need — not per-application state.
+ * No loan types selected means it applies to every loan type; no applicant
+ * profiles selected means it applies whatever the primary applicant's profile
+ * (e.g. PAN card). The application-level checklist resolves the applicable
+ * rows and cross-checks them against uploaded Documents by category to show
+ * Given/Pending, so `category` must be one of the upload categories.
  */
-model ChecklistItem {
-  id            String                  @id @default(cuid())
-  loanProductId String?
-  loanProduct   LoanProduct?            @relation(fields: [loanProductId], references: [id], onDelete: Cascade)
-  applicantType ChecklistApplicantType?
-  label         String
-  category      String
-  sortOrder     Int                     @default(0)
-  active        Boolean                 @default(true)
-  createdAt     DateTime                @default(now())
+model DocumentType {
+  id             String                   @id @default(cuid())
+  name           String
+  code           String?                  @unique
+  // The upload category a received document is filed under.
+  category       String
+  // What to ask the customer for, e.g. "Last 6 months, PDF from net banking".
+  description    String?
+  loanProducts   LoanProduct[]
+  applicantTypes ChecklistApplicantType[]
+  sortOrder      Int                      @default(0)
+  active         Boolean                  @default(true)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
 
-  @@index([loanProductId, applicantType])
+  @@unique([name, category])
+}
+
+// ─── Credit evaluation ──────────────────────────────────────
+
+enum CreditDecision {
+  READY
+  REJECTED
+}
+
+/**
+ * A loan or card the applicant already pays on, counted against income when working out what they can afford.
+ */
+model ExistingLoan {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  // Whose it is; blank means the household.
+  applicantId   String?
+  lenderName    String
+  loanType      String?
+  outstanding   Decimal?    @db.Decimal(14, 2)
+  emi           Decimal     @db.Decimal(14, 2)
+  monthsLeft    Int?
+  // Off when the loan will be closed before the new one is logged in, so its EMI is not counted.
+  counted       Boolean     @default(true)
+  note          String?
+  createdAt     DateTime    @default(now())
+
+  @@index([applicationId])
+}
+
+/**
+ * The inputs and the outcome of assessing one file: what the numbers need beyond what is already on it,
+ * and whether it was cleared for login or turned away. The results themselves are worked out on read.
+ */
+model CreditEvaluation {
+  id            String      @id @default(cuid())
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  loanAmount            Decimal? @db.Decimal(14, 2)
+  proposedRate          Decimal? @db.Decimal(5, 2)
+  tenureMonths          Int?
+  monthlyIncome         Decimal? @db.Decimal(14, 2)
+  annualTurnover        Decimal? @db.Decimal(14, 2)
+  netProfit             Decimal? @db.Decimal(14, 2)
+  depreciation          Decimal? @db.Decimal(14, 2)
+  interestPaid          Decimal? @db.Decimal(14, 2)
+  avgMonthlyBankCredits Decimal? @db.Decimal(14, 2)
+  gstAnnualTurnover     Decimal? @db.Decimal(14, 2)
+  propertyValue         Decimal? @db.Decimal(14, 2)
+  remarks               String?
+
+  decision      CreditDecision?
+  decisionNote  String?
+  decidedAt     DateTime?
+  decidedByName String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ─── Education Loan case intake ─────────────────────────────
@@ -1005,7 +1165,9 @@ model WebsiteAd {
 
 // ─── Downloadable checklist PDFs published on the website ───
 
-/** One checklist PDF the public website offers for download. Staff manage the list in Settings. */
+/**
+ * One checklist PDF the public website offers for download. Staff manage the list in Settings.
+ */
 model ChecklistDocument {
   id          String   @id @default(cuid())
   title       String
@@ -1036,28 +1198,31 @@ model SiteContent {
   updatedByName String?
 }
 
-/** Every save or reset of a website content section, so a mistake can be undone. */
+/**
+ * Every save or reset of a website content section, so a mistake can be undone.
+ */
 model SiteContentVersion {
-  id        String   @id @default(cuid())
-  key       String
+  id          String   @id @default(cuid())
+  key         String
   // The section as saved; null when the section was reset to the website's built-in copy.
-  value     Json?
-  savedAt   DateTime @default(now())
+  value       Json?
+  savedAt     DateTime @default(now())
   savedByName String?
 
   @@index([key, savedAt])
 }
 
-/** A picture staff uploaded to replace one on the public website. Small, so kept in the database. */
+/**
+ * A picture staff uploaded to replace one on the public website. Small, so kept in the database.
+ */
 model SiteImage {
-  id          String   @id @default(cuid())
-  name        String
-  mime        String
-  data        Bytes
-  createdAt   DateTime @default(now())
+  id            String   @id @default(cuid())
+  name          String
+  mime          String
+  data          Bytes
+  createdAt     DateTime @default(now())
   createdByName String?
 }
-
 
 // ─── Lender policy database ──────────────────────────────────────────────────
 // One record per lender + loan product: the rules GCS keeps about what that lender will do, with
@@ -1070,25 +1235,30 @@ model LenderPolicy {
   loanProductId String
   loanProduct   LoanProduct @relation(fields: [loanProductId], references: [id], onDelete: Cascade)
 
-  active        Boolean   @default(true)
-  version       Int       @default(1)
-  effectiveFrom DateTime  @default(now())
-  effectiveTo   DateTime?
+  active          Boolean   @default(true)
+  version         Int       @default(1)
+  effectiveFrom   DateTime  @default(now())
+  effectiveTo     DateTime?
   // Where the rules came from (policy circular, RM email …) and who last confirmed them.
-  source         String?
-  lastVerifiedAt DateTime?
-  verifiedById   String?
-  verifiedByName String?
-  reviewEveryDays Int      @default(90)
+  source          String?
+  lastVerifiedAt  DateTime?
+  verifiedById    String?
+  verifiedByName  String?
+  reviewEveryDays Int       @default(90)
 
   // What the lender offers
-  minAmount       Decimal? @db.Decimal(14, 2)
-  maxAmount       Decimal? @db.Decimal(14, 2)
-  minRate         Decimal? @db.Decimal(5, 2)
-  maxRate         Decimal? @db.Decimal(5, 2)
-  processingFee   String?
-  maxTenureMonths Int?
-  specialScheme   String?
+  minAmount         Decimal? @db.Decimal(14, 2)
+  maxAmount         Decimal? @db.Decimal(14, 2)
+  minRate           Decimal? @db.Decimal(5, 2)
+  maxRate           Decimal? @db.Decimal(5, 2)
+  processingFee     String?
+  minTenureMonths   Int?
+  maxTenureMonths   Int?
+  // FLOATING or FIXED.
+  rateType          String?
+  // Payout GCS gets from this lender on this loan type, as a percentage of the disbursed amount.
+  commissionPercent Decimal? @db.Decimal(5, 2)
+  specialScheme     String?
 
   // Who it is for
   employmentTypes          String[]
@@ -1104,8 +1274,8 @@ model LenderPolicy {
   gstRequired              Boolean  @default(false)
 
   // Money rules. Each band is { upTo: number | null, value: number } in rupees / percent.
-  foirBands           Json?
-  ltvBands            Json?
+  foirBands             Json?
+  ltvBands              Json?
   acceptedPropertyTypes String[]
 
   // Where it is available. Blank cities on a non-all-India policy means "not confirmed".
@@ -1123,7 +1293,9 @@ model LenderPolicy {
   @@index([active, lastVerifiedAt])
 }
 
-/** Every save of a policy keeps the version it replaced, so any past match can be explained. */
+/**
+ * Every save of a policy keeps the version it replaced, so any past match can be explained.
+ */
 model LenderPolicyChange {
   id            String       @id @default(cuid())
   policyId      String
@@ -1138,7 +1310,9 @@ model LenderPolicyChange {
   @@index([policyId, version])
 }
 
-/** What experienced staff know that a rule sheet does not: when a lender bends a rule, and who must agree. */
+/**
+ * What experienced staff know that a rule sheet does not: when a lender bends a rule, and who must agree.
+ */
 model PolicyException {
   id                String       @id @default(cuid())
   policyId          String
@@ -1156,25 +1330,29 @@ model PolicyException {
   @@index([policyId])
 }
 
-/** One run of the matcher with the exact answers used and the result, kept for audit and review. */
+/**
+ * One run of the matcher with the exact answers used and the result, kept for audit and review.
+ */
 model MatchRun {
-  id           String   @id @default(cuid())
-  leadId       String?
-  profile      Json
-  results      Json
-  createdById  String?
-  createdByName String?
-  reviewStatus String   @default("PENDING")
-  reviewedById String?
+  id             String    @id @default(cuid())
+  leadId         String?
+  profile        Json
+  results        Json
+  createdById    String?
+  createdByName  String?
+  reviewStatus   String    @default("PENDING")
+  reviewedById   String?
   reviewedByName String?
-  reviewNote   String?
-  reviewedAt   DateTime?
-  createdAt    DateTime @default(now())
+  reviewNote     String?
+  reviewedAt     DateTime?
+  createdAt      DateTime  @default(now())
 
   @@index([leadId, createdAt])
 }
 
-/** How each case ended, by lender and product, so GCS learns what really gets sanctioned. */
+/**
+ * How each case ended, by lender and product, so GCS learns what really gets sanctioned.
+ */
 model CaseOutcome {
   id              String    @id @default(cuid())
   leadId          String?

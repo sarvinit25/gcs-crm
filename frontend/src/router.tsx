@@ -28,8 +28,14 @@ import { IdDirectoryPage } from "./routes/id-directory";
 import { AuditPage } from "./routes/audit";
 import { DisbursementsPage } from "./routes/disbursements";
 import { PartnersPage } from "./routes/partners";
+import { LeadSourcesPage } from "./routes/lead-sources";
+import { TeamsPage } from "./routes/teams";
+import { LoanTypesPage } from "./routes/loan-types";
+import { DocumentTypesPage } from "./routes/document-types";
 import { CommissionsPage } from "./routes/commissions";
 import { LendersPage } from "./routes/lenders";
+import { LenderDetailPage } from "./routes/lender-detail";
+import { LenderFormPage } from "./routes/lender-form";
 import { LenderPoliciesPage } from "./components/lender-policies";
 import { AttendancePage } from "./routes/attendance";
 import { ReportsPage } from "./routes/reports";
@@ -203,9 +209,16 @@ const routeTree = rootRoute.addChildren([
       component: CommissionsPage,
     }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/lenders", component: LendersPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/lenders/new", component: LenderFormPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/lenders/$lenderId", component: LenderDetailPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/lenders/$lenderId/edit", component: LenderFormPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/lender-policies", component: LenderPoliciesPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/partners", component: PartnersPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/lead-sources", component: LeadSourcesPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/loan-types", component: LoanTypesPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/document-types", component: DocumentTypesPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/team", component: TeamPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/teams", component: TeamsPage }),
     createRoute({
       getParentRoute: () => protectedRoute,
       path: "/id-directory",

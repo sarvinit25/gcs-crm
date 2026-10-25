@@ -5,6 +5,17 @@ import { AuditService, diff } from "../audit/audit.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { CreateLenderDto, UpdateLenderDto } from "./dto/lender.dto";
 
+/** Text fields left empty on the form are stored as "nothing", not as an empty string. */
+const TEXT = ["shortName", "brokerCode", "portalUrl", "branchName", "branchCity", "branchAddress", "notes"] as const;
+function blanks(dto: object) {
+  const out: Record<string, string | null> = {};
+  for (const k of TEXT) {
+    const v = (dto as Record<string, unknown>)[k];
+    if (typeof v === "string") out[k] = v.trim() || null;
+  }
+  return out;
+}
+
 @Injectable()
 export class LendersService {
   constructor(
@@ -56,7 +67,53 @@ export class LendersService {
     });
     const contactsBy = new Map(contactCounts.map((c) => [c.lenderId, c._count]));
 
-    return lenders.map((l) => ({ ...l, applicationCount: byLender.get(l.id) ?? 0, contactCount: contactsBy.get(l.id) ?? 0 }));
+    const policies = await this.prisma.lenderPolicy.groupBy({
+      by: ["lenderId", "active"],
+      _count: true,
+      orderBy: { lenderId: "asc" },
+    });
+    const policiesBy = new Map<string, { all: number; active: number }>();
+    for (const p of policies) {
+      const cur = policiesBy.get(p.lenderId) ?? { all: 0, active: 0 };
+      cur.all += p._count;
+      if (p.active) cur.active += p._count;
+      policiesBy.set(p.lenderId, cur);
+    }
+    // The first active contact is the one shown as the relationship manager.
+    const people = await this.prisma.lenderContact.findMany({
+      where: { active: true },
+      select: { lenderId: true, name: true, phone: true, email: true },
+      orderBy: [{ createdAt: "asc" }],
+    });
+    const manager = new Map<string, (typeof people)[number]>();
+    for (const c of people) if (!manager.has(c.lenderId)) manager.set(c.lenderId, c);
+
+    return lenders.map((l) => ({
+      ...l,
+      applicationCount: byLender.get(l.id) ?? 0,
+      contactCount: contactsBy.get(l.id) ?? 0,
+      policyCount: policiesBy.get(l.id)?.all ?? 0,
+      activePolicyCount: policiesBy.get(l.id)?.active ?? 0,
+      relationshipManager: manager.get(l.id) ?? null,
+    }));
+  }
+
+  /** One lender with its policies (what it offers, per loan type) and its people. */
+  async findOne(id: string) {
+    const lender = await this.prisma.lender.findUnique({
+      where: { id },
+      include: {
+        contacts: { where: { active: true }, orderBy: { createdAt: "asc" } },
+        policies: {
+          include: { loanProduct: { select: { id: true, name: true, slug: true } } },
+          orderBy: { loanProduct: { name: "asc" } },
+        },
+        _count: { select: { applications: true } },
+      },
+    });
+    if (!lender) throw new NotFoundException("Lender not found");
+    const { _count, ...rest } = lender;
+    return { ...rest, applicationCount: _count.applications };
   }
 
   async create(dto: CreateLenderDto, actor: AuthUser, ip?: string) {
@@ -64,7 +121,7 @@ export class LendersService {
       throw new ConflictException("A lender with this name already exists");
     }
 
-    const lender = await this.prisma.lender.create({ data: { ...dto } });
+    const lender = await this.prisma.lender.create({ data: { ...dto, ...blanks(dto) } });
 
     await this.audit.record({
       actor,
@@ -89,7 +146,7 @@ export class LendersService {
       }
     }
 
-    const lender = await this.prisma.lender.update({ where: { id }, data: { ...dto } });
+    const lender = await this.prisma.lender.update({ where: { id }, data: { ...dto, ...blanks(dto) } });
 
     await this.audit.recordUpdate({
       actor,

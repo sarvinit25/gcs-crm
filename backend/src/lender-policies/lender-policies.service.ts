@@ -5,6 +5,7 @@ import { AuditService } from "../audit/audit.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { matchAll, type Band, type PolicyRule } from "./policy-matcher";
 import type {
+  BulkPolicyDto,
   CreatePolicyDto,
   ExceptionDto,
   OutcomeDto,
@@ -125,6 +126,9 @@ export class LenderPoliciesService {
     if (dto.minRate != null && dto.maxRate != null && dto.minRate > dto.maxRate) {
       throw new BadRequestException("Minimum rate is above the maximum");
     }
+    if (dto.minTenureMonths != null && dto.maxTenureMonths != null && dto.minTenureMonths > dto.maxTenureMonths) {
+      throw new BadRequestException("Minimum tenure is above the maximum");
+    }
     const bands = (raw: unknown[] | null | undefined, max: number) => {
       if (raw === undefined) return undefined;
       const clean = raw === null ? null : cleanBands(raw, max);
@@ -163,6 +167,32 @@ export class LenderPoliciesService {
       ip,
     });
     return this.get(created.id);
+  }
+
+  /** The same terms for one loan type on many lenders: creates what is missing, reports what already existed. */
+  async createMany(dto: BulkPolicyDto, actor: AuthUser, ip?: string) {
+    const { lenderIds, loanProductId, maxFoirPercent, ...fields } = dto;
+    const ids = [...new Set(lenderIds)];
+    const [lenders, product, existing] = await Promise.all([
+      this.prisma.lender.findMany({ where: { id: { in: ids } }, select: { id: true, name: true } }),
+      this.prisma.loanProduct.findUnique({ where: { id: loanProductId }, select: { id: true, name: true } }),
+      this.prisma.lenderPolicy.findMany({ where: { loanProductId, lenderId: { in: ids } }, select: { lenderId: true } }),
+    ]);
+    if (!product) throw new NotFoundException("Loan type not found");
+    if (lenders.length !== ids.length) throw new BadRequestException("One of the selected lenders no longer exists.");
+    const has = new Set(existing.map((e) => e.lenderId));
+    const terms = { ...fields, ...(maxFoirPercent !== undefined && { foirBands: [{ upTo: null, value: maxFoirPercent }] }) };
+    const created: string[] = [];
+    const skipped: string[] = [];
+    for (const lender of lenders) {
+      if (has.has(lender.id)) {
+        skipped.push(lender.name);
+        continue;
+      }
+      await this.create({ ...terms, lenderId: lender.id, loanProductId }, actor, ip);
+      created.push(lender.name);
+    }
+    return { loanType: product.name, created, skipped };
   }
 
   async update(id: string, dto: UpdatePolicyDto, actor: AuthUser, ip?: string) {

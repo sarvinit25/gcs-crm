@@ -88,9 +88,9 @@ describe("lender contacts", () => {
     expect(byName.hits[0].subtitle).toContain("ICICI Bank");
     expect((await find("+91 79771 14209")).hits[0].title).toBe("Sachin Mishra");
     expect((await find("sachin.mishra6@icicibank.com")).hits[0].title).toBe("Sachin Mishra");
-    // admins are sent to Settings, where they manage lenders
+    // admins land on the same Lenders page, where they manage lenders
     const asAdmin = ((await get("/search?q=sachin", admin)).body as any).groups.find((g: any) => g.type === "lenderContacts");
-    expect(asAdmin.hits[0].path).toBe("/settings");
+    expect(asAdmin.hits[0].path).toBe("/lenders");
   });
 
   it("shows how many contacts each lender has in the lender list", async () => {
