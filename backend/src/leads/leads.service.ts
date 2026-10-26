@@ -1,5 +1,7 @@
 import { channelFromUtm, cleanLandingPage, cleanTag } from "../marketing/channel.util";
-import { BadRequestException, Injectable, Logger, NotFoundException, type OnApplicationBootstrap } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, type OnApplicationBootstrap } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { checkFollowUpToken } from "./follow-up-token";
 import { AuditAction, AuditActorType, LeadSegment, LeadStatus, Prisma, Role, SubmissionOutcome } from "@prisma/client";
 import { classifyLead, missingForMeeting } from "./lead-segment";
 import { entryCount, isFuller, nameTokens, namesMatch, type Entry } from "./lead-dedupe";
@@ -16,6 +18,7 @@ import {
   CreateFollowUpDto,
   CreateLeadDto,
   ListLeadsQuery,
+  LeadFollowUpDto,
   PublicLeadDto,
   UpdateLeadDto,
 } from "./dto/lead.dto";
@@ -72,6 +75,7 @@ export class LeadsService implements OnApplicationBootstrap {
     private settings: SettingsService,
     private assignment: LeadAssignmentService,
     private sources: LeadSourcesService,
+    private config: ConfigService,
   ) {}
 
   /** Advisors only ever see their own leads; managers and admins see everything. */
@@ -270,6 +274,39 @@ export class LeadsService implements OnApplicationBootstrap {
       });
       return { id: same.id, leadNo: same.leadNo };
     });
+  }
+
+  /**
+   * The optional second form: the visitor's extra answers go into the notes of the lead they just made, so the
+   * team sees one record, not two. Employment type and income fill in only when staff have not set them.
+   */
+  async addWebsiteDetails(id: string, dto: LeadFollowUpDto) {
+    if (!checkFollowUpToken(id, dto.token, this.config.getOrThrow<string>("JWT_SECRET"))) {
+      throw new ForbiddenException("This link has expired. Please send the form again.");
+    }
+    const lead = await this.prisma.lead.findUnique({ where: { id } });
+    if (!lead || lead.archivedAt) throw new NotFoundException("Lead not found");
+    const detail = dto.detail.trim();
+    if (!lead.notes?.includes(detail)) {
+      await this.prisma.lead.update({
+        where: { id },
+        data: {
+          notes: [lead.notes, `— More details from the website:\n${detail}`].filter(Boolean).join("\n"),
+          ...(dto.employmentType && !lead.employmentType && { employmentType: dto.employmentType }),
+          ...(dto.monthlyIncome && !lead.monthlyIncome && { monthlyIncome: dto.monthlyIncome }),
+        },
+      });
+      await this.refreshSegment(id);
+      await this.audit.recordUpdate({
+        actor: { name: "Website form" },
+        actorType: AuditActorType.CLIENT,
+        entity: "Lead",
+        entityId: id,
+        entityLabel: `#${lead.leadNo} ${lead.name} · added the optional detailed form`,
+        changes: { notes: { from: null, to: "More details added" } },
+      });
+    }
+    return { ok: true };
   }
 
   async create(dto: CreateLeadDto, user: AuthUser) {

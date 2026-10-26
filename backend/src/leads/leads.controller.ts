@@ -3,6 +3,8 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { Throttle } from "@nestjs/throttler";
 import { Role } from "@prisma/client";
 import { CurrentUser, Public, Roles, type AuthUser } from "../auth/auth.decorators";
+import { ConfigService } from "@nestjs/config";
+import { issueFollowUpToken } from "./follow-up-token";
 import { LeadsService } from "./leads.service";
 import { TurnstileService } from "./turnstile.service";
 import { AlertsService } from "../alerts/alerts.service";
@@ -12,6 +14,7 @@ import {
   CreateLeadDto,
   ListLeadsQuery,
   PublicLeadDto,
+  LeadFollowUpDto,
   UpdateLeadDto,
 } from "./dto/lead.dto";
 
@@ -22,6 +25,7 @@ export class PublicLeadsController {
     private leads: LeadsService,
     private turnstile: TurnstileService,
     private alerts: AlertsService,
+    private config: ConfigService,
   ) {}
 
   // Tight cap: a genuine enquirer submits once, a script would not.
@@ -45,7 +49,19 @@ export class PublicLeadsController {
         detail: dto.detail?.trim() ?? null,
       });
     }
-    return { id: result.id, leadNo: result.leadNo };
+    return {
+      id: result.id,
+      leadNo: result.leadNo,
+      followUpToken: issueFollowUpToken(result.id, this.config.getOrThrow<string>("JWT_SECRET")),
+    };
+  }
+
+  /** The optional second form on a loan page adds its answers to the lead the visitor just created. */
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post(":id/details")
+  details(@Param("id") id: string, @Body() dto: LeadFollowUpDto) {
+    return this.leads.addWebsiteDetails(id, dto);
   }
 }
 
