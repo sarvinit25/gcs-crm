@@ -59,4 +59,6 @@ export const CHECKLIST_DOCUMENTS: [title: string, productSlug: string, variant: 
   ["Will Succession Documentation", "will-succession-documentation", null, "/checklists/will-succession-documentation-checklist.pdf"],
   ["Working Capital", "working-capital", null, "/checklists/working-capital-checklist.pdf"],
   ["Working Capital Term Loan", "working-capital-term-loan", null, "/checklists/working-capital-term-loan-checklist.pdf"],
+  ["Micro Business Loan", "micro-business-loan", null, "/checklists/micro-business-loan-checklist.pdf"],
+  ["Micro Loan Against Property (Micro LAP)", "micro-lap", null, "/checklists/micro-lap-checklist.pdf"],
 ];
