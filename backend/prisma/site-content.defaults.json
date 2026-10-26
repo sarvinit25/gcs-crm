@@ -239,6 +239,56 @@
         }
       ]
     },
+    "micro-lap": {
+      "title": "Micro Loan Against Property (Micro LAP)",
+      "tagline": "Your Property Can Help Meet Your Funding Needs",
+      "about": "Get funds against your eligible property for business or personal financial needs, while continuing to own and use your property. Micro Loan Against Property (Micro LAP) is designed for eligible salaried and self-employed customers looking for relatively smaller property-backed funding with simple assessment and documentation. Explore property-backed funding options generally ranging from ₹3 Lakh to ₹20 Lakh*. The applicable loan amount depends on the selected program, property value, income / repayment capacity, credit profile and lender policy.",
+      "features": [
+        "Loan amount up to ₹20 Lakh*",
+        "Available for eligible salaried and self-employed customers",
+        "Funding against eligible property",
+        "Longer repayment tenure available under eligible programs",
+        "Different assessment options depending on the property and customer profile",
+        "Clubbed / family income may be considered under eligible programs",
+        "Higher LTV may be available depending on the applicable scheme and property",
+        "ITR and GST may not be required under certain eligible programs",
+        "Simple documentation",
+        "Business or eligible personal funding requirements can be considered"
+      ],
+      "eligibility": [
+        "Salaried individuals",
+        "Self-employed professionals",
+        "Business owners",
+        "Proprietors",
+        "Partners / Directors, subject to lender criteria",
+        "Family or clubbed income may also be considered under certain eligible programs"
+      ],
+      "documents": [
+        "Registered Sale Deed",
+        "Property ownership documents",
+        "Namuna 8 / 7/12 extract, where applicable",
+        "Other title / property documents required for legal and technical verification",
+        "The exact documentation depends on the property type, location and the lender's legal requirements"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "₹3 Lakh to ₹20 Lakh*"
+        },
+        {
+          "label": "Tenure",
+          "value": "12 to 120 months*"
+        },
+        {
+          "label": "Indicative rate",
+          "value": "19% to 24% p.a. reducing*"
+        },
+        {
+          "label": "For",
+          "value": "Salaried and self-employed"
+        }
+      ]
+    },
     "lease-rental-discounting": {
       "title": "Lease Rental Discounting",
       "tagline": "Rent today becomes capital today.",
@@ -325,17 +375,28 @@
         "Legal, technical and valuation checks coordinated on your behalf"
       ],
       "eligibility": [
-        "Sanctioned building plans and clear, marketable land title",
-        "The developer's own contribution already committed to the project",
-        "A track record of completed projects is preferred, though not always mandatory",
-        "A developer or company registered in India",
+        "Builder with 8 to 10 or more completed projects, and 5 lakh sq. ft. or more delivered",
+        "8 to 10 years or more in the real estate sector",
+        "2 or more projects currently under execution",
+        "A construction finance or term loan track record, and positive references from reputed developers, financial institutions or property consultants",
+        "Funding need of ₹5 Cr or more",
+        "Project land owned by the builder, or held through a joint venture",
+        "Project in a city or town with a population of more than 3 lakh",
+        "Construction already above plinth level, and at least 10% of the units sold at sanction",
+        "Project approved by the Municipal Corporation or Town Planning Authority",
+        "Project within 50 km of the city centre, and within 10 km of a National Highway and a railway station",
+        "Builder's own equity of at least 50% of the proposed loan amount",
         "A good credit record for the developer, its promoters and group companies",
-        "Residential, commercial or mixed-use projects"
+        "These points are a guide. Each lender sets its own benchmarks, and a project that misses one or two can still be reviewed"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Project report with cost and sales projections",
-        "Approvals, plans and land title documents"
+        "Audited financials, ITRs and 12 months' bank statements of the builder",
+        "Project report with cost, funding plan and sales projections",
+        "Approved plans, Commencement Certificate, RERA registration and other approvals",
+        "Land title deeds, title search report and development / joint venture agreements",
+        "Unit-wise sales statement, and the builder's equity already invested",
+        "List of completed and ongoing projects, and details of existing loans"
       ],
       "facts": [
         {
@@ -398,6 +459,58 @@
         {
           "label": "Minimum ticket size",
           "value": "₹2 Lakh"
+        }
+      ]
+    },
+    "micro-business-loan": {
+      "title": "Micro Business Loan",
+      "tagline": "Small Business. Simple Funding. More Growth.",
+      "about": "Get unsecured business funding for your day-to-day business needs, without providing property as collateral. Designed for eligible small business owners, shopkeepers, traders and self-employed customers who need funds to manage or grow their business.",
+      "features": [
+        "Loan amount up to ₹10 Lakh*",
+        "No property collateral required*",
+        "ITR may not be required under eligible programs*",
+        "GST may not be required under eligible programs*",
+        "Assessment based on business profile, banking and lender criteria",
+        "Simple documentation, subject to lender policy"
+      ],
+      "eligibility": [
+        "Shopkeepers",
+        "Traders",
+        "Retailers",
+        "Small manufacturers",
+        "Service businesses",
+        "Proprietors",
+        "Self-employed business owners",
+        "Other eligible micro and small businesses"
+      ],
+      "documents": [
+        "KYC documents: PAN, Aadhaar and other applicable KYC documents",
+        "Latest bank statements: generally the latest 6 months' banking may be required",
+        "Business proof: proof showing the business is operational, generally for the required business vintage",
+        "Business ownership / address proof: applicable business premises or ownership / address proof, such as an electricity bill or other acceptable document",
+        "Additional documents may be requested depending on your profile and lender policy"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "Up to ₹10 Lakh*"
+        },
+        {
+          "label": "Security",
+          "value": "No property collateral required*"
+        },
+        {
+          "label": "ITR",
+          "value": "May not be required under eligible programs*"
+        },
+        {
+          "label": "GST",
+          "value": "May not be required under eligible programs*"
+        },
+        {
+          "label": "Documentation",
+          "value": "Simple, subject to lender policy"
         }
       ]
     },
@@ -1080,27 +1193,32 @@
     "private-funding": {
       "title": "Private Funding",
       "tagline": "Fast money when the clock is ticking.",
-      "about": "Short-term funds without collateral from private lenders, for self-employed businesses with a steady turnover who need cash quickly. This product is not for salaried individuals. Minimum business turnover is generally ₹25 Cr+ for Mumbai, Hyderabad, Bangalore and Chennai, and ₹100 Cr+ for the rest of India, as per lender policy. Private credit usually costs much more than bank loans, so we share every rate and repayment term in writing before you decide.",
+      "about": "Unsecured private business funding, perfect for expansion, working capital or short-term opportunities. Private credit usually costs more than a bank loan, so we share every rate, fee and repayment term in writing before you decide. Final terms depend on the lender and your business profile.",
       "features": [
-        "Loan amounts from ₹1 Cr to ₹50 Cr, for a short period of 4 to 8 months",
-        "Funding for expansion, working capital or short-term business needs",
-        "Fast turnaround — funding arranged within 24–48 hours",
-        "Rate and terms evaluated on your business profile, turnover and profitability",
-        "Structured without collateral, subject to the case and profile",
-        "Minimal documentation. The checklist is the same for an individual, a partnership firm and a company",
-        "Repayment is secured through post-dated cheques (PDCs), as per the lender's structure",
-        "Flexible EMI/repayment terms, discussed and structured to your need",
-        "Interest is never cut upfront — you receive the full agreed funding amount",
-        "Processing fee and documentation charges as per the applicable structure"
+        "No CIBIL check and minimal documentation",
+        "Zero upfront fees, no collateral required",
+        "A simple digital process",
+        "Flexible repayment options, as per your convenience",
+        "Top-up facility for strong repayers, after a good repayment record",
+        "Suited to corporates, traders and business houses, including manufacturing units, exporters, hospitals and manpower supply businesses",
+        "Rate and terms worked out on your business profile, turnover and profitability"
       ],
       "eligibility": [
-        "Self-employed businesses only: an individual, a partnership firm or a company. This product is not for salaried individuals",
-        "A business with consistent turnover",
-        "Turnover of ₹25 Cr+ for Mumbai, Hyderabad, Bangalore and Chennai, and ₹100 Cr+ for the rest of India, as per lender policy",
-        "Repayment secured through post-dated cheques (PDCs), as per the lender's structure"
+        "Self-employed businesses only. Not for salaried individuals",
+        "Businesses with consistent turnover",
+        "₹20–25 Cr+ turnover for Hyderabad, Bangalore, Mumbai and Chennai",
+        "₹100 Cr+ turnover for the rest of India",
+        "Repayment secured through post-dated cheques, as per the lender's structure",
+        "The same checklist applies to an individual, a partnership firm and a company"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
+        "ITRs with financials, certified by a CA, for the latest 3 years, and Form 26AS for 2 years",
+        "Business current and savings account bank statements for 12 months, and GSTR 3B for 12 months",
+        "Business proof as per your business type",
+        "Top 5 customers and suppliers, latest order copies, company profile, loan end-use details and debtors ageing",
+        "All loan sanction letters and loan statements, if you have an existing loan",
+        "CA attested net worth certificate",
         "Purpose note and repayment plan"
       ],
       "facts": [
@@ -1122,7 +1240,7 @@
         },
         {
           "label": "Security",
-          "value": "No property required"
+          "value": "No collateral, post-dated cheques"
         }
       ]
     }
@@ -1475,7 +1593,7 @@
     "property-title-verification": {
       "division": "Legal Services",
       "title": "Property Title Verification & Due Diligence",
-      "summary": "Review of ownership documents, title chain, encumbrances and approvals before a property purchase. We flag anything that could complicate the sale — a pending litigation, an unclear share, or a missing approval — before you commit funds.",
+      "summary": "We undertake comprehensive verification of property title and ownership documents, including the chain of title, encumbrances, charges, mortgages, claims, pending litigation and property records. We identify title defects, ownership discrepancies and missing documents, assess potential legal risks, and provide appropriate legal observations and recommendations to facilitate informed decisions.",
       "whoNeedsIt": "Buyers wanting a professional check on a property's title and documentation before committing. Especially important for resale flats, ancestral property, or anything without a clean, recent chain of ownership.",
       "process": [
         "Property and seller documents collected",
@@ -1483,9 +1601,15 @@
         "Written observations shared with you"
       ],
       "documents": [
-        "Title documents/chain",
-        "7/12 extract or property card",
-        "Encumbrance certificate, where available"
+        "Original registered Sale Deed, Conveyance Deed or other ownership document",
+        "Previous title deeds and chain of ownership documents, where required",
+        "Latest Index II",
+        "Latest Property Card / 7/12 Extract / 8A Extract, as applicable",
+        "Latest mutation entries and supporting orders, if applicable",
+        "Latest property tax bill and paid receipts",
+        "Complete property details, including area, address, CTS / Survey / Gat number, as applicable",
+        "Details of mortgages, loans, encumbrances, litigation or third-party claims, if any",
+        "Power of Attorney, if applicable"
       ]
     },
     "sale-agreement-sale-deed": {
@@ -1538,7 +1662,7 @@
     "society-share-transfer": {
       "division": "Legal Services",
       "title": "Housing Society Share Transfer",
-      "summary": "Documentation support for transferring share certificates and flat ownership within a housing society. We prepare the transfer application in the format each society typically expects, to avoid back-and-forth.",
+      "summary": "We provide legal documentation assistance for the transfer of society shares and flat ownership in housing societies. Our services include preparation and review of transfer applications, forms, declarations and supporting documents in accordance with applicable laws, society bye-laws and prescribed procedures, ensuring accurate and smooth completion of the transfer formalities.",
       "whoNeedsIt": "Flat owners transferring ownership after a sale, gift or family transfer within a co-operative society. Required whenever a flat changes hands, since the society's own records must be updated alongside the deed.",
       "process": [
         "Transfer type and society requirements confirmed",
@@ -1921,6 +2045,12 @@
       "description": ""
     },
     {
+      "path": "/services/micro-lap",
+      "label": "Loan: Micro Loan Against Property (Micro LAP)",
+      "title": "",
+      "description": ""
+    },
+    {
       "path": "/services/lease-rental-discounting",
       "label": "Loan: Lease Rental Discounting",
       "title": "",
@@ -1941,6 +2071,12 @@
     {
       "path": "/services/business-loan",
       "label": "Loan: Business Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/micro-business-loan",
+      "label": "Loan: Micro Business Loan",
       "title": "",
       "description": ""
     },
@@ -2512,7 +2648,7 @@
         "label": "Bank & NBFC Partners"
       },
       {
-        "value": "25+",
+        "value": "27+",
         "label": "Loan Products"
       },
       {
@@ -2744,7 +2880,7 @@
     ],
     "services.stats": [
       {
-        "value": "25+",
+        "value": "27+",
         "label": "Loan Products"
       },
       {
@@ -2972,8 +3108,16 @@
         "to": "/services#loan-against-property"
       },
       {
+        "label": "Micro Loan Against Property (Micro LAP)",
+        "to": "/services#micro-lap"
+      },
+      {
         "label": "Business Loan & Working Capital",
         "to": "/services#business-loan"
+      },
+      {
+        "label": "Micro Business Loan",
+        "to": "/services#micro-business-loan"
       },
       {
         "label": "Personal Loan",
@@ -2986,14 +3130,6 @@
       {
         "label": "Education Loan",
         "to": "/services#education-loan"
-      },
-      {
-        "label": "Balance Transfer & Top-Up",
-        "to": "/services#balance-transfer"
-      },
-      {
-        "label": "Working Capital Term Loan",
-        "to": "/services#working-capital-term-loan"
       }
     ],
     "form.loanTypes": [
@@ -3006,8 +3142,16 @@
         "slug": "loan-against-property"
       },
       {
+        "title": "Micro Loan Against Property (Micro LAP)",
+        "slug": "micro-lap"
+      },
+      {
         "title": "Business Loan & Working Capital",
         "slug": "business-loan"
+      },
+      {
+        "title": "Micro Business Loan",
+        "slug": "micro-business-loan"
       },
       {
         "title": "Personal Loan",
@@ -3670,6 +3814,11 @@
         "visible": "yes"
       },
       {
+        "title": "Micro Loan Against Property (Micro LAP)",
+        "slug": "micro-lap",
+        "visible": "yes"
+      },
+      {
         "title": "Lease Rental Discounting",
         "slug": "lease-rental-discounting",
         "visible": "yes"
@@ -3687,6 +3836,11 @@
       {
         "title": "Business Loan",
         "slug": "business-loan",
+        "visible": "yes"
+      },
+      {
+        "title": "Micro Business Loan",
+        "slug": "micro-business-loan",
         "visible": "yes"
       },
       {
@@ -3783,7 +3937,7 @@
     "intake.fields": [
       {
         "slug": "home-loan",
-        "label": "Loan Requirement",
+        "label": "Loan Type",
         "type": "select",
         "options": "Home Loan, Balance Transfer, Top-Up, Other",
         "placeholder": "",
@@ -3875,6 +4029,72 @@
         "type": "text",
         "options": "",
         "placeholder": "e.g. 50,00,000",
+        "amount": "yes",
+        "key": "loanAmount",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Type of Industry",
+        "type": "select",
+        "options": "Engineering & Manufacturing, Automobile, Textile, Food Processing, Pharma/Healthcare, Plastic, Printing & Packaging, Metal Fabrication, Chemicals, Electrical/Electronics, Construction Materials, Agro Processing, Jewellery, Medical/Diagnostic, Wood, Furniture & Plywood, Rubber Products, Cold Storage & Refrigeration, Other",
+        "placeholder": "",
+        "amount": "",
+        "key": "industry",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Which machine / equipment do you want to purchase?",
+        "type": "text",
+        "options": "",
+        "placeholder": "Machine name and type",
+        "amount": "",
+        "key": "machine",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Machinery New or Used",
+        "type": "select",
+        "options": "New, Used",
+        "placeholder": "",
+        "amount": "",
+        "key": "machineCondition",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Machine Age / Year of Manufacture",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 2019, or 5 years old",
+        "amount": "",
+        "key": "machineAge",
+        "showWhenKey": "machineCondition",
+        "showWhenValues": "Used"
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Machine Cost",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 40,00,000",
+        "amount": "yes",
+        "key": "machineCost",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Loan Amount Required",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 30,00,000",
         "amount": "yes",
         "key": "loanAmount",
         "showWhenKey": "",
