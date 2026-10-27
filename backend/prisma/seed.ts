@@ -35,6 +35,8 @@ const PRODUCTS: [slug: string, name: string, category: string][] = [
   ["loan-against-securities", "Loan Against Securities", "Personal, Education, Vehicle & Other Loans"],
   ["professional-loan", "Professional Loan", "Business Growth"],
   ["private-funding", "Private Funding", "Business Growth"],
+  ["micro-lap", "Micro Loan Against Property", "Property Finance"],
+  ["micro-business-loan", "Micro Business Loan", "Business Growth"],
 ];
 
 const LENDERS: [name: string, type: LenderType, logo: string][] = [

@@ -28,10 +28,12 @@ export const LOAN_TYPE_ICONS: Record<string, string> = {
   "loan-against-mutual-funds": "trending",
   "loan-against-securities": "trending",
   "professional-loan": "stethoscope",
-  "private-funding": "gem"
+  "private-funding": "gem",
+  "micro-lap": "building",
+  "micro-business-loan": "briefcase"
 };
 
-export const SECURED_LOAN_TYPES = new Set(["home-loan", "balance-transfer", "loan-against-property", "lease-rental-discounting", "dlod", "project-funding", "machine-loan", "new-car-loan", "used-car-loan", "car-refinance", "commercial-vehicle", "loan-against-mutual-funds", "loan-against-securities"]);
+export const SECURED_LOAN_TYPES = new Set(["home-loan", "balance-transfer", "loan-against-property", "micro-lap", "lease-rental-discounting", "dlod", "project-funding", "machine-loan", "new-car-loan", "used-car-loan", "car-refinance", "commercial-vehicle", "loan-against-mutual-funds", "loan-against-securities"]);
 
 export function loanTypeColor(category: string | null): string {
   if (category === "Property Finance") return "#845ADF";
