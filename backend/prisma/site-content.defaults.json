@@ -3036,6 +3036,58 @@
       {
         "title": "Cash Credit",
         "slug": "cash-credit"
+      },
+      {
+        "title": "Lease Rental Discounting",
+        "slug": "lease-rental-discounting"
+      },
+      {
+        "title": "Drop-Line Overdraft (Secured)",
+        "slug": "dlod"
+      },
+      {
+        "title": "Project Funding",
+        "slug": "project-funding"
+      },
+      {
+        "title": "CGTMSE Funding",
+        "slug": "cgtmse"
+      },
+      {
+        "title": "Machine Loan",
+        "slug": "machine-loan"
+      },
+      {
+        "title": "Bank Guarantee",
+        "slug": "bank-guarantee"
+      },
+      {
+        "title": "Letter of Credit",
+        "slug": "letter-of-credit"
+      },
+      {
+        "title": "Bill Discounting",
+        "slug": "bill-discounting"
+      },
+      {
+        "title": "Unsecured DOD",
+        "slug": "unsecured-dod"
+      },
+      {
+        "title": "Commercial Vehicle",
+        "slug": "commercial-vehicle"
+      },
+      {
+        "title": "Loan Against Securities",
+        "slug": "loan-against-securities"
+      },
+      {
+        "title": "Professional Loan",
+        "slug": "professional-loan"
+      },
+      {
+        "title": "Private Funding",
+        "slug": "private-funding"
       }
     ],
     "form.cities": [
