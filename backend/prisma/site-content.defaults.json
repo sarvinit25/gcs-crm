@@ -3086,6 +3086,18 @@
         "slug": "unsecured-dod"
       },
       {
+        "title": "New Car Loan",
+        "slug": "new-car-loan"
+      },
+      {
+        "title": "Used Car Loan",
+        "slug": "used-car-loan"
+      },
+      {
+        "title": "Car Refinance",
+        "slug": "car-refinance"
+      },
+      {
         "title": "Commercial Vehicle",
         "slug": "commercial-vehicle"
       },
