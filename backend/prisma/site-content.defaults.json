@@ -7,7 +7,7 @@
       },
       {
         "q": "Are there any upfront charges?",
-        "a": "No advisory fee for customers — we're paid by the lender only on successful disbursal."
+        "a": "No advisory fee on most loans. For cash-flow and trade facilities and the two micro loans there is a service fee for managing your file, shown on that loan's page. In every case we tell you the amount in writing before you go ahead, so there are no surprises."
       },
       {
         "q": "Can you help if my application was rejected elsewhere?",
@@ -212,8 +212,7 @@
         "Indian citizen with a property in India to offer as security; NRIs can apply with select lenders (see the NRI section below)",
         "Salaried, self-employed professional or self-employed business owner",
         "If salaried, generally at least 1 year with your current employer",
-        "A CIBIL score of around 750 or above may help you get better terms; lower scores are reviewed case by case",
-        "Residential, commercial or industrial property that can be pledged as security"
+        "A CIBIL score of around 750 or above may help you get better terms; lower scores are reviewed case by case"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -325,17 +324,28 @@
         "Legal, technical and valuation checks coordinated on your behalf"
       ],
       "eligibility": [
-        "Sanctioned building plans and clear, marketable land title",
-        "The developer's own contribution already committed to the project",
-        "A track record of completed projects is preferred, though not always mandatory",
-        "A developer or company registered in India",
+        "Builder with 8 to 10 or more completed projects, and 5 lakh sq. ft. or more delivered",
+        "8 to 10 years or more in the real estate sector",
+        "2 or more projects currently under execution",
+        "A construction finance or term loan track record, and positive references from reputed developers, financial institutions or property consultants",
+        "Funding need of ₹5 Cr or more",
+        "Project land owned by the builder, or held through a joint venture",
+        "Project in a city or town with a population of more than 3 lakh",
+        "Construction already above plinth level, and at least 10% of the units sold at sanction",
+        "Project approved by the Municipal Corporation or Town Planning Authority",
+        "Project within 50 km of the city centre, and within 10 km of a National Highway and a railway station",
+        "Builder's own equity of at least 50% of the proposed loan amount",
         "A good credit record for the developer, its promoters and group companies",
-        "Residential, commercial or mixed-use projects"
+        "These points are a guide. Each lender sets its own benchmarks, and a project that misses one or two can still be reviewed"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Project report with cost and sales projections",
-        "Approvals, plans and land title documents"
+        "Audited financials, ITRs and 12 months' bank statements of the builder",
+        "Project report with cost, funding plan and sales projections",
+        "Approved plans, Commencement Certificate, RERA registration and other approvals",
+        "Land title deeds, title search report and development / joint venture agreements",
+        "Unit-wise sales statement, and the builder's equity already invested",
+        "List of completed and ongoing projects, and details of existing loans"
       ],
       "facts": [
         {
@@ -604,7 +614,6 @@
       "tagline": "Win the contract with your bank behind you.",
       "about": "A bank guarantee is a written promise from the bank to the other party that you will pay or complete the work as agreed. It helps you bid for and sign contracts with more confidence.",
       "features": [
-        "Financial and performance guarantees",
         "Bid bonds, EMDs, security deposits and advance-payment BGs",
         "Commission and margin requirement negotiated on your behalf",
         "Fast issuance and amendments when terms change"
@@ -640,7 +649,6 @@
       "tagline": "Suppliers paid on time, your cash kept free.",
       "about": "A letter of credit is a payment promise given by the bank to your supplier. It may help you get better credit terms without using your own working capital.",
       "features": [
-        "Inland and import LCs",
         "Sight or usance structures",
         "Buyer's credit tie-ups arranged where available",
         "Support with documentation and resolving discrepancies"
@@ -678,15 +686,13 @@
       "features": [
         "Funds against genuine invoices raised on your customers",
         "Helps cover the gap between selling and getting paid",
-        "Repayment is linked to your customer's payment",
         "Can work alongside a cash credit or overdraft limit, as per lender policy",
         "Limits and charges depend on the lender and on your customers"
       ],
       "eligibility": [
         "A business that sells goods or services to other businesses on credit",
         "Genuine invoices from customers with a good payment record",
-        "Business and banking records that show a steady turnover",
-        "Final eligibility depends on the lender's policy and credit assessment"
+        "Business and banking records that show a steady turnover"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -838,7 +844,6 @@
       "tagline": "From showroom to driveway, fully funded.",
       "about": "Financing for the on-road price of a new car. We help with the dealer paperwork, such as the invoice, insurance and RTO, from quotation to delivery.",
       "features": [
-        "Funding up to 100% of the on-road price for eligible profiles",
         "Dealer and insurance coordination handled on your behalf",
         "Pricing may be better for salaried applicants with a stable employer",
         "Fast sanction on light documentation"
@@ -955,16 +960,12 @@
       "about": "Financing for new and used commercial vehicles such as trucks, buses and light goods vehicles. It helps a business add or replace vehicles without putting a large amount of its own money upfront. We compare options from Banks and NBFCs that may suit your business.",
       "features": [
         "Finance for new and used commercial vehicles",
-        "Funding of up to 100%* of the vehicle value for eligible profiles",
-        "Used commercial vehicles: up to 80% finance",
-        "Repayment of up to 7 years",
         "No penalty for early repayment on eligible loans, as per lender terms",
         "Simpler documents"
       ],
       "eligibility": [
         "A business or person who will use the vehicle for commercial work",
         "Income or business proof to show that you can repay the loan",
-        "Final eligibility, amount and terms depend on the lender's policy and the vehicle",
         "Resident Indian: an individual transporter, proprietorship, firm or company",
         "At least 1 year of experience in transport or the business the vehicle is for",
         "A CIBIL score of around 700 or above may help you get better terms; lower scores are reviewed case by case"
@@ -999,9 +1000,7 @@
         "Rates are usually lower than personal loans",
         "No prepayment charges and no foreclosure charges, as per lender policy",
         "Interest is charged only on the amount you use, and only for the days you use it",
-        "Funding of up to 50% of the market value of your pledged assets, on the lender's approved list",
         "Promoter funding: a special type of LAS where promoters pledge company shares to raise funds, subject to the lender's approved company list",
-        "Up to ₹1 Cr: a fully digital process",
         "₹1 Cr to ₹3 Cr: a mix of digital and paper process, with no ITR required",
         "Above ₹3 Cr: a mix of digital and paper process, with 3 years of ITR required"
       ],
@@ -1080,27 +1079,32 @@
     "private-funding": {
       "title": "Private Funding",
       "tagline": "Fast money when the clock is ticking.",
-      "about": "Short-term funds without collateral from private lenders, for self-employed businesses with a steady turnover who need cash quickly. This product is not for salaried individuals. Minimum business turnover is generally ₹25 Cr+ for Mumbai, Hyderabad, Bangalore and Chennai, and ₹100 Cr+ for the rest of India, as per lender policy. Private credit usually costs much more than bank loans, so we share every rate and repayment term in writing before you decide.",
+      "about": "Unsecured private business funding, perfect for expansion, working capital or short-term opportunities. Private credit usually costs more than a bank loan, so we share every rate, fee and repayment term in writing before you decide. Final terms depend on the lender and your business profile.",
       "features": [
-        "Loan amounts from ₹1 Cr to ₹50 Cr, for a short period of 4 to 8 months",
-        "Funding for expansion, working capital or short-term business needs",
-        "Fast turnaround — funding arranged within 24–48 hours",
-        "Rate and terms evaluated on your business profile, turnover and profitability",
-        "Structured without collateral, subject to the case and profile",
-        "Minimal documentation. The checklist is the same for an individual, a partnership firm and a company",
-        "Repayment is secured through post-dated cheques (PDCs), as per the lender's structure",
-        "Flexible EMI/repayment terms, discussed and structured to your need",
-        "Interest is never cut upfront — you receive the full agreed funding amount",
-        "Processing fee and documentation charges as per the applicable structure"
+        "No CIBIL check and minimal documentation",
+        "Zero upfront fees, no collateral required",
+        "A simple digital process",
+        "Flexible repayment options, as per your convenience",
+        "Top-up facility for strong repayers, after a good repayment record",
+        "Suited to corporates, traders and business houses, including manufacturing units, exporters, hospitals and manpower supply businesses",
+        "Rate and terms worked out on your business profile, turnover and profitability"
       ],
       "eligibility": [
-        "Self-employed businesses only: an individual, a partnership firm or a company. This product is not for salaried individuals",
-        "A business with consistent turnover",
-        "Turnover of ₹25 Cr+ for Mumbai, Hyderabad, Bangalore and Chennai, and ₹100 Cr+ for the rest of India, as per lender policy",
-        "Repayment secured through post-dated cheques (PDCs), as per the lender's structure"
+        "Self-employed businesses only. Not for salaried individuals",
+        "Businesses with consistent turnover",
+        "₹20–25 Cr+ turnover for Hyderabad, Bangalore, Mumbai and Chennai",
+        "₹100 Cr+ turnover for the rest of India",
+        "Repayment secured through post-dated cheques, as per the lender's structure",
+        "The same checklist applies to an individual, a partnership firm and a company"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
+        "ITRs with financials, certified by a CA, for the latest 3 years, and Form 26AS for 2 years",
+        "Business current and savings account bank statements for 12 months, and GSTR 3B for 12 months",
+        "Business proof as per your business type",
+        "Top 5 customers and suppliers, latest order copies, company profile, loan end-use details and debtors ageing",
+        "All loan sanction letters and loan statements, if you have an existing loan",
+        "CA attested net worth certificate",
         "Purpose note and repayment plan"
       ],
       "facts": [
@@ -1122,7 +1126,7 @@
         },
         {
           "label": "Security",
-          "value": "No property required"
+          "value": "No collateral, post-dated cheques"
         }
       ]
     }
@@ -2352,7 +2356,7 @@
       "published": false,
       "showInFooter": true,
       "summary": "The terms for using the Growth Capital Services website and our advisory services.",
-      "body": "## About these terms\n\nBy using this website or contacting Growth Capital Services you agree to these terms. If you do not agree, please do not use the site.\n\n## What we do\n\nWe are a loan advisory and facilitation firm. We help you compare options across banks and NBFCs and support you through documentation and processing. We are not a bank or lender, and we do not sanction or disburse loans ourselves.\n\n## No guarantee of approval\n\nWhether a loan is approved, and its amount, rate and terms, is decided by the lender alone. Information on this site, including interest rates, calculators and eligibility tools, is indicative and is not an offer or commitment.\n\n## Our fees\n\nWe do not charge customers an advisory fee for arranging a loan unless we tell you otherwise in writing before you proceed. We are paid by the lender on successful disbursal. Lenders may charge their own processing and other fees, which will be stated in their sanction documents.\n\n## Your responsibilities\n\n- Give us accurate and complete information and documents.\n- Tell us promptly if anything changes.\n- Do not misuse the site or attempt to disrupt it.\n\n## Third-party content and links\n\nLinks to other websites are for convenience. We are not responsible for their content or practices.\n\n## Limitation of liability\n\nTo the extent permitted by law, we are not liable for any indirect or consequential loss arising from use of this site or from a lender's decision.\n\n## Changes\n\nWe may update these terms from time to time. The version on this page applies from the date it is published.\n\n## Governing law\n\nThese terms are governed by the laws of India, and the courts at Mumbai have jurisdiction.\n\n## Contact\n\nCCTV Towers, Andheri-Ghatkopar Rd, Bhatwadi, Kaju Pada, Barve Nagar, Ghatkopar West, Mumbai 400084. Email: growthcs17@gmail.com. Phone: +91 88280 01700."
+      "body": "## About these terms\n\nBy using this website or contacting Growth Capital Services you agree to these terms. If you do not agree, please do not use the site.\n\n## What we do\n\nWe are a loan advisory and facilitation firm. We help you compare options across banks and NBFCs and support you through documentation and processing. We are not a bank or lender, and we do not sanction or disburse loans ourselves.\n\n## No guarantee of approval\n\nWhether a loan is approved, and its amount, rate and terms, is decided by the lender alone. Information on this site, including interest rates, calculators and eligibility tools, is indicative and is not an offer or commitment.\n\n## Our fees\n\nWe do not charge customers an advisory fee for arranging most loans. For some facilities, such as cash-flow and trade facilities and the two micro loans, we charge a service fee, which is shown on that loan's page. We always tell you any fee in writing before you proceed. Lenders may charge their own processing and other fees, which will be stated in their sanction documents.\n\n## Your responsibilities\n\n- Give us accurate and complete information and documents.\n- Tell us promptly if anything changes.\n- Do not misuse the site or attempt to disrupt it.\n\n## Third-party content and links\n\nLinks to other websites are for convenience. We are not responsible for their content or practices.\n\n## Limitation of liability\n\nTo the extent permitted by law, we are not liable for any indirect or consequential loss arising from use of this site or from a lender's decision.\n\n## Changes\n\nWe may update these terms from time to time. The version on this page applies from the date it is published.\n\n## Governing law\n\nThese terms are governed by the laws of India, and the courts at Mumbai have jurisdiction.\n\n## Contact\n\nCCTV Towers, Andheri-Ghatkopar Rd, Bhatwadi, Kaju Pada, Barve Nagar, Ghatkopar West, Mumbai 400084. Email: growthcs17@gmail.com. Phone: +91 88280 01700."
     },
     {
       "slug": "disclaimer",
@@ -2401,7 +2405,7 @@
       },
       {
         "icon": "BadgeCheck",
-        "label": "Zero Advisory Fee"
+        "label": "No Hidden Charges"
       },
       {
         "icon": "Globe",
@@ -2443,7 +2447,7 @@
         "text": "Every charge shared in writing before you sign"
       },
       {
-        "text": "Zero advisory fee, independent advice"
+        "text": "No hidden charges, independent advice"
       }
     ],
     "home.personas": [
@@ -2512,7 +2516,7 @@
         "label": "Bank & NBFC Partners"
       },
       {
-        "value": "25+",
+        "value": "27+",
         "label": "Loan Products"
       },
       {
@@ -2591,7 +2595,7 @@
         "text": "We compare live policies across 75+ lenders"
       },
       {
-        "text": "Zero advisory fee — we're paid by the lender"
+        "text": "No hidden charges: every fee shared in writing first"
       },
       {
         "text": "Daily file tracking from login to disbursal"
@@ -2744,7 +2748,7 @@
     ],
     "services.stats": [
       {
-        "value": "25+",
+        "value": "27+",
         "label": "Loan Products"
       },
       {
@@ -2972,8 +2976,16 @@
         "to": "/services#loan-against-property"
       },
       {
+        "label": "Micro Loan Against Property",
+        "to": "/services#micro-lap"
+      },
+      {
         "label": "Business Loan & Working Capital",
         "to": "/services#business-loan"
+      },
+      {
+        "label": "Micro Business Loan",
+        "to": "/services#micro-business-loan"
       },
       {
         "label": "Personal Loan",
@@ -2986,14 +2998,6 @@
       {
         "label": "Education Loan",
         "to": "/services#education-loan"
-      },
-      {
-        "label": "Balance Transfer & Top-Up",
-        "to": "/services#balance-transfer"
-      },
-      {
-        "label": "Working Capital Term Loan",
-        "to": "/services#working-capital-term-loan"
       }
     ],
     "form.loanTypes": [
@@ -3006,8 +3010,16 @@
         "slug": "loan-against-property"
       },
       {
+        "title": "Micro Loan Against Property",
+        "slug": "micro-lap"
+      },
+      {
         "title": "Business Loan & Working Capital",
         "slug": "business-loan"
+      },
+      {
+        "title": "Micro Business Loan",
+        "slug": "micro-business-loan"
       },
       {
         "title": "Personal Loan",
@@ -3722,6 +3734,11 @@
         "visible": "yes"
       },
       {
+        "title": "Micro Loan Against Property",
+        "slug": "micro-lap",
+        "visible": "yes"
+      },
+      {
         "title": "Lease Rental Discounting",
         "slug": "lease-rental-discounting",
         "visible": "yes"
@@ -3739,6 +3756,11 @@
       {
         "title": "Business Loan",
         "slug": "business-loan",
+        "visible": "yes"
+      },
+      {
+        "title": "Micro Business Loan",
+        "slug": "micro-business-loan",
         "visible": "yes"
       },
       {
@@ -3835,7 +3857,7 @@
     "intake.fields": [
       {
         "slug": "home-loan",
-        "label": "Loan Requirement",
+        "label": "Loan Type",
         "type": "select",
         "options": "Home Loan, Balance Transfer, Top-Up, Other",
         "placeholder": "",
@@ -3927,6 +3949,50 @@
         "type": "text",
         "options": "",
         "placeholder": "e.g. 50,00,000",
+        "amount": "yes",
+        "key": "loanAmount",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Type of Industry",
+        "type": "select",
+        "options": "Engineering & Manufacturing, Automobile, Textile, Food Processing, Pharma/Healthcare, Plastic, Printing & Packaging, Metal Fabrication, Chemicals, Electrical/Electronics, Construction Materials, Agro Processing, Jewellery, Medical/Diagnostic, Wood, Furniture & Plywood, Rubber Products, Cold Storage & Refrigeration, Other",
+        "placeholder": "",
+        "amount": "",
+        "key": "industry",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Which machine / equipment do you want to purchase?",
+        "type": "text",
+        "options": "",
+        "placeholder": "Machine name and type",
+        "amount": "",
+        "key": "machine",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Machine Cost",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 40,00,000",
+        "amount": "yes",
+        "key": "machineCost",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Loan Amount Required",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 30,00,000",
         "amount": "yes",
         "key": "loanAmount",
         "showWhenKey": "",
