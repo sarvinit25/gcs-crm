@@ -11,6 +11,7 @@ import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 
 import { PrismaService } from "../prisma/prisma.service";
 import { LeadsService } from "../leads/leads.service";
 import { AlertsService } from "../alerts/alerts.service";
+import { MailService } from "../alerts/mail.service";
 import type { PublicLeadDto } from "../leads/dto/lead.dto";
 import { OtpSenderService } from "./otp-sender.service";
 import type { SendOtpDto, VerifyOtpDto } from "./dto/chat-auth.dto";
@@ -51,6 +52,7 @@ export class ChatAuthService {
     private leads: LeadsService,
     private alerts: AlertsService,
     private sender: OtpSenderService,
+    private mail: MailService,
     config: ConfigService,
   ) {
     this.secret = config.get<string>("JWT_SECRET") ?? "";
@@ -102,6 +104,7 @@ export class ChatAuthService {
       data: {
         phone: dto.phone,
         name: dto.name.trim(),
+        email: dto.email ?? null,
         codeHash: this.hashCode(dto.phone, code),
         expiresAt: new Date(now + OTP_VALID_MINUTES * MINUTE),
         ip: ip ?? null,
@@ -109,16 +112,43 @@ export class ChatAuthService {
       select: { id: true },
     });
 
-    if (!isTest && !(await this.sender.send(dto.phone, code, OTP_VALID_MINUTES))) {
-      await this.prisma.chatOtp.update({ where: { id: row.id }, data: { usedAt: new Date() } });
-      throw new ServiceUnavailableException("We couldn't send the code just now. Please try again, or call us.");
+    // The code goes by SMS and, when the visitor gave an address, by email too. Either one getting through is enough.
+    let viaSms = isTest;
+    let viaEmail = false;
+    if (!isTest) {
+      [viaSms, viaEmail] = await Promise.all([
+        this.sender.send(dto.phone, code, OTP_VALID_MINUTES),
+        dto.email ? this.emailCode(dto.email, dto.name.trim(), code) : Promise.resolve(false),
+      ]);
+      if (!viaSms && !viaEmail) {
+        await this.prisma.chatOtp.update({ where: { id: row.id }, data: { usedAt: new Date() } });
+        throw new ServiceUnavailableException("We couldn't send the code just now. Please try again, or call us.");
+      }
     }
 
     // Housekeeping: old codes and passes are of no use to anyone.
     void this.prisma.chatOtp.deleteMany({ where: { expiresAt: { lt: new Date(now - DAY) } } }).catch(() => undefined);
     void this.prisma.chatSession.deleteMany({ where: { expiresAt: { lt: new Date(now) } } }).catch(() => undefined);
 
-    return { sent: true, resendAfterSeconds: OTP_RESEND_SECONDS, validMinutes: OTP_VALID_MINUTES };
+    return { sent: true, resendAfterSeconds: OTP_RESEND_SECONDS, validMinutes: OTP_VALID_MINUTES, viaSms, viaEmail };
+  }
+
+  private emailCode(to: string, name: string, code: string) {
+    const first = name.split(/\s+/)[0] || "there";
+    return this.mail.send({
+      to,
+      subject: `Your Growth Capital Services code: ${code}`,
+      text: [
+        `Hi ${first},`,
+        "",
+        `Your Growth Capital Services verification code is ${code}.`,
+        `It works for ${OTP_VALID_MINUTES} minutes. Please do not share it with anyone.`,
+        "",
+        "If you did not ask for this code, you can ignore this email.",
+        "",
+        "Growth Capital Services",
+      ].join("\n"),
+    });
   }
 
   async verify(dto: VerifyOtpDto) {
@@ -152,7 +182,7 @@ export class ChatAuthService {
     const used = await this.prisma.chatOtp.updateMany({ where: { id: otp.id, usedAt: null }, data: { usedAt: now } });
     if (used.count === 0) throw new BadRequestException("That code has already been used. Please ask for a new one.");
 
-    const leadId = await this.recordContact(otp.name, dto.phone);
+    const leadId = await this.recordContact(otp.name, dto.phone, otp.email);
 
     const token = randomBytes(32).toString("base64url");
     const expiresAt = new Date(now.getTime() + SESSION_DAYS * DAY);
@@ -163,10 +193,11 @@ export class ChatAuthService {
   }
 
   /** The person is a lead now, flagged as a chatbot contact whose number is confirmed. */
-  private async recordContact(name: string, phone: string) {
+  private async recordContact(name: string, phone: string, email: string | null) {
     const result = await this.leads.intake({
       name,
       phone,
+      ...(email ? { email } : {}),
       source: "website-chat",
       detail: "Confirmed their mobile number with a code to use the website chat.",
     } as PublicLeadDto);
@@ -176,7 +207,7 @@ export class ChatAuthService {
         leadNo: result.leadNo,
         name,
         phone,
-        email: null,
+        email,
         city: null,
         source: "website-chat",
         loanType: null,

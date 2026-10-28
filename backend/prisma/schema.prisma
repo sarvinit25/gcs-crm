@@ -434,6 +434,8 @@ model ChatOtp {
   phone     String
   codeHash  String
   name      String
+  /// Where the code was also emailed, when the visitor gave an address.
+  email     String?
   attempts  Int       @default(0)
   expiresAt DateTime
   usedAt    DateTime?
