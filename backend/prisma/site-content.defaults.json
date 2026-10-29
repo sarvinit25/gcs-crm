@@ -2589,6 +2589,43 @@
         "whyBody": "Our volume with lenders gets you pricing you'd rarely get alone."
       }
     ],
+    "home.lenders": [
+      {
+        "icon": "Percent",
+        "label": "How the interest rate is set",
+        "v1": "Often follows a published benchmark",
+        "v2": "Can respond more to the market",
+        "v3": "Often based on your profile"
+      },
+      {
+        "icon": "FileText",
+        "label": "Documents and checks",
+        "v1": "Usually step by step, with set checks",
+        "v2": "Often led by the relationship",
+        "v3": "Often more flexible on proofs"
+      },
+      {
+        "icon": "Briefcase",
+        "label": "Support for self-employed applicants",
+        "v1": "Usually more selective",
+        "v2": "Moderate",
+        "v3": "Often stronger"
+      },
+      {
+        "icon": "Clock",
+        "label": "Time to process",
+        "v1": "Can take longer",
+        "v2": "Often quicker",
+        "v3": "Can be quick"
+      },
+      {
+        "icon": "Handshake",
+        "label": "Room to negotiate",
+        "v1": "Usually limited",
+        "v2": "Sometimes possible",
+        "v3": "Case by case"
+      }
+    ],
     "home.steps": [
       {
         "icon": "Phone",
@@ -4345,6 +4382,39 @@
       ]
     },
     {
+      "key": "home.lenders",
+      "page": "Home",
+      "label": "Which kind of lender: table rows",
+      "hint": "One row per factor. The three column names are set under Headings & buttons.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "label",
+          "label": "Factor",
+          "kind": "text"
+        },
+        {
+          "key": "v1",
+          "label": "First column",
+          "kind": "text"
+        },
+        {
+          "key": "v2",
+          "label": "Second column",
+          "kind": "text"
+        },
+        {
+          "key": "v3",
+          "label": "Third column",
+          "kind": "text"
+        }
+      ]
+    },
+    {
       "key": "home.steps",
       "page": "Home",
       "label": "How it works",
@@ -5182,6 +5252,14 @@
     "who.stories": "Real Clients, Real Outcomes",
     "why.eyebrow": "Why Growth Capital",
     "why.title": "A lender offers you a loan. We help you pick the right one.",
+    "lenders.eyebrow": "Know Your Options",
+    "lenders.title": "Which kind of lender may suit you?",
+    "lenders.body": "Banks and NBFCs do not all work the same way. Here is a simple, general guide to how the main types usually differ.",
+    "lenders.col1": "Public Sector Banks",
+    "lenders.col2": "Private Banks",
+    "lenders.col3": "NBFCs & Housing Finance Cos.",
+    "lenders.note": "This is a general guide only. Interest rate, loan amount, tenure, charges, eligibility, approval and disbursement depend on each Bank or NBFC's policy, your profile and its credit assessment.",
+    "lenders.button": "Compare Loan Options",
     "how.eyebrow": "How It Works",
     "how.title": "From hello to disbursal in four steps",
     "concerns.eyebrow": "Common Concerns",
@@ -5189,6 +5267,7 @@
     "concerns.body": "Real questions we hear before someone signs — and how we handle each one.",
     "cta.title": "Ready to move your loan",
     "cta.gold": "forward?",
+    "cta.call": "Call {phone} · {hours}",
     "cta.primary": "Apply Now",
     "cta.secondary": "WhatsApp Us",
     "network.eyebrow": "Our Network",
@@ -5336,6 +5415,55 @@
       ]
     },
     {
+      "id": "lenders",
+      "label": "Which kind of lender",
+      "hint": "The table comparing public banks, private banks and NBFCs. The rows are under Blocks.",
+      "fields": [
+        {
+          "id": "lenders.eyebrow",
+          "label": "Small line",
+          "text": "Know Your Options"
+        },
+        {
+          "id": "lenders.title",
+          "label": "Heading",
+          "text": "Which kind of lender may suit you?"
+        },
+        {
+          "id": "lenders.body",
+          "label": "Text",
+          "text": "Banks and NBFCs do not all work the same way. Here is a simple, general guide to how the main types usually differ.",
+          "long": true
+        },
+        {
+          "id": "lenders.col1",
+          "label": "First column",
+          "text": "Public Sector Banks"
+        },
+        {
+          "id": "lenders.col2",
+          "label": "Second column",
+          "text": "Private Banks"
+        },
+        {
+          "id": "lenders.col3",
+          "label": "Third column",
+          "text": "NBFCs & Housing Finance Cos."
+        },
+        {
+          "id": "lenders.note",
+          "label": "Note under the table",
+          "text": "This is a general guide only. Interest rate, loan amount, tenure, charges, eligibility, approval and disbursement depend on each Bank or NBFC's policy, your profile and its credit assessment.",
+          "long": true
+        },
+        {
+          "id": "lenders.button",
+          "label": "Button",
+          "text": "Compare Loan Options"
+        }
+      ]
+    },
+    {
       "id": "how",
       "label": "How it works",
       "hint": "The heading above the steps.",
@@ -5378,7 +5506,7 @@
     {
       "id": "cta",
       "label": "Closing banner",
-      "hint": "The call to action near the bottom. The phone number and hours under it come from Contact & CIBIL.",
+      "hint": "The call to action near the bottom.",
       "fields": [
         {
           "id": "cta.title",
@@ -5389,6 +5517,11 @@
           "id": "cta.gold",
           "label": "Last word of the heading (gold)",
           "text": "forward?"
+        },
+        {
+          "id": "cta.call",
+          "label": "Line under the heading ({phone} and {hours} come from Contact & CIBIL)",
+          "text": "Call {phone} · {hours}"
         },
         {
           "id": "cta.primary",
