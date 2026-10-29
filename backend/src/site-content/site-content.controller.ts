@@ -21,6 +21,7 @@ export const SITE_CONTENT_KEYS = [
   "customPages",
   "images",
   "lists",
+  "homeText",
 ] as const;
 /** Wording edited per language: pageText:hi, pageText:mr. */
 const LANGUAGE_KEY = /^pageText:(hi|mr)$/;
@@ -99,6 +100,16 @@ function assertLists(value: unknown) {
   }
 }
 
+/** homeText maps a Home page field (like "hero.title") to the wording to show there. */
+function assertHomeText(value: unknown) {
+  if (Array.isArray(value)) throw new BadRequestException("Home page wording must be a set of fields");
+  for (const [id, text] of Object.entries(value as Record<string, unknown>)) {
+    if (!/^[a-z]+\.[a-zA-Z]+$/.test(id) || id.length > 60 || typeof text !== "string" || text.length > 2000) {
+      throw new BadRequestException("Home page wording must be short plain text");
+    }
+  }
+}
+
 /** trustNumbers maps a figure on the site to the figure to show instead, e.g. "75+" -> "90+". */
 function assertFigures(value: unknown) {
   if (Array.isArray(value)) throw new BadRequestException("Figures must be a list of replacements");
@@ -135,6 +146,7 @@ function validate(key: string, value: unknown) {
   if (key === "trustNumbers") assertFigures(value);
   if (key === "customPages") assertPages(value);
   if (key === "lists") assertLists(value);
+  if (key === "homeText") assertHomeText(value);
 }
 
 /** What the marketing website reads: every edited section, keyed by name. */

@@ -72,9 +72,13 @@ type Content = {
   lists?: Lists;
   listSpecs?: ListSpec[];
   iconNames?: string[];
+  homeText?: Record<string, string>;
+  homeTextSpec?: HomeTextSection[];
   "pageText:hi"?: PageTextMap;
   "pageText:mr"?: PageTextMap;
 };
+type HomeTextField = { id: string; label: string; text: string; long?: boolean };
+type HomeTextSection = { id: string; label: string; hint: string; fields: HomeTextField[] };
 type PageTextMap = Record<string, Record<string, string>>;
 type ImageMap = Record<string, string>;
 type RateRow = {
@@ -124,10 +128,15 @@ type ListSpec = {
 };
 type ListItem = Record<string, string>;
 type Lists = Record<string, ListItem[]>;
-type Section = "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type Section = "homeText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "homeText",
+    label: "Headings & buttons",
+    help: "The wording on the Home page that is not in a repeated block: the opening statement, section headings, buttons and the closing banner.",
+  },
   {
     id: "customPages",
     label: "New pages & articles",
@@ -223,9 +232,19 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
  * Admin-only editor for the text on the public website. Until staff save a section, the website
  * shows the copy built into it; saving here replaces it, and "Reset" brings the built-in copy back.
  */
-export function WebsiteContent() {
+/** The sections that belong to the Home page tab, with the names that make sense there. */
+const HOME_SCOPE: Partial<Record<Section, string>> = {
+  homeText: "Headings & buttons",
+  lists: "Blocks (hero points, steps, banks…)",
+  testimonials: "Client stories",
+  trustNumbers: "Trust figures",
+  images: "Pictures",
+  seo: "Google listing",
+};
+
+export function WebsiteContent({ scope }: { scope?: "home" } = {}) {
   const queryClient = useQueryClient();
-  const [section, setSection] = useState<Section>("pageText");
+  const [section, setSection] = useState<Section>(scope === "home" ? "homeText" : "pageText");
 
   const saved = useQuery({
     queryKey: ["site-content"],
@@ -277,7 +296,7 @@ export function WebsiteContent() {
         have not changed keep the copy built into the website.
       </p>
       <div className="mb-4 flex flex-wrap gap-1">
-        {SECTIONS.map((s) => (
+        {SECTIONS.filter((s) => scope !== "home" || s.id in HOME_SCOPE).map((s) => (
           <button
             key={s.id}
             onClick={() => setSection(s.id)}
@@ -288,7 +307,7 @@ export function WebsiteContent() {
                 : "border border-line bg-white text-muted hover:text-navy",
             )}
           >
-            {s.label}
+            {scope === "home" ? (HOME_SCOPE[s.id] ?? s.label) : s.label}
             {savedByKey.has(s.id) && <span className="ml-1.5 text-[10px] text-gold">● edited</span>}
           </button>
         ))}
@@ -321,8 +340,9 @@ export function WebsiteContent() {
         section={section}
         initial={initial}
         builtIn={builtIn}
-        seoPages={defaults.data?.seoPages ?? []}
-        listSpecs={defaults.data?.listSpecs ?? []}
+        seoPages={(defaults.data?.seoPages ?? []).filter((p) => scope !== "home" || p.path === "/")}
+        listSpecs={(defaults.data?.listSpecs ?? []).filter((s) => scope !== "home" || s.page === "Home")}
+        homeSpec={defaults.data?.homeTextSpec ?? []}
         busy={save.isPending || reset.isPending}
         canReset={!!row}
         onSave={(value) => save.mutate({ key: section, value })}
@@ -336,6 +356,7 @@ type EditorProps = {
   section: Section;
   seoPages: SeoPage[];
   listSpecs: ListSpec[];
+  homeSpec: HomeTextSection[];
   initial: unknown;
   builtIn: unknown;
   busy: boolean;
@@ -344,7 +365,7 @@ type EditorProps = {
   onReset: () => void;
 };
 
-function Editor({ section, seoPages, listSpecs, initial, builtIn, busy, canReset, onSave, onReset }: EditorProps) {
+function Editor({ section, seoPages, listSpecs, homeSpec, initial, builtIn, busy, canReset, onSave, onReset }: EditorProps) {
   const [draft, setDraft] = useState<unknown>(initial);
   const dirty = !same(draft, initial);
 
@@ -368,6 +389,9 @@ function Editor({ section, seoPages, listSpecs, initial, builtIn, busy, canReset
 
   return (
     <div>
+      {section === "homeText" && (
+        <HomeTextEditor value={draft as Record<string, string>} spec={homeSpec} onChange={setDraft} />
+      )}
       {section === "customPages" && (
         <PagesEditor value={draft as CustomPage[]} onChange={setDraft} />
       )}
@@ -430,6 +454,70 @@ function Editor({ section, seoPages, listSpecs, initial, builtIn, busy, canReset
         )}
         {dirty && <span className="text-[12px] text-muted">Unsaved changes</span>}
       </div>
+    </div>
+  );
+}
+
+/** The Home page's headings, buttons and opening statement, grouped as they appear on the page. */
+function HomeTextEditor({
+  value,
+  spec,
+  onChange,
+}: {
+  value: Record<string, string>;
+  spec: HomeTextSection[];
+  onChange: (v: unknown) => void;
+}) {
+  if (spec.length === 0) {
+    return <p className="text-sm text-muted">The website has not shared its Home page wording yet.</p>;
+  }
+  return (
+    <div className="space-y-5">
+      {spec.map((sec) => (
+        <div key={sec.id} className="rounded-lg border border-line p-4">
+          <p className="text-[13px] font-bold text-navy">{sec.label}</p>
+          <p className="mb-3 text-[12px] text-muted">{sec.hint}</p>
+          <div className="space-y-3">
+            {sec.fields.map((f) => {
+              const current = value[f.id] ?? f.text;
+              const changed = current !== f.text;
+              const set = (text: string) => onChange({ ...value, [f.id]: text });
+              return (
+                <label key={f.id} className="block">
+                  <span className="flex items-center gap-2 text-[11px] font-bold tracking-wide text-muted uppercase">
+                    {f.label}
+                    {changed && (
+                      <button
+                        type="button"
+                        onClick={() => set(f.text)}
+                        className="font-semibold normal-case text-gold hover:underline"
+                      >
+                        Use the built-in wording
+                      </button>
+                    )}
+                  </span>
+                  {f.long ? (
+                    <textarea
+                      value={current}
+                      onChange={(e) => set(e.target.value)}
+                      rows={3}
+                      maxLength={2000}
+                      className="field mt-1"
+                    />
+                  ) : (
+                    <input
+                      value={current}
+                      onChange={(e) => set(e.target.value)}
+                      maxLength={300}
+                      className="field mt-1"
+                    />
+                  )}
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

@@ -7,7 +7,7 @@
       },
       {
         "q": "Are there any upfront charges?",
-        "a": "No advisory fee for customers — we're paid by the lender only on successful disbursal."
+        "a": "No advisory fee on most loans. For cash-flow and trade facilities and the two micro loans there is a service fee for managing your file, shown on that loan's page. In every case we tell you the amount in writing before you go ahead, so there are no surprises."
       },
       {
         "q": "Can you help if my application was rejected elsewhere?",
@@ -55,7 +55,7 @@
     "mumbai": [
       {
         "q": "Where exactly is your Mumbai office?",
-        "a": "CCTV Towers, Andheri-Ghatkopar Road, Ghatkopar West, Mumbai 400084 — a short walk from Ghatkopar station on both the suburban line and Metro Line 1."
+        "a": "Avadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084."
       },
       {
         "q": "Can I meet an expert in person?",
@@ -212,8 +212,7 @@
         "Indian citizen with a property in India to offer as security; NRIs can apply with select lenders (see the NRI section below)",
         "Salaried, self-employed professional or self-employed business owner",
         "If salaried, generally at least 1 year with your current employer",
-        "A CIBIL score of around 750 or above may help you get better terms; lower scores are reviewed case by case",
-        "Residential, commercial or industrial property that can be pledged as security"
+        "A CIBIL score of around 750 or above may help you get better terms; lower scores are reviewed case by case"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -236,6 +235,51 @@
         {
           "label": "Minimum ticket size",
           "value": "₹20 Lakh"
+        }
+      ]
+    },
+    "micro-lap": {
+      "title": "Micro Loan Against Property",
+      "tagline": "Your Property Can Help Meet Your Funding Needs",
+      "about": "Get funds against your eligible property for business or personal financial needs, while continuing to own and use your property. Micro Loan Against Property (Micro LAP) is designed for eligible salaried and self-employed customers looking for relatively smaller property-backed funding with simple assessment and documentation. Explore property-backed funding options generally ranging from ₹3 Lakh to ₹20 Lakh*. The applicable loan amount depends on the selected program, property value, income / repayment capacity, credit profile and lender policy.",
+      "features": [
+        "Longer repayment tenure available under eligible programs",
+        "Different assessment options depending on the property and customer profile",
+        "Higher LTV may be available depending on the applicable scheme and property",
+        "ITR and GST may not be required under certain eligible programs",
+        "Simple documentation"
+      ],
+      "eligibility": [
+        "Salaried individuals",
+        "Self-employed professionals",
+        "Business owners",
+        "Proprietors",
+        "Partners / Directors, subject to lender criteria",
+        "Family or clubbed income may also be considered under certain eligible programs"
+      ],
+      "documents": [
+        "Registered Sale Deed",
+        "Property ownership documents",
+        "Namuna 8 / 7/12 extract, where applicable",
+        "Other title / property documents required for legal and technical verification",
+        "The exact documentation depends on the property type, location and the lender's legal requirements"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "₹3 Lakh to ₹20 Lakh*"
+        },
+        {
+          "label": "Tenure",
+          "value": "12 to 120 months*"
+        },
+        {
+          "label": "Indicative rate",
+          "value": "19% to 24% p.a. reducing*"
+        },
+        {
+          "label": "For",
+          "value": "Salaried and self-employed"
         }
       ]
     },
@@ -325,17 +369,28 @@
         "Legal, technical and valuation checks coordinated on your behalf"
       ],
       "eligibility": [
-        "Sanctioned building plans and clear, marketable land title",
-        "The developer's own contribution already committed to the project",
-        "A track record of completed projects is preferred, though not always mandatory",
-        "A developer or company registered in India",
+        "Builder with 8 to 10 or more completed projects, and 5 lakh sq. ft. or more delivered",
+        "8 to 10 years or more in the real estate sector",
+        "2 or more projects currently under execution",
+        "A construction finance or term loan track record, and positive references from reputed developers, financial institutions or property consultants",
+        "Funding need of ₹5 Cr or more",
+        "Project land owned by the builder, or held through a joint venture",
+        "Project in a city or town with a population of more than 3 lakh",
+        "Construction already above plinth level, and at least 10% of the units sold at sanction",
+        "Project approved by the Municipal Corporation or Town Planning Authority",
+        "Project within 50 km of the city centre, and within 10 km of a National Highway and a railway station",
+        "Builder's own equity of at least 50% of the proposed loan amount",
         "A good credit record for the developer, its promoters and group companies",
-        "Residential, commercial or mixed-use projects"
+        "These points are a guide. Each lender sets its own benchmarks, and a project that misses one or two can still be reviewed"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
-        "Project report with cost and sales projections",
-        "Approvals, plans and land title documents"
+        "Audited financials, ITRs and 12 months' bank statements of the builder",
+        "Project report with cost, funding plan and sales projections",
+        "Approved plans, Commencement Certificate, RERA registration and other approvals",
+        "Land title deeds, title search report and development / joint venture agreements",
+        "Unit-wise sales statement, and the builder's equity already invested",
+        "List of completed and ongoing projects, and details of existing loans"
       ],
       "facts": [
         {
@@ -398,6 +453,48 @@
         {
           "label": "Minimum ticket size",
           "value": "₹2 Lakh"
+        }
+      ]
+    },
+    "micro-business-loan": {
+      "title": "Micro Business Loan",
+      "tagline": "Small Business. Simple Funding. More Growth.",
+      "about": "Get unsecured business funding for your day-to-day business needs, without providing property as collateral. Designed for eligible small business owners, shopkeepers, traders and self-employed customers who need funds to manage or grow their business.",
+      "features": [
+        "ITR and GST may not be required under eligible programs*",
+        "Assessment based on business profile, banking and lender criteria",
+        "Simple documentation, subject to lender policy"
+      ],
+      "eligibility": [
+        "Focus customers: self-employed individuals, sole proprietorship firms, partnership firms, limited liability partnerships and private limited companies",
+        "Age: minimum 25 years and maximum 65 years",
+        "A female co-applicant is required where the applicant is male (an exception may be allowed with a deviation)",
+        "Minimum average bank balance (ABB) of ₹2,000",
+        "Property owner on the deal: not mandatory for loans up to ₹2 Lakh (an owner declaration is kept on record in the lender's format), and mandatory for loans above ₹2 Lakh up to ₹10 Lakh"
+      ],
+      "documents": [
+        "KYC documents: PAN, Aadhaar and other applicable KYC documents",
+        "Latest bank statements: generally the latest 6 months' banking may be required",
+        "Business proof: proof showing the business is operational, generally for the required business vintage",
+        "Business ownership / address proof: applicable business premises or ownership / address proof, such as an electricity bill or other acceptable document",
+        "Additional documents may be requested depending on your profile and lender policy"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "₹1 Lakh to ₹10 Lakh*"
+        },
+        {
+          "label": "Tenure",
+          "value": "12 to 48 months*"
+        },
+        {
+          "label": "Indicative rate",
+          "value": "22% to 27% p.a. reducing*"
+        },
+        {
+          "label": "Security",
+          "value": "No property collateral required*"
         }
       ]
     },
@@ -604,7 +701,6 @@
       "tagline": "Win the contract with your bank behind you.",
       "about": "A bank guarantee is a written promise from the bank to the other party that you will pay or complete the work as agreed. It helps you bid for and sign contracts with more confidence.",
       "features": [
-        "Financial and performance guarantees",
         "Bid bonds, EMDs, security deposits and advance-payment BGs",
         "Commission and margin requirement negotiated on your behalf",
         "Fast issuance and amendments when terms change"
@@ -640,7 +736,6 @@
       "tagline": "Suppliers paid on time, your cash kept free.",
       "about": "A letter of credit is a payment promise given by the bank to your supplier. It may help you get better credit terms without using your own working capital.",
       "features": [
-        "Inland and import LCs",
         "Sight or usance structures",
         "Buyer's credit tie-ups arranged where available",
         "Support with documentation and resolving discrepancies"
@@ -678,15 +773,13 @@
       "features": [
         "Funds against genuine invoices raised on your customers",
         "Helps cover the gap between selling and getting paid",
-        "Repayment is linked to your customer's payment",
         "Can work alongside a cash credit or overdraft limit, as per lender policy",
         "Limits and charges depend on the lender and on your customers"
       ],
       "eligibility": [
         "A business that sells goods or services to other businesses on credit",
         "Genuine invoices from customers with a good payment record",
-        "Business and banking records that show a steady turnover",
-        "Final eligibility depends on the lender's policy and credit assessment"
+        "Business and banking records that show a steady turnover"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
@@ -838,7 +931,6 @@
       "tagline": "From showroom to driveway, fully funded.",
       "about": "Financing for the on-road price of a new car. We help with the dealer paperwork, such as the invoice, insurance and RTO, from quotation to delivery.",
       "features": [
-        "Funding up to 100% of the on-road price for eligible profiles",
         "Dealer and insurance coordination handled on your behalf",
         "Pricing may be better for salaried applicants with a stable employer",
         "Fast sanction on light documentation"
@@ -955,16 +1047,12 @@
       "about": "Financing for new and used commercial vehicles such as trucks, buses and light goods vehicles. It helps a business add or replace vehicles without putting a large amount of its own money upfront. We compare options from Banks and NBFCs that may suit your business.",
       "features": [
         "Finance for new and used commercial vehicles",
-        "Funding of up to 100%* of the vehicle value for eligible profiles",
-        "Used commercial vehicles: up to 80% finance",
-        "Repayment of up to 7 years",
         "No penalty for early repayment on eligible loans, as per lender terms",
         "Simpler documents"
       ],
       "eligibility": [
         "A business or person who will use the vehicle for commercial work",
         "Income or business proof to show that you can repay the loan",
-        "Final eligibility, amount and terms depend on the lender's policy and the vehicle",
         "Resident Indian: an individual transporter, proprietorship, firm or company",
         "At least 1 year of experience in transport or the business the vehicle is for",
         "A CIBIL score of around 700 or above may help you get better terms; lower scores are reviewed case by case"
@@ -999,9 +1087,7 @@
         "Rates are usually lower than personal loans",
         "No prepayment charges and no foreclosure charges, as per lender policy",
         "Interest is charged only on the amount you use, and only for the days you use it",
-        "Funding of up to 50% of the market value of your pledged assets, on the lender's approved list",
         "Promoter funding: a special type of LAS where promoters pledge company shares to raise funds, subject to the lender's approved company list",
-        "Up to ₹1 Cr: a fully digital process",
         "₹1 Cr to ₹3 Cr: a mix of digital and paper process, with no ITR required",
         "Above ₹3 Cr: a mix of digital and paper process, with 3 years of ITR required"
       ],
@@ -1080,27 +1166,32 @@
     "private-funding": {
       "title": "Private Funding",
       "tagline": "Fast money when the clock is ticking.",
-      "about": "Short-term funds without collateral from private lenders, for self-employed businesses with a steady turnover who need cash quickly. This product is not for salaried individuals. Minimum business turnover is generally ₹25 Cr+ for Mumbai, Hyderabad, Bangalore and Chennai, and ₹100 Cr+ for the rest of India, as per lender policy. Private credit usually costs much more than bank loans, so we share every rate and repayment term in writing before you decide.",
+      "about": "Unsecured private business funding, perfect for expansion, working capital or short-term opportunities. Private credit usually costs more than a bank loan, so we share every rate, fee and repayment term in writing before you decide. Final terms depend on the lender and your business profile.",
       "features": [
-        "Loan amounts from ₹1 Cr to ₹50 Cr, for a short period of 4 to 8 months",
-        "Funding for expansion, working capital or short-term business needs",
-        "Fast turnaround — funding arranged within 24–48 hours",
-        "Rate and terms evaluated on your business profile, turnover and profitability",
-        "Structured without collateral, subject to the case and profile",
-        "Minimal documentation. The checklist is the same for an individual, a partnership firm and a company",
-        "Repayment is secured through post-dated cheques (PDCs), as per the lender's structure",
-        "Flexible EMI/repayment terms, discussed and structured to your need",
-        "Interest is never cut upfront — you receive the full agreed funding amount",
-        "Processing fee and documentation charges as per the applicable structure"
+        "No CIBIL check and minimal documentation",
+        "Zero upfront fees, no collateral required",
+        "A simple digital process",
+        "Flexible repayment options, as per your convenience",
+        "Top-up facility for strong repayers, after a good repayment record",
+        "Suited to corporates, traders and business houses, including manufacturing units, exporters, hospitals and manpower supply businesses",
+        "Rate and terms worked out on your business profile, turnover and profitability"
       ],
       "eligibility": [
-        "Self-employed businesses only: an individual, a partnership firm or a company. This product is not for salaried individuals",
-        "A business with consistent turnover",
-        "Turnover of ₹25 Cr+ for Mumbai, Hyderabad, Bangalore and Chennai, and ₹100 Cr+ for the rest of India, as per lender policy",
-        "Repayment secured through post-dated cheques (PDCs), as per the lender's structure"
+        "Self-employed businesses only. Not for salaried individuals",
+        "Businesses with consistent turnover",
+        "₹20–25 Cr+ turnover for Hyderabad, Bangalore, Mumbai and Chennai",
+        "₹100 Cr+ turnover for the rest of India",
+        "Repayment secured through post-dated cheques, as per the lender's structure",
+        "The same checklist applies to an individual, a partnership firm and a company"
       ],
       "documents": [
         "KYC (PAN, Aadhaar, address proof)",
+        "ITRs with financials, certified by a CA, for the latest 3 years, and Form 26AS for 2 years",
+        "Business current and savings account bank statements for 12 months, and GSTR 3B for 12 months",
+        "Business proof as per your business type",
+        "Top 5 customers and suppliers, latest order copies, company profile, loan end-use details and debtors ageing",
+        "All loan sanction letters and loan statements, if you have an existing loan",
+        "CA attested net worth certificate",
         "Purpose note and repayment plan"
       ],
       "facts": [
@@ -1122,7 +1213,7 @@
         },
         {
           "label": "Security",
-          "value": "No property required"
+          "value": "No collateral, post-dated cheques"
         }
       ]
     }
@@ -1475,7 +1566,7 @@
     "property-title-verification": {
       "division": "Legal Services",
       "title": "Property Title Verification & Due Diligence",
-      "summary": "Review of ownership documents, title chain, encumbrances and approvals before a property purchase. We flag anything that could complicate the sale — a pending litigation, an unclear share, or a missing approval — before you commit funds.",
+      "summary": "We undertake comprehensive verification of property title and ownership documents, including the chain of title, encumbrances, charges, mortgages, claims, pending litigation and property records. We identify title defects, ownership discrepancies and missing documents, assess potential legal risks, and provide appropriate legal observations and recommendations to facilitate informed decisions.",
       "whoNeedsIt": "Buyers wanting a professional check on a property's title and documentation before committing. Especially important for resale flats, ancestral property, or anything without a clean, recent chain of ownership.",
       "process": [
         "Property and seller documents collected",
@@ -1483,9 +1574,15 @@
         "Written observations shared with you"
       ],
       "documents": [
-        "Title documents/chain",
-        "7/12 extract or property card",
-        "Encumbrance certificate, where available"
+        "Original registered Sale Deed, Conveyance Deed or other ownership document",
+        "Previous title deeds and chain of ownership documents, where required",
+        "Latest Index II",
+        "Latest Property Card / 7/12 Extract / 8A Extract, as applicable",
+        "Latest mutation entries and supporting orders, if applicable",
+        "Latest property tax bill and paid receipts",
+        "Complete property details, including area, address, CTS / Survey / Gat number, as applicable",
+        "Details of mortgages, loans, encumbrances, litigation or third-party claims, if any",
+        "Power of Attorney, if applicable"
       ]
     },
     "sale-agreement-sale-deed": {
@@ -1538,7 +1635,7 @@
     "society-share-transfer": {
       "division": "Legal Services",
       "title": "Housing Society Share Transfer",
-      "summary": "Documentation support for transferring share certificates and flat ownership within a housing society. We prepare the transfer application in the format each society typically expects, to avoid back-and-forth.",
+      "summary": "We provide legal documentation assistance for the transfer of society shares and flat ownership in housing societies. Our services include preparation and review of transfer applications, forms, declarations and supporting documents in accordance with applicable laws, society bye-laws and prescribed procedures, ensuring accurate and smooth completion of the transfer formalities.",
       "whoNeedsIt": "Flat owners transferring ownership after a sale, gift or family transfer within a co-operative society. Required whenever a flat changes hands, since the society's own records must be updated alongside the deed.",
       "process": [
         "Transfer type and society requirements confirmed",
@@ -1716,8 +1813,8 @@
   "siteInfo": {
     "phone": "+91 88280 01700",
     "whatsapp": "918828001700",
-    "email": "growthcs17@gmail.com",
-    "address": "CCTV Towers, Andheri-Ghatkopar Rd, Bhatwadi, Kaju Pada, Barve Nagar, Ghatkopar West, Mumbai 400084",
+    "email": "connect.gcs@growthcapitalservices.in",
+    "address": "Avadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084",
     "hours": "Monday to Saturday · 10:00 AM – 6:00 PM",
     "reportPrice": 500,
     "upiId": "",
@@ -1921,6 +2018,12 @@
       "description": ""
     },
     {
+      "path": "/services/micro-lap",
+      "label": "Loan: Micro Loan Against Property",
+      "title": "",
+      "description": ""
+    },
+    {
       "path": "/services/lease-rental-discounting",
       "label": "Loan: Lease Rental Discounting",
       "title": "",
@@ -1941,6 +2044,12 @@
     {
       "path": "/services/business-loan",
       "label": "Loan: Business Loan",
+      "title": "",
+      "description": ""
+    },
+    {
+      "path": "/services/micro-business-loan",
+      "label": "Loan: Micro Business Loan",
       "title": "",
       "description": ""
     },
@@ -2343,7 +2452,7 @@
       "published": false,
       "showInFooter": true,
       "summary": "How Growth Capital Services collects, uses and protects your personal information.",
-      "body": "## Who we are\n\nGrowth Capital Services (\"we\", \"us\") is a loan advisory and facilitation firm. This policy explains what personal information we collect through this website, why, and the choices you have.\n\n## What we collect\n\n- Details you give us in forms: name, mobile number, email, city, the loan you need and the amount.\n- Details you share while we work on your enquiry, such as income, employment and property information, and identity and address documents.\n- Basic technical data when you visit: pages viewed, device and browser type, and the page you came from, collected through cookies and analytics tools.\n\n## How we use it\n\n- To contact you about your enquiry and assess which lenders may suit your profile.\n- To prepare and submit your loan application to banks and NBFCs you ask us to approach.\n- To send you updates about your file, and, where you agree, information about our services.\n- To keep our records, meet legal obligations and improve this website.\n\n## Who we share it with\n\nWe share your details with the banks, NBFCs and service providers (for example valuers, legal and technical agencies, and credit bureaus) needed to process your request, and only for that purpose. We do not sell your personal information.\n\n## Credit reports\n\nIf you ask us to fetch a credit report, we do so only with your consent and use it only to advise you on your request.\n\n## How long we keep it\n\nWe keep your information for as long as needed to serve you and to meet legal and record-keeping requirements, and then delete or anonymise it.\n\n## Security\n\nWe use reasonable technical and organisational safeguards to protect your information. No system is completely secure, so please share sensitive documents only through the channels we give you.\n\n## Your choices\n\nYou may ask to see, correct or delete the personal information we hold about you, or withdraw your consent to marketing, by contacting us below. We will respond within a reasonable time.\n\n## Cookies\n\nWe use cookies and similar tools to make the site work and to understand how it is used. You can control cookies in your browser settings.\n\n## Contact\n\nCCTV Towers, Andheri-Ghatkopar Rd, Bhatwadi, Kaju Pada, Barve Nagar, Ghatkopar West, Mumbai 400084. Email: growthcs17@gmail.com. Phone: +91 88280 01700."
+      "body": "## Who we are\n\nGrowth Capital Services (\"we\", \"us\") is a loan advisory and facilitation firm. This policy explains what personal information we collect through this website, why, and the choices you have.\n\n## What we collect\n\n- Details you give us in forms: name, mobile number, email, city, the loan you need and the amount.\n- Details you share while we work on your enquiry, such as income, employment and property information, and identity and address documents.\n- Basic technical data when you visit: pages viewed, device and browser type, and the page you came from, collected through cookies and analytics tools.\n\n## How we use it\n\n- To contact you about your enquiry and assess which lenders may suit your profile.\n- To prepare and submit your loan application to banks and NBFCs you ask us to approach.\n- To send you updates about your file, and, where you agree, information about our services.\n- To keep our records, meet legal obligations and improve this website.\n\n## Who we share it with\n\nWe share your details with the banks, NBFCs and service providers (for example valuers, legal and technical agencies, and credit bureaus) needed to process your request, and only for that purpose. We do not sell your personal information.\n\n## Credit reports\n\nIf you ask us to fetch a credit report, we do so only with your consent and use it only to advise you on your request.\n\n## How long we keep it\n\nWe keep your information for as long as needed to serve you and to meet legal and record-keeping requirements, and then delete or anonymise it.\n\n## Security\n\nWe use reasonable technical and organisational safeguards to protect your information. No system is completely secure, so please share sensitive documents only through the channels we give you.\n\n## Your choices\n\nYou may ask to see, correct or delete the personal information we hold about you, or withdraw your consent to marketing, by contacting us below. We will respond within a reasonable time.\n\n## Cookies\n\nWe use cookies and similar tools to make the site work and to understand how it is used. You can control cookies in your browser settings.\n\n## Contact\n\nAvadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084. Email: connect.gcs@growthcapitalservices.in. Phone: +91 88280 01700."
     },
     {
       "slug": "terms-and-conditions",
@@ -2352,7 +2461,7 @@
       "published": false,
       "showInFooter": true,
       "summary": "The terms for using the Growth Capital Services website and our advisory services.",
-      "body": "## About these terms\n\nBy using this website or contacting Growth Capital Services you agree to these terms. If you do not agree, please do not use the site.\n\n## What we do\n\nWe are a loan advisory and facilitation firm. We help you compare options across banks and NBFCs and support you through documentation and processing. We are not a bank or lender, and we do not sanction or disburse loans ourselves.\n\n## No guarantee of approval\n\nWhether a loan is approved, and its amount, rate and terms, is decided by the lender alone. Information on this site, including interest rates, calculators and eligibility tools, is indicative and is not an offer or commitment.\n\n## Our fees\n\nWe do not charge customers an advisory fee for arranging a loan unless we tell you otherwise in writing before you proceed. We are paid by the lender on successful disbursal. Lenders may charge their own processing and other fees, which will be stated in their sanction documents.\n\n## Your responsibilities\n\n- Give us accurate and complete information and documents.\n- Tell us promptly if anything changes.\n- Do not misuse the site or attempt to disrupt it.\n\n## Third-party content and links\n\nLinks to other websites are for convenience. We are not responsible for their content or practices.\n\n## Limitation of liability\n\nTo the extent permitted by law, we are not liable for any indirect or consequential loss arising from use of this site or from a lender's decision.\n\n## Changes\n\nWe may update these terms from time to time. The version on this page applies from the date it is published.\n\n## Governing law\n\nThese terms are governed by the laws of India, and the courts at Mumbai have jurisdiction.\n\n## Contact\n\nCCTV Towers, Andheri-Ghatkopar Rd, Bhatwadi, Kaju Pada, Barve Nagar, Ghatkopar West, Mumbai 400084. Email: growthcs17@gmail.com. Phone: +91 88280 01700."
+      "body": "## About these terms\n\nBy using this website or contacting Growth Capital Services you agree to these terms. If you do not agree, please do not use the site.\n\n## What we do\n\nWe are a loan advisory and facilitation firm. We help you compare options across banks and NBFCs and support you through documentation and processing. We are not a bank or lender, and we do not sanction or disburse loans ourselves.\n\n## No guarantee of approval\n\nWhether a loan is approved, and its amount, rate and terms, is decided by the lender alone. Information on this site, including interest rates, calculators and eligibility tools, is indicative and is not an offer or commitment.\n\n## Our fees\n\nWe do not charge customers an advisory fee for arranging most loans. For some facilities, such as cash-flow and trade facilities and the two micro loans, we charge a service fee, which is shown on that loan's page. We always tell you any fee in writing before you proceed. Lenders may charge their own processing and other fees, which will be stated in their sanction documents.\n\n## Your responsibilities\n\n- Give us accurate and complete information and documents.\n- Tell us promptly if anything changes.\n- Do not misuse the site or attempt to disrupt it.\n\n## Third-party content and links\n\nLinks to other websites are for convenience. We are not responsible for their content or practices.\n\n## Limitation of liability\n\nTo the extent permitted by law, we are not liable for any indirect or consequential loss arising from use of this site or from a lender's decision.\n\n## Changes\n\nWe may update these terms from time to time. The version on this page applies from the date it is published.\n\n## Governing law\n\nThese terms are governed by the laws of India, and the courts at Mumbai have jurisdiction.\n\n## Contact\n\nAvadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084. Email: connect.gcs@growthcapitalservices.in. Phone: +91 88280 01700."
     },
     {
       "slug": "disclaimer",
@@ -2361,7 +2470,7 @@
       "published": false,
       "showInFooter": true,
       "summary": "Important information about the content on the Growth Capital Services website.",
-      "body": "## General\n\nThe information on this website is for general guidance only. It is not financial, legal, tax or investment advice, and you should consider your own circumstances before acting on it.\n\n## We are not a lender\n\nGrowth Capital Services is not a bank, NBFC or lender. We facilitate loan applications with banks and NBFCs. All loans are subject to the lender's own eligibility criteria, credit assessment, documentation and approval.\n\n## Rates, fees and calculators\n\nInterest rates, processing fees, eligibility estimates and calculator results shown here are indicative and may change without notice. The final terms are those in the lender's sanction letter.\n\n## Names and logos\n\nBank and lender names and logos appear only to indicate the institutions we work with. They remain the property of their owners, and their appearance does not imply endorsement.\n\n## Accuracy\n\nWe try to keep the information current and accurate but do not guarantee that it is complete or error-free.\n\n## Contact\n\nCCTV Towers, Andheri-Ghatkopar Rd, Bhatwadi, Kaju Pada, Barve Nagar, Ghatkopar West, Mumbai 400084. Email: growthcs17@gmail.com. Phone: +91 88280 01700."
+      "body": "## General\n\nThe information on this website is for general guidance only. It is not financial, legal, tax or investment advice, and you should consider your own circumstances before acting on it.\n\n## We are not a lender\n\nGrowth Capital Services is not a bank, NBFC or lender. We facilitate loan applications with banks and NBFCs. All loans are subject to the lender's own eligibility criteria, credit assessment, documentation and approval.\n\n## Rates, fees and calculators\n\nInterest rates, processing fees, eligibility estimates and calculator results shown here are indicative and may change without notice. The final terms are those in the lender's sanction letter.\n\n## Names and logos\n\nBank and lender names and logos appear only to indicate the institutions we work with. They remain the property of their owners, and their appearance does not imply endorsement.\n\n## Accuracy\n\nWe try to keep the information current and accurate but do not guarantee that it is complete or error-free.\n\n## Contact\n\nAvadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084. Email: connect.gcs@growthcapitalservices.in. Phone: +91 88280 01700."
     }
   ],
   "lists": {
@@ -2401,7 +2510,7 @@
       },
       {
         "icon": "BadgeCheck",
-        "label": "Zero Advisory Fee"
+        "label": "No Hidden Charges"
       },
       {
         "icon": "Globe",
@@ -2443,7 +2552,7 @@
         "text": "Every charge shared in writing before you sign"
       },
       {
-        "text": "Zero advisory fee, independent advice"
+        "text": "No hidden charges, independent advice"
       }
     ],
     "home.personas": [
@@ -2512,7 +2621,7 @@
         "label": "Bank & NBFC Partners"
       },
       {
-        "value": "25+",
+        "value": "27+",
         "label": "Loan Products"
       },
       {
@@ -2591,7 +2700,7 @@
         "text": "We compare live policies across 75+ lenders"
       },
       {
-        "text": "Zero advisory fee — we're paid by the lender"
+        "text": "No hidden charges: every fee shared in writing first"
       },
       {
         "text": "Daily file tracking from login to disbursal"
@@ -2744,7 +2853,7 @@
     ],
     "services.stats": [
       {
-        "value": "25+",
+        "value": "27+",
         "label": "Loan Products"
       },
       {
@@ -2972,8 +3081,16 @@
         "to": "/services#loan-against-property"
       },
       {
+        "label": "Micro Loan Against Property",
+        "to": "/services#micro-lap"
+      },
+      {
         "label": "Business Loan & Working Capital",
         "to": "/services#business-loan"
+      },
+      {
+        "label": "Micro Business Loan",
+        "to": "/services#micro-business-loan"
       },
       {
         "label": "Personal Loan",
@@ -2986,14 +3103,6 @@
       {
         "label": "Education Loan",
         "to": "/services#education-loan"
-      },
-      {
-        "label": "Balance Transfer & Top-Up",
-        "to": "/services#balance-transfer"
-      },
-      {
-        "label": "Working Capital Term Loan",
-        "to": "/services#working-capital-term-loan"
       }
     ],
     "form.loanTypes": [
@@ -3006,8 +3115,16 @@
         "slug": "loan-against-property"
       },
       {
+        "title": "Micro Loan Against Property",
+        "slug": "micro-lap"
+      },
+      {
         "title": "Business Loan & Working Capital",
         "slug": "business-loan"
+      },
+      {
+        "title": "Micro Business Loan",
+        "slug": "micro-business-loan"
       },
       {
         "title": "Personal Loan",
@@ -3072,6 +3189,18 @@
       {
         "title": "Unsecured DOD",
         "slug": "unsecured-dod"
+      },
+      {
+        "title": "New Car Loan",
+        "slug": "new-car-loan"
+      },
+      {
+        "title": "Used Car Loan",
+        "slug": "used-car-loan"
+      },
+      {
+        "title": "Car Refinance",
+        "slug": "car-refinance"
       },
       {
         "title": "Commercial Vehicle",
@@ -3572,7 +3701,7 @@
       {
         "slug": "mumbai",
         "city": "Mumbai",
-        "intro": "Our advisory office sits on the Andheri-Ghatkopar Road in Ghatkopar West, in the middle of Mumbai's western suburbs. If you're anywhere from Andheri to Mulund, Bandra to Chembur, a senior expert is a short trip away — or a phone call, if that's easier.",
+        "intro": "Our advisory office sits on R. B. Marg in Ghatkopar West, near Jagruti Nagar Metro Station, in the middle of Mumbai's western suburbs. If you're anywhere from Andheri to Mulund, Bandra to Chembur, a senior expert is a short trip away — or a phone call, if that's easier.",
         "serviceNote": "Walk in by appointment for a face-to-face file review, or handle the entire process over phone, WhatsApp and email — most Mumbai clients do a mix of both.",
         "hasOffice": "yes"
       },
@@ -3722,6 +3851,11 @@
         "visible": "yes"
       },
       {
+        "title": "Micro Loan Against Property",
+        "slug": "micro-lap",
+        "visible": "yes"
+      },
+      {
         "title": "Lease Rental Discounting",
         "slug": "lease-rental-discounting",
         "visible": "yes"
@@ -3739,6 +3873,11 @@
       {
         "title": "Business Loan",
         "slug": "business-loan",
+        "visible": "yes"
+      },
+      {
+        "title": "Micro Business Loan",
+        "slug": "micro-business-loan",
         "visible": "yes"
       },
       {
@@ -3835,7 +3974,7 @@
     "intake.fields": [
       {
         "slug": "home-loan",
-        "label": "Loan Requirement",
+        "label": "Loan Type",
         "type": "select",
         "options": "Home Loan, Balance Transfer, Top-Up, Other",
         "placeholder": "",
@@ -3846,7 +3985,7 @@
       },
       {
         "slug": "home-loan",
-        "label": "Property Type",
+        "label": "Type of Property Purchase",
         "type": "select",
         "options": "Builder Purchase, Resale, Self-Owned",
         "placeholder": "",
@@ -3890,7 +4029,7 @@
       },
       {
         "slug": "loan-against-property",
-        "label": "Property Type",
+        "label": "Type of Property Purchase",
         "type": "select",
         "options": "Builder Purchase, Resale, Self-Owned",
         "placeholder": "",
@@ -3927,6 +4066,50 @@
         "type": "text",
         "options": "",
         "placeholder": "e.g. 50,00,000",
+        "amount": "yes",
+        "key": "loanAmount",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Type of Industry",
+        "type": "select",
+        "options": "Engineering & Manufacturing, Automobile, Textile, Food Processing, Pharma/Healthcare, Plastic, Printing & Packaging, Metal Fabrication, Chemicals, Electrical/Electronics, Construction Materials, Agro Processing, Jewellery, Medical/Diagnostic, Wood, Furniture & Plywood, Rubber Products, Cold Storage & Refrigeration, Other",
+        "placeholder": "",
+        "amount": "",
+        "key": "industry",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Which machine / equipment do you want to purchase?",
+        "type": "text",
+        "options": "",
+        "placeholder": "Machine name and type",
+        "amount": "",
+        "key": "machine",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Machine Cost",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 40,00,000",
+        "amount": "yes",
+        "key": "machineCost",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "machine-loan",
+        "label": "Loan Amount Required",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 30,00,000",
         "amount": "yes",
         "key": "loanAmount",
         "showWhenKey": "",
@@ -4977,6 +5160,271 @@
     "Users2",
     "Wallet",
     "Zap"
+  ],
+  "homeText": {
+    "hero.eyebrow": "Trusted Loan Experts — Since 2017",
+    "hero.line1": "Your Growth,",
+    "hero.line2": "Our Financial Expertise.",
+    "hero.intro": "We help you compare loan options from 75+ Banks and NBFCs and guide you from the first call to the final paperwork. Honest advice, in simple words.",
+    "hero.primary": "Explore Loan Products",
+    "hero.secondary": "Talk to an Expert",
+    "hero.badge": "75+ Banks & NBFCs",
+    "advisor.eyebrow": "GCS Loan Expert",
+    "advisor.title": "Not sure which loan fits? Answer a few short questions.",
+    "advisor.body": "Tell us what you need and a GCS loan expert will look at the options that may suit your profile.",
+    "advisor.button": "Start now",
+    "services.eyebrow": "Our Services",
+    "services.title": "Financing for Every Goal",
+    "services.body": "Loan products organized by what you're trying to achieve — home, business or personal.",
+    "who.eyebrow": "Who We Serve",
+    "who.title": "Real people. Real plans. The right loan.",
+    "who.body": "Pick your situation — see the loan we'd shape for you, and the reason clients like you choose Growth Capital.",
+    "who.stories": "Real Clients, Real Outcomes",
+    "why.eyebrow": "Why Growth Capital",
+    "why.title": "A lender offers you a loan. We help you pick the right one.",
+    "how.eyebrow": "How It Works",
+    "how.title": "From hello to disbursal in four steps",
+    "concerns.eyebrow": "Common Concerns",
+    "concerns.title": "The worries we take off your plate",
+    "concerns.body": "Real questions we hear before someone signs — and how we handle each one.",
+    "cta.title": "Ready to move your loan",
+    "cta.gold": "forward?",
+    "cta.primary": "Apply Now",
+    "cta.secondary": "WhatsApp Us",
+    "network.eyebrow": "Our Network",
+    "network.title": "Banks in our network",
+    "network.body": "We compare offers across major Banks and NBFCs so you can choose with confidence, without the legwork."
+  },
+  "homeTextSpec": [
+    {
+      "id": "hero",
+      "label": "Opening section",
+      "hint": "The first thing visitors see, next to the consultation form.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line above the headline",
+          "text": "Trusted Loan Experts — Since 2017"
+        },
+        {
+          "id": "hero.line1",
+          "label": "Headline, first line",
+          "text": "Your Growth,"
+        },
+        {
+          "id": "hero.line2",
+          "label": "Headline, second line (gold)",
+          "text": "Our Financial Expertise."
+        },
+        {
+          "id": "hero.intro",
+          "label": "Paragraph under the headline",
+          "text": "We help you compare loan options from 75+ Banks and NBFCs and guide you from the first call to the final paperwork. Honest advice, in simple words.",
+          "long": true
+        },
+        {
+          "id": "hero.primary",
+          "label": "Main button",
+          "text": "Explore Loan Products"
+        },
+        {
+          "id": "hero.secondary",
+          "label": "WhatsApp link",
+          "text": "Talk to an Expert"
+        },
+        {
+          "id": "hero.badge",
+          "label": "Badge on the form",
+          "text": "75+ Banks & NBFCs"
+        }
+      ]
+    },
+    {
+      "id": "advisor",
+      "label": "Loan expert banner",
+      "hint": "The dark banner that sends visitors to the short questions.",
+      "fields": [
+        {
+          "id": "advisor.eyebrow",
+          "label": "Small line",
+          "text": "GCS Loan Expert"
+        },
+        {
+          "id": "advisor.title",
+          "label": "Heading",
+          "text": "Not sure which loan fits? Answer a few short questions."
+        },
+        {
+          "id": "advisor.body",
+          "label": "Text",
+          "text": "Tell us what you need and a GCS loan expert will look at the options that may suit your profile.",
+          "long": true
+        },
+        {
+          "id": "advisor.button",
+          "label": "Button",
+          "text": "Start now"
+        }
+      ]
+    },
+    {
+      "id": "services",
+      "label": "Our services",
+      "hint": "The heading above the loan goal cards.",
+      "fields": [
+        {
+          "id": "services.eyebrow",
+          "label": "Small line",
+          "text": "Our Services"
+        },
+        {
+          "id": "services.title",
+          "label": "Heading",
+          "text": "Financing for Every Goal"
+        },
+        {
+          "id": "services.body",
+          "label": "Text",
+          "text": "Loan products organized by what you're trying to achieve — home, business or personal.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "who",
+      "label": "Who we serve",
+      "hint": "The heading above the situation tabs and the client stories.",
+      "fields": [
+        {
+          "id": "who.eyebrow",
+          "label": "Small line",
+          "text": "Who We Serve"
+        },
+        {
+          "id": "who.title",
+          "label": "Heading",
+          "text": "Real people. Real plans. The right loan."
+        },
+        {
+          "id": "who.body",
+          "label": "Text",
+          "text": "Pick your situation — see the loan we'd shape for you, and the reason clients like you choose Growth Capital.",
+          "long": true
+        },
+        {
+          "id": "who.stories",
+          "label": "Label above the client stories",
+          "text": "Real Clients, Real Outcomes"
+        }
+      ]
+    },
+    {
+      "id": "why",
+      "label": "Why Growth Capital",
+      "hint": "The heading above the comparison with banks.",
+      "fields": [
+        {
+          "id": "why.eyebrow",
+          "label": "Small line",
+          "text": "Why Growth Capital"
+        },
+        {
+          "id": "why.title",
+          "label": "Heading",
+          "text": "A lender offers you a loan. We help you pick the right one."
+        }
+      ]
+    },
+    {
+      "id": "how",
+      "label": "How it works",
+      "hint": "The heading above the steps.",
+      "fields": [
+        {
+          "id": "how.eyebrow",
+          "label": "Small line",
+          "text": "How It Works"
+        },
+        {
+          "id": "how.title",
+          "label": "Heading",
+          "text": "From hello to disbursal in four steps"
+        }
+      ]
+    },
+    {
+      "id": "concerns",
+      "label": "Common concerns",
+      "hint": "The heading above the worry cards.",
+      "fields": [
+        {
+          "id": "concerns.eyebrow",
+          "label": "Small line",
+          "text": "Common Concerns"
+        },
+        {
+          "id": "concerns.title",
+          "label": "Heading",
+          "text": "The worries we take off your plate"
+        },
+        {
+          "id": "concerns.body",
+          "label": "Text",
+          "text": "Real questions we hear before someone signs — and how we handle each one.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "label": "Closing banner",
+      "hint": "The call to action near the bottom. The phone number and hours under it come from Contact & CIBIL.",
+      "fields": [
+        {
+          "id": "cta.title",
+          "label": "Heading",
+          "text": "Ready to move your loan"
+        },
+        {
+          "id": "cta.gold",
+          "label": "Last word of the heading (gold)",
+          "text": "forward?"
+        },
+        {
+          "id": "cta.primary",
+          "label": "Main button",
+          "text": "Apply Now"
+        },
+        {
+          "id": "cta.secondary",
+          "label": "WhatsApp button",
+          "text": "WhatsApp Us"
+        }
+      ]
+    },
+    {
+      "id": "network",
+      "label": "Banks in our network",
+      "hint": "The heading above the bank logos.",
+      "fields": [
+        {
+          "id": "network.eyebrow",
+          "label": "Small line",
+          "text": "Our Network"
+        },
+        {
+          "id": "network.title",
+          "label": "Heading",
+          "text": "Banks in our network"
+        },
+        {
+          "id": "network.body",
+          "label": "Text",
+          "text": "We compare offers across major Banks and NBFCs so you can choose with confidence, without the legwork.",
+          "long": true
+        }
+      ]
+    }
   ],
   "trustNumbers": {
     "2017": "2017",
