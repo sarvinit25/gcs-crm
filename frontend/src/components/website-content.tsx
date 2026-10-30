@@ -74,6 +74,8 @@ type Content = {
   iconNames?: string[];
   homeText?: Record<string, string>;
   homeTextSpec?: HomeTextSection[];
+  aboutText?: Record<string, string>;
+  aboutTextSpec?: HomeTextSection[];
   "pageText:hi"?: PageTextMap;
   "pageText:mr"?: PageTextMap;
 };
@@ -128,10 +130,15 @@ type ListSpec = {
 };
 type ListItem = Record<string, string>;
 type Lists = Record<string, ListItem[]>;
-type Section = "homeText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type Section = "homeText" | "aboutText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "aboutText",
+    label: "Headings & paragraphs",
+    help: "The wording on the About page that is not in a repeated block: the opening statement, our story, the mission and vision, section headings and buttons.",
+  },
   {
     id: "homeText",
     label: "Headings & buttons",
@@ -232,19 +239,38 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
  * Admin-only editor for the text on the public website. Until staff save a section, the website
  * shows the copy built into it; saving here replaces it, and "Reset" brings the built-in copy back.
  */
-/** The sections that belong to the Home page tab, with the names that make sense there. */
-const HOME_SCOPE: Partial<Record<Section, string>> = {
-  homeText: "Headings & buttons",
-  lists: "Blocks (hero points, steps, banks…)",
-  testimonials: "Client stories",
-  trustNumbers: "Trust figures",
-  images: "Pictures",
-  seo: "Google listing",
+/** The sections that belong to one page's tab, with the names that make sense there. */
+const PAGE_SCOPES = {
+  home: {
+    first: "homeText" as Section,
+    listPage: "Home",
+    seoPath: "/",
+    sections: {
+      homeText: "Headings & buttons",
+      lists: "Blocks (hero points, steps, banks…)",
+      testimonials: "Client stories",
+      trustNumbers: "Trust figures",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  about: {
+    first: "aboutText" as Section,
+    listPage: "About",
+    seoPath: "/about",
+    sections: {
+      aboutText: "Headings & paragraphs",
+      lists: "Blocks (figures, reasons, steps)",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
 };
 
-export function WebsiteContent({ scope }: { scope?: "home" } = {}) {
+export function WebsiteContent({ scope }: { scope?: "home" | "about" } = {}) {
   const queryClient = useQueryClient();
-  const [section, setSection] = useState<Section>(scope === "home" ? "homeText" : "pageText");
+  const page = scope ? PAGE_SCOPES[scope] : undefined;
+  const [section, setSection] = useState<Section>(page ? page.first : "pageText");
 
   const saved = useQuery({
     queryKey: ["site-content"],
@@ -296,7 +322,7 @@ export function WebsiteContent({ scope }: { scope?: "home" } = {}) {
         have not changed keep the copy built into the website.
       </p>
       <div className="mb-4 flex flex-wrap gap-1">
-        {SECTIONS.filter((s) => scope !== "home" || s.id in HOME_SCOPE).map((s) => (
+        {SECTIONS.filter((s) => !page || s.id in page.sections).map((s) => (
           <button
             key={s.id}
             onClick={() => setSection(s.id)}
@@ -307,7 +333,7 @@ export function WebsiteContent({ scope }: { scope?: "home" } = {}) {
                 : "border border-line bg-white text-muted hover:text-navy",
             )}
           >
-            {scope === "home" ? (HOME_SCOPE[s.id] ?? s.label) : s.label}
+            {page ? (page.sections[s.id] ?? s.label) : s.label}
             {savedByKey.has(s.id) && <span className="ml-1.5 text-[10px] text-gold">● edited</span>}
           </button>
         ))}
@@ -340,9 +366,9 @@ export function WebsiteContent({ scope }: { scope?: "home" } = {}) {
         section={section}
         initial={initial}
         builtIn={builtIn}
-        seoPages={(defaults.data?.seoPages ?? []).filter((p) => scope !== "home" || p.path === "/")}
-        listSpecs={(defaults.data?.listSpecs ?? []).filter((s) => scope !== "home" || s.page === "Home")}
-        homeSpec={defaults.data?.homeTextSpec ?? []}
+        seoPages={(defaults.data?.seoPages ?? []).filter((p) => !page || p.path === page.seoPath)}
+        listSpecs={(defaults.data?.listSpecs ?? []).filter((s) => !page || s.page === page.listPage)}
+        homeSpec={(section === "aboutText" ? defaults.data?.aboutTextSpec : defaults.data?.homeTextSpec) ?? []}
         busy={save.isPending || reset.isPending}
         canReset={!!row}
         onSave={(value) => save.mutate({ key: section, value })}
@@ -389,7 +415,7 @@ function Editor({ section, seoPages, listSpecs, homeSpec, initial, builtIn, busy
 
   return (
     <div>
-      {section === "homeText" && (
+      {(section === "homeText" || section === "aboutText") && (
         <HomeTextEditor value={draft as Record<string, string>} spec={homeSpec} onChange={setDraft} />
       )}
       {section === "customPages" && (

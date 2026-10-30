@@ -22,6 +22,7 @@ export const SITE_CONTENT_KEYS = [
   "images",
   "lists",
   "homeText",
+  "aboutText",
 ] as const;
 /** Wording edited per language: pageText:hi, pageText:mr. */
 const LANGUAGE_KEY = /^pageText:(hi|mr)$/;
@@ -100,7 +101,7 @@ function assertLists(value: unknown) {
   }
 }
 
-/** homeText maps a Home page field (like "hero.title") to the wording to show there. */
+/** homeText and aboutText map a page field (like "hero.title") to the wording to show there. */
 function assertHomeText(value: unknown) {
   if (Array.isArray(value)) throw new BadRequestException("Home page wording must be a set of fields");
   for (const [id, text] of Object.entries(value as Record<string, unknown>)) {
@@ -146,7 +147,7 @@ function validate(key: string, value: unknown) {
   if (key === "trustNumbers") assertFigures(value);
   if (key === "customPages") assertPages(value);
   if (key === "lists") assertLists(value);
-  if (key === "homeText") assertHomeText(value);
+  if (key === "homeText" || key === "aboutText") assertHomeText(value);
 }
 
 /** What the marketing website reads: every edited section, keyed by name. */
