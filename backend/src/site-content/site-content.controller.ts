@@ -23,6 +23,7 @@ export const SITE_CONTENT_KEYS = [
   "lists",
   "homeText",
   "aboutText",
+  "contactText",
 ] as const;
 /** Wording edited per language: pageText:hi, pageText:mr. */
 const LANGUAGE_KEY = /^pageText:(hi|mr)$/;
@@ -147,7 +148,7 @@ function validate(key: string, value: unknown) {
   if (key === "trustNumbers") assertFigures(value);
   if (key === "customPages") assertPages(value);
   if (key === "lists") assertLists(value);
-  if (key === "homeText" || key === "aboutText") assertHomeText(value);
+  if (key === "homeText" || key === "aboutText" || key === "contactText") assertHomeText(value);
 }
 
 /** What the marketing website reads: every edited section, keyed by name. */

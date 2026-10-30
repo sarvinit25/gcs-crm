@@ -76,6 +76,8 @@ type Content = {
   homeTextSpec?: HomeTextSection[];
   aboutText?: Record<string, string>;
   aboutTextSpec?: HomeTextSection[];
+  contactText?: Record<string, string>;
+  contactTextSpec?: HomeTextSection[];
   "pageText:hi"?: PageTextMap;
   "pageText:mr"?: PageTextMap;
 };
@@ -130,10 +132,15 @@ type ListSpec = {
 };
 type ListItem = Record<string, string>;
 type Lists = Record<string, ListItem[]>;
-type Section = "homeText" | "aboutText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type Section = "homeText" | "aboutText" | "contactText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "contactText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Contact page that is not in a repeated block: the opening panel, the quote, the office text and buttons, and the heading above the questions. Phone, email, address and hours are under Phone, email & address.",
+  },
   {
     id: "aboutText",
     label: "Headings & paragraphs",
@@ -265,9 +272,21 @@ const PAGE_SCOPES = {
       seo: "Google listing",
     } as Partial<Record<Section, string>>,
   },
+  contact: {
+    first: "contactText" as Section,
+    listPage: "Contact",
+    seoPath: "/contact",
+    sections: {
+      contactText: "Headings & paragraphs",
+      lists: "Blocks (tick points)",
+      faqs: "FAQs",
+      siteInfo: "Phone, email & address",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
 };
 
-export function WebsiteContent({ scope }: { scope?: "home" | "about" } = {}) {
+export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" } = {}) {
   const queryClient = useQueryClient();
   const page = scope ? PAGE_SCOPES[scope] : undefined;
   const [section, setSection] = useState<Section>(page ? page.first : "pageText");
@@ -368,7 +387,8 @@ export function WebsiteContent({ scope }: { scope?: "home" | "about" } = {}) {
         builtIn={builtIn}
         seoPages={(defaults.data?.seoPages ?? []).filter((p) => !page || p.path === page.seoPath)}
         listSpecs={(defaults.data?.listSpecs ?? []).filter((s) => !page || s.page === page.listPage)}
-        homeSpec={(section === "aboutText" ? defaults.data?.aboutTextSpec : defaults.data?.homeTextSpec) ?? []}
+        homeSpec={(section === "contactText" ? defaults.data?.contactTextSpec : section === "aboutText" ? defaults.data?.aboutTextSpec : defaults.data?.homeTextSpec) ?? []}
+        faqPages={scope === "contact" ? ["contact"] : undefined}
         busy={save.isPending || reset.isPending}
         canReset={!!row}
         onSave={(value) => save.mutate({ key: section, value })}
@@ -383,6 +403,7 @@ type EditorProps = {
   seoPages: SeoPage[];
   listSpecs: ListSpec[];
   homeSpec: HomeTextSection[];
+  faqPages?: string[] | undefined;
   initial: unknown;
   builtIn: unknown;
   busy: boolean;
@@ -391,7 +412,7 @@ type EditorProps = {
   onReset: () => void;
 };
 
-function Editor({ section, seoPages, listSpecs, homeSpec, initial, builtIn, busy, canReset, onSave, onReset }: EditorProps) {
+function Editor({ section, seoPages, listSpecs, homeSpec, faqPages, initial, builtIn, busy, canReset, onSave, onReset }: EditorProps) {
   const [draft, setDraft] = useState<unknown>(initial);
   const dirty = !same(draft, initial);
 
@@ -415,7 +436,7 @@ function Editor({ section, seoPages, listSpecs, homeSpec, initial, builtIn, busy
 
   return (
     <div>
-      {(section === "homeText" || section === "aboutText") && (
+      {(section === "homeText" || section === "aboutText" || section === "contactText") && (
         <HomeTextEditor value={draft as Record<string, string>} spec={homeSpec} onChange={setDraft} />
       )}
       {section === "customPages" && (
@@ -443,7 +464,7 @@ function Editor({ section, seoPages, listSpecs, homeSpec, initial, builtIn, busy
         <ServiceEditor value={draft as Record<string, ServiceText>} onChange={setDraft} />
       )}
       {section === "faqs" && (
-        <FaqEditor value={draft as Record<string, Faq[]>} onChange={setDraft} />
+        <FaqEditor value={draft as Record<string, Faq[]>} only={faqPages} onChange={setDraft} />
       )}
       {section === "products" && (
         <ProductEditor value={draft as Record<string, ProductText>} onChange={setDraft} />
@@ -550,12 +571,16 @@ function HomeTextEditor({
 
 function FaqEditor({
   value,
+  only,
   onChange,
 }: {
   value: Record<string, Faq[]>;
+  /** Limits the pages offered (the Contact tab shows only the Contact page's questions). */
+  only?: string[] | undefined;
   onChange: (v: unknown) => void;
 }) {
-  const [page, setPage] = useState(Object.keys(FAQ_PAGES)[0]!);
+  const pages = Object.entries(FAQ_PAGES).filter(([k]) => !only || only.includes(k));
+  const [page, setPage] = useState(pages[0]![0]);
   const list = value[page] ?? [];
   const set = (next: Faq[]) => onChange({ ...value, [page]: next });
   return (
@@ -565,7 +590,7 @@ function FaqEditor({
         onChange={(e) => setPage(e.target.value)}
         className="field mb-3 max-w-xs"
       >
-        {Object.entries(FAQ_PAGES).map(([k, label]) => (
+        {pages.map(([k, label]) => (
           <option key={k} value={k}>
             {label}
           </option>

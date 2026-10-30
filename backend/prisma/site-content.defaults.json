@@ -2626,6 +2626,20 @@
         "v3": "Case by case"
       }
     ],
+    "contact.benefits": [
+      {
+        "text": "Callback from a senior expert within one business day"
+      },
+      {
+        "text": "Indicative offer & lender shortlist within 48 hours"
+      },
+      {
+        "text": "No hidden charges — every fee is shared in writing before you go ahead"
+      },
+      {
+        "text": "Full confidentiality on profile, file and amount"
+      }
+    ],
     "home.steps": [
       {
         "icon": "Phone",
@@ -4411,6 +4425,19 @@
       ]
     },
     {
+      "key": "contact.benefits",
+      "page": "Contact",
+      "label": "Tick points in the opening panel",
+      "hint": "The short promises under the Call, WhatsApp and Email buttons.",
+      "fields": [
+        {
+          "key": "text",
+          "label": "Point",
+          "kind": "text"
+        }
+      ]
+    },
+    {
       "key": "home.steps",
       "page": "Home",
       "label": "How it works",
@@ -5829,6 +5856,143 @@
           "id": "promise.secondary",
           "label": "WhatsApp button",
           "text": "Talk on WhatsApp"
+        }
+      ]
+    }
+  ],
+  "contactText": {
+    "hero.eyebrow": "Get In Touch",
+    "hero.title": "Let's structure",
+    "hero.gold": "your file.",
+    "hero.body": "Tell us what you're trying to do — refinance, expand, unlock value from a property, or push a file another bank has rejected. We'll come back with an indicative number and a pre-approval check.",
+    "quote.lead": "Your Loan Deserves Expert Attention.",
+    "quote.body": "Your loan is handled by an experienced professional who understands your profile, carefully structures the right approach and supports you through every stage up to disbursement.",
+    "quote.by": "— The Growth Capital Services Team",
+    "office.eyebrow": "Visit Our Office",
+    "office.title": "Our Office in",
+    "office.gold": "Ghatkopar West.",
+    "office.body": "Our advisory team is based at Avadhoot Chhaya CHS on R. B. Marg, near Jagruti Nagar Metro Station, accessible to clients across the western suburbs. Visit by appointment for a structured file review.",
+    "office.addressLabel": "Address",
+    "office.hoursLabel": "Hours",
+    "office.directions": "Get directions",
+    "office.appointment": "Book an appointment",
+    "faq.eyebrow": "Before You Write",
+    "faq.title": "Quick answers."
+  },
+  "contactTextSpec": [
+    {
+      "id": "hero",
+      "label": "Opening panel",
+      "hint": "The dark panel beside the request form. The tick points are under Blocks.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line",
+          "text": "Get In Touch"
+        },
+        {
+          "id": "hero.title",
+          "label": "Heading",
+          "text": "Let's structure"
+        },
+        {
+          "id": "hero.gold",
+          "label": "End of the heading (gold)",
+          "text": "your file."
+        },
+        {
+          "id": "hero.body",
+          "label": "Paragraph",
+          "text": "Tell us what you're trying to do — refinance, expand, unlock value from a property, or push a file another bank has rejected. We'll come back with an indicative number and a pre-approval check.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "quote",
+      "label": "Quote at the foot of the panel",
+      "hint": "The italic note at the bottom of the dark panel.",
+      "fields": [
+        {
+          "id": "quote.lead",
+          "label": "Bold opening words",
+          "text": "Your Loan Deserves Expert Attention."
+        },
+        {
+          "id": "quote.body",
+          "label": "Text after it",
+          "text": "Your loan is handled by an experienced professional who understands your profile, carefully structures the right approach and supports you through every stage up to disbursement.",
+          "long": true
+        },
+        {
+          "id": "quote.by",
+          "label": "Signed",
+          "text": "— The Growth Capital Services Team"
+        }
+      ]
+    },
+    {
+      "id": "office",
+      "label": "Visit our office",
+      "hint": "The text beside the map. The address and hours come from Contact & CIBIL.",
+      "fields": [
+        {
+          "id": "office.eyebrow",
+          "label": "Small line",
+          "text": "Visit Our Office"
+        },
+        {
+          "id": "office.title",
+          "label": "Heading",
+          "text": "Our Office in"
+        },
+        {
+          "id": "office.gold",
+          "label": "End of the heading (gold)",
+          "text": "Ghatkopar West."
+        },
+        {
+          "id": "office.body",
+          "label": "Paragraph",
+          "text": "Our advisory team is based at Avadhoot Chhaya CHS on R. B. Marg, near Jagruti Nagar Metro Station, accessible to clients across the western suburbs. Visit by appointment for a structured file review.",
+          "long": true
+        },
+        {
+          "id": "office.addressLabel",
+          "label": "Label above the address",
+          "text": "Address"
+        },
+        {
+          "id": "office.hoursLabel",
+          "label": "Label above the hours",
+          "text": "Hours"
+        },
+        {
+          "id": "office.directions",
+          "label": "Directions button",
+          "text": "Get directions"
+        },
+        {
+          "id": "office.appointment",
+          "label": "Appointment button",
+          "text": "Book an appointment"
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "label": "Questions at the foot",
+      "hint": "The heading above the questions. The questions themselves are under FAQs.",
+      "fields": [
+        {
+          "id": "faq.eyebrow",
+          "label": "Small line",
+          "text": "Before You Write"
+        },
+        {
+          "id": "faq.title",
+          "label": "Heading",
+          "text": "Quick answers."
         }
       ]
     }
