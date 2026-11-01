@@ -84,6 +84,12 @@ type Content = {
   cibilTextSpec?: HomeTextSection[];
   whyusText?: Record<string, string>;
   whyusTextSpec?: HomeTextSection[];
+  calegalText?: Record<string, string>;
+  calegalTextSpec?: HomeTextSection[];
+  partnerText?: Record<string, string>;
+  partnerTextSpec?: HomeTextSection[];
+  trackText?: Record<string, string>;
+  trackTextSpec?: HomeTextSection[];
   "pageText:hi"?: PageTextMap;
   "pageText:mr"?: PageTextMap;
 };
@@ -138,10 +144,37 @@ type ListSpec = {
 };
 type ListItem = Record<string, string>;
 type Lists = Record<string, ListItem[]>;
-type Section = "homeText" | "aboutText" | "contactText" | "servicesText" | "cibilText" | "whyusText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type Section = "homeText" | "aboutText" | "contactText" | "servicesText" | "cibilText" | "whyusText" | "calegalText" | "partnerText" | "trackText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
+const TEXT_SECTIONS = [
+  "homeText",
+  "aboutText",
+  "contactText",
+  "servicesText",
+  "cibilText",
+  "whyusText",
+  "calegalText",
+  "partnerText",
+  "trackText",
+] as const;
+
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "calegalText",
+    label: "Headings & paragraphs",
+    help: "The wording on the CA & Legal page that is not in a repeated block: the opening statement, the heading of each practice and the enquiry block. The services themselves are under CA & legal services.",
+  },
+  {
+    id: "partnerText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Partner page that is not in a repeated block: the opening panel, every section heading, the commission note and the closing banner. {name} becomes the assistant's name. The commission rows come from the commission rate cards.",
+  },
+  {
+    id: "trackText",
+    label: "Headings & panels",
+    help: "The wording on the Track Application page: the heading, the two choices and the text in the Client and Partner panels. The sign-in boxes themselves are not editable, because the flow depends on them.",
+  },
   {
     id: "whyusText",
     label: "Headings & paragraphs",
@@ -293,6 +326,39 @@ const PAGE_SCOPES = {
       seo: "Google listing",
     } as Partial<Record<Section, string>>,
   },
+  calegal: {
+    first: "calegalText" as Section,
+    listPage: "CA & Legal",
+    seoPath: "/ca-legal-services",
+    sections: {
+      calegalText: "Headings & paragraphs",
+      lists: "Blocks (steps)",
+      services: "CA & legal services",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  partner: {
+    first: "partnerText" as Section,
+    listPage: "Partner",
+    seoPath: "/partner",
+    sections: {
+      partnerText: "Headings & paragraphs",
+      lists: "Blocks (figures, cards, steps)",
+      faqs: "FAQs",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  track: {
+    first: "trackText" as Section,
+    listPage: "Track",
+    seoPath: "/track-application",
+    sections: {
+      trackText: "Headings & panels",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
   whyus: {
     first: "whyusText" as Section,
     listPage: "Why Us",
@@ -342,7 +408,23 @@ const PAGE_SCOPES = {
   },
 };
 
-export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" | "cibil" | "whyus" } = {}) {
+/** The headings-and-paragraphs spec the website shared for a page's wording section. */
+function textSpecFor(section: Section, content: Content | undefined): HomeTextSection[] {
+  const by: Partial<Record<Section, HomeTextSection[] | undefined>> = {
+    homeText: content?.homeTextSpec,
+    aboutText: content?.aboutTextSpec,
+    contactText: content?.contactTextSpec,
+    servicesText: content?.servicesTextSpec,
+    cibilText: content?.cibilTextSpec,
+    whyusText: content?.whyusTextSpec,
+    calegalText: content?.calegalTextSpec,
+    partnerText: content?.partnerTextSpec,
+    trackText: content?.trackTextSpec,
+  };
+  return by[section] ?? [];
+}
+
+export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" | "cibil" | "whyus" | "calegal" | "partner" | "track" } = {}) {
   const queryClient = useQueryClient();
   const page = scope ? PAGE_SCOPES[scope] : undefined;
   const [section, setSection] = useState<Section>(page ? page.first : "pageText");
@@ -443,8 +525,8 @@ export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact"
         builtIn={builtIn}
         seoPages={(defaults.data?.seoPages ?? []).filter((p) => !page || p.path === page.seoPath)}
         listSpecs={(defaults.data?.listSpecs ?? []).filter((s) => !page || s.page === page.listPage)}
-        homeSpec={(section === "whyusText" ? defaults.data?.whyusTextSpec : section === "cibilText" ? defaults.data?.cibilTextSpec : section === "servicesText" ? defaults.data?.servicesTextSpec : section === "contactText" ? defaults.data?.contactTextSpec : section === "aboutText" ? defaults.data?.aboutTextSpec : defaults.data?.homeTextSpec) ?? []}
-        faqPages={scope === "contact" ? ["contact"] : undefined}
+        homeSpec={textSpecFor(section, defaults.data)}
+        faqPages={scope === "contact" ? ["contact"] : scope === "partner" ? ["partner"] : undefined}
         busy={save.isPending || reset.isPending}
         canReset={!!row}
         onSave={(value) => save.mutate({ key: section, value })}
@@ -492,7 +574,7 @@ function Editor({ section, seoPages, listSpecs, homeSpec, faqPages, initial, bui
 
   return (
     <div>
-      {(section === "homeText" || section === "aboutText" || section === "contactText" || section === "servicesText" || section === "cibilText" || section === "whyusText") && (
+      {(TEXT_SECTIONS as readonly string[]).includes(section) && (
         <HomeTextEditor value={draft as Record<string, string>} spec={homeSpec} onChange={setDraft} />
       )}
       {section === "customPages" && (

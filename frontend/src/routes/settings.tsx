@@ -521,6 +521,9 @@ export function SettingsPage() {
       servicespage: "Services page",
       cibilpage: "CIBIL page",
       whyuspage: "Why Us page",
+      calegalpage: "CA & Legal page",
+      partnerpage: "Partner page",
+      trackpage: "Track Application page",
     };
     if (named[hash]) setGroup(named[hash]);
     else if (hash.startsWith("setting-")) {
@@ -540,7 +543,7 @@ export function SettingsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["settings"] }),
   });
 
-  const masters = ["Website checklists", "Home page", "About page", "Contact page", "Services page", "CIBIL page", "Why Us page", "Website content", "Commission rate cards"];
+  const masters = ["Website checklists", "Home page", "About page", "Contact page", "Services page", "CIBIL page", "Why Us page", "CA & Legal page", "Partner page", "Track Application page", "Website content", "Commission rate cards"];
   const preferences = [...(query.data?.groups ?? []), "Archive"];
   const inGroup = (query.data?.settings ?? []).filter((s) => s.group === group);
   const changed = (query.data?.settings ?? []).filter((s) => !s.isDefault).length;
@@ -600,6 +603,12 @@ export function SettingsPage() {
             <WebsiteContent scope="cibil" />
           ) : group === "Why Us page" ? (
             <WebsiteContent scope="whyus" />
+          ) : group === "CA & Legal page" ? (
+            <WebsiteContent scope="calegal" />
+          ) : group === "Partner page" ? (
+            <WebsiteContent scope="partner" />
+          ) : group === "Track Application page" ? (
+            <WebsiteContent scope="track" />
           ) : group === "Website content" ? (
             <WebsiteContent />
           ) : group === "Website checklists" ? (
