@@ -82,6 +82,8 @@ type Content = {
   servicesTextSpec?: HomeTextSection[];
   cibilText?: Record<string, string>;
   cibilTextSpec?: HomeTextSection[];
+  whyusText?: Record<string, string>;
+  whyusTextSpec?: HomeTextSection[];
   "pageText:hi"?: PageTextMap;
   "pageText:mr"?: PageTextMap;
 };
@@ -136,10 +138,15 @@ type ListSpec = {
 };
 type ListItem = Record<string, string>;
 type Lists = Record<string, ListItem[]>;
-type Section = "homeText" | "aboutText" | "contactText" | "servicesText" | "cibilText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type Section = "homeText" | "aboutText" | "contactText" | "servicesText" | "cibilText" | "whyusText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "whyusText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Why Us page that is not in a repeated block: the opening statement, section headings, the mission and vision and the closing banner. The common concerns are the same list as on the Home page.",
+  },
   {
     id: "cibilText",
     label: "Headings & notes",
@@ -286,6 +293,17 @@ const PAGE_SCOPES = {
       seo: "Google listing",
     } as Partial<Record<Section, string>>,
   },
+  whyus: {
+    first: "whyusText" as Section,
+    listPage: "Why Us",
+    seoPath: "/why-us",
+    sections: {
+      whyusText: "Headings & paragraphs",
+      lists: "Blocks (strengths, ticks)",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
   cibil: {
     first: "cibilText" as Section,
     listPage: "CIBIL",
@@ -324,7 +342,7 @@ const PAGE_SCOPES = {
   },
 };
 
-export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" | "cibil" } = {}) {
+export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" | "cibil" | "whyus" } = {}) {
   const queryClient = useQueryClient();
   const page = scope ? PAGE_SCOPES[scope] : undefined;
   const [section, setSection] = useState<Section>(page ? page.first : "pageText");
@@ -425,7 +443,7 @@ export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact"
         builtIn={builtIn}
         seoPages={(defaults.data?.seoPages ?? []).filter((p) => !page || p.path === page.seoPath)}
         listSpecs={(defaults.data?.listSpecs ?? []).filter((s) => !page || s.page === page.listPage)}
-        homeSpec={(section === "cibilText" ? defaults.data?.cibilTextSpec : section === "servicesText" ? defaults.data?.servicesTextSpec : section === "contactText" ? defaults.data?.contactTextSpec : section === "aboutText" ? defaults.data?.aboutTextSpec : defaults.data?.homeTextSpec) ?? []}
+        homeSpec={(section === "whyusText" ? defaults.data?.whyusTextSpec : section === "cibilText" ? defaults.data?.cibilTextSpec : section === "servicesText" ? defaults.data?.servicesTextSpec : section === "contactText" ? defaults.data?.contactTextSpec : section === "aboutText" ? defaults.data?.aboutTextSpec : defaults.data?.homeTextSpec) ?? []}
         faqPages={scope === "contact" ? ["contact"] : undefined}
         busy={save.isPending || reset.isPending}
         canReset={!!row}
@@ -474,7 +492,7 @@ function Editor({ section, seoPages, listSpecs, homeSpec, faqPages, initial, bui
 
   return (
     <div>
-      {(section === "homeText" || section === "aboutText" || section === "contactText" || section === "servicesText" || section === "cibilText") && (
+      {(section === "homeText" || section === "aboutText" || section === "contactText" || section === "servicesText" || section === "cibilText" || section === "whyusText") && (
         <HomeTextEditor value={draft as Record<string, string>} spec={homeSpec} onChange={setDraft} />
       )}
       {section === "customPages" && (
