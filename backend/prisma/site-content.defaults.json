@@ -4363,6 +4363,438 @@
         "showWhenKey": "",
         "showWhenValues": ""
       }
+    ],
+    "partner.whatwedo": [
+      {
+        "icon": "Layers",
+        "title": "75+ lenders, one desk",
+        "body": "Offer your clients the right bank or NBFC for their profile, without sending them from branch to branch."
+      },
+      {
+        "icon": "Wallet",
+        "title": "Clear, written payouts",
+        "body": "Commission by loan type is shown up front, and your share is settled once the loan disburses."
+      },
+      {
+        "icon": "UserCheck",
+        "title": "One contact who handles the file",
+        "body": "A named expert looks after login, documents and bank follow-ups, and keeps you informed."
+      },
+      {
+        "icon": "GraduationCap",
+        "title": "Guidance as you start",
+        "body": "A short walk-through of our loan products and what to share, and answers whenever you need them."
+      }
+    ],
+    "partner.whychoose": [
+      {
+        "icon": "Languages",
+        "title": "In your clients' language",
+        "body": "Our website reads in English, Hindi and Marathi, and we speak to clients in the language they are comfortable with."
+      },
+      {
+        "icon": "Briefcase",
+        "title": "Salaried and self-employed",
+        "body": "Whether your clients draw a salary or run a business, we have loan options and lenders for both."
+      },
+      {
+        "icon": "MapPin",
+        "title": "Rooted in Mumbai, Thane & Pune",
+        "body": "Experts who know the local banks, builders and projects, so your clients are not treated as a number."
+      }
+    ],
+    "partner.assistant": [
+      {
+        "icon": "ListChecks",
+        "title": "Check eligibility",
+        "body": "A client's likely loan amount from their income and obligations, in a minute."
+      },
+      {
+        "icon": "Calculator",
+        "title": "Work out the EMI",
+        "body": "EMI, total interest and the effect of a part-payment, worked out instantly."
+      },
+      {
+        "icon": "FileText",
+        "title": "Documents and rates",
+        "body": "The documents each profile needs, and indicative rates and charges."
+      },
+      {
+        "icon": "MessageCircle",
+        "title": "Hand-off to an expert",
+        "body": "If a client wants a call, the request lands straight in our CRM with a short summary."
+      }
+    ],
+    "partner.getstarted": [
+      {
+        "title": "Register with us",
+        "body": "Fill the short form on this page. A member of our team calls you to set up your partnership."
+      },
+      {
+        "title": "Refer a case",
+        "body": "Send your client's name, number and requirement. Our expert checks eligibility and matches the case with suitable lenders from 75+."
+      },
+      {
+        "title": "Sit back and get paid",
+        "body": "We run the loan process while you carry on with your work. Your payout follows each disbursal."
+      }
+    ],
+    "builder.whatwedo": [
+      {
+        "icon": "ClipboardCheck",
+        "title": "Project approvals with lenders",
+        "body": "We take your project through lender approval so buyers can be financed without delay."
+      },
+      {
+        "icon": "Landmark",
+        "title": "One desk, many lenders",
+        "body": "Each buyer is matched to the bank or NBFC that suits their profile, instead of a single option."
+      },
+      {
+        "icon": "LayoutDashboard",
+        "title": "Tracked file by file",
+        "body": "Every buyer's loan is tracked in our in-house CRM, with status your sales team can ask for any time."
+      },
+      {
+        "icon": "Users",
+        "title": "Help on the ground",
+        "body": "Document collection and follow-ups handled by our team, so your sales staff can keep selling."
+      }
+    ],
+    "builder.points": [
+      {
+        "text": "One point of contact for every lender, with no juggling of banks and agents"
+      },
+      {
+        "text": "A clear status on each buyer's loan, from login to sanction to disbursal"
+      },
+      {
+        "text": "A finance executive at your sales office when a launch needs one"
+      },
+      {
+        "text": "Lender approvals for your project managed across banks in one place"
+      }
+    ],
+    "builder.steps": [
+      {
+        "title": "Share your project",
+        "body": "Tell us about the project, its stage, the units on offer and how you sell."
+      },
+      {
+        "title": "We line up the lenders",
+        "body": "We approach suitable banks and NBFCs for project approval and buyer financing."
+      },
+      {
+        "title": "Buyers get their loans",
+        "body": "Your buyers are guided from eligibility to sanction by one named expert."
+      },
+      {
+        "title": "Disbursals follow your milestones",
+        "body": "We track each file so releases line up with your construction and collection schedule."
+      }
+    ],
+    "builder.why": [
+      {
+        "title": "Support from project approval to disbursal",
+        "body": "The paperwork around lender approval and the buyers' loans sits with one team, so nothing falls between desks."
+      },
+      {
+        "title": "An independent view across lenders",
+        "body": "We are not tied to a single bank, so each buyer is steered to the lender most likely to say yes on good terms."
+      },
+      {
+        "title": "Your sales team stays on sales",
+        "body": "Eligibility questions, document lists and bank follow-ups come to us, not to your booking desk."
+      },
+      {
+        "title": "Works with how you already sell",
+        "body": "We coordinate with your sales team, your CRM contacts and your channel partners rather than asking you to change anything."
+      },
+      {
+        "title": "Zero advisory fee to your buyers",
+        "body": "Buyers are not charged for our advice, which helps conversions and keeps goodwill high."
+      }
+    ],
+    "builder.models": [
+      {
+        "icon": "Handshake",
+        "title": "Direct",
+        "body": "We deal with your buyers directly once they book, and keep your team informed."
+      },
+      {
+        "icon": "Network",
+        "title": "Channel-partner led",
+        "body": "Your channel partners bring the buyer; we run the loan and keep everyone updated."
+      },
+      {
+        "icon": "Building2",
+        "title": "Hybrid",
+        "body": "A mix of both, set up project by project to fit how each launch is sold."
+      }
+    ],
+    "builder.assistant": [
+      {
+        "icon": "Clock",
+        "title": "Answers at any hour",
+        "body": "Buyers get replies on loans, documents and rates when they are browsing, not only in office hours."
+      },
+      {
+        "icon": "Calculator",
+        "title": "Instant eligibility and EMI",
+        "body": "A buyer can see a likely loan amount and monthly EMI in a minute, before they visit your site office."
+      },
+      {
+        "icon": "MessageCircle",
+        "title": "A straight line to an expert",
+        "body": "When a buyer wants a call, the request reaches our team with a short summary of the chat."
+      },
+      {
+        "icon": "LayoutDashboard",
+        "title": "Tracked in our CRM",
+        "body": "Each enquiry becomes a file in our CRM, so the follow-up is never lost between your sales desk and ours."
+      }
+    ],
+    "freelancer.who": [
+      {
+        "icon": "Home",
+        "title": "Homemakers",
+        "body": "Earn from home, around your own schedule, using people you already know."
+      },
+      {
+        "icon": "GraduationCap",
+        "title": "Students & fresh graduates",
+        "body": "A first source of income and a real look at how finance works."
+      },
+      {
+        "icon": "Landmark",
+        "title": "Retired bankers & professionals",
+        "body": "Put your reputation and years of contacts to work again, without the 9-to-5."
+      },
+      {
+        "icon": "Smartphone",
+        "title": "Salaried, with time to spare",
+        "body": "Keep your job and add a second income from evenings and weekends."
+      },
+      {
+        "icon": "Store",
+        "title": "Shop & small-business owners",
+        "body": "Customers and neighbours ask about loans all the time. Now you can help them."
+      },
+      {
+        "icon": "Heart",
+        "title": "Community connectors",
+        "body": "Society members, tutors, tailors, agents of all kinds: anyone people trust and talk to."
+      }
+    ],
+    "freelancer.steps": [
+      {
+        "title": "Sign up",
+        "body": "Fill in the short form. It takes about two minutes and costs nothing."
+      },
+      {
+        "title": "Quick orientation",
+        "body": "A team member walks you through the loans we offer and exactly what to share."
+      },
+      {
+        "title": "Refer",
+        "body": "Send us a name, number and requirement whenever someone needs a loan."
+      },
+      {
+        "title": "Get paid",
+        "body": "Your payout is settled once the loan is disbursed."
+      }
+    ],
+    "freelancer.perks": [
+      {
+        "icon": "Wallet",
+        "title": "Nothing to invest",
+        "body": "No joining fee, no deposit, no stock. Referring is free."
+      },
+      {
+        "icon": "Clock",
+        "title": "Your hours, no targets",
+        "body": "Refer one person a month or ten. There is no minimum and no lock-in."
+      },
+      {
+        "icon": "Check",
+        "title": "No licence needed",
+        "body": "Our experts handle the lending side, so you only make the introduction."
+      },
+      {
+        "icon": "UserRound",
+        "title": "A person to call",
+        "body": "A dedicated contact answers your questions and updates you on each case."
+      },
+      {
+        "icon": "Landmark",
+        "title": "75+ lenders behind you",
+        "body": "The people you refer get more chances of approval than at a single bank."
+      },
+      {
+        "icon": "Rocket",
+        "title": "Room to grow",
+        "body": "Referring regularly? You can step up to our Agent partnership with a fuller set-up."
+      }
+    ],
+    "freelancer.assistant": [
+      {
+        "icon": "Calculator",
+        "title": "Quick numbers for anyone you help",
+        "body": "Work out a person's likely EMI or loan amount on the spot, so you can answer them with confidence."
+      },
+      {
+        "icon": "FileText",
+        "title": "What to ask for",
+        "body": "See which documents and details a person needs before you pass their requirement to us."
+      },
+      {
+        "icon": "UserRound",
+        "title": "No finance background needed",
+        "body": "Ask in plain words. It explains loan terms simply, so you never have to pretend to know."
+      },
+      {
+        "icon": "MessageCircle",
+        "title": "Hand over to our team",
+        "body": "When the person is ready, the assistant passes their details to an expert and we take it from there."
+      }
+    ],
+    "advisory.whycredit": [
+      {
+        "text": "May improve your chances of loan approval"
+      },
+      {
+        "text": "May help you get a lower interest rate"
+      },
+      {
+        "text": "May open the way to higher credit limits"
+      },
+      {
+        "text": "Gives you access to more financial products"
+      },
+      {
+        "text": "Builds a stronger financial profile"
+      }
+    ],
+    "advisory.individuals": [
+      {
+        "icon": "Gauge",
+        "title": "Credit Score Guidance & Monitoring",
+        "text": "A step-by-step plan to work on your score, with regular check-ins on how it is moving."
+      },
+      {
+        "icon": "FileSearch",
+        "title": "Credit Report Review & Error Spotting",
+        "text": "We go through your report, spot mistakes and guide you on getting them corrected with the bureau."
+      },
+      {
+        "icon": "Handshake",
+        "title": "Loan Assistance & Financial Advisory",
+        "text": "Help choosing the right loan or card for your profile, with options compared from 75+ Banks and NBFCs."
+      },
+      {
+        "icon": "GraduationCap",
+        "title": "Credit Education & Guidance",
+        "text": "Plain-language advice on dues, closed accounts and credit use, so you stay credit healthy."
+      }
+    ],
+    "advisory.individualbenefits": [
+      {
+        "text": "See your credit score clearly"
+      },
+      {
+        "text": "Know why a loan was turned down"
+      },
+      {
+        "text": "Get expert guidance on fixing issues"
+      },
+      {
+        "text": "Be ready to apply, sooner"
+      }
+    ],
+    "advisory.businesses": [
+      {
+        "icon": "Building2",
+        "title": "Commercial Credit Report (CMR) Review",
+        "text": "We explain your Commercial Credit Report and your CIBIL MSME Rank (CMR) in simple words."
+      },
+      {
+        "icon": "Briefcase",
+        "title": "Business Credit Advisory",
+        "text": "Guidance on building your business credit, and what lenders look at before they lend."
+      },
+      {
+        "icon": "LineChart",
+        "title": "Credit Rating Guidance",
+        "text": "A focused plan to work on your CMR (1 is the lowest risk, 10 the highest)."
+      },
+      {
+        "icon": "ClipboardCheck",
+        "title": "Loan Assistance for Business / MSME",
+        "text": "Get funding-ready and approach the right lenders for your business needs."
+      }
+    ],
+    "advisory.businessbenefits": [
+      {
+        "text": "Get ready for MSME loans"
+      },
+      {
+        "text": "Understand your business rating"
+      },
+      {
+        "text": "Be better placed for lender terms"
+      },
+      {
+        "text": "Plan your business growth"
+      }
+    ],
+    "advisory.audience": [
+      {
+        "icon": "UserCheck",
+        "title": "Salaried people",
+        "text": "Planning a home, car or personal loan and want to know where they stand."
+      },
+      {
+        "icon": "Briefcase",
+        "title": "Business owners",
+        "text": "Self-employed and professionals who need credit for their work."
+      },
+      {
+        "icon": "Building2",
+        "title": "MSMEs",
+        "text": "Small and medium businesses who want to understand their business credit report."
+      },
+      {
+        "icon": "ShieldCheck",
+        "title": "Anyone turned down",
+        "text": "People whose loan was declined and who want to know why, and what to do next."
+      }
+    ],
+    "advisory.steps": [
+      {
+        "icon": "FileSearch",
+        "title": "Fetch your credit report",
+        "text": "We help you get your official report from the credit bureau, with your consent."
+      },
+      {
+        "icon": "SearchCheck",
+        "title": "Analyse and spot issues",
+        "text": "Our team reads your report and marks errors or negative items."
+      },
+      {
+        "icon": "ListChecks",
+        "title": "Prepare an action plan",
+        "text": "You get a clear plan, with the most important steps first."
+      },
+      {
+        "icon": "Handshake",
+        "title": "Resolve and follow up",
+        "text": "We guide you on raising disputes with the bureau or lender, and on following them up."
+      },
+      {
+        "icon": "TrendingUp",
+        "title": "Track your progress",
+        "text": "Keep an eye on your report as you work towards your target score."
+      }
     ]
   },
   "listSpecs": [
@@ -5317,9 +5749,445 @@
           "kind": "text"
         }
       ]
+    },
+    {
+      "key": "partner.whatwedo",
+      "page": "Partner",
+      "label": "What we do for you",
+      "hint": "The four cards under 'What we do'.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "partner.whychoose",
+      "page": "Partner",
+      "label": "Why choose us",
+      "hint": "The three cards under 'Why choose us'.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "partner.assistant",
+      "page": "Partner",
+      "label": "Assistant: what it does",
+      "hint": "The points beside the chat assistant.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "partner.getstarted",
+      "page": "Partner",
+      "label": "Get started: steps",
+      "hint": "The three steps under 'Get started'.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "builder.whatwedo",
+      "page": "Builder Partner",
+      "label": "What we do for builders",
+      "hint": "The cards under 'What we do'.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "builder.points",
+      "page": "Builder Partner",
+      "label": "Tick points",
+      "hint": "The tick points beside the cards.",
+      "fields": [
+        {
+          "key": "text",
+          "label": "Point",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "builder.steps",
+      "page": "Builder Partner",
+      "label": "How it works",
+      "hint": "The numbered steps.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "builder.why",
+      "page": "Builder Partner",
+      "label": "Why us",
+      "hint": "The reasons to work with us.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "builder.models",
+      "page": "Builder Partner",
+      "label": "Ways of working",
+      "hint": "The ways we can work with a builder.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "builder.assistant",
+      "page": "Builder Partner",
+      "label": "Assistant: what it does",
+      "hint": "The points beside the chat assistant.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "freelancer.who",
+      "page": "Freelancer Partner",
+      "label": "Who it is for",
+      "hint": "The kinds of people who refer.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "freelancer.steps",
+      "page": "Freelancer Partner",
+      "label": "How it works",
+      "hint": "The numbered steps.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "freelancer.perks",
+      "page": "Freelancer Partner",
+      "label": "Perks",
+      "hint": "The cards under 'Why join'.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "freelancer.assistant",
+      "page": "Freelancer Partner",
+      "label": "Assistant: what it does",
+      "hint": "The points beside the chat assistant.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "advisory.whycredit",
+      "page": "CIBIL Advisory",
+      "label": "Why a good credit score",
+      "hint": "The tick points on why credit matters.",
+      "fields": [
+        {
+          "key": "text",
+          "label": "Point",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "advisory.individuals",
+      "page": "CIBIL Advisory",
+      "label": "Services for individuals",
+      "hint": "The four service cards for individuals.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "advisory.individualbenefits",
+      "page": "CIBIL Advisory",
+      "label": "Benefits strip: individuals",
+      "hint": "The four points in the strip under the individual services.",
+      "fields": [
+        {
+          "key": "text",
+          "label": "Point",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "advisory.businesses",
+      "page": "CIBIL Advisory",
+      "label": "Services for businesses",
+      "hint": "The four service cards for businesses.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "advisory.businessbenefits",
+      "page": "CIBIL Advisory",
+      "label": "Benefits strip: businesses",
+      "hint": "The four points in the strip under the business services.",
+      "fields": [
+        {
+          "key": "text",
+          "label": "Point",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "advisory.audience",
+      "page": "CIBIL Advisory",
+      "label": "Who it is for",
+      "hint": "The four kinds of people the advisory helps.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "advisory.steps",
+      "page": "CIBIL Advisory",
+      "label": "The five steps",
+      "hint": "The numbered steps of how it works.",
+      "fields": [
+        {
+          "key": "icon",
+          "label": "Icon",
+          "kind": "icon"
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
     }
   ],
   "iconNames": [
+    "Calculator",
+    "ClipboardCheck",
+    "FileSearch",
+    "Languages",
+    "Layers",
+    "LineChart",
+    "ListChecks",
+    "MessageCircle",
+    "Network",
+    "SearchCheck",
+    "Smartphone",
+    "Store",
+    "UserRound",
     "RefreshCw",
     "Award",
     "BadgeCheck",

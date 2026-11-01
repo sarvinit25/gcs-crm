@@ -473,21 +473,23 @@ const PAGE_SCOPES = {
   },
   builder: {
     first: "builderText" as Section,
-    listPage: "None",
+    listPage: "Builder Partner",
     seoPath: "/partner/builder",
     seoPaths: ["/partner/builder"],
     sections: {
       builderText: "Headings & paragraphs",
+      lists: "Cards & lists",
       seo: "Google listing",
     } as Partial<Record<Section, string>>,
   },
   freelancer: {
     first: "freelancerText" as Section,
-    listPage: "None",
+    listPage: "Freelancer Partner",
     seoPath: "/partner/freelancer",
     seoPaths: ["/partner/freelancer"],
     sections: {
       freelancerText: "Headings & paragraphs",
+      lists: "Cards & lists",
       seo: "Google listing",
     } as Partial<Record<Section, string>>,
   },
@@ -557,11 +559,12 @@ const PAGE_SCOPES = {
   },
   advisory: {
     first: "advisoryText" as Section,
-    listPage: "None",
+    listPage: "CIBIL Advisory",
     seoPath: "/cibil-advisory",
     seoPaths: ["/cibil-advisory"],
     sections: {
       advisoryText: "Headings & paragraphs",
+      lists: "Cards & lists",
       seo: "Google listing",
     } as Partial<Record<Section, string>>,
   },
