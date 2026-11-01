@@ -8723,6 +8723,555 @@
       ]
     }
   ],
+  "loanPageText": {
+    "top.apply": "Apply for {code}",
+    "top.whatsapp": "or message on WhatsApp",
+    "top.glance": "At A Glance",
+    "top.seeAll": "See all {count} requirements",
+    "top.seeNeeds": "See what you will need",
+    "short.eyebrow": "The Short Version",
+    "short.title": "What {loan} actually does for you.",
+    "short.included": "What's included",
+    "short.clients": "Why Clients Choose This",
+    "qualify.title": "Do you qualify?",
+    "qualify.which": "Which One Are You",
+    "docs.title": "Documents Required",
+    "why.eyebrow": "Why Growth Capital Services",
+    "why.title": "One conversation, many lenders to compare.",
+    "why.body": "We are a loan consultant, not the lender. We help you compare options from 75+ Banks and NBFCs, prepare your documents, and follow your application through each step.",
+    "why.primary": "Check Your Eligibility",
+    "why.secondary": "Talk to Our Loan Expert",
+    "why.noteLabel": "Important note:",
+    "why.note": "Interest rate, loan amount, tenure, charges, eligibility, approval and disbursement depend on the policy of the respective Bank or NBFC, your profile, credit assessment and the applicable terms. Growth Capital Services is a loan consultant and does not lend money itself. The details on this page are for general information.",
+    "calc.eyebrow": "Run the numbers",
+    "calc.title": "Calculators for your {loan}",
+    "calc.body": "Try your own figures before you apply — nothing is saved or sent.",
+    "process.eyebrow": "Our Process",
+    "process.title": "From first conversation to disbursal.",
+    "guide.eyebrow": "Step-by-step guide",
+    "guide.title": "{loan} process, step by step.",
+    "guide.note": "With GCS, your expert looks at your profile, matches it with suitable lenders, and coordinates with the banks for you. That means less confusion and more confidence when you apply.",
+    "related.eyebrow": "Worth Comparing",
+    "related.title": "The rest of {group}",
+    "related.body": "So you can weigh {loan} against everything else we arrange in this category before deciding.",
+    "related.all": "View all services",
+    "cta.title": "Still deciding on {loan}?",
+    "cta.gold": "Ask us directly.",
+    "cta.call": "Call {phone} · {hours}",
+    "cta.primary": "Request a Call Back",
+    "cta.secondary": "WhatsApp Us"
+  },
+  "loanPageTextSpec": [
+    {
+      "id": "top",
+      "label": "Top of a loan page",
+      "hint": "The buttons and links in the dark card at the top. The small box beside it is At a glance.",
+      "fields": [
+        {
+          "id": "top.apply",
+          "label": "Main button ({code} is the loan's short code)",
+          "text": "Apply for {code}"
+        },
+        {
+          "id": "top.whatsapp",
+          "label": "WhatsApp link",
+          "text": "or message on WhatsApp"
+        },
+        {
+          "id": "top.glance",
+          "label": "Heading of the At a glance box",
+          "text": "At A Glance"
+        },
+        {
+          "id": "top.seeAll",
+          "label": "Link under it, when there are more than five requirements ({count})",
+          "text": "See all {count} requirements"
+        },
+        {
+          "id": "top.seeNeeds",
+          "label": "Link under it, otherwise",
+          "text": "See what you will need"
+        }
+      ]
+    },
+    {
+      "id": "short",
+      "label": "The short version",
+      "hint": "The block that opens the page's main card. The loan's own description is under Loan product pages.",
+      "fields": [
+        {
+          "id": "short.eyebrow",
+          "label": "Small line",
+          "text": "The Short Version"
+        },
+        {
+          "id": "short.title",
+          "label": "Heading",
+          "text": "What {loan} actually does for you."
+        },
+        {
+          "id": "short.included",
+          "label": "Heading above the features",
+          "text": "What's included"
+        },
+        {
+          "id": "short.clients",
+          "label": "Small line above the features (loans shown in brief)",
+          "text": "Why Clients Choose This"
+        }
+      ]
+    },
+    {
+      "id": "qualify",
+      "label": "Do you qualify, and the documents",
+      "hint": "The two boxes on the left of a loan page.",
+      "fields": [
+        {
+          "id": "qualify.title",
+          "label": "Heading",
+          "text": "Do you qualify?"
+        },
+        {
+          "id": "qualify.which",
+          "label": "Small line above the kinds of applicant",
+          "text": "Which One Are You"
+        },
+        {
+          "id": "docs.title",
+          "label": "Heading of the documents box",
+          "text": "Documents Required"
+        }
+      ]
+    },
+    {
+      "id": "why",
+      "label": "Why Growth Capital Services",
+      "hint": "The blue block below the main card. A loan with its own words for it keeps them (see Loan product pages).",
+      "fields": [
+        {
+          "id": "why.eyebrow",
+          "label": "Small line",
+          "text": "Why Growth Capital Services"
+        },
+        {
+          "id": "why.title",
+          "label": "Heading",
+          "text": "One conversation, many lenders to compare."
+        },
+        {
+          "id": "why.body",
+          "label": "Text (when the loan has none of its own)",
+          "text": "We are a loan consultant, not the lender. We help you compare options from 75+ Banks and NBFCs, prepare your documents, and follow your application through each step.",
+          "long": true
+        },
+        {
+          "id": "why.primary",
+          "label": "Main button",
+          "text": "Check Your Eligibility"
+        },
+        {
+          "id": "why.secondary",
+          "label": "WhatsApp button",
+          "text": "Talk to Our Loan Expert"
+        },
+        {
+          "id": "why.noteLabel",
+          "label": "Bold start of the important note",
+          "text": "Important note:"
+        },
+        {
+          "id": "why.note",
+          "label": "Important note (when the loan has none of its own)",
+          "text": "Interest rate, loan amount, tenure, charges, eligibility, approval and disbursement depend on the policy of the respective Bank or NBFC, your profile, credit assessment and the applicable terms. Growth Capital Services is a loan consultant and does not lend money itself. The details on this page are for general information.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "calc",
+      "label": "Calculators",
+      "hint": "The heading above the calculators that suit the loan.",
+      "fields": [
+        {
+          "id": "calc.eyebrow",
+          "label": "Small line",
+          "text": "Run the numbers"
+        },
+        {
+          "id": "calc.title",
+          "label": "Heading",
+          "text": "Calculators for your {loan}"
+        },
+        {
+          "id": "calc.body",
+          "label": "Text",
+          "text": "Try your own figures before you apply — nothing is saved or sent.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "process",
+      "label": "Process",
+      "hint": "The heading above the steps. The loan's own steps are built into the page.",
+      "fields": [
+        {
+          "id": "process.eyebrow",
+          "label": "Small line (all loans)",
+          "text": "Our Process"
+        },
+        {
+          "id": "process.title",
+          "label": "Heading (all loans)",
+          "text": "From first conversation to disbursal."
+        },
+        {
+          "id": "guide.eyebrow",
+          "label": "Small line (loans with their own guide)",
+          "text": "Step-by-step guide"
+        },
+        {
+          "id": "guide.title",
+          "label": "Heading (loans with their own guide)",
+          "text": "{loan} process, step by step."
+        },
+        {
+          "id": "guide.note",
+          "label": "Note under the steps",
+          "text": "With GCS, your expert looks at your profile, matches it with suitable lenders, and coordinates with the banks for you. That means less confusion and more confidence when you apply.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "related",
+      "label": "Related loans",
+      "hint": "The list of other loans in the same category.",
+      "fields": [
+        {
+          "id": "related.eyebrow",
+          "label": "Small line",
+          "text": "Worth Comparing"
+        },
+        {
+          "id": "related.title",
+          "label": "Heading",
+          "text": "The rest of {group}"
+        },
+        {
+          "id": "related.body",
+          "label": "Text",
+          "text": "So you can weigh {loan} against everything else we arrange in this category before deciding.",
+          "long": true
+        },
+        {
+          "id": "related.all",
+          "label": "Link",
+          "text": "View all services"
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "label": "Closing banner",
+      "hint": "The call to action at the bottom. {phone} and {hours} come from Contact & CIBIL.",
+      "fields": [
+        {
+          "id": "cta.title",
+          "label": "Heading",
+          "text": "Still deciding on {loan}?"
+        },
+        {
+          "id": "cta.gold",
+          "label": "End of the heading (gold)",
+          "text": "Ask us directly."
+        },
+        {
+          "id": "cta.call",
+          "label": "Line under the heading",
+          "text": "Call {phone} · {hours}"
+        },
+        {
+          "id": "cta.primary",
+          "label": "Main button",
+          "text": "Request a Call Back"
+        },
+        {
+          "id": "cta.secondary",
+          "label": "WhatsApp button",
+          "text": "WhatsApp Us"
+        }
+      ]
+    }
+  ],
+  "casePageText": {
+    "top.sanctioned": "Sanctioned",
+    "top.profile": "Client Profile",
+    "stage.challenge.label": "The Challenge",
+    "stage.challenge.eyebrow": "What stood in the way",
+    "stage.structuring.label": "The Structuring",
+    "stage.structuring.eyebrow": "How we routed it",
+    "stage.outcome.label": "The Outcome",
+    "stage.outcome.eyebrow": "Where it landed",
+    "stepper.back": "← Back",
+    "stepper.next": "Next →",
+    "card.eyebrow": "Have a Similar Profile?",
+    "card.body": "A senior expert will review your situation and tell you which lenders in our network are the best fit — free of cost.",
+    "card.details": "{title} Details",
+    "card.eligibility": "Check Your Eligibility",
+    "card.whatsapp": "Chat on WhatsApp",
+    "similar.title": "Similar Case Studies",
+    "similar.read": "Read the case"
+  },
+  "casePageTextSpec": [
+    {
+      "id": "top",
+      "label": "Top of a case study",
+      "hint": "The words around the case's own headline, amount and story, which are under Case studies.",
+      "fields": [
+        {
+          "id": "top.sanctioned",
+          "label": "Label above the amount",
+          "text": "Sanctioned"
+        },
+        {
+          "id": "top.profile",
+          "label": "Label above the client profile",
+          "text": "Client Profile"
+        }
+      ]
+    },
+    {
+      "id": "stages",
+      "label": "The three stages",
+      "hint": "The three buttons that reveal the story, and the line above each.",
+      "fields": [
+        {
+          "id": "stage.challenge.label",
+          "label": "First stage: button",
+          "text": "The Challenge"
+        },
+        {
+          "id": "stage.challenge.eyebrow",
+          "label": "First stage: small line",
+          "text": "What stood in the way"
+        },
+        {
+          "id": "stage.structuring.label",
+          "label": "Second stage: button",
+          "text": "The Structuring"
+        },
+        {
+          "id": "stage.structuring.eyebrow",
+          "label": "Second stage: small line",
+          "text": "How we routed it"
+        },
+        {
+          "id": "stage.outcome.label",
+          "label": "Third stage: button",
+          "text": "The Outcome"
+        },
+        {
+          "id": "stage.outcome.eyebrow",
+          "label": "Third stage: small line",
+          "text": "Where it landed"
+        },
+        {
+          "id": "stepper.back",
+          "label": "Back link",
+          "text": "← Back"
+        },
+        {
+          "id": "stepper.next",
+          "label": "Next link",
+          "text": "Next →"
+        }
+      ]
+    },
+    {
+      "id": "card",
+      "label": "Card beside the story",
+      "hint": "The box with the buttons. {title} is the loan's name.",
+      "fields": [
+        {
+          "id": "card.eyebrow",
+          "label": "Small line",
+          "text": "Have a Similar Profile?"
+        },
+        {
+          "id": "card.body",
+          "label": "Text",
+          "text": "A senior expert will review your situation and tell you which lenders in our network are the best fit — free of cost.",
+          "long": true
+        },
+        {
+          "id": "card.details",
+          "label": "First button",
+          "text": "{title} Details"
+        },
+        {
+          "id": "card.eligibility",
+          "label": "Second button",
+          "text": "Check Your Eligibility"
+        },
+        {
+          "id": "card.whatsapp",
+          "label": "WhatsApp button",
+          "text": "Chat on WhatsApp"
+        }
+      ]
+    },
+    {
+      "id": "similar",
+      "label": "Similar cases",
+      "hint": "The row of other cases at the foot.",
+      "fields": [
+        {
+          "id": "similar.title",
+          "label": "Small line",
+          "text": "Similar Case Studies"
+        },
+        {
+          "id": "similar.read",
+          "label": "Link on each",
+          "text": "Read the case"
+        }
+      ]
+    }
+  ],
+  "servicePageText": {
+    "who.eyebrow": "Who Needs This",
+    "how.eyebrow": "How It Works",
+    "docs.brief": "Documents Typically Required",
+    "docs.full": "Documents Required for {title}",
+    "why.eyebrow": "Why Choose Our {title} Assistance?",
+    "important.label": "Important:",
+    "side.call": "Prefer to talk it through? Call {phone} or",
+    "side.whatsapp": "WhatsApp us",
+    "similar.eyebrow": "More in {category}"
+  },
+  "servicePageTextSpec": [
+    {
+      "id": "dossier",
+      "label": "Headings on a service page",
+      "hint": "The small lines above each block of a CA or legal service. The service's own text is under CA & legal services. {title} is the service's name.",
+      "fields": [
+        {
+          "id": "who.eyebrow",
+          "label": "Who needs it (services shown in brief)",
+          "text": "Who Needs This"
+        },
+        {
+          "id": "how.eyebrow",
+          "label": "How it works",
+          "text": "How It Works"
+        },
+        {
+          "id": "docs.brief",
+          "label": "Documents (services shown in brief)",
+          "text": "Documents Typically Required"
+        },
+        {
+          "id": "docs.full",
+          "label": "Documents (services with a full checklist)",
+          "text": "Documents Required for {title}"
+        },
+        {
+          "id": "why.eyebrow",
+          "label": "Why us (services with a full checklist)",
+          "text": "Why Choose Our {title} Assistance?"
+        },
+        {
+          "id": "important.label",
+          "label": "Bold start of the important note",
+          "text": "Important:"
+        }
+      ]
+    },
+    {
+      "id": "side",
+      "label": "Beside the enquiry form",
+      "hint": "The words under the enquiry form and the list of similar services. {phone} and {category} are filled in.",
+      "fields": [
+        {
+          "id": "side.call",
+          "label": "Line under the form",
+          "text": "Prefer to talk it through? Call {phone} or"
+        },
+        {
+          "id": "side.whatsapp",
+          "label": "WhatsApp link",
+          "text": "WhatsApp us"
+        },
+        {
+          "id": "similar.eyebrow",
+          "label": "Small line above similar services",
+          "text": "More in {category}"
+        }
+      ]
+    }
+  ],
+  "siteText": {
+    "footer.blurb": "Established in 2017. Tailored loan solutions from leading Banks and NBFCs across Mumbai, Thane, Navi Mumbai and Pune. Your Growth, Our Financial Expertise.",
+    "footer.explore": "Explore",
+    "footer.products": "Loan Products",
+    "footer.reach": "Reach Us",
+    "footer.callback": "Request a Callback",
+    "footer.copyright": "© {year} Growth Capital Services. All rights reserved.",
+    "header.contact": "Contact Us"
+  },
+  "siteTextSpec": [
+    {
+      "id": "footer",
+      "label": "Footer",
+      "hint": "The words in the footer on every page. The links in it are under Blocks, the address, phone and email under Phone, email & address. {year} becomes the current year.",
+      "fields": [
+        {
+          "id": "footer.blurb",
+          "label": "Text under the logo",
+          "text": "Established in 2017. Tailored loan solutions from leading Banks and NBFCs across Mumbai, Thane, Navi Mumbai and Pune. Your Growth, Our Financial Expertise.",
+          "long": true
+        },
+        {
+          "id": "footer.explore",
+          "label": "Heading of the first list",
+          "text": "Explore"
+        },
+        {
+          "id": "footer.products",
+          "label": "Heading of the loan list",
+          "text": "Loan Products"
+        },
+        {
+          "id": "footer.reach",
+          "label": "Heading of the contact column",
+          "text": "Reach Us"
+        },
+        {
+          "id": "footer.callback",
+          "label": "Button",
+          "text": "Request a Callback"
+        },
+        {
+          "id": "footer.copyright",
+          "label": "Copyright line",
+          "text": "© {year} Growth Capital Services. All rights reserved."
+        }
+      ]
+    },
+    {
+      "id": "header",
+      "label": "Header",
+      "hint": "The button at the top right of every page.",
+      "fields": [
+        {
+          "id": "header.contact",
+          "label": "Button",
+          "text": "Contact Us"
+        }
+      ]
+    }
+  ],
   "trustNumbers": {
     "2017": "2017",
     "75+": "75+",

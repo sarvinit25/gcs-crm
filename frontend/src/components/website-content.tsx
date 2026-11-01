@@ -91,25 +91,33 @@ type Content = {
   trackText?: Record<string, string>;
   trackTextSpec?: HomeTextSection[];
   builderText?: Record<string, string>;
-  builderTextSpecSpec?: HomeTextSection[];
+  builderTextSpec?: HomeTextSection[];
   freelancerText?: Record<string, string>;
-  freelancerTextSpecSpec?: HomeTextSection[];
+  freelancerTextSpec?: HomeTextSection[];
   estimatorText?: Record<string, string>;
-  estimatorTextSpecSpec?: HomeTextSection[];
+  estimatorTextSpec?: HomeTextSection[];
   insightsText?: Record<string, string>;
-  insightsTextSpecSpec?: HomeTextSection[];
+  insightsTextSpec?: HomeTextSection[];
   casesText?: Record<string, string>;
-  casesTextSpecSpec?: HomeTextSection[];
+  casesTextSpec?: HomeTextSection[];
   ratesText?: Record<string, string>;
-  ratesTextSpecSpec?: HomeTextSection[];
+  ratesTextSpec?: HomeTextSection[];
   toolsText?: Record<string, string>;
-  toolsTextSpecSpec?: HomeTextSection[];
+  toolsTextSpec?: HomeTextSection[];
   advisorText?: Record<string, string>;
-  advisorTextSpecSpec?: HomeTextSection[];
+  advisorTextSpec?: HomeTextSection[];
   advisoryText?: Record<string, string>;
-  advisoryTextSpecSpec?: HomeTextSection[];
+  advisoryTextSpec?: HomeTextSection[];
   cityText?: Record<string, string>;
-  cityTextSpecSpec?: HomeTextSection[];
+  cityTextSpec?: HomeTextSection[];
+  loanPageText?: Record<string, string>;
+  loanPageTextSpec?: HomeTextSection[];
+  casePageText?: Record<string, string>;
+  casePageTextSpec?: HomeTextSection[];
+  servicePageText?: Record<string, string>;
+  servicePageTextSpec?: HomeTextSection[];
+  siteText?: Record<string, string>;
+  siteTextSpec?: HomeTextSection[];
   "pageText:hi"?: PageTextMap;
   "pageText:mr"?: PageTextMap;
 };
@@ -164,7 +172,7 @@ type ListSpec = {
 };
 type ListItem = Record<string, string>;
 type Lists = Record<string, ListItem[]>;
-type Section = "homeText" | "aboutText" | "contactText" | "servicesText" | "cibilText" | "whyusText" | "calegalText" | "partnerText" | "trackText" | "builderText" | "freelancerText" | "estimatorText" | "insightsText" | "casesText" | "ratesText" | "toolsText" | "advisorText" | "advisoryText" | "cityText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type Section = "homeText" | "aboutText" | "contactText" | "servicesText" | "cibilText" | "whyusText" | "calegalText" | "partnerText" | "trackText" | "builderText" | "freelancerText" | "estimatorText" | "insightsText" | "casesText" | "ratesText" | "toolsText" | "advisorText" | "advisoryText" | "cityText" | "loanPageText" | "casePageText" | "servicePageText" | "siteText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const TEXT_SECTIONS = [
@@ -187,9 +195,33 @@ const TEXT_SECTIONS = [
   "advisorText",
   "advisoryText",
   "cityText",
+  "loanPageText",
+  "casePageText",
+  "servicePageText",
+  "siteText",
 ] as const;
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "loanPageText",
+    label: "Headings & buttons",
+    help: "The wording that is the same on every loan page: the buttons, the section headings, the calculators heading, the process headings and the closing banner. {loan} becomes the loan's name, {code} its short code and {group} its category. Each loan's own description, features and figures are under Loan product pages.",
+  },
+  {
+    id: "casePageText",
+    label: "Headings & buttons",
+    help: "The wording that is the same on every case study page: the labels, the three stages, the card beside the story and the link on similar cases. {title} becomes the loan's name. Each case's own story is under Case studies.",
+  },
+  {
+    id: "servicePageText",
+    label: "Headings & buttons",
+    help: "The wording that is the same on every CA and legal service page: the small lines above each block and the words under the enquiry form. {title}, {category} and {phone} are filled in. Each service's own text is under CA & legal services.",
+  },
+  {
+    id: "siteText",
+    label: "Headings & buttons",
+    help: "The words in the header and footer on every page: the footer text under the logo, its headings, the callback button, the copyright line and the Contact Us button. {year} becomes the current year. The menu and footer links are under Blocks; the address, phone and email are under Phone, email & address.",
+  },
   {
     id: "builderText",
     label: "Headings & paragraphs",
@@ -545,6 +577,54 @@ const PAGE_SCOPES = {
       seo: "Google listing",
     } as Partial<Record<Section, string>>,
   },
+  loanpages: {
+    first: "loanPageText" as Section,
+    listPage: "None",
+    seoPath: "/services/",
+    seoPaths: [],
+    seoPrefix: "/services/",
+    sections: {
+      loanPageText: "Headings & buttons",
+      products: "Loan product pages",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  casepages: {
+    first: "casePageText" as Section,
+    listPage: "None",
+    seoPath: "/case-studies/",
+    seoPaths: [],
+    seoPrefix: "/case-studies/",
+    sections: {
+      casePageText: "Headings & buttons",
+      caseStudies: "Case studies",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  servicepages: {
+    first: "servicePageText" as Section,
+    listPage: "None",
+    seoPath: "/ca-legal-services/",
+    seoPaths: [],
+    seoPrefix: "/ca-legal-services/",
+    sections: {
+      servicePageText: "Headings & buttons",
+      services: "CA & legal services",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  site: {
+    first: "siteText" as Section,
+    listPage: "Menu & footer",
+    seoPath: "/none",
+    seoPaths: [],
+    seoPrefix: "",
+    sections: {
+      siteText: "Headings & buttons",
+      lists: "Blocks (menu & footer links)",
+      siteInfo: "Phone, email & address",
+    } as Partial<Record<Section, string>>,
+  },
   whyus: {
     first: "whyusText" as Section,
     listPage: "Why Us",
@@ -606,21 +686,21 @@ function textSpecFor(section: Section, content: Content | undefined): HomeTextSe
     calegalText: content?.calegalTextSpec,
     partnerText: content?.partnerTextSpec,
     trackText: content?.trackTextSpec,
-    builderText: content?.builderTextSpecSpec,
-    freelancerText: content?.freelancerTextSpecSpec,
-    estimatorText: content?.estimatorTextSpecSpec,
-    insightsText: content?.insightsTextSpecSpec,
-    casesText: content?.casesTextSpecSpec,
-    ratesText: content?.ratesTextSpecSpec,
-    toolsText: content?.toolsTextSpecSpec,
-    advisorText: content?.advisorTextSpecSpec,
-    advisoryText: content?.advisoryTextSpecSpec,
-    cityText: content?.cityTextSpecSpec,
+    builderText: content?.builderTextSpec,
+    freelancerText: content?.freelancerTextSpec,
+    estimatorText: content?.estimatorTextSpec,
+    insightsText: content?.insightsTextSpec,
+    casesText: content?.casesTextSpec,
+    ratesText: content?.ratesTextSpec,
+    toolsText: content?.toolsTextSpec,
+    advisorText: content?.advisorTextSpec,
+    advisoryText: content?.advisoryTextSpec,
+    cityText: content?.cityTextSpec,
   };
   return by[section] ?? [];
 }
 
-export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" | "cibil" | "whyus" | "calegal" | "partner" | "track" | "builder" | "freelancer" | "estimator" | "insights" | "cases" | "rates" | "tools" | "advisor" | "advisory" | "city" } = {}) {
+export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" | "cibil" | "whyus" | "calegal" | "partner" | "track" | "builder" | "freelancer" | "estimator" | "insights" | "cases" | "rates" | "tools" | "advisor" | "advisory" | "city" | "loanpages" | "casepages" | "servicepages" | "site" } = {}) {
   const queryClient = useQueryClient();
   const page = scope ? PAGE_SCOPES[scope] : undefined;
   const [section, setSection] = useState<Section>(page ? page.first : "pageText");
@@ -719,7 +799,15 @@ export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact"
         section={section}
         initial={initial}
         builtIn={builtIn}
-        seoPages={(defaults.data?.seoPages ?? []).filter((p) => !page || p.path === page.seoPath || ((page as { seoPaths?: string[] }).seoPaths ?? []).includes(p.path))}
+        seoPages={(defaults.data?.seoPages ?? []).filter((p) => {
+          if (!page) return true;
+          const extra = page as { seoPaths?: string[]; seoPrefix?: string };
+          return (
+            p.path === page.seoPath ||
+            (extra.seoPaths ?? []).includes(p.path) ||
+            (!!extra.seoPrefix && p.path.startsWith(extra.seoPrefix))
+          );
+        })}
         listSpecs={(defaults.data?.listSpecs ?? []).filter((s) => !page || s.page === page.listPage)}
         homeSpec={textSpecFor(section, defaults.data)}
         faqPages={scope === "contact" ? ["contact"] : scope === "partner" ? ["partner"] : scope === "city" ? ["mumbai", "thane", "navi-mumbai", "pune"] : undefined}
