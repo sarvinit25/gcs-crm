@@ -80,6 +80,8 @@ type Content = {
   contactTextSpec?: HomeTextSection[];
   servicesText?: Record<string, string>;
   servicesTextSpec?: HomeTextSection[];
+  cibilText?: Record<string, string>;
+  cibilTextSpec?: HomeTextSection[];
   "pageText:hi"?: PageTextMap;
   "pageText:mr"?: PageTextMap;
 };
@@ -134,10 +136,15 @@ type ListSpec = {
 };
 type ListItem = Record<string, string>;
 type Lists = Record<string, ListItem[]>;
-type Section = "homeText" | "aboutText" | "contactText" | "servicesText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type Section = "homeText" | "aboutText" | "contactText" | "servicesText" | "cibilText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "cibilText",
+    label: "Headings & notes",
+    help: "The wording on the CIBIL page around the report request: the opening panel, the side notes and the heading above the calculators. {price} becomes the report price. The request form's own questions are not editable, because the flow depends on them. The price and the UPI ID are under Contact & CIBIL.",
+  },
   {
     id: "servicesText",
     label: "Headings & buttons",
@@ -279,6 +286,18 @@ const PAGE_SCOPES = {
       seo: "Google listing",
     } as Partial<Record<Section, string>>,
   },
+  cibil: {
+    first: "cibilText" as Section,
+    listPage: "CIBIL",
+    seoPath: "/cibil",
+    sections: {
+      cibilText: "Headings & notes",
+      lists: "Blocks (steps, bureaus, choices)",
+      siteInfo: "Report price & UPI",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
   services: {
     first: "servicesText" as Section,
     listPage: "Services",
@@ -305,7 +324,7 @@ const PAGE_SCOPES = {
   },
 };
 
-export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" } = {}) {
+export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" | "cibil" } = {}) {
   const queryClient = useQueryClient();
   const page = scope ? PAGE_SCOPES[scope] : undefined;
   const [section, setSection] = useState<Section>(page ? page.first : "pageText");
@@ -406,7 +425,7 @@ export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact"
         builtIn={builtIn}
         seoPages={(defaults.data?.seoPages ?? []).filter((p) => !page || p.path === page.seoPath)}
         listSpecs={(defaults.data?.listSpecs ?? []).filter((s) => !page || s.page === page.listPage)}
-        homeSpec={(section === "servicesText" ? defaults.data?.servicesTextSpec : section === "contactText" ? defaults.data?.contactTextSpec : section === "aboutText" ? defaults.data?.aboutTextSpec : defaults.data?.homeTextSpec) ?? []}
+        homeSpec={(section === "cibilText" ? defaults.data?.cibilTextSpec : section === "servicesText" ? defaults.data?.servicesTextSpec : section === "contactText" ? defaults.data?.contactTextSpec : section === "aboutText" ? defaults.data?.aboutTextSpec : defaults.data?.homeTextSpec) ?? []}
         faqPages={scope === "contact" ? ["contact"] : undefined}
         busy={save.isPending || reset.isPending}
         canReset={!!row}
@@ -455,7 +474,7 @@ function Editor({ section, seoPages, listSpecs, homeSpec, faqPages, initial, bui
 
   return (
     <div>
-      {(section === "homeText" || section === "aboutText" || section === "contactText" || section === "servicesText") && (
+      {(section === "homeText" || section === "aboutText" || section === "contactText" || section === "servicesText" || section === "cibilText") && (
         <HomeTextEditor value={draft as Record<string, string>} spec={homeSpec} onChange={setDraft} />
       )}
       {section === "customPages" && (

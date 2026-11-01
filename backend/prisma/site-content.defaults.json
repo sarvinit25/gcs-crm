@@ -3705,6 +3705,24 @@
         "description": "For personal needs, studies, cars and commercial vehicles, or funds against the shares and mutual funds you already hold."
       }
     ],
+    "cibil.steps": [
+      {
+        "title": "Share your details",
+        "text": "PAN, date of birth and address, exactly as on your records."
+      },
+      {
+        "title": "Choose your bureau",
+        "text": "TransUnion CIBIL, Experian, Equifax or CRIF High Mark."
+      },
+      {
+        "title": "Tell us your last report",
+        "text": "A quick question so we have the full picture."
+      },
+      {
+        "title": "Pay by UPI QR",
+        "text": "One flat price for any bureau. We pull your report and send it to you."
+      }
+    ],
     "cibil.bureaus": [
       {
         "id": "cibil",
@@ -4983,6 +5001,25 @@
       ]
     },
     {
+      "key": "cibil.steps",
+      "page": "CIBIL",
+      "label": "The four steps",
+      "hint": "The four cards above the request form. They follow the form's steps, so they can be reworded and reordered but not added to.",
+      "fixed": true,
+      "fields": [
+        {
+          "key": "title",
+          "label": "Step",
+          "kind": "text"
+        },
+        {
+          "key": "text",
+          "label": "Description",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
       "key": "cibil.bureaus",
       "page": "CIBIL",
       "label": "Credit bureaus",
@@ -6105,6 +6142,157 @@
           "id": "cta.secondary",
           "label": "WhatsApp button",
           "text": "WhatsApp Us"
+        }
+      ]
+    }
+  ],
+  "cibilText": {
+    "hero.eyebrow": "CIBIL & Credit Reports",
+    "hero.title": "Get Your Credit Report,",
+    "hero.gold": "Without the Hassle.",
+    "hero.body": "Pick your credit bureau, pay by UPI QR and share a few details. Our team pulls your TransUnion CIBIL, Experian, Equifax or CRIF High Mark report and sends it to you.",
+    "hero.chip1": "Soft enquiry, no score impact",
+    "hero.chip2": "Flat ₹{price}, paid by UPI",
+    "hero.chip3": "4 credit bureaus",
+    "hero.estimator": "Not sure where you stand? Try our Credit Score Estimator",
+    "dial.label": "Credit score range",
+    "dial.note": "Know where you stand before you apply for a loan.",
+    "notes.title": "Good to know",
+    "notes.p1": "Checking your own report is a soft enquiry. It doesn't lower your score.",
+    "notes.p2": "Growth Capital Services is independent of TransUnion CIBIL, Experian, Equifax and CRIF High Mark; their names only tell us which report you want.",
+    "estimator.title": "Credit Score Estimator",
+    "estimator.body": "Not sure where you stand? Get an indicative score range in a minute, before you request your report.",
+    "estimator.button": "Try the estimator",
+    "calc.eyebrow": "Before you request a report",
+    "calc.title": "Get a feel for your score and what it can borrow",
+    "calc.body": "An indicative score range, and what that means for your EMI and eligibility. A quick estimate, not a bureau pull."
+  },
+  "cibilTextSpec": [
+    {
+      "id": "hero",
+      "label": "Opening panel",
+      "hint": "The dark panel at the top. The four steps under it are under Blocks.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line",
+          "text": "CIBIL & Credit Reports"
+        },
+        {
+          "id": "hero.title",
+          "label": "Heading",
+          "text": "Get Your Credit Report,"
+        },
+        {
+          "id": "hero.gold",
+          "label": "End of the heading (gold)",
+          "text": "Without the Hassle."
+        },
+        {
+          "id": "hero.body",
+          "label": "Paragraph",
+          "text": "Pick your credit bureau, pay by UPI QR and share a few details. Our team pulls your TransUnion CIBIL, Experian, Equifax or CRIF High Mark report and sends it to you.",
+          "long": true
+        },
+        {
+          "id": "hero.chip1",
+          "label": "First tag",
+          "text": "Soft enquiry, no score impact"
+        },
+        {
+          "id": "hero.chip2",
+          "label": "Second tag ({price} is the report price)",
+          "text": "Flat ₹{price}, paid by UPI"
+        },
+        {
+          "id": "hero.chip3",
+          "label": "Third tag",
+          "text": "4 credit bureaus"
+        },
+        {
+          "id": "hero.estimator",
+          "label": "Link to the estimator",
+          "text": "Not sure where you stand? Try our Credit Score Estimator"
+        }
+      ]
+    },
+    {
+      "id": "dial",
+      "label": "Score dial",
+      "hint": "The words under the dial in the opening panel.",
+      "fields": [
+        {
+          "id": "dial.label",
+          "label": "Label",
+          "text": "Credit score range"
+        },
+        {
+          "id": "dial.note",
+          "label": "Line under it",
+          "text": "Know where you stand before you apply for a loan."
+        }
+      ]
+    },
+    {
+      "id": "notes",
+      "label": "Side notes",
+      "hint": "The two boxes beside the request form.",
+      "fields": [
+        {
+          "id": "notes.title",
+          "label": "First box: heading",
+          "text": "Good to know"
+        },
+        {
+          "id": "notes.p1",
+          "label": "First box: first point",
+          "text": "Checking your own report is a soft enquiry. It doesn't lower your score.",
+          "long": true
+        },
+        {
+          "id": "notes.p2",
+          "label": "First box: second point",
+          "text": "Growth Capital Services is independent of TransUnion CIBIL, Experian, Equifax and CRIF High Mark; their names only tell us which report you want.",
+          "long": true
+        },
+        {
+          "id": "estimator.title",
+          "label": "Second box: heading",
+          "text": "Credit Score Estimator"
+        },
+        {
+          "id": "estimator.body",
+          "label": "Second box: text",
+          "text": "Not sure where you stand? Get an indicative score range in a minute, before you request your report.",
+          "long": true
+        },
+        {
+          "id": "estimator.button",
+          "label": "Second box: button",
+          "text": "Try the estimator"
+        }
+      ]
+    },
+    {
+      "id": "calculators",
+      "label": "Calculators section",
+      "hint": "The heading above the calculators at the foot of the page.",
+      "fields": [
+        {
+          "id": "calc.eyebrow",
+          "label": "Small line",
+          "text": "Before you request a report"
+        },
+        {
+          "id": "calc.title",
+          "label": "Heading",
+          "text": "Get a feel for your score and what it can borrow"
+        },
+        {
+          "id": "calc.body",
+          "label": "Text",
+          "text": "An indicative score range, and what that means for your EMI and eligibility. A quick estimate, not a bureau pull.",
+          "long": true
         }
       ]
     }
