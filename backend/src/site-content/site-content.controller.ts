@@ -30,6 +30,16 @@ export const SITE_CONTENT_KEYS = [
   "calegalText",
   "partnerText",
   "trackText",
+  "builderText",
+  "freelancerText",
+  "estimatorText",
+  "insightsText",
+  "casesText",
+  "ratesText",
+  "toolsText",
+  "advisorText",
+  "advisoryText",
+  "cityText",
 ] as const;
 /** Wording edited per language: pageText:hi, pageText:mr. */
 const LANGUAGE_KEY = /^pageText:(hi|mr)$/;
@@ -155,7 +165,17 @@ function validate(key: string, value: unknown) {
   if (key === "customPages") assertPages(value);
   if (key === "lists") assertLists(value);
   if (key === "homeText" || key === "aboutText" || key === "contactText" || key === "servicesText" || key === "cibilText" || key === "whyusText" ||
-    key === "calegalText" || key === "partnerText" || key === "trackText") assertHomeText(value);
+    key === "calegalText" || key === "partnerText" || key === "trackText" ||
+    key === "builderText" ||
+    key === "freelancerText" ||
+    key === "estimatorText" ||
+    key === "insightsText" ||
+    key === "casesText" ||
+    key === "ratesText" ||
+    key === "toolsText" ||
+    key === "advisorText" ||
+    key === "advisoryText" ||
+    key === "cityText") assertHomeText(value);
 }
 
 /** What the marketing website reads: every edited section, keyed by name. */

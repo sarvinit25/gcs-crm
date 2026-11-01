@@ -90,6 +90,26 @@ type Content = {
   partnerTextSpec?: HomeTextSection[];
   trackText?: Record<string, string>;
   trackTextSpec?: HomeTextSection[];
+  builderText?: Record<string, string>;
+  builderTextSpecSpec?: HomeTextSection[];
+  freelancerText?: Record<string, string>;
+  freelancerTextSpecSpec?: HomeTextSection[];
+  estimatorText?: Record<string, string>;
+  estimatorTextSpecSpec?: HomeTextSection[];
+  insightsText?: Record<string, string>;
+  insightsTextSpecSpec?: HomeTextSection[];
+  casesText?: Record<string, string>;
+  casesTextSpecSpec?: HomeTextSection[];
+  ratesText?: Record<string, string>;
+  ratesTextSpecSpec?: HomeTextSection[];
+  toolsText?: Record<string, string>;
+  toolsTextSpecSpec?: HomeTextSection[];
+  advisorText?: Record<string, string>;
+  advisorTextSpecSpec?: HomeTextSection[];
+  advisoryText?: Record<string, string>;
+  advisoryTextSpecSpec?: HomeTextSection[];
+  cityText?: Record<string, string>;
+  cityTextSpecSpec?: HomeTextSection[];
   "pageText:hi"?: PageTextMap;
   "pageText:mr"?: PageTextMap;
 };
@@ -144,7 +164,7 @@ type ListSpec = {
 };
 type ListItem = Record<string, string>;
 type Lists = Record<string, ListItem[]>;
-type Section = "homeText" | "aboutText" | "contactText" | "servicesText" | "cibilText" | "whyusText" | "calegalText" | "partnerText" | "trackText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type Section = "homeText" | "aboutText" | "contactText" | "servicesText" | "cibilText" | "whyusText" | "calegalText" | "partnerText" | "trackText" | "builderText" | "freelancerText" | "estimatorText" | "insightsText" | "casesText" | "ratesText" | "toolsText" | "advisorText" | "advisoryText" | "cityText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const TEXT_SECTIONS = [
@@ -157,9 +177,69 @@ const TEXT_SECTIONS = [
   "calegalText",
   "partnerText",
   "trackText",
+  "builderText",
+  "freelancerText",
+  "estimatorText",
+  "insightsText",
+  "casesText",
+  "ratesText",
+  "toolsText",
+  "advisorText",
+  "advisoryText",
+  "cityText",
 ] as const;
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "builderText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Builder Partner page that is not in a repeated block: the opening panel, the form's heading and thank-you message, every section heading and the closing banner. {name} becomes the assistant's name.",
+  },
+  {
+    id: "freelancerText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Freelancer Partner page that is not in a repeated block: the opening panel, the form's heading and thank-you message, every section heading and the closing banner. {name} becomes the assistant's name.",
+  },
+  {
+    id: "estimatorText",
+    label: "Headings & paragraphs",
+    help: "The wording around the Credit Score Estimator: the opening panel, the two boxes under it and the note at the foot. The estimator's own questions are not editable, because the score depends on them.",
+  },
+  {
+    id: "insightsText",
+    label: "Headings & paragraphs",
+    help: "The heading on the Insights page and the link on each article. The articles themselves are written under New pages & articles.",
+  },
+  {
+    id: "casesText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Case Studies page around the cases: the opening panel, the filter and link text and the closing banner. The cases themselves are under Case studies.",
+  },
+  {
+    id: "ratesText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Interest Rates page around the table: the opening panel, the note and buttons under the table and the heading above the calculators. The rate rows are under Interest rates.",
+  },
+  {
+    id: "toolsText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Calculators page: the opening panel, the side menu heading, the note under a calculator and the three info cards. The calculator names are under Blocks.",
+  },
+  {
+    id: "advisorText",
+    label: "Headings & paragraphs",
+    help: "The heading above the Loan Expert's short questions. The questions themselves are not editable, because the answers depend on them.",
+  },
+  {
+    id: "advisoryText",
+    label: "Headings & paragraphs",
+    help: "The wording on the CIBIL Advisory page that is not in a card list or a picture: the opening panel, each block's heading and text, the five steps' heading and the important note.",
+  },
+  {
+    id: "cityText",
+    label: "Headings & paragraphs",
+    help: "The wording shared by the Mumbai, Thane, Navi Mumbai and Pune pages. {city} becomes the name of the city on each page. Each city's own intro and service note are under Blocks, and its questions are under FAQs.",
+  },
   {
     id: "calegalText",
     label: "Headings & paragraphs",
@@ -359,6 +439,112 @@ const PAGE_SCOPES = {
       seo: "Google listing",
     } as Partial<Record<Section, string>>,
   },
+  builder: {
+    first: "builderText" as Section,
+    listPage: "None",
+    seoPath: "/partner/builder",
+    seoPaths: ["/partner/builder"],
+    sections: {
+      builderText: "Headings & paragraphs",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  freelancer: {
+    first: "freelancerText" as Section,
+    listPage: "None",
+    seoPath: "/partner/freelancer",
+    seoPaths: ["/partner/freelancer"],
+    sections: {
+      freelancerText: "Headings & paragraphs",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  estimator: {
+    first: "estimatorText" as Section,
+    listPage: "None",
+    seoPath: "/credit-score-estimator",
+    seoPaths: ["/credit-score-estimator"],
+    sections: {
+      estimatorText: "Headings & paragraphs",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  insights: {
+    first: "insightsText" as Section,
+    listPage: "None",
+    seoPath: "/insights",
+    seoPaths: ["/insights"],
+    sections: {
+      insightsText: "Headings & paragraphs",
+      customPages: "New pages & articles",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  cases: {
+    first: "casesText" as Section,
+    listPage: "None",
+    seoPath: "/case-studies",
+    seoPaths: ["/case-studies"],
+    sections: {
+      casesText: "Headings & paragraphs",
+      caseStudies: "Case studies",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  rates: {
+    first: "ratesText" as Section,
+    listPage: "None",
+    seoPath: "/rates",
+    seoPaths: ["/rates"],
+    sections: {
+      ratesText: "Headings & paragraphs",
+      bankRates: "Interest rates",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  tools: {
+    first: "toolsText" as Section,
+    listPage: "Tools",
+    seoPath: "/tools",
+    seoPaths: ["/tools"],
+    sections: {
+      toolsText: "Headings & paragraphs",
+      lists: "Blocks (calculator names)",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  advisor: {
+    first: "advisorText" as Section,
+    listPage: "None",
+    seoPath: "/ai-loan-advisor",
+    seoPaths: ["/ai-loan-advisor"],
+    sections: {
+      advisorText: "Headings & paragraphs",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  advisory: {
+    first: "advisoryText" as Section,
+    listPage: "None",
+    seoPath: "/cibil-advisory",
+    seoPaths: ["/cibil-advisory"],
+    sections: {
+      advisoryText: "Headings & paragraphs",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  city: {
+    first: "cityText" as Section,
+    listPage: "City pages",
+    seoPath: "/mumbai",
+    seoPaths: ["/mumbai", "/thane", "/navi-mumbai", "/pune"],
+    sections: {
+      cityText: "Headings & paragraphs",
+      lists: "Blocks (each city's intro)",
+      faqs: "FAQs",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
   whyus: {
     first: "whyusText" as Section,
     listPage: "Why Us",
@@ -420,11 +606,21 @@ function textSpecFor(section: Section, content: Content | undefined): HomeTextSe
     calegalText: content?.calegalTextSpec,
     partnerText: content?.partnerTextSpec,
     trackText: content?.trackTextSpec,
+    builderText: content?.builderTextSpecSpec,
+    freelancerText: content?.freelancerTextSpecSpec,
+    estimatorText: content?.estimatorTextSpecSpec,
+    insightsText: content?.insightsTextSpecSpec,
+    casesText: content?.casesTextSpecSpec,
+    ratesText: content?.ratesTextSpecSpec,
+    toolsText: content?.toolsTextSpecSpec,
+    advisorText: content?.advisorTextSpecSpec,
+    advisoryText: content?.advisoryTextSpecSpec,
+    cityText: content?.cityTextSpecSpec,
   };
   return by[section] ?? [];
 }
 
-export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" | "cibil" | "whyus" | "calegal" | "partner" | "track" } = {}) {
+export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" | "cibil" | "whyus" | "calegal" | "partner" | "track" | "builder" | "freelancer" | "estimator" | "insights" | "cases" | "rates" | "tools" | "advisor" | "advisory" | "city" } = {}) {
   const queryClient = useQueryClient();
   const page = scope ? PAGE_SCOPES[scope] : undefined;
   const [section, setSection] = useState<Section>(page ? page.first : "pageText");
@@ -523,10 +719,10 @@ export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact"
         section={section}
         initial={initial}
         builtIn={builtIn}
-        seoPages={(defaults.data?.seoPages ?? []).filter((p) => !page || p.path === page.seoPath)}
+        seoPages={(defaults.data?.seoPages ?? []).filter((p) => !page || p.path === page.seoPath || ((page as { seoPaths?: string[] }).seoPaths ?? []).includes(p.path))}
         listSpecs={(defaults.data?.listSpecs ?? []).filter((s) => !page || s.page === page.listPage)}
         homeSpec={textSpecFor(section, defaults.data)}
-        faqPages={scope === "contact" ? ["contact"] : scope === "partner" ? ["partner"] : undefined}
+        faqPages={scope === "contact" ? ["contact"] : scope === "partner" ? ["partner"] : scope === "city" ? ["mumbai", "thane", "navi-mumbai", "pune"] : undefined}
         busy={save.isPending || reset.isPending}
         canReset={!!row}
         onSave={(value) => save.mutate({ key: section, value })}

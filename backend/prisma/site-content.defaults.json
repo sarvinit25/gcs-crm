@@ -1964,6 +1964,54 @@
       "description": "Tax, GST, accounting and business registration through our associated CA Services team, and property, society, SRA/MHADA/MMRDA and legal documentation through our Professional Legal Services team."
     },
     {
+      "path": "/partner",
+      "label": "Partner with us",
+      "title": "Agent Partner | Growth Capital Services",
+      "description": "Refer loan clients to Growth Capital Services and earn on every disbursal. No investment, no license required — built for CAs, property consultants, brokers, insurance advisors and business consultants."
+    },
+    {
+      "path": "/partner/builder",
+      "label": "Partner: builder",
+      "title": "Builder Partner | Growth Capital Services",
+      "description": "Home-loan support for builders and developers: lender coordination, project approvals and buyer loans handled through one desk, from booking to disbursal."
+    },
+    {
+      "path": "/partner/freelancer",
+      "label": "Partner: freelancer",
+      "title": "Freelance Associate | Growth Capital Services",
+      "description": "Earn on your own time by introducing people who need a loan. No investment, no licence, no targets. We run the lending; you refer and get paid on disbursal."
+    },
+    {
+      "path": "/track-application",
+      "label": "Track application",
+      "title": "Track Your Application | Growth Capital Services",
+      "description": "Follow your loan file with Growth Capital Services. Clients enter their GCS ID, and partners sign in to their portal, to see the status of each application."
+    },
+    {
+      "path": "/cibil-advisory",
+      "label": "CIBIL advisory",
+      "title": "CIBIL Advisory Services | Growth Capital Services",
+      "description": "Understand your credit report and score with our experts. For individuals and business owners (MSMEs): read your report, spot errors, plan your next steps and get ready to apply for a loan."
+    },
+    {
+      "path": "/credit-score-estimator",
+      "label": "Credit score estimator",
+      "title": "Credit Score Estimator | Growth Capital Services",
+      "description": "Answer a few simple questions to see an indicative credit score range. A quick estimate, not a credit bureau report."
+    },
+    {
+      "path": "/insights",
+      "label": "Insights",
+      "title": "Insights & Updates | Growth Capital Services",
+      "description": "Guides, updates and practical advice on home loans, business funding, credit scores and more from the Growth Capital Services team."
+    },
+    {
+      "path": "/ai-loan-advisor",
+      "label": "Loan expert",
+      "title": "Loan Expert | Growth Capital Services",
+      "description": "Tell us what you need and answer a few short questions. A Growth Capital Services loan expert will look at the options that may suit your profile and contact you."
+    },
+    {
       "path": "/contact",
       "label": "Contact",
       "title": "Contact & Free Loan Consultation | Growth Capital Services",
@@ -7164,6 +7212,1513 @@
           "id": "partner.help",
           "label": "Start of the help line",
           "text": "Forgot your password, or not a partner yet?"
+        }
+      ]
+    }
+  ],
+  "builderText": {
+    "hero.eyebrow": "Builder Partner",
+    "hero.title": "Turn your bookings",
+    "hero.gold": "into disbursals.",
+    "hero.intro": "Give your buyers a smoother route from booking to possession. One finance desk handles lenders, approvals and buyer loans, so your team can stay focused on selling.",
+    "hero.quote": "You build the homes. We help your buyers finance them.",
+    "form.heading": "Talk to our project finance desk",
+    "form.intro": "Tell us about your project and we will call you to plan how buyer financing can work for it.",
+    "form.button": "Request a Call",
+    "form.thanks": "Our project finance team will reach out to discuss your project and how we can support your buyers.",
+    "what.eyebrow": "What We Do",
+    "what.title": "One operating desk between builders, buyers and lenders.",
+    "what.body": "We bridge developers, home buyers and banks, so your buyers' home-loan journey has one place to start and one team to ask.",
+    "scale.eyebrow": "Growth Capital for Builders",
+    "scale.title": "Built to help you scale, with full visibility.",
+    "scale.body": "Our model keeps financing out of your way, so you can concentrate on building good projects.",
+    "lenders.eyebrow": "Our Lending Partners",
+    "lenders.title": "Your buyers get more than one bank to choose from.",
+    "how.eyebrow": "How It Works",
+    "how.title": "From launch to disbursal, in four steps.",
+    "why.eyebrow": "Why Choose Us",
+    "why.title": "More than another channel of agents.",
+    "why.body": "Technology tracking, hands-on support and a wide lender panel, working as one team for your project.",
+    "assistant.eyebrow": "{name}: the GCS advantage",
+    "assistant.title": "Buyer questions answered without loading your sales team.",
+    "assistant.body": "Our AI assistant takes the first round of a buyer's loan questions, then hands over to an expert when they are ready to move.",
+    "models.eyebrow": "Ways to Work Together",
+    "models.title": "Pick the set-up that fits your sales.",
+    "faq.eyebrow": "Before You Reach Out",
+    "faq.title": "Quick answers for builders.",
+    "cta.title": "Let's enable financing",
+    "cta.gold": "for your project.",
+    "cta.call": "Call Us",
+    "cta.whatsapp": "WhatsApp Us"
+  },
+  "builderTextSpec": [
+    {
+      "id": "hero",
+      "label": "Opening panel",
+      "hint": "The dark panel beside the form.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line",
+          "text": "Builder Partner"
+        },
+        {
+          "id": "hero.title",
+          "label": "Heading",
+          "text": "Turn your bookings"
+        },
+        {
+          "id": "hero.gold",
+          "label": "End of the heading (gold)",
+          "text": "into disbursals."
+        },
+        {
+          "id": "hero.intro",
+          "label": "Paragraph",
+          "text": "Give your buyers a smoother route from booking to possession. One finance desk handles lenders, approvals and buyer loans, so your team can stay focused on selling.",
+          "long": true
+        },
+        {
+          "id": "hero.quote",
+          "label": "Quote",
+          "text": "You build the homes. We help your buyers finance them."
+        }
+      ]
+    },
+    {
+      "id": "form",
+      "label": "Request form",
+      "hint": "The words on the form beside the opening panel.",
+      "fields": [
+        {
+          "id": "form.heading",
+          "label": "Heading",
+          "text": "Talk to our project finance desk"
+        },
+        {
+          "id": "form.intro",
+          "label": "Text",
+          "text": "Tell us about your project and we will call you to plan how buyer financing can work for it.",
+          "long": true
+        },
+        {
+          "id": "form.button",
+          "label": "Button",
+          "text": "Request a Call"
+        },
+        {
+          "id": "form.thanks",
+          "label": "Thank-you message",
+          "text": "Our project finance team will reach out to discuss your project and how we can support your buyers.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "what",
+      "label": "What we do",
+      "hint": "The heading above the first set of cards.",
+      "fields": [
+        {
+          "id": "what.eyebrow",
+          "label": "Small line",
+          "text": "What We Do"
+        },
+        {
+          "id": "what.title",
+          "label": "Heading",
+          "text": "One operating desk between builders, buyers and lenders."
+        },
+        {
+          "id": "what.body",
+          "label": "Text",
+          "text": "We bridge developers, home buyers and banks, so your buyers' home-loan journey has one place to start and one team to ask.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "scale",
+      "label": "Growth for builders",
+      "hint": "The heading beside the picture. The tick points are built into the page.",
+      "fields": [
+        {
+          "id": "scale.eyebrow",
+          "label": "Small line",
+          "text": "Growth Capital for Builders"
+        },
+        {
+          "id": "scale.title",
+          "label": "Heading",
+          "text": "Built to help you scale, with full visibility."
+        },
+        {
+          "id": "scale.body",
+          "label": "Text",
+          "text": "Our model keeps financing out of your way, so you can concentrate on building good projects.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "lenders",
+      "label": "Our lending partners",
+      "hint": "The heading above the bank logos.",
+      "fields": [
+        {
+          "id": "lenders.eyebrow",
+          "label": "Small line",
+          "text": "Our Lending Partners"
+        },
+        {
+          "id": "lenders.title",
+          "label": "Heading",
+          "text": "Your buyers get more than one bank to choose from."
+        }
+      ]
+    },
+    {
+      "id": "how",
+      "label": "How it works",
+      "hint": "The heading above the four steps.",
+      "fields": [
+        {
+          "id": "how.eyebrow",
+          "label": "Small line",
+          "text": "How It Works"
+        },
+        {
+          "id": "how.title",
+          "label": "Heading",
+          "text": "From launch to disbursal, in four steps."
+        }
+      ]
+    },
+    {
+      "id": "why",
+      "label": "Why choose us",
+      "hint": "The heading above the cards.",
+      "fields": [
+        {
+          "id": "why.eyebrow",
+          "label": "Small line",
+          "text": "Why Choose Us"
+        },
+        {
+          "id": "why.title",
+          "label": "Heading",
+          "text": "More than another channel of agents."
+        },
+        {
+          "id": "why.body",
+          "label": "Text",
+          "text": "Technology tracking, hands-on support and a wide lender panel, working as one team for your project.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "assistant",
+      "label": "AI assistant",
+      "hint": "The block about the assistant. {name} is its name.",
+      "fields": [
+        {
+          "id": "assistant.eyebrow",
+          "label": "Small line",
+          "text": "{name}: the GCS advantage"
+        },
+        {
+          "id": "assistant.title",
+          "label": "Heading",
+          "text": "Buyer questions answered without loading your sales team."
+        },
+        {
+          "id": "assistant.body",
+          "label": "Text",
+          "text": "Our AI assistant takes the first round of a buyer's loan questions, then hands over to an expert when they are ready to move.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "models",
+      "label": "Ways to work together",
+      "hint": "The heading above the three set-ups.",
+      "fields": [
+        {
+          "id": "models.eyebrow",
+          "label": "Small line",
+          "text": "Ways to Work Together"
+        },
+        {
+          "id": "models.title",
+          "label": "Heading",
+          "text": "Pick the set-up that fits your sales."
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "label": "Questions",
+      "hint": "The heading above the questions.",
+      "fields": [
+        {
+          "id": "faq.eyebrow",
+          "label": "Small line",
+          "text": "Before You Reach Out"
+        },
+        {
+          "id": "faq.title",
+          "label": "Heading",
+          "text": "Quick answers for builders."
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "label": "Closing banner",
+      "hint": "The call to action at the bottom. The phone and hours under it come from Contact & CIBIL.",
+      "fields": [
+        {
+          "id": "cta.title",
+          "label": "Heading",
+          "text": "Let's enable financing"
+        },
+        {
+          "id": "cta.gold",
+          "label": "End of the heading (gold)",
+          "text": "for your project."
+        },
+        {
+          "id": "cta.call",
+          "label": "Call button",
+          "text": "Call Us"
+        },
+        {
+          "id": "cta.whatsapp",
+          "label": "WhatsApp button",
+          "text": "WhatsApp Us"
+        }
+      ]
+    }
+  ],
+  "freelancerText": {
+    "hero.eyebrow": "Freelance Associate",
+    "hero.title": "Earn on your own time,",
+    "hero.gold": "by helping people borrow well.",
+    "hero.intro": "Know someone who needs a loan? Introduce them to us. We handle everything from eligibility to disbursal, and you get paid when the loan is disbursed. No investment, no licence and no targets.",
+    "hero.quote": "You make the introduction. We do the lending, the paperwork and the follow-up.",
+    "form.heading": "Become a Freelance Associate",
+    "form.intro": "Share a few details and we will call you for a short orientation. It takes about two minutes.",
+    "form.button": "Join as a Freelancer",
+    "form.thanks": "A member of our team will call you for a short orientation and to set you up as a Freelance Associate.",
+    "who.eyebrow": "Who It's For",
+    "who.title": "If people trust you, you can do this.",
+    "who.body": "No business, no office, no background in finance. Just people who sometimes need a loan.",
+    "split.eyebrow": "Who Does What",
+    "split.title": "A small part for you. The heavy lifting is ours.",
+    "split.you": "Your part",
+    "split.we": "Our part",
+    "estimate.eyebrow": "What You Could Earn",
+    "estimate.title": "Work out your own numbers.",
+    "estimate.body": "Pick a loan type, a typical amount and how many people you might help in a month.",
+    "steps.eyebrow": "Getting Started",
+    "steps.title": "Up and running in four steps.",
+    "perks.eyebrow": "Why Join",
+    "perks.title": "What you get as an associate.",
+    "assistant.eyebrow": "{name}: your pocket guide",
+    "assistant.title": "Not sure how to answer? Ask our AI assistant.",
+    "assistant.body": "You do not need to be a finance expert to help someone with a loan. Use the assistant to get quick answers, then pass the person on to us.",
+    "faq.eyebrow": "Before You Join",
+    "faq.title": "Quick answers.",
+    "cta.title": "Have questions?",
+    "cta.gold": "Talk to a person.",
+    "cta.call": "Call Us",
+    "cta.whatsapp": "WhatsApp Us"
+  },
+  "freelancerTextSpec": [
+    {
+      "id": "hero",
+      "label": "Opening panel",
+      "hint": "The dark panel beside the form.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line",
+          "text": "Freelance Associate"
+        },
+        {
+          "id": "hero.title",
+          "label": "Heading",
+          "text": "Earn on your own time,"
+        },
+        {
+          "id": "hero.gold",
+          "label": "End of the heading (gold)",
+          "text": "by helping people borrow well."
+        },
+        {
+          "id": "hero.intro",
+          "label": "Paragraph",
+          "text": "Know someone who needs a loan? Introduce them to us. We handle everything from eligibility to disbursal, and you get paid when the loan is disbursed. No investment, no licence and no targets.",
+          "long": true
+        },
+        {
+          "id": "hero.quote",
+          "label": "Quote",
+          "text": "You make the introduction. We do the lending, the paperwork and the follow-up."
+        }
+      ]
+    },
+    {
+      "id": "form",
+      "label": "Request form",
+      "hint": "The words on the form beside the opening panel.",
+      "fields": [
+        {
+          "id": "form.heading",
+          "label": "Heading",
+          "text": "Become a Freelance Associate"
+        },
+        {
+          "id": "form.intro",
+          "label": "Text",
+          "text": "Share a few details and we will call you for a short orientation. It takes about two minutes.",
+          "long": true
+        },
+        {
+          "id": "form.button",
+          "label": "Button",
+          "text": "Join as a Freelancer"
+        },
+        {
+          "id": "form.thanks",
+          "label": "Thank-you message",
+          "text": "A member of our team will call you for a short orientation and to set you up as a Freelance Associate.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "who",
+      "label": "Who it is for",
+      "hint": "The heading above the cards.",
+      "fields": [
+        {
+          "id": "who.eyebrow",
+          "label": "Small line",
+          "text": "Who It's For"
+        },
+        {
+          "id": "who.title",
+          "label": "Heading",
+          "text": "If people trust you, you can do this."
+        },
+        {
+          "id": "who.body",
+          "label": "Text",
+          "text": "No business, no office, no background in finance. Just people who sometimes need a loan.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "split",
+      "label": "Who does what",
+      "hint": "The heading above your part and our part. The ticks are built into the page.",
+      "fields": [
+        {
+          "id": "split.eyebrow",
+          "label": "Small line",
+          "text": "Who Does What"
+        },
+        {
+          "id": "split.title",
+          "label": "Heading",
+          "text": "A small part for you. The heavy lifting is ours."
+        },
+        {
+          "id": "split.you",
+          "label": "Left box title",
+          "text": "Your part"
+        },
+        {
+          "id": "split.we",
+          "label": "Right box title",
+          "text": "Our part"
+        }
+      ]
+    },
+    {
+      "id": "estimate",
+      "label": "Earnings estimator",
+      "hint": "The heading above the estimator.",
+      "fields": [
+        {
+          "id": "estimate.eyebrow",
+          "label": "Small line",
+          "text": "What You Could Earn"
+        },
+        {
+          "id": "estimate.title",
+          "label": "Heading",
+          "text": "Work out your own numbers."
+        },
+        {
+          "id": "estimate.body",
+          "label": "Text",
+          "text": "Pick a loan type, a typical amount and how many people you might help in a month.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "steps",
+      "label": "Getting started",
+      "hint": "The heading above the four steps.",
+      "fields": [
+        {
+          "id": "steps.eyebrow",
+          "label": "Small line",
+          "text": "Getting Started"
+        },
+        {
+          "id": "steps.title",
+          "label": "Heading",
+          "text": "Up and running in four steps."
+        }
+      ]
+    },
+    {
+      "id": "perks",
+      "label": "Why join",
+      "hint": "The heading above the perks.",
+      "fields": [
+        {
+          "id": "perks.eyebrow",
+          "label": "Small line",
+          "text": "Why Join"
+        },
+        {
+          "id": "perks.title",
+          "label": "Heading",
+          "text": "What you get as an associate."
+        }
+      ]
+    },
+    {
+      "id": "assistant",
+      "label": "AI assistant",
+      "hint": "The block about the assistant. {name} is its name.",
+      "fields": [
+        {
+          "id": "assistant.eyebrow",
+          "label": "Small line",
+          "text": "{name}: your pocket guide"
+        },
+        {
+          "id": "assistant.title",
+          "label": "Heading",
+          "text": "Not sure how to answer? Ask our AI assistant."
+        },
+        {
+          "id": "assistant.body",
+          "label": "Text",
+          "text": "You do not need to be a finance expert to help someone with a loan. Use the assistant to get quick answers, then pass the person on to us.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "label": "Questions",
+      "hint": "The heading above the questions.",
+      "fields": [
+        {
+          "id": "faq.eyebrow",
+          "label": "Small line",
+          "text": "Before You Join"
+        },
+        {
+          "id": "faq.title",
+          "label": "Heading",
+          "text": "Quick answers."
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "label": "Closing banner",
+      "hint": "The call to action at the bottom. The phone and hours under it come from Contact & CIBIL.",
+      "fields": [
+        {
+          "id": "cta.title",
+          "label": "Heading",
+          "text": "Have questions?"
+        },
+        {
+          "id": "cta.gold",
+          "label": "End of the heading (gold)",
+          "text": "Talk to a person."
+        },
+        {
+          "id": "cta.call",
+          "label": "Call button",
+          "text": "Call Us"
+        },
+        {
+          "id": "cta.whatsapp",
+          "label": "WhatsApp button",
+          "text": "WhatsApp Us"
+        }
+      ]
+    }
+  ],
+  "estimatorText": {
+    "hero.eyebrow": "CIBIL",
+    "hero.title": "Credit Score",
+    "hero.gold": "Estimator",
+    "hero.body": "Answer a few simple questions to see an indicative score range. It is a quick estimate, not a credit bureau report, and nothing you enter is saved or sent.",
+    "next.reportTitle": "Want your real report?",
+    "next.reportBody": "Request your CIBIL or other bureau report through us.",
+    "next.reportLink": "Get your credit report",
+    "next.helpTitle": "Need help with the next step?",
+    "next.helpBody": "Our experts can go through your report with you and plan what to do.",
+    "next.helpLink": "CIBIL Advisory Services",
+    "next.note": "This estimate is only a guide. Your actual score comes from the credit bureau and depends on your full credit history. Lenders decide on their own policy and credit assessment."
+  },
+  "estimatorTextSpec": [
+    {
+      "id": "hero",
+      "label": "Top of the page",
+      "hint": "The opening panel. The questions of the estimator itself are not editable, because the score depends on them.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line",
+          "text": "CIBIL"
+        },
+        {
+          "id": "hero.title",
+          "label": "Heading",
+          "text": "Credit Score"
+        },
+        {
+          "id": "hero.gold",
+          "label": "End of the heading (gold)",
+          "text": "Estimator"
+        },
+        {
+          "id": "hero.body",
+          "label": "Paragraph",
+          "text": "Answer a few simple questions to see an indicative score range. It is a quick estimate, not a credit bureau report, and nothing you enter is saved or sent.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "label": "Next steps",
+      "hint": "The two boxes under the estimator.",
+      "fields": [
+        {
+          "id": "next.reportTitle",
+          "label": "First box: heading",
+          "text": "Want your real report?"
+        },
+        {
+          "id": "next.reportBody",
+          "label": "First box: text",
+          "text": "Request your CIBIL or other bureau report through us.",
+          "long": true
+        },
+        {
+          "id": "next.reportLink",
+          "label": "First box: link",
+          "text": "Get your credit report"
+        },
+        {
+          "id": "next.helpTitle",
+          "label": "Second box: heading",
+          "text": "Need help with the next step?"
+        },
+        {
+          "id": "next.helpBody",
+          "label": "Second box: text",
+          "text": "Our experts can go through your report with you and plan what to do.",
+          "long": true
+        },
+        {
+          "id": "next.helpLink",
+          "label": "Second box: link",
+          "text": "CIBIL Advisory Services"
+        },
+        {
+          "id": "next.note",
+          "label": "Note at the foot",
+          "text": "This estimate is only a guide. Your actual score comes from the credit bureau and depends on your full credit history. Lenders decide on their own policy and credit assessment.",
+          "long": true
+        }
+      ]
+    }
+  ],
+  "insightsText": {
+    "hero.eyebrow": "Insights",
+    "hero.title": "Guides and updates",
+    "hero.gold": "from our desk.",
+    "empty": "New articles are on the way. Check back soon.",
+    "readMore": "Read more"
+  },
+  "insightsTextSpec": [
+    {
+      "id": "hero",
+      "label": "Top of the page",
+      "hint": "The heading above the articles. The articles are written under New pages & articles.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line",
+          "text": "Insights"
+        },
+        {
+          "id": "hero.title",
+          "label": "Heading",
+          "text": "Guides and updates"
+        },
+        {
+          "id": "hero.gold",
+          "label": "End of the heading (gold)",
+          "text": "from our desk."
+        },
+        {
+          "id": "empty",
+          "label": "Message when there are no articles",
+          "text": "New articles are on the way. Check back soon."
+        },
+        {
+          "id": "readMore",
+          "label": "Link on each article",
+          "text": "Read more"
+        }
+      ]
+    }
+  ],
+  "casesText": {
+    "hero.eyebrow": "Real Scenarios",
+    "hero.title": "What stood in the way —",
+    "hero.gold": "and how we routed it.",
+    "hero.body": "From a first rejection to a sanctioned loan — how we've structured real lending situations across our network of banks and NBFCs.",
+    "hero.quote": "\"Every file here started with a no from somewhere else.\"",
+    "hero.quoteNote": "The scenarios below show how we routed each one to a yes.",
+    "list.all": "All Cases",
+    "list.read": "Read the case",
+    "cta.title": "See what's",
+    "cta.gold": "possible for your profile.",
+    "cta.body": "Tell an expert your situation, and we'll tell you which lenders in our network fit it best.",
+    "cta.primary": "Check Your Eligibility",
+    "cta.secondary": "Chat on WhatsApp"
+  },
+  "casesTextSpec": [
+    {
+      "id": "hero",
+      "label": "Top of the page",
+      "hint": "The opening heading, paragraph and the quote under the picture. The cases themselves are under Case studies.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line",
+          "text": "Real Scenarios"
+        },
+        {
+          "id": "hero.title",
+          "label": "Heading",
+          "text": "What stood in the way —"
+        },
+        {
+          "id": "hero.gold",
+          "label": "End of the heading (gold)",
+          "text": "and how we routed it."
+        },
+        {
+          "id": "hero.body",
+          "label": "Paragraph",
+          "text": "From a first rejection to a sanctioned loan — how we've structured real lending situations across our network of banks and NBFCs.",
+          "long": true
+        },
+        {
+          "id": "hero.quote",
+          "label": "Quote under the picture",
+          "text": "\"Every file here started with a no from somewhere else.\""
+        },
+        {
+          "id": "hero.quoteNote",
+          "label": "Line under the quote",
+          "text": "The scenarios below show how we routed each one to a yes."
+        }
+      ]
+    },
+    {
+      "id": "list",
+      "label": "The list",
+      "hint": "The filter and the link on each case.",
+      "fields": [
+        {
+          "id": "list.all",
+          "label": "First filter button",
+          "text": "All Cases"
+        },
+        {
+          "id": "list.read",
+          "label": "Link on each case",
+          "text": "Read the case"
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "label": "Closing banner",
+      "hint": "The call to action at the bottom.",
+      "fields": [
+        {
+          "id": "cta.title",
+          "label": "Heading",
+          "text": "See what's"
+        },
+        {
+          "id": "cta.gold",
+          "label": "End of the heading (gold)",
+          "text": "possible for your profile."
+        },
+        {
+          "id": "cta.body",
+          "label": "Text",
+          "text": "Tell an expert your situation, and we'll tell you which lenders in our network fit it best.",
+          "long": true
+        },
+        {
+          "id": "cta.primary",
+          "label": "Main button",
+          "text": "Check Your Eligibility"
+        },
+        {
+          "id": "cta.secondary",
+          "label": "WhatsApp button",
+          "text": "Chat on WhatsApp"
+        }
+      ]
+    }
+  ],
+  "ratesText": {
+    "hero.eyebrow": "Indicative Rates",
+    "hero.title": "Where loan rates start",
+    "hero.gold": "today.",
+    "hero.body1": "Starting rates by loan type, kept current by our team.",
+    "hero.body2": "Your own rate depends on your profile — we shortlist the lender that offers you the best one.",
+    "note": "A rate table alone rarely tells the whole story. Some lenders favour salaried applicants, while others suit self-employed income or under-construction properties. Your expert studies your income, credit history and property before recommending the right lender.",
+    "button.rate": "Get my rate",
+    "button.emi": "Work out my EMI",
+    "button.call": "or call {phone}",
+    "calc.eyebrow": "Put a rate to work",
+    "calc.title": "See what these rates mean for your EMI",
+    "calc.body": "Pick a rate from the table above and try it here."
+  },
+  "ratesTextSpec": [
+    {
+      "id": "hero",
+      "label": "Top of the page",
+      "hint": "The opening heading and paragraph. The rate rows are under Interest rates.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line",
+          "text": "Indicative Rates"
+        },
+        {
+          "id": "hero.title",
+          "label": "Heading",
+          "text": "Where loan rates start"
+        },
+        {
+          "id": "hero.gold",
+          "label": "End of the heading (gold)",
+          "text": "today."
+        },
+        {
+          "id": "hero.body1",
+          "label": "Paragraph: first sentence",
+          "text": "Starting rates by loan type, kept current by our team."
+        },
+        {
+          "id": "hero.body2",
+          "label": "Paragraph: last sentences (after the date)",
+          "text": "Your own rate depends on your profile — we shortlist the lender that offers you the best one.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "body",
+      "label": "Under the table",
+      "hint": "The note and the three buttons.",
+      "fields": [
+        {
+          "id": "note",
+          "label": "Expert note",
+          "text": "A rate table alone rarely tells the whole story. Some lenders favour salaried applicants, while others suit self-employed income or under-construction properties. Your expert studies your income, credit history and property before recommending the right lender.",
+          "long": true
+        },
+        {
+          "id": "button.rate",
+          "label": "First button",
+          "text": "Get my rate"
+        },
+        {
+          "id": "button.emi",
+          "label": "Second button",
+          "text": "Work out my EMI"
+        },
+        {
+          "id": "button.call",
+          "label": "Call link",
+          "text": "or call {phone}"
+        }
+      ]
+    },
+    {
+      "id": "calc",
+      "label": "Calculators section",
+      "hint": "The heading above the calculators at the foot of the page.",
+      "fields": [
+        {
+          "id": "calc.eyebrow",
+          "label": "Small line",
+          "text": "Put a rate to work"
+        },
+        {
+          "id": "calc.title",
+          "label": "Heading",
+          "text": "See what these rates mean for your EMI"
+        },
+        {
+          "id": "calc.body",
+          "label": "Text",
+          "text": "Pick a rate from the table above and try it here."
+        }
+      ]
+    }
+  ],
+  "toolsText": {
+    "hero.eyebrow": "Calculators",
+    "hero.title": "Know Your Numbers.",
+    "hero.gold": "Then Apply with Confidence.",
+    "hero.body": "Ten free calculators covering every loan on our desk — from EMI and eligibility to CGTMSE fees. Pick a calculator from the menu. No signup required.",
+    "menu.title": "Calculators",
+    "note": "Results are indicative and may vary according to lender policy. Final rates, charges and eligibility are decided by the lender.",
+    "card1.title": "How EMI is Calculated",
+    "card1.body": "EMI = P × r × (1+r)^n / ((1+r)^n - 1), where P = principal, r = monthly rate, n = total months. A higher tenure reduces EMI but increases total interest.",
+    "card2.title": "What is FOIR?",
+    "card2.body": "Fixed Obligation to Income Ratio (FOIR) is the percentage of your income going toward EMIs. Most banks use a 50-60% FOIR cap to determine your maximum loan eligibility.",
+    "card3.title": "Need Expert Advice?",
+    "card3.body": "These calculators give estimates. Actual rates and eligibility depend on your profile, lender policies and property valuation. Talk to our experts for a precise assessment."
+  },
+  "toolsTextSpec": [
+    {
+      "id": "hero",
+      "label": "Top of the page",
+      "hint": "The opening heading and paragraph. The calculator names are under Blocks.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line",
+          "text": "Calculators"
+        },
+        {
+          "id": "hero.title",
+          "label": "Heading",
+          "text": "Know Your Numbers."
+        },
+        {
+          "id": "hero.gold",
+          "label": "End of the heading (gold)",
+          "text": "Then Apply with Confidence."
+        },
+        {
+          "id": "hero.body",
+          "label": "Paragraph",
+          "text": "Ten free calculators covering every loan on our desk — from EMI and eligibility to CGTMSE fees. Pick a calculator from the menu. No signup required.",
+          "long": true
+        },
+        {
+          "id": "menu.title",
+          "label": "Heading of the side menu",
+          "text": "Calculators"
+        },
+        {
+          "id": "note",
+          "label": "Note under a calculator",
+          "text": "Results are indicative and may vary according to lender policy. Final rates, charges and eligibility are decided by the lender.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "cards",
+      "label": "Three info cards",
+      "hint": "The three cards at the foot of the page.",
+      "fields": [
+        {
+          "id": "card1.title",
+          "label": "Card 1: heading",
+          "text": "How EMI is Calculated"
+        },
+        {
+          "id": "card1.body",
+          "label": "Card 1: text",
+          "text": "EMI = P × r × (1+r)^n / ((1+r)^n - 1), where P = principal, r = monthly rate, n = total months. A higher tenure reduces EMI but increases total interest.",
+          "long": true
+        },
+        {
+          "id": "card2.title",
+          "label": "Card 2: heading",
+          "text": "What is FOIR?"
+        },
+        {
+          "id": "card2.body",
+          "label": "Card 2: text",
+          "text": "Fixed Obligation to Income Ratio (FOIR) is the percentage of your income going toward EMIs. Most banks use a 50-60% FOIR cap to determine your maximum loan eligibility.",
+          "long": true
+        },
+        {
+          "id": "card3.title",
+          "label": "Card 3: heading",
+          "text": "Need Expert Advice?"
+        },
+        {
+          "id": "card3.body",
+          "label": "Card 3: text",
+          "text": "These calculators give estimates. Actual rates and eligibility depend on your profile, lender policies and property valuation. Talk to our experts for a precise assessment.",
+          "long": true
+        }
+      ]
+    }
+  ],
+  "advisorText": {
+    "hero.eyebrow": "GCS Loan Expert",
+    "hero.title": "Tell us what you need.",
+    "hero.gold": "We'll help you find the right direction.",
+    "hero.body": "Answer a few short questions about your requirement. A GCS loan expert then checks which lender options may suit your profile and contacts you. This is an enquiry, not a loan approval."
+  },
+  "advisorTextSpec": [
+    {
+      "id": "hero",
+      "label": "Top of the page",
+      "hint": "The heading above the short questions. The questions themselves are not editable, because the answers depend on them.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line",
+          "text": "GCS Loan Expert"
+        },
+        {
+          "id": "hero.title",
+          "label": "Heading",
+          "text": "Tell us what you need."
+        },
+        {
+          "id": "hero.gold",
+          "label": "End of the heading (gold)",
+          "text": "We'll help you find the right direction."
+        },
+        {
+          "id": "hero.body",
+          "label": "Paragraph",
+          "text": "Answer a few short questions about your requirement. A GCS loan expert then checks which lender options may suit your profile and contacts you. This is an enquiry, not a loan approval.",
+          "long": true
+        }
+      ]
+    }
+  ],
+  "advisoryText": {
+    "hero.eyebrow": "CIBIL Advisory Services",
+    "hero.title": "Understand your credit.",
+    "hero.gold": "Improve it, step by step.",
+    "hero.body": "Your credit report decides how lenders see you. Our experts help individuals and business owners read their report, spot problems and make a clear plan before they apply for a loan.",
+    "hero.primary": "Request a Call Back",
+    "hero.secondary": "Talk to Our Loan Expert",
+    "basics.eyebrow": "Credit Basics",
+    "basics.title": "Why credit",
+    "basics.gold": "matters.",
+    "basics.lead": "Your credit score is your financial passport.",
+    "basics.body": "A credit score is a three-digit number (300 to 900) that shows how reliably you have handled credit in the past. It helps banks and financial institutions decide whether to give you a loan, a credit card or another financial product.",
+    "basics.note": "An example to explain the idea, not a real score.",
+    "individuals.eyebrow": "Our Services · Individuals",
+    "individuals.title": "For individuals.",
+    "individuals.body": "Understand your credit and get ready for the loan you want.",
+    "business.eyebrow": "Our Services · Business",
+    "business.title": "For businesses",
+    "business.gold": "(MSME & corporate).",
+    "business.body": "Build your business credit and get ready for growth funding.",
+    "visual.note": "Examples to explain the idea.",
+    "audience.eyebrow": "Who It Is For",
+    "audience.title": "Whether you are an individual or a business.",
+    "how.eyebrow": "How It Works",
+    "how.title": "Five simple steps.",
+    "how.body": "No jargon. A clear path, one step at a time.",
+    "how.closing": "A step-by-step journey towards",
+    "how.closingGold": "a stronger credit future.",
+    "talk.eyebrow": "Talk to Us",
+    "talk.title": "Better credit health helps",
+    "talk.gold": "every loan you apply for.",
+    "talk.body": "A clear credit report can make your cash flow easier to plan, give lenders more confidence in you, and help you avoid surprises when you apply. Share your details and a loan expert will call you back.",
+    "talk.report": "Get your credit report",
+    "talk.estimator": "Try the score estimator",
+    "talk.noteLabel": "Important note:",
+    "talk.note": "Growth Capital Services is a loan consultant. We are not a credit bureau or a lender. Only the credit bureau and the lender can correct or change what is in your report, after their own checks. We cannot promise a change in your score or the approval of a loan. Results depend on your credit history, your profile and each lender's policy. The scores, ranks and tick-lists shown on this page are examples to explain the idea, not real data."
+  },
+  "advisoryTextSpec": [
+    {
+      "id": "hero",
+      "label": "Opening panel",
+      "hint": "The dark panel at the top.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line",
+          "text": "CIBIL Advisory Services"
+        },
+        {
+          "id": "hero.title",
+          "label": "Heading",
+          "text": "Understand your credit."
+        },
+        {
+          "id": "hero.gold",
+          "label": "End of the heading (gold)",
+          "text": "Improve it, step by step."
+        },
+        {
+          "id": "hero.body",
+          "label": "Paragraph",
+          "text": "Your credit report decides how lenders see you. Our experts help individuals and business owners read their report, spot problems and make a clear plan before they apply for a loan.",
+          "long": true
+        },
+        {
+          "id": "hero.primary",
+          "label": "Main button",
+          "text": "Request a Call Back"
+        },
+        {
+          "id": "hero.secondary",
+          "label": "WhatsApp button",
+          "text": "Talk to Our Loan Expert"
+        }
+      ]
+    },
+    {
+      "id": "basics",
+      "label": "Why credit matters",
+      "hint": "The first block, beside the phone picture. The tick points are built into the page.",
+      "fields": [
+        {
+          "id": "basics.eyebrow",
+          "label": "Small line",
+          "text": "Credit Basics"
+        },
+        {
+          "id": "basics.title",
+          "label": "Heading",
+          "text": "Why credit"
+        },
+        {
+          "id": "basics.gold",
+          "label": "End of the heading (gold)",
+          "text": "matters."
+        },
+        {
+          "id": "basics.lead",
+          "label": "Bold line",
+          "text": "Your credit score is your financial passport."
+        },
+        {
+          "id": "basics.body",
+          "label": "Paragraph",
+          "text": "A credit score is a three-digit number (300 to 900) that shows how reliably you have handled credit in the past. It helps banks and financial institutions decide whether to give you a loan, a credit card or another financial product.",
+          "long": true
+        },
+        {
+          "id": "basics.note",
+          "label": "Note under the picture",
+          "text": "An example to explain the idea, not a real score."
+        }
+      ]
+    },
+    {
+      "id": "individuals",
+      "label": "For individuals",
+      "hint": "The block for individuals. The service cards are built into the page.",
+      "fields": [
+        {
+          "id": "individuals.eyebrow",
+          "label": "Small line",
+          "text": "Our Services · Individuals"
+        },
+        {
+          "id": "individuals.title",
+          "label": "Heading",
+          "text": "For individuals."
+        },
+        {
+          "id": "individuals.body",
+          "label": "Text",
+          "text": "Understand your credit and get ready for the loan you want.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "business",
+      "label": "For businesses",
+      "hint": "The block for businesses. The service cards are built into the page.",
+      "fields": [
+        {
+          "id": "business.eyebrow",
+          "label": "Small line",
+          "text": "Our Services · Business"
+        },
+        {
+          "id": "business.title",
+          "label": "Heading",
+          "text": "For businesses"
+        },
+        {
+          "id": "business.gold",
+          "label": "End of the heading",
+          "text": "(MSME & corporate)."
+        },
+        {
+          "id": "business.body",
+          "label": "Text",
+          "text": "Build your business credit and get ready for growth funding.",
+          "long": true
+        },
+        {
+          "id": "visual.note",
+          "label": "Note under the example pictures",
+          "text": "Examples to explain the idea."
+        }
+      ]
+    },
+    {
+      "id": "audience",
+      "label": "Who it is for",
+      "hint": "The heading above the four kinds of customer.",
+      "fields": [
+        {
+          "id": "audience.eyebrow",
+          "label": "Small line",
+          "text": "Who It Is For"
+        },
+        {
+          "id": "audience.title",
+          "label": "Heading",
+          "text": "Whether you are an individual or a business."
+        }
+      ]
+    },
+    {
+      "id": "how",
+      "label": "How it works",
+      "hint": "The heading above the five steps and the line under them.",
+      "fields": [
+        {
+          "id": "how.eyebrow",
+          "label": "Small line",
+          "text": "How It Works"
+        },
+        {
+          "id": "how.title",
+          "label": "Heading",
+          "text": "Five simple steps."
+        },
+        {
+          "id": "how.body",
+          "label": "Text",
+          "text": "No jargon. A clear path, one step at a time."
+        },
+        {
+          "id": "how.closing",
+          "label": "Line beside the stairs",
+          "text": "A step-by-step journey towards"
+        },
+        {
+          "id": "how.closingGold",
+          "label": "End of that line (gold)",
+          "text": "a stronger credit future."
+        }
+      ]
+    },
+    {
+      "id": "talk",
+      "label": "Talk to us",
+      "hint": "The block beside the callback form.",
+      "fields": [
+        {
+          "id": "talk.eyebrow",
+          "label": "Small line",
+          "text": "Talk to Us"
+        },
+        {
+          "id": "talk.title",
+          "label": "Heading",
+          "text": "Better credit health helps"
+        },
+        {
+          "id": "talk.gold",
+          "label": "End of the heading (gold)",
+          "text": "every loan you apply for."
+        },
+        {
+          "id": "talk.body",
+          "label": "Paragraph",
+          "text": "A clear credit report can make your cash flow easier to plan, give lenders more confidence in you, and help you avoid surprises when you apply. Share your details and a loan expert will call you back.",
+          "long": true
+        },
+        {
+          "id": "talk.report",
+          "label": "First link",
+          "text": "Get your credit report"
+        },
+        {
+          "id": "talk.estimator",
+          "label": "Second link",
+          "text": "Try the score estimator"
+        },
+        {
+          "id": "talk.noteLabel",
+          "label": "Bold start of the important note",
+          "text": "Important note:"
+        },
+        {
+          "id": "talk.note",
+          "label": "Important note",
+          "text": "Growth Capital Services is a loan consultant. We are not a credit bureau or a lender. Only the credit bureau and the lender can correct or change what is in your report, after their own checks. We cannot promise a change in your score or the approval of a loan. Results depend on your credit history, your profile and each lender's policy. The scores, ranks and tick-lists shown on this page are examples to explain the idea, not real data.",
+          "long": true
+        }
+      ]
+    }
+  ],
+  "cityText": {
+    "hero.eyebrow": "Loan Advisory in {city}",
+    "hero.title": "Trusted Loan Experts in",
+    "hero.gold": "{city}.",
+    "hero.primary": "Check Eligibility",
+    "hero.secondary": "WhatsApp Us",
+    "serve.officeEyebrow": "Our Office",
+    "serve.officeTitle": "Visit us, or handle everything remotely.",
+    "serve.officeAddress": "Address",
+    "serve.remoteEyebrow": "How We Serve You Here",
+    "serve.remoteTitle": "{city}, without a branch counter.",
+    "serve.remoteAddress": "Registered Office",
+    "serve.hours": "Hours",
+    "serve.call": "Call or WhatsApp",
+    "loans.eyebrow": "Loans We Arrange in {city}",
+    "loans.title": "The same 75+ lender network, wherever you're based.",
+    "loans.body": "Every product below is available to {city} clients through the same process — profile review, lender matching, documentation and disbursal.",
+    "loans.link": "Explore products",
+    "calc.eyebrow": "Plan your loan in {city}",
+    "calc.title": "Work out your EMI, eligibility and stamp duty",
+    "calc.body": "Quick estimates before you speak to us — nothing is saved or sent.",
+    "faq.eyebrow": "{city} FAQs",
+    "faq.title": "Common questions from {city} clients.",
+    "cta.title": "Ready to talk?",
+    "cta.gold": "Let's start.",
+    "cta.call": "Call {phone} · {hours}",
+    "cta.primary": "Get Free Consultation",
+    "cta.secondary": "WhatsApp Us",
+    "cta.also": "Also serving"
+  },
+  "cityTextSpec": [
+    {
+      "id": "hero",
+      "label": "Top of the page",
+      "hint": "The opening heading and the two buttons. The city's own intro paragraph is under Blocks.",
+      "fields": [
+        {
+          "id": "hero.eyebrow",
+          "label": "Small line",
+          "text": "Loan Advisory in {city}"
+        },
+        {
+          "id": "hero.title",
+          "label": "Heading",
+          "text": "Trusted Loan Experts in"
+        },
+        {
+          "id": "hero.gold",
+          "label": "End of the heading (gold)",
+          "text": "{city}."
+        },
+        {
+          "id": "hero.primary",
+          "label": "Main button",
+          "text": "Check Eligibility"
+        },
+        {
+          "id": "hero.secondary",
+          "label": "WhatsApp button",
+          "text": "WhatsApp Us"
+        }
+      ]
+    },
+    {
+      "id": "serve",
+      "label": "How we serve the city",
+      "hint": "The block beside the map. The first set is used where we have an office, the second where we do not.",
+      "fields": [
+        {
+          "id": "serve.officeEyebrow",
+          "label": "With an office: small line",
+          "text": "Our Office"
+        },
+        {
+          "id": "serve.officeTitle",
+          "label": "With an office: heading",
+          "text": "Visit us, or handle everything remotely."
+        },
+        {
+          "id": "serve.officeAddress",
+          "label": "With an office: label above the address",
+          "text": "Address"
+        },
+        {
+          "id": "serve.remoteEyebrow",
+          "label": "Without an office: small line",
+          "text": "How We Serve You Here"
+        },
+        {
+          "id": "serve.remoteTitle",
+          "label": "Without an office: heading",
+          "text": "{city}, without a branch counter."
+        },
+        {
+          "id": "serve.remoteAddress",
+          "label": "Without an office: label above the address",
+          "text": "Registered Office"
+        },
+        {
+          "id": "serve.hours",
+          "label": "Label above the hours",
+          "text": "Hours"
+        },
+        {
+          "id": "serve.call",
+          "label": "Label above the phone",
+          "text": "Call or WhatsApp"
+        }
+      ]
+    },
+    {
+      "id": "loans",
+      "label": "Loans we arrange",
+      "hint": "The heading above the loan categories.",
+      "fields": [
+        {
+          "id": "loans.eyebrow",
+          "label": "Small line",
+          "text": "Loans We Arrange in {city}"
+        },
+        {
+          "id": "loans.title",
+          "label": "Heading",
+          "text": "The same 75+ lender network, wherever you're based."
+        },
+        {
+          "id": "loans.body",
+          "label": "Text",
+          "text": "Every product below is available to {city} clients through the same process — profile review, lender matching, documentation and disbursal.",
+          "long": true
+        },
+        {
+          "id": "loans.link",
+          "label": "Link on each category",
+          "text": "Explore products"
+        }
+      ]
+    },
+    {
+      "id": "calc",
+      "label": "Calculators",
+      "hint": "The heading above the calculators.",
+      "fields": [
+        {
+          "id": "calc.eyebrow",
+          "label": "Small line",
+          "text": "Plan your loan in {city}"
+        },
+        {
+          "id": "calc.title",
+          "label": "Heading",
+          "text": "Work out your EMI, eligibility and stamp duty"
+        },
+        {
+          "id": "calc.body",
+          "label": "Text",
+          "text": "Quick estimates before you speak to us — nothing is saved or sent.",
+          "long": true
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "label": "Questions",
+      "hint": "The heading above the city's questions.",
+      "fields": [
+        {
+          "id": "faq.eyebrow",
+          "label": "Small line",
+          "text": "{city} FAQs"
+        },
+        {
+          "id": "faq.title",
+          "label": "Heading",
+          "text": "Common questions from {city} clients."
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "label": "Closing banner",
+      "hint": "The call to action at the bottom. {phone} and {hours} come from Contact & CIBIL.",
+      "fields": [
+        {
+          "id": "cta.title",
+          "label": "Heading",
+          "text": "Ready to talk?"
+        },
+        {
+          "id": "cta.gold",
+          "label": "End of the heading (gold)",
+          "text": "Let's start."
+        },
+        {
+          "id": "cta.call",
+          "label": "Line under the heading",
+          "text": "Call {phone} · {hours}"
+        },
+        {
+          "id": "cta.primary",
+          "label": "Main button",
+          "text": "Get Free Consultation"
+        },
+        {
+          "id": "cta.secondary",
+          "label": "WhatsApp button",
+          "text": "WhatsApp Us"
+        },
+        {
+          "id": "cta.also",
+          "label": "Line above the other cities",
+          "text": "Also serving"
         }
       ]
     }
