@@ -696,6 +696,10 @@ function textSpecFor(section: Section, content: Content | undefined): HomeTextSe
     advisorText: content?.advisorTextSpec,
     advisoryText: content?.advisoryTextSpec,
     cityText: content?.cityTextSpec,
+    loanPageText: content?.loanPageTextSpec,
+    casePageText: content?.casePageTextSpec,
+    servicePageText: content?.servicePageTextSpec,
+    siteText: content?.siteTextSpec,
   };
   return by[section] ?? [];
 }
