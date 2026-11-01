@@ -78,6 +78,8 @@ type Content = {
   aboutTextSpec?: HomeTextSection[];
   contactText?: Record<string, string>;
   contactTextSpec?: HomeTextSection[];
+  servicesText?: Record<string, string>;
+  servicesTextSpec?: HomeTextSection[];
   "pageText:hi"?: PageTextMap;
   "pageText:mr"?: PageTextMap;
 };
@@ -132,10 +134,15 @@ type ListSpec = {
 };
 type ListItem = Record<string, string>;
 type Lists = Record<string, ListItem[]>;
-type Section = "homeText" | "aboutText" | "contactText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type Section = "homeText" | "aboutText" | "contactText" | "servicesText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "servicesText",
+    label: "Headings & buttons",
+    help: "The wording on the Services page that is not in a repeated block: the opening heading and paragraph, the goal heading, the link on each loan card and the closing banner. {count} becomes the number of loan products. The table of lender kinds is edited on the Home page tab.",
+  },
   {
     id: "contactText",
     label: "Headings & paragraphs",
@@ -272,6 +279,18 @@ const PAGE_SCOPES = {
       seo: "Google listing",
     } as Partial<Record<Section, string>>,
   },
+  services: {
+    first: "servicesText" as Section,
+    listPage: "Services",
+    seoPath: "/services",
+    sections: {
+      servicesText: "Headings & buttons",
+      lists: "Blocks (categories, figures)",
+      products: "Loan product pages",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
   contact: {
     first: "contactText" as Section,
     listPage: "Contact",
@@ -286,7 +305,7 @@ const PAGE_SCOPES = {
   },
 };
 
-export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" } = {}) {
+export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" } = {}) {
   const queryClient = useQueryClient();
   const page = scope ? PAGE_SCOPES[scope] : undefined;
   const [section, setSection] = useState<Section>(page ? page.first : "pageText");
@@ -387,7 +406,7 @@ export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact"
         builtIn={builtIn}
         seoPages={(defaults.data?.seoPages ?? []).filter((p) => !page || p.path === page.seoPath)}
         listSpecs={(defaults.data?.listSpecs ?? []).filter((s) => !page || s.page === page.listPage)}
-        homeSpec={(section === "contactText" ? defaults.data?.contactTextSpec : section === "aboutText" ? defaults.data?.aboutTextSpec : defaults.data?.homeTextSpec) ?? []}
+        homeSpec={(section === "servicesText" ? defaults.data?.servicesTextSpec : section === "contactText" ? defaults.data?.contactTextSpec : section === "aboutText" ? defaults.data?.aboutTextSpec : defaults.data?.homeTextSpec) ?? []}
         faqPages={scope === "contact" ? ["contact"] : undefined}
         busy={save.isPending || reset.isPending}
         canReset={!!row}
@@ -436,7 +455,7 @@ function Editor({ section, seoPages, listSpecs, homeSpec, faqPages, initial, bui
 
   return (
     <div>
-      {(section === "homeText" || section === "aboutText" || section === "contactText") && (
+      {(section === "homeText" || section === "aboutText" || section === "contactText" || section === "servicesText") && (
         <HomeTextEditor value={draft as Record<string, string>} spec={homeSpec} onChange={setDraft} />
       )}
       {section === "customPages" && (
