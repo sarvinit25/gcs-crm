@@ -72,9 +72,57 @@ type Content = {
   lists?: Lists;
   listSpecs?: ListSpec[];
   iconNames?: string[];
+  homeText?: Record<string, string>;
+  homeTextSpec?: HomeTextSection[];
+  aboutText?: Record<string, string>;
+  aboutTextSpec?: HomeTextSection[];
+  contactText?: Record<string, string>;
+  contactTextSpec?: HomeTextSection[];
+  servicesText?: Record<string, string>;
+  servicesTextSpec?: HomeTextSection[];
+  cibilText?: Record<string, string>;
+  cibilTextSpec?: HomeTextSection[];
+  whyusText?: Record<string, string>;
+  whyusTextSpec?: HomeTextSection[];
+  calegalText?: Record<string, string>;
+  calegalTextSpec?: HomeTextSection[];
+  partnerText?: Record<string, string>;
+  partnerTextSpec?: HomeTextSection[];
+  trackText?: Record<string, string>;
+  trackTextSpec?: HomeTextSection[];
+  builderText?: Record<string, string>;
+  builderTextSpec?: HomeTextSection[];
+  freelancerText?: Record<string, string>;
+  freelancerTextSpec?: HomeTextSection[];
+  estimatorText?: Record<string, string>;
+  estimatorTextSpec?: HomeTextSection[];
+  insightsText?: Record<string, string>;
+  insightsTextSpec?: HomeTextSection[];
+  casesText?: Record<string, string>;
+  casesTextSpec?: HomeTextSection[];
+  ratesText?: Record<string, string>;
+  ratesTextSpec?: HomeTextSection[];
+  toolsText?: Record<string, string>;
+  toolsTextSpec?: HomeTextSection[];
+  advisorText?: Record<string, string>;
+  advisorTextSpec?: HomeTextSection[];
+  advisoryText?: Record<string, string>;
+  advisoryTextSpec?: HomeTextSection[];
+  cityText?: Record<string, string>;
+  cityTextSpec?: HomeTextSection[];
+  loanPageText?: Record<string, string>;
+  loanPageTextSpec?: HomeTextSection[];
+  casePageText?: Record<string, string>;
+  casePageTextSpec?: HomeTextSection[];
+  servicePageText?: Record<string, string>;
+  servicePageTextSpec?: HomeTextSection[];
+  siteText?: Record<string, string>;
+  siteTextSpec?: HomeTextSection[];
   "pageText:hi"?: PageTextMap;
   "pageText:mr"?: PageTextMap;
 };
+type HomeTextField = { id: string; label: string; text: string; long?: boolean };
+type HomeTextSection = { id: string; label: string; hint: string; fields: HomeTextField[] };
 type PageTextMap = Record<string, Record<string, string>>;
 type ImageMap = Record<string, string>;
 type RateRow = {
@@ -124,10 +172,151 @@ type ListSpec = {
 };
 type ListItem = Record<string, string>;
 type Lists = Record<string, ListItem[]>;
-type Section = "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
+type Section = "homeText" | "aboutText" | "contactText" | "servicesText" | "cibilText" | "whyusText" | "calegalText" | "partnerText" | "trackText" | "builderText" | "freelancerText" | "estimatorText" | "insightsText" | "casesText" | "ratesText" | "toolsText" | "advisorText" | "advisoryText" | "cityText" | "loanPageText" | "casePageText" | "servicePageText" | "siteText" | "lists" | "pageText:hi" | "pageText:mr" | "customPages" | "testimonials" | "trustNumbers" | "seo" | "bankRates" | "images" | "pageText" | "siteInfo" | "faqs" | "products" | "services" | "caseStudies";
 type Saved = { key: string; value: unknown; updatedAt: string; updatedByName: string | null };
 
+const TEXT_SECTIONS = [
+  "homeText",
+  "aboutText",
+  "contactText",
+  "servicesText",
+  "cibilText",
+  "whyusText",
+  "calegalText",
+  "partnerText",
+  "trackText",
+  "builderText",
+  "freelancerText",
+  "estimatorText",
+  "insightsText",
+  "casesText",
+  "ratesText",
+  "toolsText",
+  "advisorText",
+  "advisoryText",
+  "cityText",
+  "loanPageText",
+  "casePageText",
+  "servicePageText",
+  "siteText",
+] as const;
+
 const SECTIONS: { id: Section; label: string; help: string }[] = [
+  {
+    id: "loanPageText",
+    label: "Headings & buttons",
+    help: "The wording that is the same on every loan page: the buttons, the section headings, the calculators heading, the process headings and the closing banner. {loan} becomes the loan's name, {code} its short code and {group} its category. Each loan's own description, features and figures are under Loan product pages.",
+  },
+  {
+    id: "casePageText",
+    label: "Headings & buttons",
+    help: "The wording that is the same on every case study page: the labels, the three stages, the card beside the story and the link on similar cases. {title} becomes the loan's name. Each case's own story is under Case studies.",
+  },
+  {
+    id: "servicePageText",
+    label: "Headings & buttons",
+    help: "The wording that is the same on every CA and legal service page: the small lines above each block and the words under the enquiry form. {title}, {category} and {phone} are filled in. Each service's own text is under CA & legal services.",
+  },
+  {
+    id: "siteText",
+    label: "Headings & buttons",
+    help: "The words in the header and footer on every page: the footer text under the logo, its headings, the callback button, the copyright line and the Contact Us button. {year} becomes the current year. The menu and footer links are under Blocks; the address, phone and email are under Phone, email & address.",
+  },
+  {
+    id: "builderText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Builder Partner page that is not in a repeated block: the opening panel, the form's heading and thank-you message, every section heading and the closing banner. {name} becomes the assistant's name.",
+  },
+  {
+    id: "freelancerText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Freelancer Partner page that is not in a repeated block: the opening panel, the form's heading and thank-you message, every section heading and the closing banner. {name} becomes the assistant's name.",
+  },
+  {
+    id: "estimatorText",
+    label: "Headings & paragraphs",
+    help: "The wording around the Credit Score Estimator: the opening panel, the two boxes under it and the note at the foot. The estimator's own questions are not editable, because the score depends on them.",
+  },
+  {
+    id: "insightsText",
+    label: "Headings & paragraphs",
+    help: "The heading on the Insights page and the link on each article. The articles themselves are written under New pages & articles.",
+  },
+  {
+    id: "casesText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Case Studies page around the cases: the opening panel, the filter and link text and the closing banner. The cases themselves are under Case studies.",
+  },
+  {
+    id: "ratesText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Interest Rates page around the table: the opening panel, the note and buttons under the table and the heading above the calculators. The rate rows are under Interest rates.",
+  },
+  {
+    id: "toolsText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Calculators page: the opening panel, the side menu heading, the note under a calculator and the three info cards. The calculator names are under Blocks.",
+  },
+  {
+    id: "advisorText",
+    label: "Headings & paragraphs",
+    help: "The heading above the Loan Expert's short questions. The questions themselves are not editable, because the answers depend on them.",
+  },
+  {
+    id: "advisoryText",
+    label: "Headings & paragraphs",
+    help: "The wording on the CIBIL Advisory page that is not in a card list or a picture: the opening panel, each block's heading and text, the five steps' heading and the important note.",
+  },
+  {
+    id: "cityText",
+    label: "Headings & paragraphs",
+    help: "The wording shared by the Mumbai, Thane, Navi Mumbai and Pune pages. {city} becomes the name of the city on each page. Each city's own intro and service note are under Blocks, and its questions are under FAQs.",
+  },
+  {
+    id: "calegalText",
+    label: "Headings & paragraphs",
+    help: "The wording on the CA & Legal page that is not in a repeated block: the opening statement, the heading of each practice and the enquiry block. The services themselves are under CA & legal services.",
+  },
+  {
+    id: "partnerText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Partner page that is not in a repeated block: the opening panel, every section heading, the commission note and the closing banner. {name} becomes the assistant's name. The commission rows come from the commission rate cards.",
+  },
+  {
+    id: "trackText",
+    label: "Headings & panels",
+    help: "The wording on the Track Application page: the heading, the two choices and the text in the Client and Partner panels. The sign-in boxes themselves are not editable, because the flow depends on them.",
+  },
+  {
+    id: "whyusText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Why Us page that is not in a repeated block: the opening statement, section headings, the mission and vision and the closing banner. The common concerns are the same list as on the Home page.",
+  },
+  {
+    id: "cibilText",
+    label: "Headings & notes",
+    help: "The wording on the CIBIL page around the report request: the opening panel, the side notes and the heading above the calculators. {price} becomes the report price. The request form's own questions are not editable, because the flow depends on them. The price and the UPI ID are under Contact & CIBIL.",
+  },
+  {
+    id: "servicesText",
+    label: "Headings & buttons",
+    help: "The wording on the Services page that is not in a repeated block: the opening heading and paragraph, the goal heading, the link on each loan card and the closing banner. {count} becomes the number of loan products. The table of lender kinds is edited on the Home page tab.",
+  },
+  {
+    id: "contactText",
+    label: "Headings & paragraphs",
+    help: "The wording on the Contact page that is not in a repeated block: the opening panel, the quote, the office text and buttons, and the heading above the questions. Phone, email, address and hours are under Phone, email & address.",
+  },
+  {
+    id: "aboutText",
+    label: "Headings & paragraphs",
+    help: "The wording on the About page that is not in a repeated block: the opening statement, our story, the mission and vision, section headings and buttons.",
+  },
+  {
+    id: "homeText",
+    label: "Headings & buttons",
+    help: "The wording on the Home page that is not in a repeated block: the opening statement, section headings, buttons and the closing banner.",
+  },
   {
     id: "customPages",
     label: "New pages & articles",
@@ -223,9 +412,298 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
  * Admin-only editor for the text on the public website. Until staff save a section, the website
  * shows the copy built into it; saving here replaces it, and "Reset" brings the built-in copy back.
  */
-export function WebsiteContent() {
+/** The sections that belong to one page's tab, with the names that make sense there. */
+const PAGE_SCOPES = {
+  home: {
+    first: "homeText" as Section,
+    listPage: "Home",
+    seoPath: "/",
+    sections: {
+      homeText: "Headings & buttons",
+      lists: "Blocks (hero points, steps, banks…)",
+      testimonials: "Client stories",
+      trustNumbers: "Trust figures",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  about: {
+    first: "aboutText" as Section,
+    listPage: "About",
+    seoPath: "/about",
+    sections: {
+      aboutText: "Headings & paragraphs",
+      lists: "Blocks (figures, reasons, steps)",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  calegal: {
+    first: "calegalText" as Section,
+    listPage: "CA & Legal",
+    seoPath: "/ca-legal-services",
+    sections: {
+      calegalText: "Headings & paragraphs",
+      lists: "Blocks (steps)",
+      services: "CA & legal services",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  partner: {
+    first: "partnerText" as Section,
+    listPage: "Partner",
+    seoPath: "/partner",
+    sections: {
+      partnerText: "Headings & paragraphs",
+      lists: "Blocks (figures, cards, steps)",
+      faqs: "FAQs",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  track: {
+    first: "trackText" as Section,
+    listPage: "Track",
+    seoPath: "/track-application",
+    sections: {
+      trackText: "Headings & panels",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  builder: {
+    first: "builderText" as Section,
+    listPage: "None",
+    seoPath: "/partner/builder",
+    seoPaths: ["/partner/builder"],
+    sections: {
+      builderText: "Headings & paragraphs",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  freelancer: {
+    first: "freelancerText" as Section,
+    listPage: "None",
+    seoPath: "/partner/freelancer",
+    seoPaths: ["/partner/freelancer"],
+    sections: {
+      freelancerText: "Headings & paragraphs",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  estimator: {
+    first: "estimatorText" as Section,
+    listPage: "None",
+    seoPath: "/credit-score-estimator",
+    seoPaths: ["/credit-score-estimator"],
+    sections: {
+      estimatorText: "Headings & paragraphs",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  insights: {
+    first: "insightsText" as Section,
+    listPage: "None",
+    seoPath: "/insights",
+    seoPaths: ["/insights"],
+    sections: {
+      insightsText: "Headings & paragraphs",
+      customPages: "New pages & articles",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  cases: {
+    first: "casesText" as Section,
+    listPage: "None",
+    seoPath: "/case-studies",
+    seoPaths: ["/case-studies"],
+    sections: {
+      casesText: "Headings & paragraphs",
+      caseStudies: "Case studies",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  rates: {
+    first: "ratesText" as Section,
+    listPage: "None",
+    seoPath: "/rates",
+    seoPaths: ["/rates"],
+    sections: {
+      ratesText: "Headings & paragraphs",
+      bankRates: "Interest rates",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  tools: {
+    first: "toolsText" as Section,
+    listPage: "Tools",
+    seoPath: "/tools",
+    seoPaths: ["/tools"],
+    sections: {
+      toolsText: "Headings & paragraphs",
+      lists: "Blocks (calculator names)",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  advisor: {
+    first: "advisorText" as Section,
+    listPage: "None",
+    seoPath: "/ai-loan-advisor",
+    seoPaths: ["/ai-loan-advisor"],
+    sections: {
+      advisorText: "Headings & paragraphs",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  advisory: {
+    first: "advisoryText" as Section,
+    listPage: "None",
+    seoPath: "/cibil-advisory",
+    seoPaths: ["/cibil-advisory"],
+    sections: {
+      advisoryText: "Headings & paragraphs",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  city: {
+    first: "cityText" as Section,
+    listPage: "City pages",
+    seoPath: "/mumbai",
+    seoPaths: ["/mumbai", "/thane", "/navi-mumbai", "/pune"],
+    sections: {
+      cityText: "Headings & paragraphs",
+      lists: "Blocks (each city's intro)",
+      faqs: "FAQs",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  loanpages: {
+    first: "loanPageText" as Section,
+    listPage: "None",
+    seoPath: "/services/",
+    seoPaths: [],
+    seoPrefix: "/services/",
+    sections: {
+      loanPageText: "Headings & buttons",
+      products: "Loan product pages",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  casepages: {
+    first: "casePageText" as Section,
+    listPage: "None",
+    seoPath: "/case-studies/",
+    seoPaths: [],
+    seoPrefix: "/case-studies/",
+    sections: {
+      casePageText: "Headings & buttons",
+      caseStudies: "Case studies",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  servicepages: {
+    first: "servicePageText" as Section,
+    listPage: "None",
+    seoPath: "/ca-legal-services/",
+    seoPaths: [],
+    seoPrefix: "/ca-legal-services/",
+    sections: {
+      servicePageText: "Headings & buttons",
+      services: "CA & legal services",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  site: {
+    first: "siteText" as Section,
+    listPage: "Menu & footer",
+    seoPath: "/none",
+    seoPaths: [],
+    seoPrefix: "",
+    sections: {
+      siteText: "Headings & buttons",
+      lists: "Blocks (menu & footer links)",
+      siteInfo: "Phone, email & address",
+    } as Partial<Record<Section, string>>,
+  },
+  whyus: {
+    first: "whyusText" as Section,
+    listPage: "Why Us",
+    seoPath: "/why-us",
+    sections: {
+      whyusText: "Headings & paragraphs",
+      lists: "Blocks (strengths, ticks)",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  cibil: {
+    first: "cibilText" as Section,
+    listPage: "CIBIL",
+    seoPath: "/cibil",
+    sections: {
+      cibilText: "Headings & notes",
+      lists: "Blocks (steps, bureaus, choices)",
+      siteInfo: "Report price & UPI",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  services: {
+    first: "servicesText" as Section,
+    listPage: "Services",
+    seoPath: "/services",
+    sections: {
+      servicesText: "Headings & buttons",
+      lists: "Blocks (categories, figures)",
+      products: "Loan product pages",
+      images: "Pictures",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+  contact: {
+    first: "contactText" as Section,
+    listPage: "Contact",
+    seoPath: "/contact",
+    sections: {
+      contactText: "Headings & paragraphs",
+      lists: "Blocks (tick points)",
+      faqs: "FAQs",
+      siteInfo: "Phone, email & address",
+      seo: "Google listing",
+    } as Partial<Record<Section, string>>,
+  },
+};
+
+/** The headings-and-paragraphs spec the website shared for a page's wording section. */
+function textSpecFor(section: Section, content: Content | undefined): HomeTextSection[] {
+  const by: Partial<Record<Section, HomeTextSection[] | undefined>> = {
+    homeText: content?.homeTextSpec,
+    aboutText: content?.aboutTextSpec,
+    contactText: content?.contactTextSpec,
+    servicesText: content?.servicesTextSpec,
+    cibilText: content?.cibilTextSpec,
+    whyusText: content?.whyusTextSpec,
+    calegalText: content?.calegalTextSpec,
+    partnerText: content?.partnerTextSpec,
+    trackText: content?.trackTextSpec,
+    builderText: content?.builderTextSpec,
+    freelancerText: content?.freelancerTextSpec,
+    estimatorText: content?.estimatorTextSpec,
+    insightsText: content?.insightsTextSpec,
+    casesText: content?.casesTextSpec,
+    ratesText: content?.ratesTextSpec,
+    toolsText: content?.toolsTextSpec,
+    advisorText: content?.advisorTextSpec,
+    advisoryText: content?.advisoryTextSpec,
+    cityText: content?.cityTextSpec,
+  };
+  return by[section] ?? [];
+}
+
+export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" | "cibil" | "whyus" | "calegal" | "partner" | "track" | "builder" | "freelancer" | "estimator" | "insights" | "cases" | "rates" | "tools" | "advisor" | "advisory" | "city" | "loanpages" | "casepages" | "servicepages" | "site" } = {}) {
   const queryClient = useQueryClient();
-  const [section, setSection] = useState<Section>("pageText");
+  const page = scope ? PAGE_SCOPES[scope] : undefined;
+  const [section, setSection] = useState<Section>(page ? page.first : "pageText");
 
   const saved = useQuery({
     queryKey: ["site-content"],
@@ -277,7 +755,7 @@ export function WebsiteContent() {
         have not changed keep the copy built into the website.
       </p>
       <div className="mb-4 flex flex-wrap gap-1">
-        {SECTIONS.map((s) => (
+        {SECTIONS.filter((s) => !page || s.id in page.sections).map((s) => (
           <button
             key={s.id}
             onClick={() => setSection(s.id)}
@@ -288,7 +766,7 @@ export function WebsiteContent() {
                 : "border border-line bg-white text-muted hover:text-navy",
             )}
           >
-            {s.label}
+            {page ? (page.sections[s.id] ?? s.label) : s.label}
             {savedByKey.has(s.id) && <span className="ml-1.5 text-[10px] text-gold">● edited</span>}
           </button>
         ))}
@@ -321,8 +799,18 @@ export function WebsiteContent() {
         section={section}
         initial={initial}
         builtIn={builtIn}
-        seoPages={defaults.data?.seoPages ?? []}
-        listSpecs={defaults.data?.listSpecs ?? []}
+        seoPages={(defaults.data?.seoPages ?? []).filter((p) => {
+          if (!page) return true;
+          const extra = page as { seoPaths?: string[]; seoPrefix?: string };
+          return (
+            p.path === page.seoPath ||
+            (extra.seoPaths ?? []).includes(p.path) ||
+            (!!extra.seoPrefix && p.path.startsWith(extra.seoPrefix))
+          );
+        })}
+        listSpecs={(defaults.data?.listSpecs ?? []).filter((s) => !page || s.page === page.listPage)}
+        homeSpec={textSpecFor(section, defaults.data)}
+        faqPages={scope === "contact" ? ["contact"] : scope === "partner" ? ["partner"] : scope === "city" ? ["mumbai", "thane", "navi-mumbai", "pune"] : undefined}
         busy={save.isPending || reset.isPending}
         canReset={!!row}
         onSave={(value) => save.mutate({ key: section, value })}
@@ -336,6 +824,8 @@ type EditorProps = {
   section: Section;
   seoPages: SeoPage[];
   listSpecs: ListSpec[];
+  homeSpec: HomeTextSection[];
+  faqPages?: string[] | undefined;
   initial: unknown;
   builtIn: unknown;
   busy: boolean;
@@ -344,7 +834,7 @@ type EditorProps = {
   onReset: () => void;
 };
 
-function Editor({ section, seoPages, listSpecs, initial, builtIn, busy, canReset, onSave, onReset }: EditorProps) {
+function Editor({ section, seoPages, listSpecs, homeSpec, faqPages, initial, builtIn, busy, canReset, onSave, onReset }: EditorProps) {
   const [draft, setDraft] = useState<unknown>(initial);
   const dirty = !same(draft, initial);
 
@@ -368,6 +858,9 @@ function Editor({ section, seoPages, listSpecs, initial, builtIn, busy, canReset
 
   return (
     <div>
+      {(TEXT_SECTIONS as readonly string[]).includes(section) && (
+        <HomeTextEditor value={draft as Record<string, string>} spec={homeSpec} onChange={setDraft} />
+      )}
       {section === "customPages" && (
         <PagesEditor value={draft as CustomPage[]} onChange={setDraft} />
       )}
@@ -393,7 +886,7 @@ function Editor({ section, seoPages, listSpecs, initial, builtIn, busy, canReset
         <ServiceEditor value={draft as Record<string, ServiceText>} onChange={setDraft} />
       )}
       {section === "faqs" && (
-        <FaqEditor value={draft as Record<string, Faq[]>} onChange={setDraft} />
+        <FaqEditor value={draft as Record<string, Faq[]>} only={faqPages} onChange={setDraft} />
       )}
       {section === "products" && (
         <ProductEditor value={draft as Record<string, ProductText>} onChange={setDraft} />
@@ -434,14 +927,82 @@ function Editor({ section, seoPages, listSpecs, initial, builtIn, busy, canReset
   );
 }
 
+/** The Home page's headings, buttons and opening statement, grouped as they appear on the page. */
+function HomeTextEditor({
+  value,
+  spec,
+  onChange,
+}: {
+  value: Record<string, string>;
+  spec: HomeTextSection[];
+  onChange: (v: unknown) => void;
+}) {
+  if (spec.length === 0) {
+    return <p className="text-sm text-muted">The website has not shared its Home page wording yet.</p>;
+  }
+  return (
+    <div className="space-y-5">
+      {spec.map((sec) => (
+        <div key={sec.id} className="rounded-lg border border-line p-4">
+          <p className="text-[13px] font-bold text-navy">{sec.label}</p>
+          <p className="mb-3 text-[12px] text-muted">{sec.hint}</p>
+          <div className="space-y-3">
+            {sec.fields.map((f) => {
+              const current = value[f.id] ?? f.text;
+              const changed = current !== f.text;
+              const set = (text: string) => onChange({ ...value, [f.id]: text });
+              return (
+                <label key={f.id} className="block">
+                  <span className="flex items-center gap-2 text-[11px] font-bold tracking-wide text-muted uppercase">
+                    {f.label}
+                    {changed && (
+                      <button
+                        type="button"
+                        onClick={() => set(f.text)}
+                        className="font-semibold normal-case text-gold hover:underline"
+                      >
+                        Use the built-in wording
+                      </button>
+                    )}
+                  </span>
+                  {f.long ? (
+                    <textarea
+                      value={current}
+                      onChange={(e) => set(e.target.value)}
+                      rows={3}
+                      maxLength={2000}
+                      className="field mt-1"
+                    />
+                  ) : (
+                    <input
+                      value={current}
+                      onChange={(e) => set(e.target.value)}
+                      maxLength={300}
+                      className="field mt-1"
+                    />
+                  )}
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function FaqEditor({
   value,
+  only,
   onChange,
 }: {
   value: Record<string, Faq[]>;
+  /** Limits the pages offered (the Contact tab shows only the Contact page's questions). */
+  only?: string[] | undefined;
   onChange: (v: unknown) => void;
 }) {
-  const [page, setPage] = useState(Object.keys(FAQ_PAGES)[0]!);
+  const pages = Object.entries(FAQ_PAGES).filter(([k]) => !only || only.includes(k));
+  const [page, setPage] = useState(pages[0]![0]);
   const list = value[page] ?? [];
   const set = (next: Faq[]) => onChange({ ...value, [page]: next });
   return (
@@ -451,7 +1012,7 @@ function FaqEditor({
         onChange={(e) => setPage(e.target.value)}
         className="field mb-3 max-w-xs"
       >
-        {Object.entries(FAQ_PAGES).map(([k, label]) => (
+        {pages.map(([k, label]) => (
           <option key={k} value={k}>
             {label}
           </option>

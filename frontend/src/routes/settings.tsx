@@ -515,6 +515,29 @@ export function SettingsPage() {
       ratecards: "Commission rate cards",
       websitechecklists: "Website checklists",
       websitecontent: "Website content",
+      homepage: "Home page",
+      aboutpage: "About page",
+      contactpage: "Contact page",
+      servicespage: "Services page",
+      cibilpage: "CIBIL page",
+      whyuspage: "Why Us page",
+      calegalpage: "CA & Legal page",
+      partnerpage: "Partner page",
+      trackpage: "Track Application page",
+      builderpage: "Builder Partner page",
+      freelancerpage: "Freelancer Partner page",
+      estimatorpage: "Credit Score Estimator page",
+      insightspage: "Insights page",
+      casespage: "Case Studies page",
+      ratespage: "Interest Rates page",
+      toolspage: "Calculators page",
+      advisorpage: "Loan Expert page",
+      advisorypage: "CIBIL Advisory page",
+      citypages: "City pages",
+      loanpages: "Loan pages",
+      casepages: "Case study pages",
+      servicepages: "CA & legal service pages",
+      headerfooter: "Header & footer",
     };
     if (named[hash]) setGroup(named[hash]);
     else if (hash.startsWith("setting-")) {
@@ -534,7 +557,7 @@ export function SettingsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["settings"] }),
   });
 
-  const masters = ["Website checklists", "Website content", "Commission rate cards"];
+  const masters = ["Website checklists", "Home page", "About page", "Contact page", "Services page", "CIBIL page", "Why Us page", "CA & Legal page", "Partner page", "Track Application page", "Builder Partner page", "Freelancer Partner page", "Credit Score Estimator page", "Insights page", "Case Studies page", "Interest Rates page", "Calculators page", "Loan Expert page", "CIBIL Advisory page", "City pages", "Loan pages", "Case study pages", "CA & legal service pages", "Header & footer", "Website content", "Commission rate cards"];
   const preferences = [...(query.data?.groups ?? []), "Archive"];
   const inGroup = (query.data?.settings ?? []).filter((s) => s.group === group);
   const changed = (query.data?.settings ?? []).filter((s) => !s.isDefault).length;
@@ -582,6 +605,52 @@ export function SettingsPage() {
         <div key={group} className="card fade-enter p-5">
           {group === "Archive" ? (
             <ArchivePanel />
+          ) : group === "Home page" ? (
+            <WebsiteContent scope="home" />
+          ) : group === "About page" ? (
+            <WebsiteContent scope="about" />
+          ) : group === "Contact page" ? (
+            <WebsiteContent scope="contact" />
+          ) : group === "Services page" ? (
+            <WebsiteContent scope="services" />
+          ) : group === "CIBIL page" ? (
+            <WebsiteContent scope="cibil" />
+          ) : group === "Why Us page" ? (
+            <WebsiteContent scope="whyus" />
+          ) : group === "CA & Legal page" ? (
+            <WebsiteContent scope="calegal" />
+          ) : group === "Partner page" ? (
+            <WebsiteContent scope="partner" />
+          ) : group === "Track Application page" ? (
+            <WebsiteContent scope="track" />
+          ) : group === "Builder Partner page" ? (
+            <WebsiteContent scope="builder" />
+          ) : group === "Freelancer Partner page" ? (
+            <WebsiteContent scope="freelancer" />
+          ) : group === "Credit Score Estimator page" ? (
+            <WebsiteContent scope="estimator" />
+          ) : group === "Insights page" ? (
+            <WebsiteContent scope="insights" />
+          ) : group === "Case Studies page" ? (
+            <WebsiteContent scope="cases" />
+          ) : group === "Interest Rates page" ? (
+            <WebsiteContent scope="rates" />
+          ) : group === "Calculators page" ? (
+            <WebsiteContent scope="tools" />
+          ) : group === "Loan Expert page" ? (
+            <WebsiteContent scope="advisor" />
+          ) : group === "CIBIL Advisory page" ? (
+            <WebsiteContent scope="advisory" />
+          ) : group === "City pages" ? (
+            <WebsiteContent scope="city" />
+          ) : group === "Loan pages" ? (
+            <WebsiteContent scope="loanpages" />
+          ) : group === "Case study pages" ? (
+            <WebsiteContent scope="casepages" />
+          ) : group === "CA & legal service pages" ? (
+            <WebsiteContent scope="servicepages" />
+          ) : group === "Header & footer" ? (
+            <WebsiteContent scope="site" />
           ) : group === "Website content" ? (
             <WebsiteContent />
           ) : group === "Website checklists" ? (
