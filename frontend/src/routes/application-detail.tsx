@@ -25,6 +25,7 @@ import { BorrowerPortalPanel } from "../components/borrower-portal-panel";
 import { CustomerFormPanel } from "../components/customer-form-panel";
 import { DocumentsPanel } from "../components/documents-panel";
 import { DisbursementPanel } from "../components/disbursement-panel";
+import { MoneyTrailStrip } from "../components/money-trail";
 import { ChecklistPanel } from "../components/checklist-panel";
 import { ArchiveButton } from "../components/archive-button";
 import { CreditEvaluationPanel } from "../components/credit-evaluation-panel";
@@ -240,6 +241,8 @@ export function ApplicationDetailPage() {
             <div id="customer-form"><CustomerFormPanel applicationId={applicationId} /></div>
 
             <div id="portal"><BorrowerPortalPanel applicationId={applicationId} /></div>
+
+            <div id="money"><MoneyTrailStrip applicationId={applicationId} /></div>
 
             <div id="sanction"><SanctionPanel applicationId={applicationId} /></div>
 

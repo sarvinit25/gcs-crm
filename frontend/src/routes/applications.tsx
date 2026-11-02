@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
-import { downloadReport } from "../lib/download-report";
+import { ExportMenu } from "../components/export-menu";
 import { formatAmount, formatDate } from "../lib/format";
 import {
   APPLICATION_STATUSES,
@@ -45,7 +45,7 @@ export function ApplicationsPage() {
       ),
   });
 
-  const exportCsv = () => void downloadReport("applications", { q: search, status, loanProductId, range: timeRange });
+  const exportFilters = { q: search, status, loanProductId, range: timeRange, loggedIn, archived: archived ? "true" : "false" };
 
   const reset = (fn: () => void) => {
     fn();
@@ -59,9 +59,7 @@ export function ApplicationsPage() {
         subtitle={query.data ? `${query.data.total} total` : "Case files, lead to disbursal"}
         actions={
           <div className="flex items-center gap-2">
-            <button onClick={exportCsv} className="btn-ghost">
-              <Download className="h-4 w-4" /> Export
-            </button>
+            <ExportMenu type="applications" filters={exportFilters} />
             <button onClick={() => setShowWizard(true)} className="btn-primary">
               <Plus className="h-4 w-4" /> New Application
             </button>

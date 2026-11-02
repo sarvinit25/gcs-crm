@@ -27,15 +27,19 @@ import {
   Users,
   UserSquare,
 } from "lucide-react";
+import { BellRing, MessageCircle, Plug, ScrollText } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../lib/api";
 import clsx from "clsx";
 import { useAuth } from "../lib/auth";
 import { ROLE_LABEL, type Role } from "../lib/types";
 import { GlobalSearch } from "./global-search";
 import { NotificationsBell } from "./notifications-bell";
+import { Assistant } from "./assistant";
 import { useScrollToHash } from "../lib/use-scroll-to-hash";
 
-type NavItem = { to: string; label: string; icon: LucideIcon; roles?: Role[] };
+type NavItem = { to: string; label: string; icon: LucideIcon; roles?: Role[]; exact?: boolean; badge?: "whatsapp" };
 
 const NAV: { section: string; items: NavItem[] }[] = [
   {
@@ -54,6 +58,15 @@ const NAV: { section: string; items: NavItem[] }[] = [
         icon: BadgeIndianRupee,
         roles: ["ADMIN", "MANAGER"],
       },
+    ],
+  },
+  {
+    section: "Messaging",
+    items: [
+      { to: "/whatsapp", label: "WhatsApp Inbox", icon: MessageCircle, exact: true, badge: "whatsapp" },
+      { to: "/notifications/templates", label: "Notification templates", icon: BellRing, roles: ["ADMIN"] },
+      { to: "/notifications/logs", label: "Notification logs", icon: ScrollText, roles: ["ADMIN", "MANAGER"] },
+      { to: "/whatsapp/setup", label: "WhatsApp setup", icon: Plug, roles: ["ADMIN"] },
     ],
   },
   {
@@ -95,6 +108,18 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+/** How many WhatsApp messages are waiting to be read; it quietly checks again every half minute. */
+function UnreadBadge() {
+  const q = useQuery({
+    queryKey: ["wa-unread"],
+    queryFn: () => api<{ unread: number }>("/whatsapp/conversations/unread"),
+    refetchInterval: 30_000,
+  });
+  const n = q.data?.unread ?? 0;
+  if (!n) return null;
+  return <span className="grid h-5 min-w-5 place-items-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-white">{n > 99 ? "99+" : n}</span>;
+}
+
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const { user, logout } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -122,7 +147,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 </p>
                 {items.map((item) => {
                   const active =
-                    item.to === "/" ? pathname === "/" : pathname === item.to || pathname.startsWith(`${item.to}/`);
+                    item.to === "/" || item.exact ? pathname === item.to : pathname === item.to || pathname.startsWith(`${item.to}/`);
                   return (
                     <Link
                       key={item.to}
@@ -136,7 +161,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                       )}
                     >
                       <item.icon className={clsx("h-4 w-4", !active && "text-white/45")} />
-                      {item.label}
+                      <span className="flex-1">{item.label}</span>
+                      {item.badge === "whatsapp" && <UnreadBadge />}
                     </Link>
                   );
                 })}
@@ -231,6 +257,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      <Assistant />
     </div>
   );
 }

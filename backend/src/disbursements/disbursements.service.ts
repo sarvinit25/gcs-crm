@@ -13,6 +13,8 @@ import { SettingsService } from "../settings/settings.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { CreateDisbursementDto, ListDisbursementsQuery } from "./dto/disbursement.dto";
 import { rangeFilter, resolveRange } from "../common/date.util";
+import { netOfDeductions } from "../common/loan-math";
+import { EventsService } from "../events/events.service";
 
 const APPLICATION_SUMMARY = {
   select: {
@@ -33,6 +35,7 @@ export class DisbursementsService {
     private prisma: PrismaService,
     private audit: AuditService,
     private settings: SettingsService,
+    private events: EventsService,
   ) {}
 
   private scopeFor(user: AuthUser): Prisma.ApplicationWhereInput {
@@ -66,6 +69,7 @@ export class DisbursementsService {
             ? { select: { id: true } }
             : {
                 include: {
+                  extras: true,
                   splits: {
                     include: {
                       user: { select: { id: true, name: true } },
@@ -81,6 +85,69 @@ export class DisbursementsService {
     const drawn = items.reduce((sum, d) => sum + Number(d.amount), 0);
 
     return { items, sanctionedAmount: sanctioned, drawn, undrawn: Math.max(sanctioned - drawn, 0) };
+  }
+
+  /**
+   * Requested → sanctioned → disbursed → earned, for one file. The earning
+   * side is Admin and Manager only, the same line the commission screens draw.
+   */
+  async moneyTrail(applicationId: string, user: AuthUser) {
+    const application = await this.prisma.application.findFirst({
+      where: { id: applicationId, ...this.scopeFor(user) },
+      select: {
+        id: true,
+        requestedAmount: true,
+        sanction: { select: { sanctionedAmount: true } },
+      },
+    });
+    if (!application) throw new NotFoundException("Application not found");
+
+    const disbursements = await this.prisma.disbursement.aggregate({
+      where: { applicationId },
+      _sum: { amount: true, netAmount: true },
+      _count: true,
+    });
+
+    const base = {
+      requested: Number(application.requestedAmount),
+      sanctioned: Number(application.sanction?.sanctionedAmount ?? 0),
+      disbursed: Number(disbursements._sum.amount ?? 0),
+      netDisbursed: Number(disbursements._sum.netAmount ?? disbursements._sum.amount ?? 0),
+      payouts: disbursements._count,
+    };
+    if (user.role === Role.ADVISOR) return { ...base, commission: null };
+
+    const commissions = await this.prisma.commission.findMany({
+      where: { disbursement: { applicationId } },
+      include: { extras: true, splits: true },
+    });
+    const sum = (values: Array<unknown>) => values.reduce<number>((t, v) => t + Number(v ?? 0), 0);
+
+    const lender = sum(commissions.map((c) => c.grossAmount));
+    const extras = sum(commissions.flatMap((c) => c.extras.map((e) => e.amount)));
+    // A commission marked paid before amounts were tracked counts as received in full.
+    const receivedLender = sum(
+      commissions.map((c) => c.receivedAmount ?? (c.status === "PAID" ? c.grossAmount : 0)),
+    );
+    const receivedExtras = sum(
+      commissions.flatMap((c) => c.extras.filter((e) => e.status === "PAID").map((e) => e.amount)),
+    );
+    const sharedOut = sum(commissions.flatMap((c) => c.splits.map((sp) => sp.amount)));
+    const total = lender + extras;
+    const received = receivedLender + receivedExtras;
+
+    return {
+      ...base,
+      commission: {
+        lender,
+        extras,
+        total,
+        received,
+        outstanding: Math.max(total - received, 0),
+        sharedOut,
+        retained: total - sharedOut,
+      },
+    };
   }
 
   async create(applicationId: string, dto: CreateDisbursementDto, user: AuthUser, ip?: string) {
@@ -121,6 +188,18 @@ export class DisbursementsService {
       );
     }
 
+    const deductions = [
+      dto.processingFee,
+      dto.insuranceAmount,
+      dto.documentationCharges,
+      dto.stampDuty,
+      dto.otherDeductions,
+    ];
+    const netAmount = netOfDeductions(dto.amount, deductions);
+    if (netAmount < 0) {
+      throw new BadRequestException("The deductions add up to more than the amount disbursed");
+    }
+
     const runningBalance = undrawn - dto.amount;
     // Anything that leaves money on the table is a part disbursement, whatever
     // the caller labelled it.
@@ -142,6 +221,12 @@ export class DisbursementsService {
           insuranceAmount: dto.insuranceAmount,
           documentationCharges: dto.documentationCharges,
           stampDuty: dto.stampDuty,
+          otherDeductions: dto.otherDeductions,
+          netAmount,
+          mode: dto.mode,
+          bankName: dto.bankName,
+          accountNo: dto.accountNo,
+          ifsc: dto.ifsc?.toUpperCase(),
           note: dto.note,
         },
       });
@@ -165,10 +250,13 @@ export class DisbursementsService {
       changes: {
         amount: { from: null, to: dto.amount },
         type: { from: null, to: type },
+        netAmount: { from: null, to: netAmount },
         runningBalance: { from: undrawn, to: runningBalance },
       },
       ip,
     });
+
+    this.events.emit("DISBURSAL_COMPLETED", { applicationId, disbursementId: disbursement.id });
 
     return disbursement;
   }

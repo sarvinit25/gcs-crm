@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Download, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
-import { downloadReport } from "../lib/download-report";
+import { ExportMenu } from "../components/export-menu";
 import { formatAmount, formatDate } from "../lib/format";
 import type { DisbursementRow, Paginated } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
@@ -40,12 +40,7 @@ export function DisbursementsPage() {
             : "Every payout, full and part"
         }
         actions={
-          <button
-            onClick={() => void downloadReport("disbursements", { q: search, from: from || undefined, to: to || undefined })}
-            className="btn-ghost"
-          >
-            <Download className="h-4 w-4" /> Export
-          </button>
+          <ExportMenu type="disbursements" filters={{ q: search, from: from || undefined, to: to || undefined }} />
         }
       />
 

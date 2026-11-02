@@ -295,6 +295,14 @@ export const SANCTION_STATUS_LABEL: Record<SanctionStatus, string> = {
   REJECTED: "Rejected",
 };
 
+export type DisbursalStatus = "PENDING" | "PARTIAL" | "DISBURSED";
+
+export const DISBURSAL_STATUS_LABEL: Record<DisbursalStatus, string> = {
+  PENDING: "Disbursal pending",
+  PARTIAL: "Part disbursed",
+  DISBURSED: "Disbursed",
+};
+
 export type Sanction = {
   id: string;
   technicalStatus: SanctionStatus;
@@ -311,6 +319,19 @@ export type Sanction = {
   tenureMonths: number | null;
   sanctionLetterNo: string | null;
   validTill: string | null;
+  sanctionNo: string;
+  sanctionDate: string | null;
+  bankRm: string | null;
+  emiAmount: string | null;
+  firstEmiDate: string | null;
+  processingFeePercent: string | null;
+  processingFee: string | null;
+  commissionPercent: string | null;
+  notes: string | null;
+  // Worked out on the server from the disbursements recorded so far.
+  drawn: number;
+  undrawn: number;
+  disbursalStatus: DisbursalStatus;
   updatedAt: string;
   application: {
     id: string;
@@ -326,7 +347,45 @@ export type Sanction = {
 
 export type DisbursementType = "FULL" | "PART";
 
-export type PayoutStatus = "PENDING" | "PARTIAL" | "PAID";
+export type PayoutStatus = "PENDING" | "CLAIMED" | "PARTIAL" | "PAID";
+
+/** Lender commissions read due → claimed → part received → received; splits and extras use the plain words. */
+export const COMMISSION_STATUS_LABEL: Record<PayoutStatus, string> = {
+  PENDING: "Due",
+  CLAIMED: "Claimed",
+  PARTIAL: "Part received",
+  PAID: "Received",
+};
+
+export type ExtraCommissionSource = "SUBVENTION" | "INSURANCE" | "CROSS_SELL" | "OTHER";
+
+export const EXTRA_SOURCE_LABEL: Record<ExtraCommissionSource, string> = {
+  SUBVENTION: "Subvention",
+  INSURANCE: "Insurance",
+  CROSS_SELL: "Cross-sell",
+  OTHER: "Other",
+};
+
+export type CommissionExtra = {
+  id: string;
+  source: ExtraCommissionSource;
+  note: string | null;
+  amount: string;
+  status: PayoutStatus;
+  receivedAt: string | null;
+};
+
+export type DisbursalMode = "RTGS" | "NEFT" | "IMPS" | "UPI" | "CHEQUE" | "DEMAND_DRAFT" | "OTHER";
+
+export const DISBURSAL_MODE_LABEL: Record<DisbursalMode, string> = {
+  RTGS: "RTGS",
+  NEFT: "NEFT",
+  IMPS: "IMPS",
+  UPI: "UPI",
+  CHEQUE: "Cheque",
+  DEMAND_DRAFT: "Demand draft",
+  OTHER: "Other",
+};
 
 export type CommissionSplit = {
   id: string;
@@ -346,8 +405,13 @@ export type Commission = {
   grossAmount: string;
   status: PayoutStatus;
   receivedAt: string | null;
+  claimedAt: string | null;
+  claimNote: string | null;
+  receivedAmount: string | null;
+  receivedRef: string | null;
   createdAt: string;
   splits: CommissionSplit[];
+  extras: CommissionExtra[];
 };
 
 export type RoiType = "FIXED" | "FLOATING";
@@ -368,6 +432,12 @@ export type Disbursement = {
   insuranceAmount: string | null;
   documentationCharges: string | null;
   stampDuty: string | null;
+  otherDeductions: string | null;
+  netAmount: string | null;
+  mode: DisbursalMode | null;
+  bankName: string | null;
+  accountNo: string | null;
+  ifsc: string | null;
   note: string | null;
   createdAt: string;
   commission?: Commission | null;
@@ -455,3 +525,23 @@ export type EducationLoanDetailRecord = {
   details: EducationLoanDetails;
   updatedAt: string;
 } | null;
+
+/** Requested → sanctioned → disbursed → earned. `commission` is null for Staff. */
+export type MoneyTrail = {
+  requested: number;
+  sanctioned: number;
+  disbursed: number;
+  netDisbursed: number;
+  payouts: number;
+  commission: {
+    lender: number;
+    extras: number;
+    total: number;
+    received: number;
+    outstanding: number;
+    sharedOut: number;
+    retained: number;
+  } | null;
+};
+
+export type CommissionSummary = Record<PayoutStatus, { count: number; amount: number; received: number }>;

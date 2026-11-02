@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Columns, Download, Loader2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ArrowLeft, Columns, Download, Loader2 } from "lucide-react";
 import { api, qs, tokenStore } from "../lib/api";
 import { formatAmount, formatDate, humanize } from "../lib/format";
 import { ROLE_LABEL, type Role } from "../lib/types";
@@ -204,12 +205,15 @@ export function ReportsPage() {
   return (
     <>
       <PageHeader
-        title="Reports"
+        title="Tables & record reports"
         subtitle={
           user?.role === "ADVISOR" ? "Your own pipeline" : "Firm-wide pipeline and performance"
         }
         actions={
           <div className="flex items-center gap-2">
+            <Link to={"/reports" as never} className="btn-ghost">
+              <ArrowLeft className="h-4 w-4" /> All reports
+            </Link>
             <div className="flex gap-1 rounded-md border border-line bg-white p-1">
               {(["summary", "records"] as const).map((v) => (
                 <button

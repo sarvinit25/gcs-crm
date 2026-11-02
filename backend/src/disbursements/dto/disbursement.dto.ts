@@ -8,7 +8,7 @@ import {
   Length,
   Min,
 } from "class-validator";
-import { DisbursementType, RoiType } from "@prisma/client";
+import { DisbursalMode, DisbursementType, RoiType } from "@prisma/client";
 import { DateInput } from "../../common/date-input.decorator";
 
 export class CreateDisbursementDto {
@@ -27,6 +27,12 @@ export class CreateDisbursementDto {
   @IsOptional() @IsNumber() @Min(0) insuranceAmount?: number;
   @IsOptional() @IsNumber() @Min(0) documentationCharges?: number;
   @IsOptional() @IsNumber() @Min(0) stampDuty?: number;
+  @IsOptional() @IsNumber() @Min(0) otherDeductions?: number;
+
+  @IsOptional() @IsEnum(DisbursalMode) mode?: DisbursalMode;
+  @IsOptional() @IsString() @Length(0, 120) bankName?: string;
+  @IsOptional() @IsString() @Length(0, 40) accountNo?: string;
+  @IsOptional() @IsString() @Length(0, 20) ifsc?: string;
 
   @IsOptional() @IsString() @Length(0, 500) note?: string;
 }

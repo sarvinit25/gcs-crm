@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Download, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { api, qs } from "../lib/api";
-import { downloadReport } from "../lib/download-report";
+import { ExportMenu } from "../components/export-menu";
 import { formatAmount, formatDate } from "../lib/format";
 import {
   SANCTION_STATUSES,
@@ -13,6 +13,7 @@ import {
 } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
 import { SanctionStatusBadge } from "../components/status-badge";
+import { DisbursalBadge } from "../components/sanction-panel";
 import { TableSkeleton } from "../components/skeleton";
 
 export function SanctionsPage() {
@@ -21,7 +22,10 @@ export function SanctionsPage() {
 
   const query = useQuery({
     queryKey: ["sanctions", { search, financialStatus }],
-    queryFn: () => api<Paginated<Sanction>>(`/sanctions${qs({ search, financialStatus })}`),
+    queryFn: () =>
+      api<Paginated<Sanction> & { totalSanctioned: string | number }>(
+        `/sanctions${qs({ search, financialStatus })}`,
+      ),
   });
 
   return (
@@ -30,16 +34,11 @@ export function SanctionsPage() {
         title="Sanctions"
         subtitle={
           query.data
-            ? `${query.data.total} on the register`
+            ? `${query.data.total} on the register · ${formatAmount(query.data.totalSanctioned)} sanctioned`
             : "Technical and financial sanction, tracked separately"
         }
         actions={
-          <button
-            onClick={() => void downloadReport("sanctions", { q: search, status: financialStatus || undefined })}
-            className="btn-ghost"
-          >
-            <Download className="h-4 w-4" /> Export
-          </button>
+          <ExportMenu type="sanctions" filters={{ q: search, status: financialStatus || undefined }} />
         }
       />
 
@@ -83,11 +82,13 @@ export function SanctionsPage() {
             <table className="w-full text-left text-[13px]">
               <thead className="border-b border-line bg-bg-light/60 text-[11px] tracking-wide text-muted uppercase">
                 <tr>
+                  <th className="px-4 py-2.5 font-bold">Sanction</th>
                   <th className="px-4 py-2.5 font-bold">Application</th>
                   <th className="px-4 py-2.5 font-bold">Applicant</th>
                   <th className="px-4 py-2.5 font-bold">Lender</th>
                   <th className="px-4 py-2.5 font-bold">Sanctioned</th>
-                  <th className="px-4 py-2.5 font-bold">ROI</th>
+                  <th className="px-4 py-2.5 font-bold">ROI · EMI</th>
+                  <th className="px-4 py-2.5 font-bold">Disbursal</th>
                   <th className="px-4 py-2.5 font-bold">Letter</th>
                   <th className="px-4 py-2.5 font-bold">Status</th>
                 </tr>
@@ -98,6 +99,10 @@ export function SanctionsPage() {
                     key={s.id}
                     className="border-b border-line/70 last:border-0 hover:bg-bg-light/70"
                   >
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <p className="font-semibold text-navy">{s.sanctionNo}</p>
+                      <p className="text-[12px] text-muted">{formatDate(s.sanctionDate)}</p>
+                    </td>
                     <td className="px-4 py-3">
                       <Link
                         to="/applications/$applicationId"
@@ -113,6 +118,13 @@ export function SanctionsPage() {
                     <td className="px-4 py-3 font-medium">{formatAmount(s.sanctionedAmount)}</td>
                     <td className="px-4 py-3 text-muted">
                       {s.interestRate ? `${s.interestRate}%` : "—"}
+                      {s.emiAmount && <p className="text-[12px]">EMI {formatAmount(s.emiAmount)}</p>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <DisbursalBadge status={s.disbursalStatus} />
+                      {s.drawn > 0 && (
+                        <p className="mt-0.5 text-[12px] text-muted">{formatAmount(s.drawn)} drawn</p>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-muted">
                       {s.sanctionLetterNo ?? "—"}

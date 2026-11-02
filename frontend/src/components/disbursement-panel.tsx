@@ -4,18 +4,37 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
 import { formatAmount, formatDate } from "../lib/format";
-import { ROI_TYPE_LABEL, type DisbursementSummary, type RoiType } from "../lib/types";
+import { netOfDeductions } from "../lib/loan-math";
+import {
+  DISBURSAL_MODE_LABEL,
+  ROI_TYPE_LABEL,
+  type DisbursalMode,
+  type DisbursementSummary,
+  type RoiType,
+  type Sanction,
+} from "../lib/types";
 import { CommissionBlock } from "./commission-block";
 import { Modal } from "./modal";
 import { DatePicker } from "./date-picker";
 import { useAuth } from "../lib/auth";
 
 const ROI_TYPES = Object.keys(ROI_TYPE_LABEL) as RoiType[];
+const DISBURSAL_MODES = Object.keys(DISBURSAL_MODE_LABEL) as DisbursalMode[];
+
+const numberOrNaN = (value: string) => (value === "" ? NaN : Number(value));
 
 export function DisbursementPanel({ applicationId }: { applicationId: string }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+
+  // The same query the sanction panel uses, so the form can offer the lender's rate and fee.
+  const sanction = useQuery({
+    queryKey: ["sanction", applicationId],
+    queryFn: () => api<Sanction | null>(`/applications/${applicationId}/sanction`),
+  });
+  const [amountText, setAmountText] = useState("");
+  const [deductionText, setDeductionText] = useState<Record<string, string>>({});
 
   const query = useQuery({
     queryKey: ["disbursements", applicationId],
@@ -26,6 +45,9 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
     void queryClient.invalidateQueries({ queryKey: ["disbursements", applicationId] });
     void queryClient.invalidateQueries({ queryKey: ["application", applicationId] });
     void queryClient.invalidateQueries({ queryKey: ["disbursements"] });
+    void queryClient.invalidateQueries({ queryKey: ["sanction", applicationId] });
+    void queryClient.invalidateQueries({ queryKey: ["sanctions"] });
+    void queryClient.invalidateQueries({ queryKey: ["money-trail", applicationId] });
     void queryClient.invalidateQueries({ queryKey: ["applications"] });
   };
 
@@ -37,6 +59,8 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
       }),
     onSuccess: () => {
       setShowForm(false);
+      setAmountText("");
+      setDeductionText({});
       invalidate();
     },
   });
@@ -119,6 +143,11 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
                     insuranceAmount: num("insuranceAmount"),
                     documentationCharges: num("documentationCharges"),
                     stampDuty: num("stampDuty"),
+                    otherDeductions: num("otherDeductions"),
+                    mode: (f.get("mode") as string) || undefined,
+                    bankName: (f.get("bankName") as string) || undefined,
+                    accountNo: (f.get("accountNo") as string) || undefined,
+                    ifsc: (f.get("ifsc") as string) || undefined,
                     note: (f.get("note") as string) || undefined,
                   });
                 }}
@@ -131,6 +160,8 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
                   min={1}
                   max={s!.undrawn || undefined}
                   placeholder={`Amount (up to ${s!.undrawn})`}
+                  value={amountText}
+                  onChange={(e) => setAmountText(e.target.value)}
                   className="field sm:col-span-2"
                 />
                 <DatePicker name="disbursedAt" required placeholder="Disbursement date" />
@@ -140,6 +171,7 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
                   type="number"
                   step="0.01"
                   placeholder="Updated ROI %"
+                  defaultValue={sanction.data?.interestRate ? Number(sanction.data.interestRate) : undefined}
                   className="field"
                 />
                 <select name="roiType" defaultValue="" className="field">
@@ -150,33 +182,75 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
                     </option>
                   ))}
                 </select>
-                <input name="utrNo" placeholder="UTR number" className="field sm:col-span-2" />
+                <input name="utrNo" placeholder="UTR number" className="field" />
+                <select name="mode" defaultValue="" className="field">
+                  <option value="">Mode of disbursal</option>
+                  {DISBURSAL_MODES.map((m) => (
+                    <option key={m} value={m}>
+                      {DISBURSAL_MODE_LABEL[m]}
+                    </option>
+                  ))}
+                </select>
+                <input name="bankName" placeholder="Beneficiary bank" className="field" />
+                <input name="accountNo" placeholder="Account number" className="field" />
+                <input name="ifsc" placeholder="IFSC code" className="field uppercase sm:col-span-2" />
 
                 <p className="mt-1 text-[11px] font-bold tracking-wide text-muted uppercase sm:col-span-2">
                   Deductions
                 </p>
-                <input
-                  name="processingFee"
-                  type="number"
-                  step="0.01"
-                  placeholder="Processing fee"
-                  className="field"
-                />
-                <input
-                  name="insuranceAmount"
-                  type="number"
-                  step="0.01"
-                  placeholder="Insurance amount"
-                  className="field"
-                />
-                <input
-                  name="documentationCharges"
-                  type="number"
-                  step="0.01"
-                  placeholder="Documentation charges"
-                  className="field"
-                />
-                <input name="stampDuty" type="number" step="0.01" placeholder="Stamp duty" className="field" />
+                {(
+                  [
+                    ["processingFee", "Processing fee"],
+                    ["insuranceAmount", "Insurance amount"],
+                    ["documentationCharges", "Documentation charges"],
+                    ["stampDuty", "Stamp duty"],
+                    ["otherDeductions", "Other deductions"],
+                  ] as const
+                ).map(([name, label]) => (
+                  <input
+                    key={name}
+                    name={name}
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    placeholder={label}
+                    value={
+                      deductionText[name] ??
+                      (name === "processingFee" && sanction.data?.processingFee
+                        ? String(Number(sanction.data.processingFee))
+                        : "")
+                    }
+                    onChange={(e) => setDeductionText((d) => ({ ...d, [name]: e.target.value }))}
+                    // five fields in two columns: the last one takes the full row so nothing is left hanging
+                    className={name === "otherDeductions" ? "field sm:col-span-2" : "field"}
+                  />
+                ))}
+                {Number(amountText) > 0 && (
+                  <p className="rounded-lg bg-bg-light px-3 py-2 text-[13px] sm:col-span-2">
+                    <span className="text-muted">Net disbursed </span>
+                    <span className="font-bold text-navy">
+                      {formatAmount(
+                        netOfDeductions(
+                          Number(amountText),
+                          [
+                            "processingFee",
+                            "insuranceAmount",
+                            "documentationCharges",
+                            "stampDuty",
+                            "otherDeductions",
+                          ].map((k) =>
+                            numberOrNaN(
+                              deductionText[k] ??
+                                (k === "processingFee" && sanction.data?.processingFee
+                                  ? String(Number(sanction.data.processingFee))
+                                  : ""),
+                            ),
+                          ),
+                        ),
+                      )}
+                    </span>
+                  </p>
+                )}
 
                 <input name="note" placeholder="Note" className="field sm:col-span-2" />
                 <div className="mt-2 flex justify-end gap-2 border-t border-line pt-4 sm:col-span-2">
@@ -205,7 +279,13 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
               </li>
             )}
             {s!.items.map((d) => {
-              const deductions = [d.processingFee, d.insuranceAmount, d.documentationCharges, d.stampDuty]
+              const deductions = [
+                d.processingFee,
+                d.insuranceAmount,
+                d.documentationCharges,
+                d.stampDuty,
+                d.otherDeductions,
+              ]
                 .map(Number)
                 .filter((v) => v > 0);
               const totalDeductions = deductions.reduce((sum, v) => sum + v, 0);
@@ -229,15 +309,21 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
                       <p className="text-[12px] text-muted">
                         {formatDate(d.disbursedAt)}
                         {d.loanAccountNo && ` · A/C ${d.loanAccountNo}`}
+                        {d.mode && ` · ${DISBURSAL_MODE_LABEL[d.mode]}`}
                         {d.utrNo && ` · UTR ${d.utrNo}`}
                         {d.interestRate &&
                           ` · ${d.interestRate}%${d.roiType ? ` (${ROI_TYPE_LABEL[d.roiType]})` : ""}`}
                         {" · balance "}
                         {formatAmount(d.runningBalance)}
                       </p>
+                      {(d.bankName || d.accountNo || d.ifsc) && (
+                        <p className="mt-0.5 text-[12px] text-muted">
+                          {[d.bankName, d.accountNo && `A/C ${d.accountNo}`, d.ifsc].filter(Boolean).join(" · ")}
+                        </p>
+                      )}
                       {totalDeductions > 0 && (
                         <p className="mt-0.5 text-[12px] text-muted">
-                          Deductions: {formatAmount(totalDeductions)}
+                          Net {formatAmount(d.netAmount)} after deductions of {formatAmount(totalDeductions)}
                           {" ("}
                           {[
                             d.processingFee && `Processing ${formatAmount(d.processingFee)}`,
@@ -245,6 +331,7 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
                             d.documentationCharges &&
                               `Documentation ${formatAmount(d.documentationCharges)}`,
                             d.stampDuty && `Stamp duty ${formatAmount(d.stampDuty)}`,
+                            d.otherDeductions && `Other ${formatAmount(d.otherDeductions)}`,
                           ]
                             .filter(Boolean)
                             .join(", ")}

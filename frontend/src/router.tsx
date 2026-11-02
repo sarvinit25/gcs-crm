@@ -39,6 +39,8 @@ import { LenderFormPage } from "./routes/lender-form";
 import { LenderPoliciesPage } from "./components/lender-policies";
 import { AttendancePage } from "./routes/attendance";
 import { ReportsPage } from "./routes/reports";
+import { ReportsHubPage } from "./routes/reports-hub";
+import { ReportDetailPage } from "./routes/report-detail";
 import { CibilPage } from "./routes/cibil";
 import { WebsitePage } from "./routes/website";
 import { SettingsPage } from "./routes/settings";
@@ -49,6 +51,11 @@ import { ApplyPage } from "./routes/apply";
 function RootLayout() {
   return <Outlet />;
 }
+
+import { WhatsAppInboxPage } from "./routes/whatsapp-inbox";
+import { WhatsAppSetupPage } from "./routes/whatsapp-setup";
+import { NotificationTemplatesPage } from "./routes/notification-templates";
+import { NotificationLogsPage } from "./routes/notification-logs";
 
 const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -237,7 +244,13 @@ const routeTree = rootRoute.addChildren([
       validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
     }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/website", component: WebsitePage }),
-    createRoute({ getParentRoute: () => protectedRoute, path: "/reports", component: ReportsPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/whatsapp", component: WhatsAppInboxPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/whatsapp/setup", component: WhatsAppSetupPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/notifications/templates", component: NotificationTemplatesPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/notifications/logs", component: NotificationLogsPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/reports", component: ReportsHubPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/reports/analysis", component: ReportsPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/reports/$kind", component: ReportDetailPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/settings", component: SettingsPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/account", component: AccountPage }),
     createRoute({

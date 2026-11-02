@@ -66,7 +66,9 @@ const TYPES: { value: ReportType; label: string; statuses: { value: string; labe
   },
 ];
 
-const pretty = (v: string) => (/^[A-Z_]+$/.test(v) ? v.charAt(0) + v.slice(1).toLowerCase().replace(/_/g, " ") : v);
+// Acronyms stay as written ("RTGS"), not "Rtgs".
+const ACRONYMS = new Set(["RTGS", "NEFT", "IMPS", "UPI", "EMI", "NRI", "UTR", "IFSC", "LLP", "PAN", "GST"]);
+const pretty = (v: string) => (/^[A-Z_]+$/.test(v) && !ACRONYMS.has(v) ? v.charAt(0) + v.slice(1).toLowerCase().replace(/_/g, " ") : v);
 
 const cell = (type: ColumnType, value: string | number | null) => {
   if (value === null || value === "") return "—";

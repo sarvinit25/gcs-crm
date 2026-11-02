@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, ChevronDown, Download, Loader2, Plus, Search, Upload } from "lucide-react";
+import { AlertCircle, ChevronDown, Loader2, Plus, Search, Upload } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
-import { downloadReport } from "../lib/download-report";
+import { ExportMenu } from "../components/export-menu";
 import { todayIST } from "../lib/date";
 import { formatAmount, formatDate, humanize, initials, isOverdue } from "../lib/format";
 import { useAuth } from "../lib/auth";
@@ -362,7 +362,8 @@ export function LeadsPage() {
       ),
   });
 
-  const exportCsv = () => void downloadReport("leads", { q: search, status, loanProductId, range: timeRange });
+  // The export follows the list: same search, status, segment, loan type, source, owner, partner, period and archive view.
+  const exportFilters = { q: search, status, segment, loanProductId, channel, ownerId, partnerId, range: timeRange, archived: archived ? "true" : "false" };
 
   const reset = (fn: () => void) => {
     fn();
@@ -379,9 +380,7 @@ export function LeadsPage() {
             <button onClick={() => setShowImport(true)} className="btn-ghost">
               <Upload className="h-4 w-4" /> Import
             </button>
-            <button onClick={exportCsv} className="btn-ghost">
-              <Download className="h-4 w-4" /> Export
-            </button>
+            <ExportMenu type="leads" filters={exportFilters} />
             <button onClick={() => setShowNewLead(true)} className="btn-primary">
               <Plus className="h-4 w-4" /> New Lead
             </button>

@@ -14,6 +14,7 @@ import {
   UpdateApplicantDto,
   UpdateApplicationDto,
 } from "./dto/application.dto";
+import { EventsService } from "../events/events.service";
 
 
 const LIST_INCLUDE = {
@@ -31,6 +32,7 @@ export class ApplicationsService {
     private prisma: PrismaService,
     private audit: AuditService,
     private settings: SettingsService,
+    private events: EventsService,
   ) {}
 
   /** Adds the derived applicationNo the UI and lenders refer to. */
@@ -208,6 +210,10 @@ export class ApplicationsService {
       changes: diff(before as unknown as Record<string, unknown>, dto as Record<string, unknown>),
       ip,
     });
+
+    if (dto.status && dto.status !== before.status) {
+      this.events.emit(dto.status === ApplicationStatus.REJECTED ? "FILE_REJECTED" : "FILE_STAGE_CHANGED", { applicationId: id });
+    }
 
     return this.decorate(app);
   }

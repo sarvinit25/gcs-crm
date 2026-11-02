@@ -8,7 +8,7 @@ import { assertProductionConfig } from "./common/production-checks";
 
 async function bootstrap() {
   assertProductionConfig();
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
   const config = app.get(ConfigService);
 
   // Nginx fronts this app, so without trusting it every request reads as

@@ -42,6 +42,9 @@ import { WebsiteModule } from "./website/website.module";
 import { SecurityModule } from "./security/security.module";
 import { ChatAuthModule } from "./chat-auth/chat-auth.module";
 import { IdDirectoryModule } from "./id-directory/id-directory.module";
+import { AssistantModule } from "./assistant/assistant.module";
+import { EventsModule } from "./events/events.module";
+import { WhatsAppModule } from "./whatsapp/whatsapp.module";
 
 @Module({
   imports: [
@@ -94,6 +97,9 @@ import { IdDirectoryModule } from "./id-directory/id-directory.module";
     WebsiteModule,
     ChatAuthModule,
     IdDirectoryModule,
+    EventsModule,
+    AssistantModule,
+    WhatsAppModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

@@ -42,3 +42,13 @@ export class ApplicationDisbursementsController {
     return this.disbursements.remove(applicationId, id, user, ip);
   }
 }
+
+@Controller("applications/:applicationId/money-trail")
+export class ApplicationMoneyTrailController {
+  constructor(private disbursements: DisbursementsService) {}
+
+  @Get()
+  get(@Param("applicationId") applicationId: string, @CurrentUser() user: AuthUser) {
+    return this.disbursements.moneyTrail(applicationId, user);
+  }
+}

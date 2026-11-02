@@ -1,9 +1,13 @@
-import { Controller, Get, Query, Res } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Param, Post, Query, Res } from "@nestjs/common";
 import type { Response } from "express";
 import { Role } from "@prisma/client";
 import { CurrentUser, Roles, type AuthUser } from "../auth/auth.decorators";
-import { EXPORT_LIMIT, RECORD_TYPES, ReportsService, type RecordFilters, type RecordType, type ReportRange } from "./reports.service";
-import { BadRequestException, ForbiddenException } from "@nestjs/common";
+import { ReportsService, type ReportRange } from "./reports.service";
+import { PREVIEW_LIMIT, pickRows, ReportRecordsService, type RecordFilters } from "./report-records.service";
+import { ReportInsightsService, type DetailFilters } from "./report-insights.service";
+import { ReportTemplatesService } from "./report-templates.service";
+import { SaveReportTemplateDto } from "./dto/report-template.dto";
+import { canSeeCommission, catalogueFor, isRecordType, resolveColumns, type RecordType } from "./report-catalogue";
 import { SettingsService } from "../settings/settings.service";
 import { toCsv } from "../common/csv.util";
 import { istToday } from "../common/date.util";
@@ -13,8 +17,45 @@ import { buildReportCsv, buildReportWorkbook } from "./report-workbook";
 export class ReportsController {
   constructor(
     private reports: ReportsService,
+    private records_: ReportRecordsService,
+    private insights: ReportInsightsService,
+    private templates: ReportTemplatesService,
     private settings: SettingsService,
   ) {}
+
+  /** The Reports landing page: headline numbers, trends, pipeline, lenders and (Admin/Manager) commission. */
+  @Get("hub")
+  hub(@Query() range: ReportRange, @CurrentUser() user: AuthUser) {
+    return this.insights.hub(range, user);
+  }
+
+  /** One of the eight detailed reports (leads, callbacks, files, login-files, sanctions, disbursals, rejects, commissions). */
+  @Get("detail/:kind")
+  detail(@Param("kind") kind: string, @Query() filters: DetailFilters, @CurrentUser() user: AuthUser) {
+    return this.insights.detail(kind, filters, user);
+  }
+
+  /** Every column an export can contain, grouped by section — only what the caller is allowed to see. */
+  @Get("catalogue")
+  catalogue(@CurrentUser() user: AuthUser) {
+    return catalogueFor(user.role);
+  }
+
+  /** The caller's own saved column templates, optionally for one register. */
+  @Get("templates")
+  listTemplates(@Query("type") type: string | undefined, @CurrentUser() user: AuthUser) {
+    return this.templates.list(user, type);
+  }
+
+  @Post("templates")
+  saveTemplate(@Body() dto: SaveReportTemplateDto, @CurrentUser() user: AuthUser) {
+    return this.templates.save(user, dto);
+  }
+
+  @Delete("templates/:id")
+  removeTemplate(@Param("id") id: string, @CurrentUser() user: AuthUser) {
+    return this.templates.remove(user, id);
+  }
 
   @Get("funnel")
   funnel(@Query() range: ReportRange, @CurrentUser() user: AuthUser) {
@@ -44,44 +85,61 @@ export class ReportsController {
 
   /** Record-level rows for the report builder, plus the letterhead/summary shown above them. */
   @Get("records")
-  async records(@Query("type") type: string, @Query() filters: RecordFilters, @CurrentUser() user: AuthUser) {
-    const result = await this.reports.records(this.recordType(type, user), filters, user);
-    return { ...result, meta: await this.reports.reportMeta(result.type, filters, result, user) };
+  async records(
+    @Query("type") type: string,
+    @Query("columns") columns: string | undefined,
+    @Query() filters: RecordFilters,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const kind = this.recordType(type, user);
+    const result = await this.records_.records(kind, filters, user, PREVIEW_LIMIT, columns ? columns.split(",") : undefined);
+    const meta = await this.records_.reportMeta(kind, filters, result, user);
+    return { ...result, rows: pickRows(result.rows, result.columns), meta };
   }
 
-  /** The same report as a formatted Excel workbook (default) or a CSV with the same letterhead. */
+  /**
+   * The same report as a formatted Excel workbook (default) or a CSV with the same letterhead. Columns come from a
+   * saved template (`templateId`, the caller's own only), an explicit list (`columns`), or the standard set. The
+   * list's own filters are honoured, and every matching record is exported — there is no row cap.
+   */
   @Get("records/export")
   async exportRecords(
     @Query("type") type: string,
     @Query("columns") columns: string | undefined,
+    @Query("templateId") templateId: string | undefined,
     @Query("format") format: string | undefined,
     @Query() filters: RecordFilters,
     @CurrentUser() user: AuthUser,
     @Res() res: Response,
   ) {
-    const result = await this.reports.records(this.recordType(type, user), filters, user, EXPORT_LIMIT);
-    const wanted = columns ? new Set(columns.split(",")) : null;
-    const picked = result.columns.filter((c) => !wanted || wanted.has(c.key));
-    const meta = await this.reports.reportMeta(result.type, filters, result, user);
+    const kind = this.recordType(type, user);
+    let wanted: string[] | undefined = columns ? columns.split(",").filter(Boolean) : undefined;
+    if (templateId) wanted = (await this.templates.mine(user, templateId, kind)).columns;
+    if (wanted && !resolveColumns(kind, user.role, wanted).length) {
+      throw new BadRequestException("None of the requested columns are available");
+    }
+
+    const result = await this.records_.records(kind, filters, user, null, wanted);
+    const meta = await this.records_.reportMeta(kind, filters, result, user);
     const stamp = istToday();
 
     if (format === "csv") {
       res.setHeader("Content-Type", "text/csv; charset=utf-8");
-      res.setHeader("Content-Disposition", `attachment; filename="gcs-${result.type}-${stamp}.csv"`);
-      res.send(buildReportCsv(meta, picked, result.rows));
+      res.setHeader("Content-Disposition", `attachment; filename="gcs-${kind}-${stamp}.csv"`);
+      res.send(buildReportCsv(meta, result.columns, result.rows));
       return;
     }
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    res.setHeader("Content-Disposition", `attachment; filename="gcs-${result.type}-report-${stamp}.xlsx"`);
-    res.send(await buildReportWorkbook(meta, picked, result.rows));
+    res.setHeader("Content-Disposition", `attachment; filename="gcs-${kind}-report-${stamp}.xlsx"`);
+    res.send(await buildReportWorkbook(meta, result.columns, result.rows));
   }
 
   private recordType(type: string, user: AuthUser): RecordType {
-    if (!RECORD_TYPES.includes(type as RecordType)) throw new BadRequestException("Unknown report type");
-    if (type === "commissions" && user.role === Role.ADVISOR) {
-      throw new ForbiddenException("Commission reports are for Admin and Super Admin");
+    if (!isRecordType(type)) throw new BadRequestException("Unknown report type");
+    if (type === "commissions" && !canSeeCommission(user.role)) {
+      throw new ForbiddenException("Commission reports are for Admin and Manager");
     }
-    return type as RecordType;
+    return type;
   }
 
   @Get("stalled")

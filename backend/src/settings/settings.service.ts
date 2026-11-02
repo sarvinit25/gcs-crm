@@ -53,6 +53,20 @@ export class SettingsService implements OnModuleInit {
     return parts.join("-");
   }
 
+  /**
+   * The sanction register number, e.g. SN-2026-00003. Follows the same year
+   * setting as application numbers so both read in the same period.
+   */
+  sanctionNo(seq: number, createdAt: Date) {
+    const parts = ["SN"];
+    if (this.get<boolean>("numbering.includeYear")) {
+      const p = istParts(createdAt);
+      parts.push(this.get<boolean>("numbering.financialYear") ? fyLabel(fyStartYear(p)) : String(p.year));
+    }
+    parts.push(String(seq).padStart(5, "0"));
+    return parts.join("-");
+  }
+
   /** The registry plus current values — everything the settings screen renders. */
   all() {
     return SETTINGS.map((def) => ({

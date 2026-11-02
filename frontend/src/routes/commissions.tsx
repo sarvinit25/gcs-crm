@@ -1,26 +1,31 @@
 import { Fragment, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, Download, Search } from "lucide-react";
+import { ChevronDown, ChevronRight, Search } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
-import { downloadReport } from "../lib/download-report";
+import { ExportMenu } from "../components/export-menu";
 import { formatAmount, formatDate } from "../lib/format";
-import type { CommissionRow, Paginated, PayoutStatus } from "../lib/types";
+import {
+  COMMISSION_STATUS_LABEL,
+  EXTRA_SOURCE_LABEL,
+  type CommissionRow,
+  type CommissionSummary,
+  type Paginated,
+  type PayoutStatus,
+} from "../lib/types";
+import { STATUS_STYLE } from "../components/commission-block";
 import { PageHeader } from "../components/app-shell";
 import { DatePicker } from "../components/date-picker";
 import { TableSkeleton } from "../components/skeleton";
 
-type Result = Paginated<CommissionRow> & { totalAmount: string | number };
+type Result = Paginated<CommissionRow> & { totalAmount: string | number; summary: CommissionSummary };
 
-const STATUS_STYLE: Record<PayoutStatus, string> = {
-  PENDING: "bg-slate-100 text-slate-600",
-  PARTIAL: "bg-sky-50 text-sky-700",
-  PAID: "bg-emerald-50 text-emerald-700",
-};
-
+/** Splits move pending → part → paid; the lender's commission goes through claim and receipt instead. */
 const nextStatus = (status: PayoutStatus): PayoutStatus =>
   status === "PENDING" ? "PARTIAL" : status === "PARTIAL" ? "PAID" : "PENDING";
+
+const STAGES: PayoutStatus[] = ["PENDING", "CLAIMED", "PARTIAL", "PAID"];
 
 export function CommissionsPage() {
   const queryClient = useQueryClient();
@@ -45,9 +50,13 @@ export function CommissionsPage() {
 
   const invalidate = () => void queryClient.invalidateQueries({ queryKey: ["commissions"] });
 
-  const updateStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: PayoutStatus }) =>
-      api(`/commissions/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  const claim = useMutation({
+    mutationFn: (id: string) => api(`/commissions/${id}/claim`, { method: "POST", body: JSON.stringify({}) }),
+    onSuccess: invalidate,
+  });
+
+  const receive = useMutation({
+    mutationFn: (id: string) => api(`/commissions/${id}/receive`, { method: "POST", body: JSON.stringify({}) }),
     onSuccess: invalidate,
   });
 
@@ -60,9 +69,6 @@ export function CommissionsPage() {
     onSuccess: invalidate,
   });
 
-  const exportReport = () =>
-    void downloadReport("commissions", { q: search, status: status || undefined, from: from || undefined, to: to || undefined });
-
   return (
     <>
       <PageHeader
@@ -73,9 +79,7 @@ export function CommissionsPage() {
             : "Ledger per disbursed case, split across every stakeholder"
         }
         actions={
-          <button onClick={exportReport} className="btn-ghost">
-            <Download className="h-4 w-4" /> Export
-          </button>
+          <ExportMenu type="commissions" filters={{ q: search, status: status || undefined, from: from || undefined, to: to || undefined }} />
         }
       />
 
@@ -90,15 +94,49 @@ export function CommissionsPage() {
               className="field w-64 pl-9"
             />
           </div>
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className="field w-36">
+          <select value={status} onChange={(e) => setStatus(e.target.value)} className="field w-44">
             <option value="">All statuses</option>
-            <option value="PENDING">Pending</option>
-            <option value="PARTIAL">Partial</option>
-            <option value="PAID">Paid</option>
+            {STAGES.map((st) => (
+              <option key={st} value={st}>
+                {COMMISSION_STATUS_LABEL[st]}
+              </option>
+            ))}
           </select>
           <DatePicker value={from} onChange={setFrom} max={to || undefined} className="w-44" title="From" placeholder="From date" />
           <DatePicker value={to} onChange={setTo} min={from || undefined} className="w-44" title="To" placeholder="To date" />
         </div>
+
+        {[claim, receive].find((m) => m.isError) && (
+          <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">
+            {([claim, receive].find((m) => m.isError)?.error as Error).message}
+          </p>
+        )}
+
+        {query.data && (
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {STAGES.map((st) => {
+              const row = query.data.summary[st];
+              return (
+                <button
+                  key={st}
+                  onClick={() => setStatus(status === st ? "" : st)}
+                  className={clsx(
+                    "card p-3 text-left transition",
+                    status === st && "ring-2 ring-gold",
+                  )}
+                >
+                  <p className="text-[11px] font-bold tracking-wide text-muted uppercase">
+                    {COMMISSION_STATUS_LABEL[st]} · {row.count}
+                  </p>
+                  <p className="mt-0.5 text-[16px] font-bold text-navy">{formatAmount(row.amount)}</p>
+                  {st === "PARTIAL" && row.received > 0 && (
+                    <p className="text-[11px] text-muted">{formatAmount(row.received)} received so far</p>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div className="card overflow-x-auto">
           {query.isPending ? (
@@ -162,19 +200,42 @@ export function CommissionsPage() {
                         <td className="px-4 py-3 font-medium">{formatAmount(c.grossAmount)}</td>
                         <td className="px-4 py-3 text-muted">{c.grossRate}%</td>
                         <td className="px-4 py-3">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              updateStatus.mutate({ id: c.id, status: nextStatus(c.status) });
-                            }}
-                            title="Click to advance status"
-                            className={clsx(
-                              "rounded-full px-2 py-0.5 text-[10px] font-bold",
-                              STATUS_STYLE[c.status],
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={clsx(
+                                "rounded-full px-2 py-0.5 text-[10px] font-bold whitespace-nowrap",
+                                STATUS_STYLE[c.status],
+                              )}
+                            >
+                              {COMMISSION_STATUS_LABEL[c.status]}
+                            </span>
+                            {c.status === "PENDING" && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  claim.mutate(c.id);
+                                }}
+                                className="text-[11px] font-semibold text-gold-dark hover:text-navy"
+                              >
+                                Claim
+                              </button>
                             )}
-                          >
-                            {c.status}
-                          </button>
+                            {(c.status === "CLAIMED" || c.status === "PARTIAL") && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const left =
+                                    Number(c.grossAmount) - Number(c.receivedAmount ?? 0);
+                                  if (window.confirm(`Mark ${formatAmount(left)} as received in full?`))
+                                    receive.mutate(c.id);
+                                }}
+                                title="Record the whole outstanding amount as received — use the application page for a part payment"
+                                className="text-[11px] font-semibold text-gold-dark hover:text-navy"
+                              >
+                                Received
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                       {isOpen && (
@@ -185,6 +246,17 @@ export function CommissionsPage() {
                               Disbursed {formatAmount(c.disbursement.amount)} on{" "}
                               {formatDate(c.disbursement.disbursedAt)}
                             </p>
+                            {c.extras.length > 0 && (
+                              <p className="mb-2 text-[12px] text-muted">
+                                Extras:{" "}
+                                {c.extras
+                                  .map(
+                                    (e) =>
+                                      `${EXTRA_SOURCE_LABEL[e.source]} ${formatAmount(e.amount)}${e.status === "PAID" ? " (received)" : ""}`,
+                                  )
+                                  .join(" · ")}
+                              </p>
+                            )}
                             {!c.splits.length ? (
                               <p className="text-[12px] text-muted">No splits recorded.</p>
                             ) : (

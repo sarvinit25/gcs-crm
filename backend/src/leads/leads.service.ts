@@ -22,6 +22,7 @@ import {
   PublicLeadDto,
   UpdateLeadDto,
 } from "./dto/lead.dto";
+import { EventsService } from "../events/events.service";
 
 const LIST_INCLUDE = {
   loanProduct: { select: { id: true, name: true, slug: true } },
@@ -76,6 +77,7 @@ export class LeadsService implements OnApplicationBootstrap {
     private assignment: LeadAssignmentService,
     private sources: LeadSourcesService,
     private config: ConfigService,
+    private events: EventsService,
   ) {}
 
   /** Advisors only ever see their own leads; managers and admins see everything. */
@@ -179,7 +181,7 @@ export class LeadsService implements OnApplicationBootstrap {
     };
     const attribution = this.attribution({ ...dto, channel: undefined, campaign: undefined });
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       // Two copies of one form arriving together must not both create a lead.
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${dto.phone}))`;
 
@@ -274,6 +276,9 @@ export class LeadsService implements OnApplicationBootstrap {
       });
       return { id: same.id, leadNo: same.leadNo };
     });
+    // Only a genuinely new lead is announced; a form sent twice is not a second enquiry.
+    if ('isNew' in result && result.isNew) this.events.emit("LEAD_CREATED", { leadId: result.id });
+    return result;
   }
 
   /**
@@ -341,6 +346,7 @@ export class LeadsService implements OnApplicationBootstrap {
       include: LIST_INCLUDE,
     });
     await this.refreshSegment(created.id);
+    this.events.emit("LEAD_CREATED", { leadId: created.id });
     return this.prisma.lead.findUniqueOrThrow({ where: { id: created.id }, include: LIST_INCLUDE });
   }
 

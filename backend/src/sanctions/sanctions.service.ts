@@ -5,6 +5,8 @@ import type { AuthUser } from "../auth/auth.decorators";
 import { AuditService, diff } from "../audit/audit.service";
 import { SettingsService } from "../settings/settings.service";
 import { ListSanctionsQuery, UpsertSanctionDto } from "./dto/sanction.dto";
+import { emi, feeAmount } from "../common/loan-math";
+import { EventsService } from "../events/events.service";
 
 const APPLICATION_SUMMARY = {
   select: {
@@ -26,15 +28,52 @@ export class SanctionsService {
     private prisma: PrismaService,
     private audit: AuditService,
     private settings: SettingsService,
+    private events: EventsService,
   ) {}
 
   private scopeFor(user: AuthUser): Prisma.ApplicationWhereInput {
     return user.role === Role.ADVISOR ? { ownerId: user.id } : {};
   }
 
-  private decorate<T extends { application: { seq: number; createdAt: Date } }>(sanction: T) {
+  /** How much of each application's sanction has actually been released so far. */
+  private async drawnFor(applicationIds: string[]) {
+    if (!applicationIds.length) return new Map<string, { drawn: number; net: number }>();
+    const rows = await this.prisma.disbursement.groupBy({
+      by: ["applicationId"],
+      where: { applicationId: { in: applicationIds } },
+      _sum: { amount: true, netAmount: true },
+    });
+    return new Map(
+      rows.map((r) => [
+        r.applicationId,
+        { drawn: Number(r._sum.amount ?? 0), net: Number(r._sum.netAmount ?? r._sum.amount ?? 0) },
+      ]),
+    );
+  }
+
+  private decorate<
+    T extends {
+      seq: number;
+      createdAt: Date;
+      sanctionedAmount: unknown;
+      application: { id: string; seq: number; createdAt: Date };
+    },
+  >(sanction: T, drawnMap: Map<string, { drawn: number; net: number }>, user: AuthUser) {
+    const drawn = drawnMap.get(sanction.application.id)?.drawn ?? 0;
+    const sanctioned = Number(sanction.sanctionedAmount ?? 0);
+    // What the lender pays GCS is commission economics: Admin and Manager only.
+    const { commissionPercent, ...visible } = sanction as T & { commissionPercent?: unknown };
     return {
-      ...sanction,
+      ...visible,
+      ...(user.role !== Role.ADVISOR && { commissionPercent }),
+      sanctionNo: this.settings.sanctionNo(sanction.seq, sanction.createdAt),
+      drawn,
+      undrawn: Math.max(sanctioned - drawn, 0),
+      // Pending until money moves; partial while some of the sanction is still undrawn.
+      disbursalStatus: (drawn <= 0 ? "PENDING" : sanctioned > 0 && drawn < sanctioned ? "PARTIAL" : "DISBURSED") as
+        | "PENDING"
+        | "PARTIAL"
+        | "DISBURSED",
       application: {
         ...sanction.application,
         applicationNo: this.settings.applicationNo(
@@ -65,11 +104,30 @@ export class SanctionsService {
       );
     }
 
+    // Figures the lender didn't quote are worked out from the ones they did,
+    // using whatever is already on file for anything this edit leaves out.
+    const amount = dto.sanctionedAmount ?? (before ? Number(before.sanctionedAmount) || undefined : undefined);
+    const rate = dto.interestRate ?? (before ? Number(before.interestRate) : undefined);
+    const tenure = dto.tenureMonths ?? before?.tenureMonths ?? undefined;
+    const termsTouched =
+      dto.sanctionedAmount !== undefined || dto.interestRate !== undefined || dto.tenureMonths !== undefined;
+    const computed: { emiAmount?: number; processingFee?: number } = {};
+    if (dto.emiAmount === undefined && termsTouched) {
+      const calculated = emi(amount, rate, tenure);
+      if (calculated !== null) computed.emiAmount = calculated;
+    }
+    if (dto.processingFee === undefined && dto.processingFeePercent !== undefined) {
+      const fee = feeAmount(amount, dto.processingFeePercent, undefined);
+      if (fee !== null) computed.processingFee = fee;
+    }
+    const data = { ...dto, ...computed };
+    if (user.role === Role.ADVISOR) delete data.commissionPercent;
+
     const sanction = await this.prisma.$transaction(async (tx) => {
       const saved = await tx.sanction.upsert({
         where: { applicationId },
-        create: { applicationId, ...dto },
-        update: { ...dto },
+        create: { applicationId, ...data },
+        update: { ...data },
       });
 
       // The financial sanction is what makes a case genuinely sanctioned; the
@@ -103,11 +161,17 @@ export class SanctionsService {
       entity: "Sanction",
       entityId: sanction.id,
       entityLabel: this.settings.applicationNo(application.seq, application.createdAt),
-      changes: diff((before ?? {}) as Record<string, unknown>, dto as Record<string, unknown>),
+      changes: diff((before ?? {}) as Record<string, unknown>, data as Record<string, unknown>),
       ip,
     });
 
-    return this.decorate(sanction);
+    // Told to the customer and the officer only when the decision actually changes, not on every edit.
+    if (sanction.financialStatus !== before?.financialStatus) {
+      if (sanction.financialStatus === SanctionStatus.APPROVED) this.events.emit("SANCTION_APPROVED", { applicationId });
+      else if (sanction.financialStatus === SanctionStatus.REJECTED) this.events.emit("FILE_REJECTED", { applicationId });
+    }
+
+    return this.decorate(sanction, await this.drawnFor([applicationId]), user);
   }
 
   async findByApplication(applicationId: string, user: AuthUser) {
@@ -115,7 +179,7 @@ export class SanctionsService {
       where: { applicationId, application: this.scopeFor(user) },
       include: { application: APPLICATION_SUMMARY },
     });
-    return sanction ? this.decorate(sanction) : null;
+    return sanction ? this.decorate(sanction, await this.drawnFor([applicationId]), user) : null;
   }
 
   /** The sanctions register — every case that has reached a sanction decision. */
@@ -138,7 +202,7 @@ export class SanctionsService {
       },
     };
 
-    const [items, total] = await this.prisma.$transaction([
+    const [items, total, totals] = await this.prisma.$transaction([
       this.prisma.sanction.findMany({
         where,
         include: { application: APPLICATION_SUMMARY },
@@ -147,8 +211,16 @@ export class SanctionsService {
         take: pageSize,
       }),
       this.prisma.sanction.count({ where }),
+      this.prisma.sanction.aggregate({ where, _sum: { sanctionedAmount: true } }),
     ]);
 
-    return { items: items.map((s) => this.decorate(s)), total, page, pageSize };
+    const drawnMap = await this.drawnFor(items.map((s) => s.application.id));
+    return {
+      items: items.map((s) => this.decorate(s, drawnMap, user)),
+      total,
+      page,
+      pageSize,
+      totalSanctioned: totals._sum.sanctionedAmount ?? 0,
+    };
   }
 }

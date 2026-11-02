@@ -1,7 +1,7 @@
 import { csvCell } from "../common/csv.util";
 import ExcelJS from "exceljs";
-import type { ColumnType, RecordColumn } from "./reports.service";
-import { prettify } from "./reports.service";
+import type { ColumnType, RecordColumn } from "./report-catalogue";
+import { prettify } from "./report-records.service";
 import { formatDateIST, formatDateTimeIST } from "../common/date.util";
 
 export type ReportMeta = {

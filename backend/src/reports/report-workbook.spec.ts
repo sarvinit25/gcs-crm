@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { buildReportCsv, buildReportWorkbook, type ReportMeta } from "./report-workbook";
-import type { RecordColumn } from "./reports.service";
+import type { RecordColumn } from "./report-catalogue";
 
 const meta: ReportMeta = {
   title: "Applications Report",

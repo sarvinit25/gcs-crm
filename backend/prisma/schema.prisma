@@ -68,6 +68,7 @@ model User {
   invitesCreated   ApplicationInvite[]
   marketingSpends  MarketingSpend[]
   creditChecks     CreditCheck[]
+  reportTemplates  ReportTemplate[]
 
   @@index([role, active])
 }
@@ -317,6 +318,8 @@ enum LeadStatus {
 }
 
 model Lead {
+  whatsAppConversations WhatsAppConversation[]
+
   id     String  @id @default(cuid())
   leadNo Int     @unique @default(autoincrement())
   name   String
@@ -498,6 +501,7 @@ model FollowUp {
   createdAt DateTime  @default(now())
 
   @@index([leadId])
+  @@index([dueAt])
 }
 
 // ─── Applications ───────────────────────────────────────────
@@ -533,6 +537,8 @@ enum ApplicantConstitution {
 }
 
 model Application {
+  whatsAppConversations WhatsAppConversation[]
+
   id  String @id @default(cuid())
   // Drives the human-facing reference (GCS-2026-0042), formatted on read.
   // A sequence rather than a built string, so concurrent creates can't collide.
@@ -694,10 +700,28 @@ model Sanction {
   sanctionLetterNo String?
   validTill        DateTime?
 
+  // Register number (SN-2026-00003) — handed out in order, never reused.
+  seq          Int       @unique @default(autoincrement())
+  sanctionDate DateTime?
+  // The lender-side relationship manager who issued it.
+  bankRm       String?
+  // Worked out from amount, rate and tenure unless the lender's own figure is keyed in.
+  emiAmount    Decimal?  @db.Decimal(14, 2)
+  firstEmiDate DateTime?
+  // The fee is stored as an amount; the percentage is kept when that is how it was quoted.
+  processingFeePercent Decimal? @db.Decimal(5, 2)
+  processingFee        Decimal? @db.Decimal(14, 2)
+  // What GCS expects the lender to pay on this sanction, so the commission
+  // form can be pre-filled when money is released.
+  commissionPercent Decimal? @db.Decimal(5, 2)
+  notes             String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([updatedAt])
+  @@index([sanctionDate])
+  @@index([createdAt])
 }
 
 // ─── Disbursements ──────────────────────────────────────────
@@ -710,6 +734,16 @@ enum DisbursementType {
 enum RoiType {
   FIXED
   FLOATING
+}
+
+enum DisbursalMode {
+  RTGS
+  NEFT
+  IMPS
+  UPI
+  CHEQUE
+  DEMAND_DRAFT
+  OTHER
 }
 
 model Disbursement {
@@ -733,6 +767,15 @@ model Disbursement {
   insuranceAmount      Decimal? @db.Decimal(14, 2)
   documentationCharges Decimal? @db.Decimal(14, 2)
   stampDuty            Decimal? @db.Decimal(14, 2)
+  otherDeductions      Decimal? @db.Decimal(14, 2)
+  // `amount` less every deduction above — what actually reached the borrower.
+  netAmount            Decimal? @db.Decimal(14, 2)
+
+  // How and where the money moved.
+  mode      DisbursalMode?
+  bankName  String?
+  accountNo String?
+  ifsc      String?
 
   note      String?
   createdAt DateTime @default(now())
@@ -747,8 +790,17 @@ model Disbursement {
 
 enum PayoutStatus {
   PENDING
+  // Commission only: GCS has raised the claim with the lender and is waiting for the money.
+  CLAIMED
   PARTIAL
   PAID
+}
+
+enum ExtraCommissionSource {
+  SUBVENTION
+  INSURANCE
+  CROSS_SELL
+  OTHER
 }
 
 model Commission {
@@ -764,9 +816,32 @@ model Commission {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
+  // Claim and receipt trail: due → claimed → received.
+  claimedAt      DateTime?
+  claimNote      String?
+  receivedAmount Decimal?  @db.Decimal(14, 2)
+  receivedRef    String?
+
   splits CommissionSplit[]
+  extras CommissionExtra[]
 
   @@index([createdAt])
+}
+
+// Money GCS earns on a payout from someone other than the lender's commission
+// — subvention, insurance, cross-sell.
+model CommissionExtra {
+  id           String                @id @default(cuid())
+  commissionId String
+  commission   Commission            @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+  source       ExtraCommissionSource
+  note         String?
+  amount       Decimal               @db.Decimal(14, 2)
+  status       PayoutStatus          @default(PENDING)
+  receivedAt   DateTime?
+  createdAt    DateTime              @default(now())
+
+  @@index([commissionId])
 }
 
 // One row per stakeholder taking a cut of a commission — staff or sourcing partner.
@@ -1375,4 +1450,181 @@ model CaseOutcome {
 
   @@index([lenderId, loanProductId])
   @@index([leadId])
+}
+
+// ─── WhatsApp inbox & notifications ─────────────────────────
+
+enum WhatsAppContactKind {
+  CUSTOMER
+  UNKNOWN
+}
+
+enum WhatsAppDirection {
+  IN
+  OUT
+}
+
+// Who wrote an outgoing message: a person on the team, the chatbot, or an automatic notification.
+enum WhatsAppSender {
+  CUSTOMER
+  STAFF
+  BOT
+  SYSTEM
+}
+
+enum WhatsAppMessageStatus {
+  RECEIVED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+/**
+ * One thread per phone number. Staff chatting with the assistant are deliberately
+ * not stored here: those are private questions, answered and forgotten.
+ */
+model WhatsAppConversation {
+  id            String              @id @default(cuid())
+  // Ten digits for an Indian number (what leads and applicants are stored with); the full digits otherwise.
+  phone         String              @unique
+  name          String?
+  kind          WhatsAppContactKind @default(UNKNOWN)
+  leadId        String?
+  lead          Lead?               @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  applicationId String?
+  application   Application?        @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  // Raised when the customer asks for a person, or the bot has nothing to say. The bot stays quiet while it is on.
+  needsHuman    Boolean             @default(false)
+  unreadCount   Int                 @default(0)
+  // When the customer last wrote — free-form replies are only allowed for 24 hours after this.
+  lastInboundAt DateTime?
+  lastMessageAt DateTime            @default(now())
+  lastPreview   String?
+  createdAt     DateTime            @default(now())
+
+  messages WhatsAppMessage[]
+
+  @@index([lastMessageAt])
+  @@index([leadId])
+  @@index([applicationId])
+  @@index([needsHuman])
+}
+
+model WhatsAppMessage {
+  id             String                @id @default(cuid())
+  conversationId String
+  conversation   WhatsAppConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  direction      WhatsAppDirection
+  sender         WhatsAppSender
+  sentById       String?
+  // text, template, image, document, audio, video, location, … — only text and template are shown in full.
+  type           String                @default("text")
+  body           String?
+  templateName   String?
+  // Meta's own id, used to match delivery receipts and to ignore a message Meta delivers twice.
+  waMessageId    String?               @unique
+  status         WhatsAppMessageStatus
+  error          String?
+  createdAt      DateTime              @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+enum NotificationTrigger {
+  LEAD_CREATED
+  FILE_STAGE_CHANGED
+  FILE_REJECTED
+  SANCTION_APPROVED
+  DISBURSAL_COMPLETED
+  MORNING_BRIEF
+  EVENING_BRIEF
+}
+
+enum NotificationRecipient {
+  CUSTOMER
+  EMPLOYEE
+}
+
+enum MetaTemplateStatus {
+  NOT_SUBMITTED
+  PENDING
+  APPROVED
+  REJECTED
+  PAUSED
+}
+
+/**
+ * A message the CRM sends by itself. WhatsApp only lets a business start a
+ * conversation with a template Meta has approved, so each one carries its
+ * approval state alongside the wording.
+ */
+model NotificationTemplate {
+  id          String                @id @default(cuid())
+  name        String
+  // Meta's template name: lowercase letters, digits and underscores.
+  code        String                @unique
+  trigger     NotificationTrigger
+  recipient   NotificationRecipient
+  // Wording with {{name}}-style placeholders. They are numbered in order of appearance when sent to Meta.
+  body        String
+  language    String                @default("en")
+  active      Boolean               @default(true)
+  metaStatus  MetaTemplateStatus    @default(NOT_SUBMITTED)
+  metaReason  String?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@unique([trigger, recipient])
+}
+
+enum NotificationStatus {
+  SENT
+  FAILED
+  SKIPPED
+}
+
+/** Every automatic message: sent, failed, or deliberately not sent (and why). */
+model NotificationLog {
+  id            String                @id @default(cuid())
+  trigger       NotificationTrigger
+  recipient     NotificationRecipient
+  templateCode  String?
+  toPhone       String?
+  toName        String?
+  status        NotificationStatus
+  // For SKIPPED and FAILED: the reason, in words a person can act on.
+  reason        String?
+  waMessageId   String?
+  entityType    String?
+  entityId      String?
+  // Day (India time, YYYY-MM-DD) for the daily briefs, so each goes out once a day.
+  dayKey        String?
+  createdAt     DateTime              @default(now())
+
+  @@index([createdAt])
+  @@index([trigger, dayKey])
+  @@index([status])
+}
+
+// ─── Report templates ───────────────────────────────────────
+
+/**
+ * A saved choice of columns for the custom Excel export of one register (leads, files, sanctions…).
+ * Private to the person who saved it: every query is scoped by userId, so nobody sees or uses another user's.
+ * The column keys refer to the server's column catalogue (reports/report-catalogue.ts); a key that later
+ * disappears, or that the owner may no longer see, is simply left out when the template is used.
+ */
+model ReportTemplate {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  name      String
+  columns   String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, type, name])
+  @@index([userId, type])
 }
