@@ -9,10 +9,15 @@ import { AuditService } from "../audit/audit.service";
 import { SettingsService } from "../settings/settings.service";
 import { istDayEnd, istParts } from "../common/date.util";
 import type { AuthUser } from "../auth/auth.decorators";
-import { redact } from "./redact";
+import { PLACEHOLDER, redact } from "./redact";
 import { checkQuery, MAX_ROWS, VIEW_CATALOG } from "./sql-guard";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
+
+/** Identity numbers someone types, or that an earlier answer showed on screen, are masked before the model sees them. */
+const PAN_NUMBER = /\b[A-Z]{5}\d{4}[A-Z]\b/g;
+const AADHAAR_NUMBER = /\b\d{4}\s?\d{4}\s?\d{4}\b/g;
+export const maskIdentity = (text: string) => text.replace(PAN_NUMBER, "[PAN hidden]").replace(AADHAAR_NUMBER, "[number hidden]");
 
 type ToolCall = { id: string; type: "function"; function: { name: string; arguments: string } };
 type ModelMessage =
@@ -112,7 +117,7 @@ export class AssistantService {
     const turns = history
       .filter((m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim())
       .slice(-12)
-      .map((m) => ({ role: m.role, content: m.content.trim().slice(0, 2000) }));
+      .map((m) => ({ role: m.role, content: maskIdentity(m.content.trim().slice(0, 2000)) }));
     const question = turns.at(-1);
     if (!question || question.role !== "user") throw new BadRequestException("Ask a question first.");
 
@@ -132,14 +137,51 @@ export class AssistantService {
     for (let round = 0; round < MAX_ROUNDS; round++) {
       const reply = await this.complete(messages);
       const calls = reply.tool_calls ?? [];
-      if (calls.length === 0) return { reply: (reply.content ?? "").trim() || "I could not find an answer to that." };
+      if (calls.length === 0) {
+        const raw = (reply.content ?? "").trim() || "I could not find an answer to that.";
+        // `raw` still holds placeholders and is what goes back to the model on the next question; `reply` is for the screen.
+        return { reply: await this.reveal(raw, user, ip), raw };
+      }
 
       messages.push({ role: "assistant", content: reply.content ?? null, tool_calls: calls });
       for (const call of calls) {
         messages.push({ role: "tool", tool_call_id: call.id, content: await this.runTool(call, user) });
       }
     }
-    return { reply: "That needed too many steps. Try asking about one client or one thing at a time." };
+    const tooLong = "That needed too many steps. Try asking about one client or one thing at a time.";
+    return { reply: tooLong, raw: tooLong };
+  }
+
+  /**
+   * Fills in PAN, date of birth, address and Aadhaar last four where the model wrote a placeholder, for the person
+   * asking only: a file they cannot see stays "not available". Each one shown is put on the audit log.
+   */
+  private async reveal(text: string, user: AuthUser, ip?: string): Promise<string> {
+    const found = [...text.matchAll(PLACEHOLDER)];
+    if (found.length === 0) return text;
+    const staff = user.role === Role.ADVISOR;
+    const values = new Map<string, string>();
+    for (const [token, field, id] of found as unknown as [string, string, string][]) {
+      if (values.has(token)) continue;
+      const select = { [field]: true } as Record<string, true>;
+      const lead = field === "aadhaarLast4" ? null : await this.prisma.lead.findFirst({ where: { id, ...(staff && { assignedOfficerId: user.id }) }, select });
+      const applicant = lead ? null : await this.prisma.applicant.findFirst({ where: { id, ...(staff && { application: { ownerId: user.id } }) }, select });
+      const raw = (lead ?? applicant)?.[field as never] as unknown;
+      const shown = raw instanceof Date ? raw.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : typeof raw === "string" && raw ? raw : "not on file";
+      values.set(token, lead || applicant ? shown : "not available to you");
+      if (lead || applicant) {
+        await this.audit.record({
+          actor: user,
+          action: AuditAction.CREATE,
+          entity: "AssistantReveal",
+          entityId: id,
+          entityLabel: `${user.name} viewed ${field} through the AI assistant`,
+          changes: { shown: { from: null, to: field } },
+          ...(ip ? { ip } : {}),
+        });
+      }
+    }
+    return text.replace(PLACEHOLDER, (token) => values.get(token) ?? "not available");
   }
 
   private systemPrompt(user: AuthUser) {
@@ -152,7 +194,8 @@ export class AssistantService {
       "You can only read. You cannot change, create, delete or send anything. If asked to, say that staff must do it in the CRM.",
       "Write amounts in rupees in the Indian style (for example ₹25,00,000). Keep answers short and plain, with short lists for several items. Mention lead numbers (like #12) and application numbers so staff can find the file.",
       "Do not give legal, tax or investment advice, and do not promise that any loan will be approved.",
-      "Some details (PAN, Aadhaar, bank account numbers) are hidden from you on purpose. If asked for them, say they are kept out of the assistant and can be seen on the file.",
+      "PAN, date of birth, address and the last four digits of Aadhaar appear in the data as placeholders like [[pan:ckx123abc]]. When asked for one, copy the placeholder into your answer exactly as written, character for character, and do not describe or guess the value. The CRM fills in the real value for staff who may see it.",
+      "Bank account numbers, IFSC codes, passwords and similar secrets are hidden from you on purpose. If asked for them, say they are kept out of the assistant and can be seen on the file.",
     ].join("\n");
   }
 

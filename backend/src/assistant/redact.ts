@@ -1,7 +1,14 @@
 // What the AI assistant may be shown. Every record is cleaned here before it reaches the model: identity numbers,
 // bank account details and anything secret never leave the CRM, and long lists are cut short.
+//
+// PAN, date of birth, address and the last four digits of Aadhaar are the exception that staff may ask for. The model
+// is shown a placeholder such as [[pan:ckx123]] instead of the value, writes the placeholder into its answer, and the
+// CRM swaps in the real value afterwards (see AssistantService.reveal). The number itself never goes to OpenAI.
 
 const HIDDEN = /pan|aadhaar|aadhar|account(number|no)?$|accountnumber|ifsc|password|hash|token|secret|otp|dob|dateofbirth|passport|voter|gstin/i;
+/** Details a member of staff may be shown in an answer, by the field name used on the record. */
+export const REVEALABLE = /^(pan|dateOfBirth|address|aadhaarLast4)$/;
+export const PLACEHOLDER = /\[\[(pan|dateOfBirth|address|aadhaarLast4):([A-Za-z0-9]{10,40})\]\]/g;
 const MAX_ITEMS = 12;
 const MAX_TEXT = 400;
 const MAX_DEPTH = 5;
@@ -20,6 +27,11 @@ export function redact(value: unknown, depth = 0): unknown {
   if (typeof value === "object") {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (REVEALABLE.test(k)) {
+        const id = (value as Record<string, unknown>)["id"];
+        if (v !== null && v !== undefined && v !== "" && typeof id === "string") out[k] = `[[${k}:${id}]]`;
+        continue;
+      }
       if (HIDDEN.test(k)) continue;
       // Storage paths and ids of files are of no use to a question and not for the model to see.
       if (/^(storageKey|fileKey|path|url)$/i.test(k)) continue;
