@@ -33,6 +33,7 @@ import { useAuth } from "../lib/auth";
 import { ROLE_LABEL, type Role } from "../lib/types";
 import { GlobalSearch } from "./global-search";
 import { NotificationsBell } from "./notifications-bell";
+import { AskAi } from "./ask-ai";
 import { useScrollToHash } from "../lib/use-scroll-to-hash";
 
 type NavItem = { to: string; label: string; icon: LucideIcon; roles?: Role[] };
@@ -231,6 +232,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      <AskAi />
     </div>
   );
 }
