@@ -1,14 +1,14 @@
 // What the AI assistant may be shown. Every record is cleaned here before it reaches the model: identity numbers,
 // bank account details and anything secret never leave the CRM, and long lists are cut short.
 //
-// PAN, date of birth, address and the last four digits of Aadhaar are the exception that staff may ask for. The model
+// PAN, date of birth, address, Aadhaar last four, GST number and bank account details are the exception that staff may ask for. The model
 // is shown a placeholder such as [[pan:ckx123]] instead of the value, writes the placeholder into its answer, and the
 // CRM swaps in the real value afterwards (see AssistantService.reveal). The number itself never goes to OpenAI.
 
-const HIDDEN = /pan|aadhaar|aadhar|account(number|no)?$|accountnumber|ifsc|password|hash|token|secret|otp|dob|dateofbirth|passport|voter|gstin/i;
+const HIDDEN = /pan|aadhaar|aadhar|account(number|no)?$|accountnumber|ifsc|password|hash|token|secret|otp|dob|dateofbirth|passport|voter|gstin|accesscode/i;
 /** Details a member of staff may be shown in an answer, by the field name used on the record. */
-export const REVEALABLE = /^(pan|dateOfBirth|address|aadhaarLast4)$/;
-export const PLACEHOLDER = /\[\[(pan|dateOfBirth|address|aadhaarLast4):([A-Za-z0-9]{10,40})\]\]/g;
+export const REVEALABLE = /^(pan|dateOfBirth|address|aadhaarLast4|gstin|accountNumber|ifsc|accountHolder|loanAccountNo)$/;
+export const PLACEHOLDER = /\[\[(pan|dateOfBirth|address|aadhaarLast4|gstin|accountNumber|ifsc|accountHolder|loanAccountNo):([A-Za-z0-9]{10,40})\]\]/g;
 const MAX_ITEMS = 12;
 const MAX_TEXT = 400;
 const MAX_DEPTH = 5;

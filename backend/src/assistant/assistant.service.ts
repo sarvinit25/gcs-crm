@@ -17,7 +17,10 @@ export type ChatMessage = { role: "user" | "assistant"; content: string };
 /** Identity numbers someone types, or that an earlier answer showed on screen, are masked before the model sees them. */
 const PAN_NUMBER = /\b[A-Z]{5}\d{4}[A-Z]\b/g;
 const AADHAAR_NUMBER = /\b\d{4}\s?\d{4}\s?\d{4}\b/g;
-export const maskIdentity = (text: string) => text.replace(PAN_NUMBER, "[PAN hidden]").replace(AADHAAR_NUMBER, "[number hidden]");
+const IFSC_CODE = /\b[A-Z]{4}0[A-Z0-9]{6}\b/g;
+const GST_NUMBER = /\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b/g;
+export const maskIdentity = (text: string) =>
+  text.replace(GST_NUMBER, "[GST hidden]").replace(PAN_NUMBER, "[PAN hidden]").replace(IFSC_CODE, "[IFSC hidden]").replace(AADHAAR_NUMBER, "[number hidden]");
 
 type ToolCall = { id: string; type: "function"; function: { name: string; arguments: string } };
 type ModelMessage =
@@ -42,6 +45,14 @@ const TOOLS = [
       name: "get_lead",
       description: "Full details of one lead: contact, loan wanted, status, owner, follow-up notes, the answers they gave on the website form. Use the id from search, or the lead number.",
       parameters: { type: "object", properties: { id: { type: "string" }, lead_no: { type: "number" } } },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_partner",
+      description: "Full details of one sourcing partner (managers and admins only): contact, commission rate, GST and bank details. Give the partner's code (like GCS-BSA-001), phone or name.",
+      parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
     },
   },
   {
@@ -163,13 +174,15 @@ export class AssistantService {
     const values = new Map<string, string>();
     for (const [token, field, id] of found as unknown as [string, string, string][]) {
       if (values.has(token)) continue;
-      const select = { [field]: true } as Record<string, true>;
-      const lead = field === "aadhaarLast4" ? null : await this.prisma.lead.findFirst({ where: { id, ...(staff && { assignedOfficerId: user.id }) }, select });
-      const applicant = lead ? null : await this.prisma.applicant.findFirst({ where: { id, ...(staff && { application: { ownerId: user.id } }) }, select });
-      const raw = (lead ?? applicant)?.[field as never] as unknown;
-      const shown = raw instanceof Date ? raw.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : typeof raw === "string" && raw ? raw : "not on file";
-      values.set(token, lead || applicant ? shown : "not available to you");
-      if (lead || applicant) {
+      const found = await this.lookup(field, id, user, staff);
+      const shown =
+        found.ok && found.value instanceof Date
+          ? found.value.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+          : found.ok && typeof found.value === "string" && found.value
+            ? found.value
+            : "not on file";
+      values.set(token, found.ok ? shown : "not available to you");
+      if (found.ok) {
         await this.audit.record({
           actor: user,
           action: AuditAction.CREATE,
@@ -184,18 +197,45 @@ export class AssistantService {
     return text.replace(PLACEHOLDER, (token) => values.get(token) ?? "not available");
   }
 
+  /** Finds one detail on a lead, applicant, partner or disbursement, only if this person may see that record. */
+  private async lookup(field: string, id: string, user: AuthUser, staff: boolean): Promise<{ ok: boolean; value?: unknown }> {
+    const select = { [field]: true } as Record<string, true>;
+    const pick = (row: unknown) => (row ? { ok: true, value: (row as Record<string, unknown>)[field] } : { ok: false });
+    // Partners and their bank details are for managers and admins; an advisor never reaches them.
+    const sources: Record<string, string[]> = {
+      pan: ["lead", "applicant", "partner"],
+      dateOfBirth: ["lead", "applicant"],
+      address: ["lead", "applicant", "partner"],
+      aadhaarLast4: ["applicant"],
+      gstin: ["partner"],
+      accountNumber: ["partner"],
+      ifsc: ["partner"],
+      accountHolder: ["partner"],
+      loanAccountNo: ["disbursement"],
+    };
+    for (const source of sources[field] ?? []) {
+      let row: unknown = null;
+      if (source === "lead") row = await this.prisma.lead.findFirst({ where: { id, ...(staff && { assignedOfficerId: user.id }) }, select });
+      else if (source === "applicant") row = await this.prisma.applicant.findFirst({ where: { id, ...(staff && { application: { ownerId: user.id } }) }, select });
+      else if (source === "partner" && !staff) row = await this.prisma.sourcingPartner.findFirst({ where: { id }, select });
+      else if (source === "disbursement") row = await this.prisma.disbursement.findFirst({ where: { id, ...(staff && { application: { ownerId: user.id } }) }, select });
+      if (row) return pick(row);
+    }
+    return { ok: false };
+  }
+
   private systemPrompt(user: AuthUser) {
     const today = new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "long", day: "numeric", month: "long", year: "numeric" });
     return [
       `You are the assistant inside the CRM of ${this.settings.get<string>("org.name")}, a loan DSA (loan consultancy) in India. You are talking to ${user.name}, who is ${user.role.toLowerCase()}.`,
       `Today is ${today}.`,
-      "For a single client or file use search, get_lead or get_application. For anything counted, totalled, listed or compared across many records, or over a period, use run_query. If a query fails, read the error and try a corrected one. Say which period or filter you used.",
+      "For a single client, file or partner use search, get_lead, get_application or get_partner. For anything counted, totalled, listed or compared across many records, or over a period, use run_query. If a query fails, read the error and try a corrected one. Say which period or filter you used.",
       "Answer only from what the tools return. Never guess a name, number, amount or status; if a tool finds nothing, say so plainly.",
       "You can only read. You cannot change, create, delete or send anything. If asked to, say that staff must do it in the CRM.",
       "Write amounts in rupees in the Indian style (for example ₹25,00,000). Keep answers short and plain, with short lists for several items. Mention lead numbers (like #12) and application numbers so staff can find the file.",
       "Do not give legal, tax or investment advice, and do not promise that any loan will be approved.",
-      "PAN, date of birth, address and the last four digits of Aadhaar appear in the data as placeholders like [[pan:ckx123abc]]. When asked for one, copy the placeholder into your answer exactly as written, character for character, and do not describe or guess the value. The CRM fills in the real value for staff who may see it.",
-      "Bank account numbers, IFSC codes, passwords and similar secrets are hidden from you on purpose. If asked for them, say they are kept out of the assistant and can be seen on the file.",
+      "PAN, date of birth, address, the last four digits of Aadhaar, GST number, bank account number, IFSC, account holder and loan account number appear in the data as placeholders like [[pan:ckx123abc]]. When asked for one, copy the placeholder into your answer exactly as written, character for character, and do not describe or guess the value. The CRM fills in the real value for staff who may see it.",
+      "Passwords, log-in codes and similar secrets are hidden from you on purpose. If asked for them, say they are not available through the assistant.",
     ].join("\n");
   }
 
@@ -279,6 +319,16 @@ export class AssistantService {
           application,
           recentFollowUps: (followUps ?? []).slice(0, 6).map((f) => ({ when: f.createdAt, by: f.user?.name, note: f.note })),
         };
+      }
+      case "get_partner": {
+        if (staff) return { error: "Not found." };
+        const q = String(args["query"] ?? "").trim().slice(0, 80);
+        if (!q) return { error: "Give a partner code, phone or name." };
+        const partner = await this.prisma.sourcingPartner.findFirst({
+          where: { OR: [{ code: { equals: q, mode: "insensitive" } }, { phone: q }, { name: { contains: q, mode: "insensitive" } }, { firm: { contains: q, mode: "insensitive" } }] },
+          select: { id: true, code: true, name: true, firm: true, phone: true, email: true, city: true, state: true, pincode: true, address: true, pan: true, gstin: true, bankName: true, accountNumber: true, ifsc: true, accountHolder: true, commissionRate: true, active: true, notes: true, manager: { select: { name: true } } },
+        });
+        return partner ?? { error: "Not found." };
       }
       case "get_application": {
         const app = await this.applications.findOne(String(args["id"] ?? ""), user);
