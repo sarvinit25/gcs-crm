@@ -666,7 +666,8 @@ export function SettingsPage() {
               {(query.error as Error).message}
             </p>
           ) : (
-            inGroup.map((s) => (
+            <>
+              {inGroup.map((s) => (
               <SettingRow
                 // Re-mounts after a save so the editor shows what was stored.
                 key={`${s.key}:${JSON.stringify(s.value)}`}
@@ -675,7 +676,9 @@ export function SettingsPage() {
                 onSave={(value) => save.mutate({ key: s.key, value })}
                 onReset={() => reset.mutate(s.key)}
               />
-            ))
+              ))}
+              {group === "Alerts" && <MailTestPanel />}
+            </>
           )}
         </div>
 
@@ -690,6 +693,26 @@ export function SettingsPage() {
         )}
       </div>
     </>
+  );
+}
+
+/** Sends a test email to the signed-in admin, so they can tell whether the mail server is set up. */
+function MailTestPanel() {
+  const test = useMutation({
+    mutationFn: () => api<{ configured: boolean; sent: boolean; message: string }>("/alerts/test-email", { method: "POST" }),
+  });
+  return (
+    <div className="mt-5 rounded-md border border-line bg-bg-light px-4 py-3">
+      <p className="text-[13px] font-semibold text-navy">Check that email works</p>
+      <p className="mt-0.5 text-[12px] text-muted">Sends a test email to your own address.</p>
+      <button className="btn-ghost mt-2 px-3 py-1.5 text-[13px]" disabled={test.isPending} onClick={() => test.mutate()}>
+        {test.isPending ? "Sending…" : "Send a test email to me"}
+      </button>
+      {test.data && (
+        <p className={test.data.sent ? "mt-2 text-[13px] text-emerald-700" : "mt-2 text-[13px] text-red-700"}>{test.data.message}</p>
+      )}
+      {test.isError && <p className="mt-2 text-[13px] text-red-700">{(test.error as Error).message}</p>}
+    </div>
   );
 }
 
