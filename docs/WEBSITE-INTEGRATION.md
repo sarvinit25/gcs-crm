@@ -79,13 +79,13 @@ All under **Settings -> Website content** (admins only) unless stated. Each sect
 
 ## 5. Email alerts
 
-Settings -> Alerts: who is emailed when a **new** website lead arrives (repeat enquiries merged into an existing lead send nothing), whether the customer gets an automatic thank-you, and its wording. Needs SMTP in the CRM environment:
+Settings -> Alerts: who is emailed when a **new** website lead arrives (repeat enquiries merged into an existing lead send nothing), whether the customer gets an automatic thank-you, and its wording. Sent through the company Zoho Mail account (one mail system for the CRM and the website). Needs these in the CRM environment, the same values as the website's secrets:
 
 ```
-SMTP_HOST=  SMTP_PORT=587  SMTP_USER=  SMTP_PASS=  SMTP_FROM="Growth Capital Services <alerts@yourdomain.com>"
+ZOHO_CLIENT_ID=  ZOHO_CLIENT_SECRET=  ZOHO_REFRESH_TOKEN=  ZOHO_ACCOUNT_ID=  ZOHO_FROM_ADDRESS=  ZOHO_REGION=in  WEBSITE_URL=
 ```
 
-With `SMTP_HOST` empty the feature is off and nothing fails. WhatsApp alerts are **not** sent automatically; the email contains a tap-to-WhatsApp link. Automatic WhatsApp needs a WhatsApp Business API provider account (paid) — not built yet.
+With any of the `ZOHO_*` values empty the feature is off and nothing fails. WhatsApp alerts are **not** sent automatically; the email contains a tap-to-WhatsApp link. Automatic WhatsApp needs a WhatsApp Business API provider account (paid) — not built yet.
 
 ## 6. Deploy checklist (production)
 
@@ -93,7 +93,7 @@ With `SMTP_HOST` empty the feature is off and nothing fails. WhatsApp alerts are
 2. **Do not run the full seed on production.** It resets lenders, rate cards and products to defaults. Load only the checklist list with:
    `npx ts-node prisma/seed-checklist-documents.ts` (safe to re-run; leaves edited entries alone).
 3. `npm install` in `backend` (new dependency: `nodemailer`).
-4. CRM `.env`: `CORS_ORIGIN`, `TURNSTILE_SECRET`, the `SMTP_*` variables above, `TRUST_PROXY_HOPS=1` behind Nginx.
+4. CRM `.env`: `CORS_ORIGIN`, `TURNSTILE_SECRET`, the `ZOHO_*` variables above, `TRUST_PROXY_HOPS=1` behind Nginx.
 5. Website build variable: `VITE_TURNSTILE_SITE_KEY` (Cloudflare Workers Builds -> Variables).
 6. Nginx: `/` -> website, `/crm` -> CRM frontend build, `/crm/api` -> backend :4000. Website and CRM must share one domain for the on-site editor.
 7. In the CRM: Settings -> Website content -> Contact & CIBIL — enter the real UPI ID; Settings -> Alerts — add the notification emails.

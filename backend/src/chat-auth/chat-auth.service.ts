@@ -11,7 +11,6 @@ import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 
 import { PrismaService } from "../prisma/prisma.service";
 import { LeadsService } from "../leads/leads.service";
 import { AlertsService } from "../alerts/alerts.service";
-import { MailService } from "../alerts/mail.service";
 import type { PublicLeadDto } from "../leads/dto/lead.dto";
 import { OtpSenderService } from "./otp-sender.service";
 import type { SendOtpDto, VerifyOtpDto } from "./dto/chat-auth.dto";
@@ -50,9 +49,8 @@ export class ChatAuthService {
   constructor(
     private prisma: PrismaService,
     private leads: LeadsService,
-    private alerts: AlertsService,
     private sender: OtpSenderService,
-    private mail: MailService,
+    private alerts: AlertsService,
     config: ConfigService,
   ) {
     this.secret = config.get<string>("JWT_SECRET") ?? "";
@@ -134,21 +132,7 @@ export class ChatAuthService {
   }
 
   private emailCode(to: string, name: string, code: string) {
-    const first = name.split(/\s+/)[0] || "there";
-    return this.mail.send({
-      to,
-      subject: `Your Growth Capital Services code: ${code}`,
-      text: [
-        `Hi ${first},`,
-        "",
-        `Your Growth Capital Services verification code is ${code}.`,
-        `It works for ${OTP_VALID_MINUTES} minutes. Please do not share it with anyone.`,
-        "",
-        "If you did not ask for this code, you can ignore this email.",
-        "",
-        "Growth Capital Services",
-      ].join("\n"),
-    });
+    return this.alerts.signInCodeEmail(to, name, code, OTP_VALID_MINUTES);
   }
 
   async verify(dto: VerifyOtpDto) {
