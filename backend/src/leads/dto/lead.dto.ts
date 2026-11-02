@@ -23,6 +23,13 @@ import { normalisePhone } from "../../common/phone.util";
 
 const PHONE = /^[6-9]\d{9}$/;
 
+/** One question and its answer, as a website form sends it. */
+export class AnswerDto {
+  @IsString() @Length(1, 80) key: string;
+  @IsString() @Length(1, 80) label: string;
+  @IsString() @Length(0, 500) value: string;
+}
+
 /** Payload the public website forms post — deliberately minimal. */
 export class PublicLeadDto {
   @IsString()
@@ -64,6 +71,14 @@ export class PublicLeadDto {
   @IsString()
   @Length(0, 2000)
   detail?: string;
+
+  /** The form's answers, one per question. Answers written in `detail` as "Label: answer" lines are picked up too. */
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(80)
+  @ValidateNested({ each: true })
+  @Type(() => AnswerDto)
+  answers?: AnswerDto[];
 
   /** Cloudflare Turnstile token from the website form. */
   @IsOptional()
@@ -113,6 +128,7 @@ export class CreateLeadDto extends PublicLeadDto {
 export class LeadFollowUpDto {
   @IsString() @Length(10, 400) token: string;
   @IsString() @Length(2, 2000) detail: string;
+  @IsOptional() @IsArray() @ArrayMaxSize(80) @ValidateNested({ each: true }) @Type(() => AnswerDto) answers?: AnswerDto[];
   @IsOptional() @IsIn(["SALARIED", "SELF_EMPLOYED"]) employmentType?: "SALARIED" | "SELF_EMPLOYED";
   @IsOptional() @IsNumber() @Min(0) monthlyIncome?: number;
 }

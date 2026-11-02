@@ -143,6 +143,8 @@ export type LeadDetail = Lead & {
   missingForMeeting: string[];
   followUps: FollowUp[];
   application: { id: string; applicationNo: string; status: string } | null;
+  /** What the visitor answered on the website forms, one row per question. */
+  answers?: { key: string; label: string; value: string; stage: string; updatedAt: string }[];
 };
 
 export type Paginated<T> = { items: T[]; total: number; page: number; pageSize: number };

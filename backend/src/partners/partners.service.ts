@@ -1,12 +1,17 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { AuditAction, LeadStatus } from "@prisma/client";
+import { AuditAction, LeadStatus, PartnerApplicationStatus } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService, diff } from "../audit/audit.service";
 import { LoginLockService } from "../security/login-lock.service";
 import { SettingsService } from "../settings/settings.service";
 import type { AuthUser } from "../auth/auth.decorators";
-import { CreatePartnerDto, UpdatePartnerDto } from "./dto/partner.dto";
+import {
+  ApprovePartnerApplicationDto,
+  CreatePartnerDto,
+  UpdatePartnerApplicationDto,
+  UpdatePartnerDto,
+} from "./dto/partner.dto";
 
 const ROSTER_SELECT = {
   id: true,
@@ -168,6 +173,73 @@ export class PartnersService {
     });
 
     return withPortalFlag(partner);
+  }
+
+  /** Website sign-ups, newest first. Pass a status to see only those. */
+  async applications(status?: string) {
+    const valid =
+      status && (Object.values(PartnerApplicationStatus) as string[]).includes(status)
+        ? (status as PartnerApplicationStatus)
+        : undefined;
+    return this.prisma.partnerApplication.findMany({
+      where: valid ? { status: valid } : {},
+      orderBy: { createdAt: "desc" },
+      take: 300,
+      include: {
+        lead: { select: { id: true, leadNo: true } },
+        partner: { select: { id: true, name: true, code: true } },
+      },
+    });
+  }
+
+  async updateApplication(id: string, dto: UpdatePartnerApplicationDto, actor: AuthUser, ip?: string) {
+    const app = await this.prisma.partnerApplication.findUnique({ where: { id } });
+    if (!app) throw new NotFoundException("Application not found");
+    if (app.status === PartnerApplicationStatus.APPROVED) {
+      throw new BadRequestException("This application is already approved");
+    }
+    const rejected = dto.status === "REJECTED";
+    const updated = await this.prisma.partnerApplication.update({
+      where: { id },
+      data: { ...dto, ...(rejected && { decidedAt: new Date() }), ...(dto.status && !rejected && { decidedAt: null }) },
+    });
+    await this.audit.record({
+      actor,
+      action: AuditAction.UPDATE,
+      entity: "PartnerApplication",
+      entityId: id,
+      entityLabel: `#${app.applicationNo} ${app.name}`,
+      changes: { status: { from: app.status, to: updated.status } },
+      ip,
+    });
+    return updated;
+  }
+
+  /** Turns a sign-up into a partner on the roster. Portal access is given separately, as for any partner. */
+  async approveApplication(id: string, dto: ApprovePartnerApplicationDto, actor: AuthUser, ip?: string) {
+    const app = await this.prisma.partnerApplication.findUnique({ where: { id } });
+    if (!app) throw new NotFoundException("Application not found");
+    if (app.status === PartnerApplicationStatus.APPROVED) {
+      throw new BadRequestException("This application is already approved");
+    }
+    const partner = await this.create(
+      {
+        name: app.name,
+        phone: app.phone,
+        commissionRate: dto.commissionRate,
+        ...(app.organisation && { firm: app.organisation }),
+        ...(app.email && { email: app.email }),
+        ...(app.city && { city: app.city }),
+        ...(dto.managerId && { managerId: dto.managerId }),
+      },
+      actor,
+      ip,
+    );
+    await this.prisma.partnerApplication.update({
+      where: { id },
+      data: { status: PartnerApplicationStatus.APPROVED, partnerId: partner.id, decidedAt: new Date() },
+    });
+    return partner;
   }
 
   async setPassword(id: string, password: string, actor: AuthUser, ip?: string) {
