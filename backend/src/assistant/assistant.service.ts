@@ -10,6 +10,7 @@ import { SettingsService } from "../settings/settings.service";
 import { istDayEnd, istParts } from "../common/date.util";
 import type { AuthUser } from "../auth/auth.decorators";
 import { redact } from "./redact";
+import { checkQuery, MAX_ROWS, VIEW_CATALOG } from "./sql-guard";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -44,6 +45,15 @@ const TOOLS = [
       name: "get_application",
       description: "Full details of one loan application (file): applicants, loan and lender, status, documents, sanction and disbursements. Use the id from search.",
       parameters: { type: "object", properties: { id: { type: "string" } }, required: ["id"] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "run_query",
+      description: `Answer any question about the CRM's data with one read-only SQL SELECT. Use it for counts, totals, lists, comparisons, rankings and anything over a period, such as "how many leads came from Google this month", "total disbursed by lender", "which advisor has the most open files". You only see what this person is allowed to see.
+${VIEW_CATALOG}`,
+      parameters: { type: "object", properties: { sql: { type: "string", description: "One SELECT statement over the ai_ views." } }, required: ["sql"] },
     },
   },
   {
@@ -137,6 +147,7 @@ export class AssistantService {
     return [
       `You are the assistant inside the CRM of ${this.settings.get<string>("org.name")}, a loan DSA (loan consultancy) in India. You are talking to ${user.name}, who is ${user.role.toLowerCase()}.`,
       `Today is ${today}.`,
+      "For a single client or file use search, get_lead or get_application. For anything counted, totalled, listed or compared across many records, or over a period, use run_query. If a query fails, read the error and try a corrected one. Say which period or filter you used.",
       "Answer only from what the tools return. Never guess a name, number, amount or status; if a tool finds nothing, say so plainly.",
       "You can only read. You cannot change, create, delete or send anything. If asked to, say that staff must do it in the CRM.",
       "Write amounts in rupees in the Indian style (for example ₹25,00,000). Keep answers short and plain, with short lists for several items. Mention lead numbers (like #12) and application numbers so staff can find the file.",
@@ -152,7 +163,15 @@ export class AssistantService {
       res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: { authorization: `Bearer ${this.config.get<string>("OPENAI_API_KEY")}`, "content-type": "application/json" },
-        body: JSON.stringify({ model, messages, tools: TOOLS, tool_choice: "auto", max_completion_tokens: 2500 }),
+        body: JSON.stringify({
+          model,
+          messages,
+          tools: TOOLS,
+          tool_choice: "auto",
+          max_completion_tokens: 4000,
+          // The small reasoning models think at length by default; a short think is enough for a lookup and keeps it cheap.
+          ...(/^(gpt-5|o\d)/.test(model) && { reasoning_effort: "low" }),
+        }),
         signal: AbortSignal.timeout(60_000),
       });
     } catch (error) {
@@ -220,6 +239,27 @@ export class AssistantService {
       case "get_application": {
         const app = await this.applications.findOne(String(args["id"] ?? ""), user);
         return app;
+      }
+      case "run_query": {
+        const checked = checkQuery(String(args["sql"] ?? ""));
+        if ("error" in checked) return { error: checked.error };
+        const officer = user.role === Role.ADVISOR ? user.id : "";
+        try {
+          const rows = await this.prisma.$transaction(
+            async (tx) => {
+              await tx.$executeRawUnsafe("SET TRANSACTION READ ONLY");
+              await tx.$queryRaw`SELECT set_config('app.officer_id', ${officer}, true)`;
+              await tx.$executeRawUnsafe("SET LOCAL statement_timeout = 5000");
+              return tx.$queryRawUnsafe<Record<string, unknown>[]>(`SELECT * FROM (${checked.sql}) AS q LIMIT ${MAX_ROWS}`);
+            },
+            { timeout: 10_000 },
+          );
+          return { rowCount: rows.length, truncatedAt: rows.length === MAX_ROWS ? MAX_ROWS : undefined, rows };
+        } catch (error) {
+          // The database's message helps the model fix its query; keep it short and free of anything else.
+          const text = (error as Error).message.split("\n").filter(Boolean).pop() ?? "The query failed.";
+          return { error: text.slice(0, 200) };
+        }
       }
       case "overview": {
         const [leadRows, appRows, due] = await Promise.all([

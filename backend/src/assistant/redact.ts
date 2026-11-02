@@ -10,6 +10,7 @@ export function redact(value: unknown, depth = 0): unknown {
   if (value === null || value === undefined) return null;
   if (typeof value === "string") return value.length > MAX_TEXT ? `${value.slice(0, MAX_TEXT)}…` : value;
   if (typeof value === "number" || typeof value === "boolean") return value;
+  if (typeof value === "bigint") return Number(value);
   if (value instanceof Date) return value.toISOString();
   if (typeof value === "object" && "toNumber" in (value as object) && typeof (value as { toNumber: unknown }).toNumber === "function") {
     return (value as { toNumber: () => number }).toNumber();
