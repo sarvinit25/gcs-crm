@@ -96,7 +96,7 @@ export const SETTINGS: SettingDef[] = [
     group: "Organisation",
     label: "Registered address",
     type: "text",
-    default: "CCTV Towers, Andheri–Ghatkopar Rd, Ghatkopar West, Mumbai 400084",
+    default: "Avadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084",
   },
   {
     key: "org.phone",
@@ -120,7 +120,7 @@ export const SETTINGS: SettingDef[] = [
     group: "Organisation",
     label: "Primary email",
     type: "email",
-    default: "growthcs17@gmail.com",
+    default: "connect.gcs@growthcapitalservices.in",
     publicFacing: true,
   },
   {
@@ -128,7 +128,7 @@ export const SETTINGS: SettingDef[] = [
     group: "Organisation",
     label: "WhatsApp number",
     type: "phone",
-    default: "",
+    default: "8828001700",
     publicFacing: true,
   },
   {
