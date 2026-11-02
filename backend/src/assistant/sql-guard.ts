@@ -44,4 +44,5 @@ ai_partner_signups(signup_no, kind, name, phone, city, organisation, volume, sta
 ai_lenders(name, type, short_name, default_commission, branch_city, active)
 ai_loan_products(name, category, code, secured, min_amount, max_amount, active)
 ai_staff(name, role, designation, active, team)
+ai_leads.source says which form or channel it came from. Common values: home-enquiry, contact-enquiry, ca-legal-enquiry, cibil-advisory, cibil-report-request, checklist-download, ai-advisor, website-chat, partner-enquiry (agent sign-up), partner-builder, partner-freelancer, and loan-page forms such as form-1 or form-2. Match text with ILIKE and %...% (for example source ILIKE '%partner%'), because exact wording varies. If a filter returns nothing, run SELECT DISTINCT on that column to see the real values, then try again before saying there are none.
 Money columns are in rupees. Dates are timestamps; use date_trunc, now() and interval for "this week" or "last 30 days". Count with COUNT(*), group with GROUP BY, sort with ORDER BY. Results are cut to ${MAX_ROWS} rows, so aggregate where you can.`;
