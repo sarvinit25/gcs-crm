@@ -704,7 +704,7 @@ function MailTestPanel() {
   return (
     <div className="mt-5 rounded-md border border-line bg-bg-light px-4 py-3">
       <p className="text-[13px] font-semibold text-navy">Check that email works</p>
-      <p className="mt-0.5 text-[12px] text-muted">Sends a test email to your own address.</p>
+      <p className="mt-0.5 text-[12px] text-muted">Sends a test email to the company email in Settings → Organisation.</p>
       <button className="btn-ghost mt-2 px-3 py-1.5 text-[13px]" disabled={test.isPending} onClick={() => test.mutate()}>
         {test.isPending ? "Sending…" : "Send a test email to me"}
       </button>

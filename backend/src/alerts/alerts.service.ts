@@ -58,8 +58,13 @@ export class AlertsService {
     });
   }
 
-  /** Sends one test email, so staff can tell whether the mail account is set up. Says why if it is not. */
-  async sendTest(to: string) {
+  /**
+   * Sends one test email, so staff can tell whether the mail account is set up. It goes to the company email in
+   * Settings -> Organisation (a real mailbox), or to the signed-in person's address if that is blank.
+   * Says why if it cannot send.
+   */
+  async sendTest(fallbackTo: string) {
+    const to = this.settings.get<string>("org.email")?.trim() || fallbackTo;
     if (!this.mail.enabled) {
       return {
         configured: false,
