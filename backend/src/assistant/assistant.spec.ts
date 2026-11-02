@@ -25,16 +25,19 @@ describe("redact", () => {
 });
 
 describe("placeholders and masking", () => {
-  it("swaps PAN, date of birth, address and Aadhaar last four for placeholders, and still hides bank details", () => {
-    const out = redact({ id: "ckxlead123456", name: "Asha", pan: "ABCDE1234F", dateOfBirth: new Date("1990-01-02"), address: "12 MG Road", accountNumber: "9999", ifsc: "HDFC0001", pan2: "x" }) as Record<string, unknown>;
+  it("swaps PAN, date of birth, address and bank details for placeholders, and still hides passwords and codes", () => {
+    const out = redact({ id: "ckxlead123456", name: "Asha", pan: "ABCDE1234F", dateOfBirth: new Date("1990-01-02"), address: "12 MG Road", accountNumber: "9999", ifsc: "HDFC0001", passwordHash: "secret-hash", portalAccessCode: "ZZ99" }) as Record<string, unknown>;
     expect(out["pan"]).toBe("[[pan:ckxlead123456]]");
     expect(out["dateOfBirth"]).toBe("[[dateOfBirth:ckxlead123456]]");
     expect(out["address"]).toBe("[[address:ckxlead123456]]");
-    expect(JSON.stringify(out)).not.toMatch(/ABCDE1234F|1990|MG Road|9999|HDFC/);
+    expect(out["accountNumber"]).toBe("[[accountNumber:ckxlead123456]]");
+    expect(out["ifsc"]).toBe("[[ifsc:ckxlead123456]]");
+    expect(JSON.stringify(out)).not.toMatch(/ABCDE1234F|1990|MG Road|9999|HDFC|secret-hash|ZZ99/);
   });
 
   it("masks identity numbers typed in a question or shown in an earlier answer", () => {
     expect(maskIdentity("PAN is ABCDE1234F and Aadhaar 1234 5678 9012")).toBe("PAN is [PAN hidden] and Aadhaar [number hidden]");
+    expect(maskIdentity("IFSC HDFC0001234 GST 27ABCDE1234F1Z5")).toBe("IFSC [IFSC hidden] GST [GST hidden]");
   });
 });
 
