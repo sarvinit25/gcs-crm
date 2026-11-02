@@ -7,7 +7,7 @@ import { AlertsService } from "./alerts.service";
 export class AlertsController {
   constructor(private alerts: AlertsService) {}
 
-  /** Sends a test email to the signed-in admin, to check the mail server. */
+  /** Sends a test email to the company mailbox, to check the mail account. */
   @Post("test-email")
   @Roles(Role.ADMIN)
   testEmail(@CurrentUser() user: AuthUser) {
