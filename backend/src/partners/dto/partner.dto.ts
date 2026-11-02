@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsBoolean, IsEmail, IsNumber, IsOptional, IsString, Length, Matches, Max, Min } from "class-validator";
+import { IsBoolean, IsEmail, IsIn, IsNumber, IsOptional, IsString, Length, Matches, Max, Min } from "class-validator";
 
 const upper = ({ value }: { value: unknown }) => (typeof value === "string" ? value.trim().toUpperCase() : value);
 const PAN = /^[A-Z]{5}\d{4}[A-Z]$/;
@@ -38,6 +38,17 @@ export class CreatePartnerDto extends PartnerDetailsDto {
 
   /** Optional: sets the partner up with portal access immediately. */
   @IsOptional() @IsString() @Length(1, 128) password?: string;
+}
+
+export class UpdatePartnerApplicationDto {
+  @IsOptional() @IsIn(["NEW", "CONTACTED", "REJECTED"]) status?: "NEW" | "CONTACTED" | "REJECTED";
+  @IsOptional() @IsString() @Length(0, 1000) notes?: string;
+}
+
+export class ApprovePartnerApplicationDto {
+  /** Percentage of the company's commission the new partner takes on a referred case. */
+  @IsNumber() @Min(0) @Max(100) commissionRate: number;
+  @IsOptional() @IsString() managerId?: string;
 }
 
 export class SetPartnerPasswordDto {

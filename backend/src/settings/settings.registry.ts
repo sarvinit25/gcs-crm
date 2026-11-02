@@ -130,7 +130,7 @@ export const SETTINGS: SettingDef[] = [
     key: "alerts.newLeadEmails",
     group: "Alerts",
     label: "Email me when a website enquiry arrives",
-    help: "One email address per line. Each new enquiry sends them the details with tap-to-call and WhatsApp links. Needs the mail server (SMTP) set up on the server.",
+    help: "One email address per line. Each new enquiry sends them the details with tap-to-call and WhatsApp links. Sent through the company Zoho mail account, which the server needs set up (Settings -> Alerts has a test button).",
     type: "list",
     default: [],
   },
@@ -184,7 +184,7 @@ export const SETTINGS: SettingDef[] = [
     group: "Organisation",
     label: "Registered address",
     type: "text",
-    default: "CCTV Towers, Andheri–Ghatkopar Rd, Ghatkopar West, Mumbai 400084",
+    default: "Avadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084",
   },
   {
     key: "org.phone",
@@ -208,7 +208,7 @@ export const SETTINGS: SettingDef[] = [
     group: "Organisation",
     label: "Primary email",
     type: "email",
-    default: "growthcs17@gmail.com",
+    default: "connect.gcs@growthcapitalservices.in",
     publicFacing: true,
   },
   {
@@ -216,7 +216,7 @@ export const SETTINGS: SettingDef[] = [
     group: "Organisation",
     label: "WhatsApp number",
     type: "phone",
-    default: "",
+    default: "8828001700",
     publicFacing: true,
   },
   {

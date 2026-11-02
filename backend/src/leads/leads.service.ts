@@ -2,6 +2,7 @@ import { channelFromUtm, cleanLandingPage, cleanTag } from "../marketing/channel
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, type OnApplicationBootstrap } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { checkFollowUpToken } from "./follow-up-token";
+import { answersFromDetail, mergeAnswers } from "./lead-answers";
 import { AuditAction, AuditActorType, LeadSegment, LeadStatus, Prisma, Role, SubmissionOutcome } from "@prisma/client";
 import { classifyLead, missingForMeeting } from "./lead-segment";
 import { entryCount, isFuller, nameTokens, namesMatch, type Entry } from "./lead-dedupe";
@@ -23,6 +24,13 @@ import {
   UpdateLeadDto,
 } from "./dto/lead.dto";
 import { EventsService } from "../events/events.service";
+
+/** The website's partner forms, by the source each posts under. */
+const PARTNER_FORMS: Record<string, string> = {
+  "partner-enquiry": "agent",
+  "partner-builder": "builder",
+  "partner-freelancer": "freelancer",
+};
 
 const LIST_INCLUDE = {
   loanProduct: { select: { id: true, name: true, slug: true } },
@@ -228,6 +236,9 @@ export class LeadsService implements OnApplicationBootstrap {
           select: { id: true, leadNo: true },
         });
         await log(SubmissionOutcome.NEW_LEAD, lead.id, open.length > 0);
+        const rows = mergeAnswers(dto.answers, answersFromDetail(dto.detail));
+        await this.saveAnswers(tx, lead.id, dto.source, rows);
+        await this.recordPartnerApplication(tx, dto, lead.id, rows);
         await this.refreshSegment(lead.id, tx);
         return { id: lead.id, leadNo: lead.leadNo, isNew: true };
       }
@@ -266,6 +277,9 @@ export class LeadsService implements OnApplicationBootstrap {
       await tx.lead.update({ where: { id: same.id }, data });
       await this.refreshSegment(same.id, tx);
       await log(SubmissionOutcome.DUPLICATE_UPDATED, same.id);
+      const rows = mergeAnswers(dto.answers, answersFromDetail(dto.detail));
+      await this.saveAnswers(tx, same.id, dto.source, rows);
+      await this.recordPartnerApplication(tx, dto, same.id, rows);
       await this.audit.recordUpdate({
         actor: { name: "Website form" },
         actorType: AuditActorType.CLIENT,
@@ -279,6 +293,52 @@ export class LeadsService implements OnApplicationBootstrap {
     // Only a genuinely new lead is announced; a form sent twice is not a second enquiry.
     if ('isNew' in result && result.isNew) this.events.emit("LEAD_CREATED", { leadId: result.id });
     return result;
+  }
+
+  /** A partner form (Agent, Builder, Freelancer) also files a sign-up the team can approve into the partner roster. */
+  private async recordPartnerApplication(
+    db: Prisma.TransactionClient,
+    dto: PublicLeadDto,
+    leadId: string,
+    answers: { key: string; label: string; value: string }[],
+  ) {
+    const kind = PARTNER_FORMS[dto.source];
+    if (!kind) return;
+    const volumeKey = /refer|month|buyer|volume/;
+    const organisation = answers.find((a) => !/^(city|email|message)$/.test(a.key) && !volumeKey.test(a.key))?.value;
+    const data = {
+      kind,
+      name: dto.name.trim(),
+      email: dto.email?.trim().toLowerCase() || undefined,
+      city: dto.city?.trim() || answers.find((a) => a.key === "city")?.value,
+      organisation,
+      // A form's free message is appended to its last answer; the answer is the part before it.
+      volume: answers.find((a) => volumeKey.test(a.key))?.value.split(" — ")[0],
+      message: dto.detail?.trim().slice(0, 2000) || undefined,
+      leadId,
+    };
+    const open = await db.partnerApplication.findFirst({
+      where: { phone: dto.phone, kind, status: { in: ["NEW", "CONTACTED"] } },
+      orderBy: { createdAt: "desc" },
+    });
+    if (open) await db.partnerApplication.update({ where: { id: open.id }, data });
+    else await db.partnerApplication.create({ data: { ...data, phone: dto.phone } });
+  }
+
+  /** Keeps a form's answers as rows, one per question. Sending the same question again updates it. */
+  private async saveAnswers(
+    db: Prisma.TransactionClient | PrismaService,
+    leadId: string,
+    stage: string,
+    answers: { key: string; label: string; value: string }[],
+  ) {
+    for (const a of answers) {
+      await db.leadAnswer.upsert({
+        where: { leadId_key: { leadId, key: a.key } },
+        create: { leadId, stage, key: a.key, label: a.label, value: a.value },
+        update: { stage, label: a.label, value: a.value },
+      });
+    }
   }
 
   /**
@@ -301,6 +361,7 @@ export class LeadsService implements OnApplicationBootstrap {
           ...(dto.monthlyIncome && !lead.monthlyIncome && { monthlyIncome: dto.monthlyIncome }),
         },
       });
+      await this.saveAnswers(this.prisma, id, "form-2", mergeAnswers(dto.answers, answersFromDetail(detail)));
       await this.refreshSegment(id);
       await this.audit.recordUpdate({
         actor: { name: "Website form" },
@@ -438,6 +499,7 @@ export class LeadsService implements OnApplicationBootstrap {
       include: {
         ...LIST_INCLUDE,
         application: { select: { id: true, seq: true, createdAt: true, status: true } },
+        answers: { select: { key: true, label: true, value: true, stage: true, updatedAt: true }, orderBy: { createdAt: "asc" } },
         followUps: {
           include: { user: { select: { id: true, name: true } } },
           orderBy: { createdAt: "desc" },

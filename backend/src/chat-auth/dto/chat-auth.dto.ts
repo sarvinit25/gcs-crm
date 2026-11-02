@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsOptional, IsString, Length, Matches } from "class-validator";
+import { IsEmail, IsOptional, IsString, Length, Matches } from "class-validator";
 import { normalisePhone } from "../../common/phone.util";
 
 const PHONE = /^[6-9]\d{9}$/;
@@ -13,6 +13,13 @@ export class SendOtpDto {
   @phone()
   @Matches(PHONE, { message: "phone must be a 10-digit Indian mobile number" })
   phone: string;
+
+  /** Where the code is emailed as well as texted. */
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === "string" && value.trim() === "" ? undefined : typeof value === "string" ? value.trim().toLowerCase() : value))
+  @IsEmail({}, { message: "email must be a valid email address" })
+  @Length(3, 160)
+  email?: string;
 
   /** Cloudflare Turnstile token from the website. */
   @IsOptional()

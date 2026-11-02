@@ -6,6 +6,7 @@ import { api } from "../lib/api";
 import { PageHeader } from "../components/app-shell";
 import { TableSkeleton } from "../components/skeleton";
 import { PartnerForm } from "../components/partner-form";
+import { PartnerApplications } from "../components/partner-applications";
 
 type Partner = {
   id: string;
@@ -94,6 +95,8 @@ export function PartnersPage() {
             {(error as Error).message}
           </p>
         )}
+
+        <PartnerApplications />
 
         <label className="mb-3 flex items-center gap-2 text-[13px] text-muted">
           <input
