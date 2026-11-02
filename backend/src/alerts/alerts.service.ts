@@ -15,6 +15,13 @@ type NewLead = {
   detail?: string | null;
 };
 
+/** The website's partner forms, so their email reads as a sign-up and not a loan enquiry. */
+const PARTNER_FORMS: Record<string, string> = {
+  "partner-enquiry": "Agent",
+  "partner-builder": "Builder",
+  "partner-freelancer": "Freelancer",
+};
+
 const rupees = (n: string | number) => `Rs. ${Number(n).toLocaleString("en-IN")}`;
 
 /** Tells staff about a new website enquiry, and thanks the person who sent it. */
@@ -25,6 +32,23 @@ export class AlertsService {
     private settings: SettingsService,
     private prisma: PrismaService,
   ) {}
+
+  /** Sends one test email, so staff can tell whether the mail server is set up. Says why if it is not. */
+  async sendTest(to: string) {
+    if (!this.mail.enabled) {
+      return { configured: false, sent: false, message: "Email is switched off: the server has no SMTP_HOST set. Ask whoever runs the server to add the SMTP settings." };
+    }
+    const sent = await this.mail.send({
+      to,
+      subject: "Test email from the CRM",
+      text: "This is a test. If you can read it, the CRM can send email.",
+    });
+    return {
+      configured: true,
+      sent,
+      message: sent ? `Test email sent to ${to}. Check the inbox (and spam).` : "The mail server is set up but refused the email. The server log has the reason.",
+    };
+  }
 
   /** Fire and forget: call without awaiting. */
   async newLead(lead: NewLead) {
@@ -45,7 +69,7 @@ export class AlertsService {
         `Hi ${lead.name}, this is Growth Capital Services. Thanks for your enquiry${lead.loanType ? ` about a ${lead.loanType}` : ""}. When is a good time to talk?`,
       );
       const lines = [
-        `New website enquiry - lead #${lead.leadNo}`,
+        PARTNER_FORMS[lead.source] ? `New ${PARTNER_FORMS[lead.source]} partner sign-up - lead #${lead.leadNo}` : `New website enquiry - lead #${lead.leadNo}`,
         "",
         `Name:    ${lead.name}`,
         `Phone:   ${lead.phone}`,
@@ -61,7 +85,9 @@ export class AlertsService {
       ].filter((l) => l !== "");
       await this.mail.send({
         to: staff,
-        subject: `New enquiry #${lead.leadNo}: ${lead.name}${lead.loanType ? ` - ${lead.loanType}` : ""}`,
+        subject: PARTNER_FORMS[lead.source]
+          ? `New partner sign-up (${PARTNER_FORMS[lead.source]}): ${lead.name}`
+          : `New enquiry #${lead.leadNo}: ${lead.name}${lead.loanType ? ` - ${lead.loanType}` : ""}`,
         text: lines.join("\n"),
         ...(lead.email ? { replyTo: lead.email } : {}),
       });

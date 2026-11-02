@@ -9,7 +9,7 @@ export type Severity = "high" | "medium" | "info";
 
 export type Notification = {
   id: string;
-  kind: "form" | "followup" | "stalled" | "sanction" | "login" | "unassigned" | "commission";
+  kind: "newlead" | "partner" | "form" | "followup" | "stalled" | "sanction" | "login" | "unassigned" | "commission";
   severity: Severity;
   title: string;
   detail: string;
@@ -52,7 +52,30 @@ export class NotificationsService {
     const person = (a: { applicants: { name: string }[] }) => a.applicants[0]?.name ?? "No applicant yet";
     const primary = { applicants: { where: { isPrimary: true }, take: 1, select: { name: true } } } as const;
 
-    const [submittedForms, due, stalled, expiring, login, unassigned, unpaid] = await Promise.all([
+    const [newLeads, partnerApps, submittedForms, due, stalled, expiring, login, unassigned, unpaid] = await Promise.all([
+      // A website enquiry nobody has picked up yet. It clears as soon as its status moves on from New.
+      this.prisma.lead.findMany({
+        where: {
+          ...leadScope,
+          status: LeadStatus.NEW,
+          archivedAt: null,
+          // Leads with no owner are listed separately below, for managers.
+          ...(staff ? {} : { assignedOfficerId: { not: null } }),
+          createdAt: { gte: new Date(now.getTime() - 14 * DAY) },
+        },
+        orderBy: { createdAt: "desc" },
+        take: PER_KIND,
+        select: { id: true, leadNo: true, name: true, phone: true, city: true, source: true, createdAt: true },
+      }),
+      // Someone asked on the website to become a partner. Managers and admins decide these.
+      staff
+        ? []
+        : this.prisma.partnerApplication.findMany({
+            where: { status: "NEW" },
+            orderBy: { createdAt: "desc" },
+            take: PER_KIND,
+            select: { id: true, applicationNo: true, kind: true, name: true, phone: true, organisation: true, createdAt: true },
+          }),
       // A customer has sent in their application form and nobody has taken the file forward yet.
       this.prisma.application.findMany({
         where: {
@@ -117,7 +140,7 @@ export class NotificationsService {
             where: { assignedOfficerId: null, status: LeadStatus.NEW },
             orderBy: { createdAt: "asc" },
             take: PER_KIND,
-            select: { id: true, leadNo: true, name: true, createdAt: true },
+            select: { id: true, leadNo: true, name: true, source: true, createdAt: true },
           }),
       staff
         ? []
@@ -140,6 +163,34 @@ export class NotificationsService {
     const daysAgo = (d: Date) => Math.floor((startToday.getTime() - istDayStart(istParts(d)).getTime()) / DAY);
     const items: Notification[] = [];
 
+    const ago = (d: Date) => {
+      const mins = Math.max(0, Math.floor((now.getTime() - d.getTime()) / 60_000));
+      if (mins < 60) return `${plural(mins, "minute")} ago`;
+      if (mins < 1440) return `${plural(Math.floor(mins / 60), "hour")} ago`;
+      return `${plural(Math.floor(mins / 1440), "day")} ago`;
+    };
+    for (const l of newLeads) {
+      items.push({
+        id: `newlead-${l.id}`,
+        kind: "newlead",
+        severity: "high",
+        title: `New enquiry from ${l.name}`,
+        detail: `#${l.leadNo} · ${l.source}${l.city ? ` · ${l.city}` : ""} · ${l.phone} · ${ago(l.createdAt)}`,
+        path: `/leads/${l.id}`,
+        since: l.createdAt.toISOString(),
+      });
+    }
+    for (const p of partnerApps) {
+      items.push({
+        id: `partner-${p.id}`,
+        kind: "partner",
+        severity: "high",
+        title: `${p.name} wants to become a partner`,
+        detail: `${p.kind}${p.organisation ? ` · ${p.organisation}` : ""} · ${p.phone} · ${ago(p.createdAt)}`,
+        path: "/partners",
+        since: p.createdAt.toISOString(),
+      });
+    }
     for (const a of submittedForms) {
       const sent = a.invites[0]?.submittedAt ?? a.createdAt;
       items.push({
@@ -207,9 +258,10 @@ export class NotificationsService {
       items.push({
         id: `unassigned-${l.id}`,
         kind: "unassigned",
-        severity: "info",
-        title: `${l.name} has no owner`,
-        detail: `New lead #${l.leadNo} waiting ${plural(daysAgo(l.createdAt), "day")} for assignment`,
+        // A fresh enquiry with nobody on it is urgent; one that has been waiting for weeks is a reminder.
+        severity: daysAgo(l.createdAt) <= 3 ? "high" : "info",
+        title: daysAgo(l.createdAt) <= 3 ? `New enquiry from ${l.name}, no owner yet` : `${l.name} has no owner`,
+        detail: `#${l.leadNo} · ${l.source} · ${ago(l.createdAt)} · waiting to be given to someone`,
         path: `/leads/${l.id}`,
         since: l.createdAt.toISOString(),
       });
