@@ -479,6 +479,7 @@ const PAGE_SCOPES = {
     sections: {
       builderText: "Headings & paragraphs",
       lists: "Cards & lists",
+      faqs: "FAQs",
       seo: "Google listing",
     } as Partial<Record<Section, string>>,
   },
@@ -490,6 +491,7 @@ const PAGE_SCOPES = {
     sections: {
       freelancerText: "Headings & paragraphs",
       lists: "Cards & lists",
+      faqs: "FAQs",
       seo: "Google listing",
     } as Partial<Record<Section, string>>,
   },
@@ -817,7 +819,7 @@ export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact"
         })}
         listSpecs={(defaults.data?.listSpecs ?? []).filter((s) => !page || s.page === page.listPage)}
         homeSpec={textSpecFor(section, defaults.data)}
-        faqPages={scope === "contact" ? ["contact"] : scope === "partner" ? ["partner"] : scope === "city" ? ["mumbai", "thane", "navi-mumbai", "pune"] : undefined}
+        faqPages={scope === "contact" ? ["contact"] : scope === "partner" ? ["partner"] : scope === "city" ? ["mumbai", "thane", "navi-mumbai", "pune"] : scope === "builder" ? ["builder"] : scope === "freelancer" ? ["freelancer"] : undefined}
         busy={save.isPending || reset.isPending}
         canReset={!!row}
         onSave={(value) => save.mutate({ key: section, value })}

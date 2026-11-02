@@ -180,6 +180,9 @@ export class ListLeadsQuery {
   /** A sourcing partner's id, or "none" for leads we got ourselves. */
   @IsOptional() @IsString() sourcingPartnerId?: string;
   @IsOptional() @IsString() source?: string;
+  /** A form question (as shown on the lead's "Form answers"), optionally with part of the answer to look for. */
+  @IsOptional() @IsString() @Length(1, 80) question?: string;
+  @IsOptional() @IsString() @Length(1, 120) answer?: string;
   /** "true" lists only the people who signed in to the website chat with a mobile code. */
   @IsOptional() @IsBooleanString() chatbot?: string;
   /** A marketing channel, or "none" for leads whose origin wasn't tracked. */

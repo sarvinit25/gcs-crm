@@ -83,7 +83,7 @@ export class AlertsService {
       sent,
       message: sent
         ? `Test email sent to ${to}. Check the inbox (and spam).`
-        : "The mail settings are there but Zoho refused the email. The server log says why (usually an expired refresh token or a wrong account id).",
+        : this.mail.lastError || "The mail settings are there but Zoho refused the email. The server log says why.",
     };
   }
 

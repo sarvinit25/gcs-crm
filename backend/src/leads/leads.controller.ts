@@ -94,6 +94,12 @@ export class LeadsController {
     return this.leads.loanTypeCounts(user);
   }
 
+  /** Form questions that have answers, for the "Form answer" filter on the leads list. */
+  @Get("answer-questions")
+  answerQuestions(@CurrentUser() user: AuthUser) {
+    return this.leads.answerQuestions(user);
+  }
+
   @Get("segments")
   segments(@CurrentUser() user: AuthUser) {
     return this.leads.segmentCounts(user);

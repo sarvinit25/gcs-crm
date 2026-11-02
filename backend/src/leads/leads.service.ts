@@ -405,6 +405,18 @@ export class LeadsService implements OnApplicationBootstrap {
     return this.prisma.lead.findUniqueOrThrow({ where: { id: created.id }, include: LIST_INCLUDE });
   }
 
+  /** The form questions people have answered, most common first, for the leads filter. Only on leads this person may see. */
+  async answerQuestions(user: AuthUser) {
+    const rows = await this.prisma.leadAnswer.groupBy({
+      by: ["label"],
+      where: { lead: { ...this.scopeFor(user), archivedAt: null } },
+      _count: { label: true },
+      orderBy: { _count: { label: "desc" } },
+      take: 80,
+    });
+    return rows.map((r) => ({ question: r.label, count: r._count.label }));
+  }
+
   async findAll(query: ListLeadsQuery, user: AuthUser) {
     const page = query.page ?? 1;
     const pageSize = Math.min(query.pageSize ?? 25, 100);
@@ -420,6 +432,14 @@ export class LeadsService implements OnApplicationBootstrap {
           : {}),
       ...(query.segment && { segment: query.segment }),
       ...(query.source && { source: query.source }),
+      ...(query.question && {
+        answers: {
+          some: {
+            label: { equals: query.question, mode: "insensitive" },
+            ...(query.answer && { value: { contains: query.answer, mode: "insensitive" } }),
+          },
+        },
+      }),
       ...(query.chatbot === "true" && { chatVerifiedAt: { not: null } }),
       ...(query.assignedOfficerId && { assignedOfficerId: query.assignedOfficerId === "none" ? null : query.assignedOfficerId }),
       ...(query.sourcingPartnerId && { sourcingPartnerId: query.sourcingPartnerId === "none" ? null : query.sourcingPartnerId }),
