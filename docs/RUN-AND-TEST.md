@@ -53,7 +53,7 @@ Do these with the CRM API, CRM UI and website all running.
 10. **New pages.** New pages & articles: create an article, tick Published, save. See it on `/insights` and at `/p/<address>`; an unticked draft does not show.
 11. **Hindi / Marathi.** Settings -> Website content -> Hindi: translations appear here. On the website with the token set, the language switcher (EN / हिं / मरा) is visible; choose हिं, press Edit text, click wording, type the Hindi, Save. Reload with `?lang=hi` to see it as a visitor.
 12. **Checklists.** Settings -> Website checklists lists the 58 PDFs. Deactivate one or change its file path and download it from the matching service page.
-13. **Email alerts.** Settings -> Alerts: add an address. Without SMTP configured nothing is sent. To try it locally run any local SMTP catcher (for example `npx maildev`, SMTP 1025), set `SMTP_HOST=localhost`, `SMTP_PORT=1025` in `backend/.env`, restart the API and submit an enquiry with an email: staff and customer emails arrive.
+13. **Email alerts.** Settings -> Alerts: add an address, then press "Send a test email to me". Mail goes through the company Zoho account (the `ZOHO_*` values in `backend/.env`); without them nothing is sent and the test button says so.
 14. **Rate-limit and Turnstile.** The lead endpoint allows 5 per minute per IP. Turnstile is only enforced when `TURNSTILE_SECRET` is set.
 
 ## 4. Where to look when something is off

@@ -42,7 +42,7 @@ export const SETTINGS: SettingDef[] = [
     key: "alerts.newLeadEmails",
     group: "Alerts",
     label: "Email me when a website enquiry arrives",
-    help: "One email address per line. Each new enquiry sends them the details with tap-to-call and WhatsApp links. Needs the mail server (SMTP) set up on the server.",
+    help: "One email address per line. Each new enquiry sends them the details with tap-to-call and WhatsApp links. Sent through the company Zoho mail account, which the server needs set up (Settings -> Alerts has a test button).",
     type: "list",
     default: [],
   },
