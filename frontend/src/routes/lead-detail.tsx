@@ -576,6 +576,19 @@ export function LeadDetailPage() {
                   .join(" · ")}
               </p>
             )}
+            {lead.answers && lead.answers.length > 0 && (
+              <div className="mt-5">
+                <h3 className="text-[12px] font-bold tracking-wide text-muted uppercase">Form answers</h3>
+                <dl className="mt-2 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                  {lead.answers.map((a) => (
+                    <div key={a.key} className="min-w-0">
+                      <dt className="text-[11px] text-muted">{a.label}</dt>
+                      <dd className="text-[13px] font-semibold break-words text-navy">{a.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
             {lead.notes && (
               <p className="mt-5 rounded-md bg-bg-light px-3 py-2.5 text-[13px] break-words whitespace-pre-wrap text-muted">
                 {lead.notes}

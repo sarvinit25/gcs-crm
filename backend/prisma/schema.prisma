@@ -260,6 +260,7 @@ model SourcingPartner {
 
   leads            Lead[]
   commissionSplits CommissionSplit[]
+  applications     PartnerApplication[]
 }
 
 /**
@@ -385,9 +386,11 @@ model Lead {
   // Those leads are the "Chatbot contacts" in the CRM.
   chatVerifiedAt DateTime?
 
-  application Application?
-  followUps   FollowUp[]
-  submissions WebsiteSubmission[]
+  application         Application?
+  followUps           FollowUp[]
+  submissions         WebsiteSubmission[]
+  answers             LeadAnswer[]
+  partnerApplications PartnerApplication[]
 
   @@index([chatVerifiedAt])
   @@index([status, nextFollowUpAt])
@@ -399,6 +402,63 @@ model Lead {
   @@index([sourcingPartnerId])
   @@index([channel, createdAt])
   @@index([archivedAt])
+}
+
+/**
+ * One answer to one question on a website form (loan type, property value, profession ...). Kept as rows so the
+ * team can filter and report on them. A question is held once per lead; sending the form again updates it.
+ */
+model LeadAnswer {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  // Which form the answer came from: the short enquiry, the optional second form, or the form's own name.
+  stage     String
+  key       String
+  label     String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([leadId, key])
+  @@index([key, value])
+}
+
+enum PartnerApplicationStatus {
+  NEW
+  CONTACTED
+  APPROVED
+  REJECTED
+}
+
+/**
+ * Someone who asked to become a partner on the website (Agent, Builder or Freelancer form). The enquiry also
+ * lands as a lead; this row is the sign-up itself. Approving it creates the SourcingPartner.
+ */
+model PartnerApplication {
+  id            String                   @id @default(cuid())
+  applicationNo Int                      @unique @default(autoincrement())
+  // agent | builder | freelancer
+  kind          String
+  name          String
+  phone         String
+  email         String?
+  city          String?
+  organisation  String?
+  volume        String?
+  message       String?
+  status        PartnerApplicationStatus @default(NEW)
+  notes         String?
+  leadId        String?
+  lead          Lead?                    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  partnerId     String?
+  partner       SourcingPartner?         @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  decidedAt     DateTime?
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  @@index([status, createdAt])
+  @@index([phone])
 }
 
 // ─── Lead sources ───────────────────────────────────────────

@@ -2,7 +2,13 @@ import { Body, Controller, Get, Ip, Param, Patch, Post, Query } from "@nestjs/co
 import { Role } from "@prisma/client";
 import { CurrentUser, Roles, type AuthUser } from "../auth/auth.decorators";
 import { PartnersService } from "./partners.service";
-import { CreatePartnerDto, SetPartnerPasswordDto, UpdatePartnerDto } from "./dto/partner.dto";
+import {
+  ApprovePartnerApplicationDto,
+  CreatePartnerDto,
+  SetPartnerPasswordDto,
+  UpdatePartnerApplicationDto,
+  UpdatePartnerDto,
+} from "./dto/partner.dto";
 
 @Controller("partners")
 export class PartnersController {
@@ -18,6 +24,35 @@ export class PartnersController {
   @Roles(Role.ADMIN, Role.MANAGER)
   findAll(@Query("includeInactive") includeInactive?: string) {
     return this.partners.findAll(includeInactive === "true");
+  }
+
+  /** People who asked to become a partner on the website. */
+  @Get("applications")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  applications(@Query("status") status?: string) {
+    return this.partners.applications(status);
+  }
+
+  @Patch("applications/:id")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  updateApplication(
+    @Param("id") id: string,
+    @Body() dto: UpdatePartnerApplicationDto,
+    @CurrentUser() user: AuthUser,
+    @Ip() ip: string,
+  ) {
+    return this.partners.updateApplication(id, dto, user, ip);
+  }
+
+  @Post("applications/:id/approve")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  approveApplication(
+    @Param("id") id: string,
+    @Body() dto: ApprovePartnerApplicationDto,
+    @CurrentUser() user: AuthUser,
+    @Ip() ip: string,
+  ) {
+    return this.partners.approveApplication(id, dto, user, ip);
   }
 
   @Get(":id")
