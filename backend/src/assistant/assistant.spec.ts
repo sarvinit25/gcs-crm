@@ -1,6 +1,6 @@
 import { ServiceUnavailableException } from "@nestjs/common";
 import { Role } from "@prisma/client";
-import { AssistantService } from "./assistant.service";
+import { AssistantService, maskIdentity } from "./assistant.service";
 import { redact } from "./redact";
 
 describe("redact", () => {
@@ -21,6 +21,20 @@ describe("redact", () => {
     const out = redact({ amount: { toNumber: () => 2500000 }, at: new Date("2026-11-02T00:00:00Z") }) as Record<string, unknown>;
     expect(out["amount"]).toBe(2500000);
     expect(out["at"]).toBe("2026-11-02T00:00:00.000Z");
+  });
+});
+
+describe("placeholders and masking", () => {
+  it("swaps PAN, date of birth, address and Aadhaar last four for placeholders, and still hides bank details", () => {
+    const out = redact({ id: "ckxlead123456", name: "Asha", pan: "ABCDE1234F", dateOfBirth: new Date("1990-01-02"), address: "12 MG Road", accountNumber: "9999", ifsc: "HDFC0001", pan2: "x" }) as Record<string, unknown>;
+    expect(out["pan"]).toBe("[[pan:ckxlead123456]]");
+    expect(out["dateOfBirth"]).toBe("[[dateOfBirth:ckxlead123456]]");
+    expect(out["address"]).toBe("[[address:ckxlead123456]]");
+    expect(JSON.stringify(out)).not.toMatch(/ABCDE1234F|1990|MG Road|9999|HDFC/);
+  });
+
+  it("masks identity numbers typed in a question or shown in an earlier answer", () => {
+    expect(maskIdentity("PAN is ABCDE1234F and Aadhaar 1234 5678 9012")).toBe("PAN is [PAN hidden] and Aadhaar [number hidden]");
   });
 });
 
@@ -62,6 +76,22 @@ describe("AssistantService", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(groupBy.mock.calls[0]![0].where).toMatchObject({ assignedOfficerId: "u1" });
     expect(audit.record).toHaveBeenCalled();
+  });
+
+  it("fills a placeholder in for the person asking, but not for a file they cannot see", async () => {
+    const findFirst = jest.fn().mockResolvedValueOnce({ pan: "ABCDE1234F" }).mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+    const prisma = { lead: { findFirst }, applicant: { findFirst: jest.fn().mockResolvedValue(null) } };
+    const replies = [{ choices: [{ message: { content: "Their PAN is [[pan:ckxlead123456]]; the other is [[pan:ckxother99999]]." } }] }];
+    const seen: string[] = [];
+    jest.spyOn(global, "fetch").mockImplementation(async (_u, init) => {
+      seen.push(String((init as RequestInit).body));
+      return { ok: true, status: 200, json: async () => replies.shift() } as Response;
+    });
+    const out = await make("sk-test", prisma).ask([{ role: "user", content: "PAN of Asha? ABCDE1234F" }], user);
+    expect(out.reply).toBe("Their PAN is ABCDE1234F; the other is not available to you.");
+    expect(out.raw).toContain("[[pan:ckxlead123456]]");
+    expect(seen.join("")).not.toContain("ABCDE1234F");
+    expect(findFirst.mock.calls[0]![0].where).toMatchObject({ id: "ckxlead123456", assignedOfficerId: "u1" });
   });
 
   it("does not let a failed lookup leak anything", async () => {
