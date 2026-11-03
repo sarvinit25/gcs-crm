@@ -1,12 +1,14 @@
 import { Module } from "@nestjs/common";
+import { LeadsModule } from "../leads/leads.module";
+import { ApplicationsModule } from "../applications/applications.module";
+import { SearchModule } from "../search/search.module";
 import { AssistantController } from "./assistant.controller";
-import { ASSISTANT_MODEL, OpenAiAssistantModel } from "./assistant.model";
 import { AssistantService } from "./assistant.service";
-import { AssistantTools } from "./assistant.tools";
 
 @Module({
+  imports: [LeadsModule, ApplicationsModule, SearchModule],
   controllers: [AssistantController],
+  providers: [AssistantService],
   exports: [AssistantService],
-  providers: [AssistantService, AssistantTools, { provide: ASSISTANT_MODEL, useClass: OpenAiAssistantModel }],
 })
 export class AssistantModule {}

@@ -27,6 +27,7 @@ import { SettingsModule } from "./settings/settings.module";
 import { PartnerPortalModule } from "./partner-portal/partner-portal.module";
 import { BorrowerPortalModule } from "./borrower-portal/borrower-portal.module";
 import { SearchModule } from "./search/search.module";
+import { AssistantModule } from "./assistant/assistant.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { MaintenanceModule } from "./maintenance/maintenance.module";
 import { HealthModule } from "./health/health.module";
@@ -63,6 +64,7 @@ import { WhatsAppModule } from "./whatsapp/whatsapp.module";
     AuthModule,
     LeadsModule,
     SearchModule,
+    AssistantModule,
     NotificationsModule,
     MaintenanceModule,
     HealthModule,

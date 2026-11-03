@@ -8,7 +8,6 @@ import { PrismaService } from "../src/prisma/prisma.service";
 import { InboundService } from "../src/whatsapp/inbound.service";
 import { BriefsService } from "../src/whatsapp/briefs.service";
 import { ProviderError, type ConnectionInfo, type WhatsAppProvider } from "../src/whatsapp/whatsapp.provider";
-import type { AssistantModel, ModelMessage } from "../src/assistant/assistant.model";
 
 const API = "/crm/api";
 const ADMIN = { email: "admin@growthcapitalservices.in", password: "ChangeMe123!" };
@@ -110,16 +109,14 @@ describe("WhatsApp inbox and notifications", () => {
     process.env.WHATSAPP_PHONE_NUMBER_ID = "PNID";
 
     provider = new FakeProvider();
-    const model: AssistantModel = {
-      configured: true,
-      async complete(messages: ModelMessage[]) {
-        const system = messages[0] as { content: string };
-        const last = [...messages].reverse().find((m) => m.role === "user") as { content: string };
-        turnsShown.push(messages.filter((m) => m.role === "user").length);
-        return { role: "assistant", content: `Assistant answer for ${/talking to (.+?) \(/.exec(system.content)?.[1]}: ${last.content}` };
+    // A stand-in for the AI assistant: it answers as the person asking, and records how much of the chat it was shown.
+    const assistant = {
+      async ask(history: { role: string; content: string }[], user: { name: string }) {
+        turnsShown.push(history.filter((m) => m.role === "user").length);
+        return { reply: `Assistant answer for ${user.name}: ${history[history.length - 1].content}` };
       },
     };
-    app = await createTestApp({ assistantModel: model, whatsappProvider: provider });
+    app = await createTestApp({ assistant, whatsappProvider: provider });
     http = request(app.getHttpServer()) as never;
     prisma = app.get(PrismaService);
     inbound = app.get(InboundService);

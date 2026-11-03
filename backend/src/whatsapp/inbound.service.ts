@@ -4,7 +4,7 @@ import { Role, WhatsAppContactKind, WhatsAppMessageStatus, WhatsAppSender } from
 import { PrismaService } from "../prisma/prisma.service";
 import { SettingsService } from "../settings/settings.service";
 import { LeadsService } from "../leads/leads.service";
-import { AssistantService, type ChatTurn } from "../assistant/assistant.service";
+import { AssistantService, type ChatMessage as ChatTurn } from "../assistant/assistant.service";
 import { ConversationsService } from "./conversations.service";
 import { WHATSAPP_PROVIDER, type WhatsAppProvider } from "./whatsapp.provider";
 import { contactKey, toWaId } from "./phone";
@@ -183,7 +183,7 @@ export class InboundService {
     turns.push({ role: "user", content: text.slice(0, 2000) });
 
     try {
-      const { reply } = await this.assistant.chat(turns.slice(-MAX_TURNS), { id: user.id, name: user.name, email: user.email, role: user.role });
+      const { reply } = await this.assistant.ask(turns.slice(-MAX_TURNS), { id: user.id, name: user.name, email: user.email, role: user.role });
       turns.push({ role: "assistant", content: reply });
       this.memory.set(user.id, { turns: turns.slice(-MAX_TURNS), at: Date.now() });
       await this.say(phone, reply);

@@ -34,7 +34,6 @@ export const SETTING_GROUPS = [
   "Attendance",
   "Security",
   "Alerts",
-  "Assistant",
   "WhatsApp",
 ] as const;
 
@@ -105,25 +104,6 @@ export const SETTINGS: SettingDef[] = [
     help: "One phone number per line. Leave empty to send them to every admin who has a phone number on their profile.",
     type: "list",
     default: [],
-  },
-  // -- Assistant ------------------------------------------------
-  {
-    key: "assistant.enabled",
-    group: "Assistant",
-    label: "Show the AI assistant",
-    help: "The floating chat button on every screen. It only reads the CRM, and only what the person asking is allowed to see. Needs the OpenAI key on the server.",
-    type: "boolean",
-    default: true,
-  },
-  {
-    key: "assistant.dailyLimit",
-    group: "Assistant",
-    label: "Questions per person per day",
-    help: "Each question uses a little OpenAI credit; this keeps the bill predictable.",
-    type: "number",
-    default: 150,
-    min: 10,
-    max: 2000,
   },
   // -- Alerts ---------------------------------------------------
   {
