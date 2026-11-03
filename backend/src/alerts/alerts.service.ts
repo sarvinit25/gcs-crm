@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
 import { SettingsService } from "../settings/settings.service";
 import { MailService } from "./mail.service";
-import { customerThankYou, signInCode, teamAlert, type Org } from "./email-templates";
+import { customerThankYou, gcsIdMessage, recoveryCode, signInCode, teamAlert, type Org } from "./email-templates";
 
 type NewLead = {
   leadNo: number;
@@ -55,6 +55,26 @@ export class AlertsService {
       to,
       subject: `Your Growth Capital Services code: ${code}`,
       html: signInCode(this.org(), first, code, validMinutes),
+    });
+  }
+
+  /** The code that confirms a mobile number before a GCS ID is sent, emailed when there is no SMS. */
+  idRecoveryCodeEmail(to: string, code: string, validMinutes: number, kind: "client" | "partner") {
+    const idName = kind === "client" ? "GCS ID" : "Partner ID";
+    return this.mail.send({
+      to,
+      subject: `Your confirmation code: ${code}`,
+      html: recoveryCode(this.org(), code, validMinutes, idName),
+    });
+  }
+
+  /** The GCS ID(s) for a client or partner, emailed to the address on their file. */
+  gcsIdEmail(to: string, kind: "client" | "partner", ids: string[]) {
+    const idName = kind === "client" ? "GCS ID" : "Partner ID";
+    return this.mail.send({
+      to,
+      subject: `Your ${idName} - ${this.settings.get<string>("org.name")}`,
+      html: gcsIdMessage(this.org(), idName, ids),
     });
   }
 

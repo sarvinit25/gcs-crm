@@ -36,6 +36,16 @@ export class OtpSenderService {
     return this.provider === "msg91" && Boolean(this.authKey && this.templateId);
   }
 
+  /** Can codes go by SMS? When not, they go by email instead. */
+  get smsReady() {
+    return this.configured;
+  }
+
+  /** Can a GCS ID go by SMS? When not, it goes by email instead. */
+  get smsIdReady() {
+    return this.provider === "msg91" && Boolean(this.authKey && this.idTemplateId);
+  }
+
   /** True when the code reached the provider (or, in development, the log). Never throws. */
   async send(phone: string, code: string, validMinutes: number): Promise<boolean> {
     if (this.configured) return this.sendMsg91(phone, code, validMinutes);
