@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
 import { SettingsService } from "../settings/settings.service";
 import { MailService } from "./mail.service";
-import { customerThankYou, signInCode, teamAlert, type Org } from "./email-templates";
+import { customerThankYou, gcsIdMessage, recoveryCode, signInCode, teamAlert, type Org } from "./email-templates";
 
 type NewLead = {
   leadNo: number;
@@ -58,6 +58,26 @@ export class AlertsService {
     });
   }
 
+  /** The code that confirms a mobile number before a GCS ID is sent, emailed when there is no SMS. */
+  idRecoveryCodeEmail(to: string, code: string, validMinutes: number, kind: "client" | "partner") {
+    const idName = kind === "client" ? "GCS ID" : "Partner ID";
+    return this.mail.send({
+      to,
+      subject: `Your confirmation code: ${code}`,
+      html: recoveryCode(this.org(), code, validMinutes, idName),
+    });
+  }
+
+  /** The GCS ID(s) for a client or partner, emailed to the address on their file. */
+  gcsIdEmail(to: string, kind: "client" | "partner", ids: string[]) {
+    const idName = kind === "client" ? "GCS ID" : "Partner ID";
+    return this.mail.send({
+      to,
+      subject: `Your ${idName} - ${this.settings.get<string>("org.name")}`,
+      html: gcsIdMessage(this.org(), idName, ids),
+    });
+  }
+
   /**
    * Sends one test email, so staff can tell whether the mail account is set up. It goes to the company email in
    * Settings -> Organisation (a real mailbox), or to the signed-in person's address if that is blank.
@@ -83,7 +103,7 @@ export class AlertsService {
       sent,
       message: sent
         ? `Test email sent to ${to}. Check the inbox (and spam).`
-        : "The mail settings are there but Zoho refused the email. The server log says why (usually an expired refresh token or a wrong account id).",
+        : this.mail.lastError || "The mail settings are there but Zoho refused the email. The server log says why.",
     };
   }
 

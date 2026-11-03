@@ -4,7 +4,9 @@ import { Loader2, Send, Sparkles, X } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
 
-type Message = { role: "user" | "assistant"; content: string };
+// `content` is what is shown. `raw` is what goes back to the assistant as history: it still holds placeholders where
+// a PAN or date of birth was shown, so those numbers are never sent to the AI service.
+type Message = { role: "user" | "assistant"; content: string; raw?: string };
 
 const SUGGESTIONS = [
   "Which follow-ups are due today?",
@@ -30,8 +32,11 @@ export function AskAi() {
 
   const ask = useMutation({
     mutationFn: (history: Message[]) =>
-      api<{ reply: string }>("/assistant/ask", { method: "POST", body: JSON.stringify({ messages: history }) }),
-    onSuccess: ({ reply }) => setMessages((m) => [...m, { role: "assistant", content: reply }]),
+      api<{ reply: string; raw?: string }>("/assistant/ask", {
+        method: "POST",
+        body: JSON.stringify({ messages: history.map((m) => ({ role: m.role, content: m.raw ?? m.content })) }),
+      }),
+    onSuccess: ({ reply, raw }) => setMessages((m) => [...m, { role: "assistant", content: reply, raw: raw ?? reply }]),
     onError: (e) => setError((e as Error).message),
   });
 

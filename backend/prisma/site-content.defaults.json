@@ -52,6 +52,54 @@
         "a": "Share the client's name, number and requirement through the form on this page, or by call or WhatsApp. Your expert keeps you updated on the status, approval and disbursal of every referral."
       }
     ],
+    "builder": [
+      {
+        "q": "How can Growth Capital Services help a builder?",
+        "a": "We simplify buyer financing: lender coordination, project approvals, loan processing for each buyer and follow-up with the banks, all through one desk."
+      },
+      {
+        "q": "Which loans can you arrange for my buyers?",
+        "a": "Home loans for ready and under-construction flats, plot and construction loans, and loan against property where a buyer is raising funds against another asset. Offers come from 75+ banks and NBFCs."
+      },
+      {
+        "q": "Do you support project approvals with banks?",
+        "a": "Yes. We help you prepare and take the project through lender approval so that buyers can be financed against it. Which banks approve a project depends on the project's papers and each lender's own policy."
+      },
+      {
+        "q": "Can you work alongside our sales team and channel partners?",
+        "a": "Yes. We coordinate with your sales team and channel partners, and share status on each buyer's file so nobody has to chase."
+      },
+      {
+        "q": "Is there a cost to the builder or the buyer?",
+        "a": "There is no advisory fee for buyers. Talk to us about how we work with builders and we will share the arrangement in writing before anything begins."
+      }
+    ],
+    "freelancer": [
+      {
+        "q": "Do I need a licence, experience or any qualification?",
+        "a": "No. You only introduce people who need a loan. Our experts do the eligibility checks, bank matching, paperwork and follow-up."
+      },
+      {
+        "q": "Is there any fee to join?",
+        "a": "No. Joining and referring are free."
+      },
+      {
+        "q": "Can I do this alongside a job or studies?",
+        "a": "Yes. There are no targets, no fixed hours and no minimum, so you refer whenever it suits you."
+      },
+      {
+        "q": "How and when do I get paid?",
+        "a": "Your payout is settled once the loan is disbursed. The estimator above shows an indicative range by loan type; the exact figure depends on the lender and loan amount, and we share it with you in writing when you join."
+      },
+      {
+        "q": "What happens if the person I refer does not get a loan?",
+        "a": "Nothing is lost on your side. Payouts are for disbursed loans, and our team will explain to the applicant what could improve their chances."
+      },
+      {
+        "q": "How is this different from the Agent partnership?",
+        "a": "The Agent route suits professionals who already advise clients (CAs, brokers, consultants) and want a deeper working relationship. The Freelance route is lighter: an easy, individual way to start earning with no business set-up."
+      }
+    ],
     "mumbai": [
       {
         "q": "Where exactly is your Mumbai office?",
@@ -4795,6 +4843,45 @@
         "title": "Track your progress",
         "text": "Keep an eye on your report as you work towards your target score."
       }
+    ],
+    "freelancer.youdo": [
+      {
+        "text": "Mention us when someone needs a loan"
+      },
+      {
+        "text": "Share their name, number and what they need"
+      },
+      {
+        "text": "Stay their friendly contact"
+      }
+    ],
+    "freelancer.wedo": [
+      {
+        "text": "Call them and check eligibility"
+      },
+      {
+        "text": "Match them to the right bank or NBFC from 75+"
+      },
+      {
+        "text": "Collect documents and follow up with the lender"
+      },
+      {
+        "text": "Keep you updated until disbursal"
+      }
+    ],
+    "form.thanks": [
+      {
+        "title": "We review",
+        "body": "A GCS loan expert reads your details."
+      },
+      {
+        "title": "We call you",
+        "body": "We contact you to understand your need and suggest next steps."
+      },
+      {
+        "title": "We compare",
+        "body": "We look at suitable Banks and NBFCs for your profile."
+      }
     ]
   },
   "listSpecs": [
@@ -6168,6 +6255,50 @@
         },
         {
           "key": "text",
+          "label": "Text",
+          "kind": "textarea"
+        }
+      ]
+    },
+    {
+      "key": "freelancer.youdo",
+      "page": "Freelancer Partner",
+      "label": "What you do",
+      "hint": "The short list of what the freelancer does.",
+      "fields": [
+        {
+          "key": "text",
+          "label": "Point",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "freelancer.wedo",
+      "page": "Freelancer Partner",
+      "label": "What we do",
+      "hint": "The short list of what GCS does after the referral.",
+      "fields": [
+        {
+          "key": "text",
+          "label": "Point",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "key": "form.thanks",
+      "page": "Menu & footer",
+      "label": "Thank-you card: what happens next",
+      "hint": "The three boxes on the confirmation shown after any website form is sent.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Heading",
+          "kind": "text"
+        },
+        {
+          "key": "body",
           "label": "Text",
           "kind": "textarea"
         }

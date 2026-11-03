@@ -321,9 +321,16 @@ export function LeadsPage() {
   const [dueOnly, setDueOnly] = useState(false);
   const [loanProductId, setLoanProductId] = useState("");
   const [channel, setChannel] = useState("");
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
   const [ownerId, setOwnerId] = useState("");
   const [partnerId, setPartnerId] = useState("");
   const channels = useChannels();
+  const questions = useQuery({
+    queryKey: ["lead-answer-questions"],
+    queryFn: () => api<{ question: string; count: number }[]>("/leads/answer-questions"),
+    staleTime: 60_000,
+  });
   const [timeRange, setTimeRange] = useState("all");
   const [page, setPage] = useState(1);
   const [showNewLead, setShowNewLead] = useState(false);
@@ -355,10 +362,10 @@ export function LeadsPage() {
   });
 
   const query = useQuery({
-    queryKey: ["leads", { search, status, segment, chatbot, dueOnly, loanProductId, channel, ownerId, partnerId, timeRange, page, archived }],
+    queryKey: ["leads", { search, status, segment, chatbot, dueOnly, loanProductId, channel, question, answer, ownerId, partnerId, timeRange, page, archived }],
     queryFn: () =>
       api<Paginated<Lead>>(
-        `/leads${qs({ search, status, segment, chatbot: chatbot ? "true" : undefined, loanProductId, channel, assignedOfficerId: ownerId, sourcingPartnerId: partnerId, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, page })}`,
+        `/leads${qs({ search, status, segment, chatbot: chatbot ? "true" : undefined, loanProductId, channel, question: question || undefined, answer: question ? answer || undefined : undefined, assignedOfficerId: ownerId, sourcingPartnerId: partnerId, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, page })}`,
       ),
   });
 
@@ -525,6 +532,33 @@ export function LeadsPage() {
               </option>
             ))}
           </select>
+
+          {(questions.data?.length ?? 0) > 0 && (
+            <>
+              <select
+                value={question}
+                onChange={(e) => reset(() => { setQuestion(e.target.value); setAnswer(""); })}
+                className="field w-56"
+                aria-label="Form question"
+              >
+                <option value="">Form answer — any</option>
+                {questions.data?.map((q) => (
+                  <option key={q.question} value={q.question}>
+                    {q.question} ({q.count})
+                  </option>
+                ))}
+              </select>
+              {question && (
+                <input
+                  value={answer}
+                  onChange={(e) => reset(() => setAnswer(e.target.value))}
+                  placeholder="…answered (part of it)"
+                  className="field w-44"
+                  aria-label="Part of the answer"
+                />
+              )}
+            </>
+          )}
 
           {canFilterOwner && (
             <select value={ownerId} onChange={(e) => reset(() => setOwnerId(e.target.value))} className="field w-44" aria-label="Assigned to">

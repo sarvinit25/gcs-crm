@@ -92,6 +92,33 @@ ${
   );
 }
 
+/** The code that proves a mobile number is theirs, before a GCS ID is sent. */
+export function recoveryCode(org: Org, code: string, validMinutes: number, idName: string): string {
+  return frame(
+    org,
+    `Your ${org.name} code is ${code}`,
+    `<h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:${NAVY};">Your confirmation code</h1>
+<p style="margin:0 0 18px 0;font-size:15px;line-height:1.6;">Type this code on the Track Application page to get your ${esc(idName)}.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px 0;"><tr><td style="background:${PALE};border:1px solid ${GOLD};border-radius:12px;padding:16px 28px;font-size:34px;font-weight:700;letter-spacing:10px;color:${NAVY};">${esc(code)}</td></tr></table>
+<p style="margin:0 0 8px 0;font-size:13px;line-height:1.6;color:${MUTED};">It works for ${validMinutes} minutes. Please do not share it with anyone. If you did not ask for it, you can ignore this email.</p>`,
+  );
+}
+
+/** The GCS ID(s) a client or partner asked for, sent only to the email address held on their file. */
+export function gcsIdMessage(org: Org, idName: string, ids: string[]): string {
+  const rows = ids
+    .map((id) => `<tr><td style="background:${PALE};border:1px solid ${GOLD};border-radius:10px;padding:12px 22px;font-size:24px;font-weight:700;letter-spacing:4px;color:${NAVY};">${esc(id)}</td></tr><tr><td style="height:8px;"></td></tr>`)
+    .join("");
+  return frame(
+    org,
+    `Your ${idName}`,
+    `<h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:${NAVY};">Your ${esc(idName)}</h1>
+<p style="margin:0 0 18px 0;font-size:15px;line-height:1.6;">Here ${ids.length > 1 ? "are your IDs, newest first" : "is your ID"}. Use ${ids.length > 1 ? "one" : "it"} with your mobile number on the Track Application page.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 14px 0;">${rows}</table>
+<p style="margin:0 0 8px 0;font-size:13px;line-height:1.6;color:${MUTED};">Keep it private. If you did not ask for it, please call us on ${esc(org.phone)}.</p>`,
+  );
+}
+
 /** The one-time code that signs a visitor in to the website chat. */
 export function signInCode(org: Org, firstName: string, code: string, validMinutes: number): string {
   return frame(

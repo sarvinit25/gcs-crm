@@ -17,6 +17,7 @@ import {
   OTP_VALID_MINUTES,
 } from "./chat-auth.service";
 import { OtpSenderService } from "./otp-sender.service";
+import { AlertsService } from "../alerts/alerts.service";
 import type { IdKind, SendIdCodeDto, VerifyIdCodeDto } from "./dto/id-recovery.dto";
 
 const MINUTE = 60_000;
@@ -45,6 +46,7 @@ export class IdRecoveryService {
   constructor(
     private prisma: PrismaService,
     private sender: OtpSenderService,
+    private alerts: AlertsService,
     config: ConfigService,
   ) {
     this.secret = config.get<string>("JWT_SECRET") ?? "";
@@ -59,6 +61,19 @@ export class IdRecoveryService {
 
   private hashCode(kind: IdKind, phone: string, code: string) {
     return createHmac("sha256", this.secret).update(`id:${kind}:${phone}:${code}`).digest("hex");
+  }
+
+  /** The email address held against this mobile number, for sending a code or ID when there is no SMS. */
+  private async emailFor(kind: IdKind, phone: string): Promise<string | null> {
+    if (kind === "partner") {
+      return (await this.prisma.sourcingPartner.findUnique({ where: { phone }, select: { email: true } }))?.email?.trim() || null;
+    }
+    const app = await this.prisma.application.findFirst({
+      where: { archivedAt: null, portalAccessCode: { not: null }, applicants: { some: { isPrimary: true, phone } } },
+      orderBy: { createdAt: "desc" },
+      select: { applicants: { where: { isPrimary: true, phone }, take: 1, select: { email: true } }, lead: { select: { email: true } } },
+    });
+    return app?.applicants[0]?.email?.trim() || app?.lead?.email?.trim() || null;
   }
 
   /** The GCS IDs held against this mobile number, newest first. Empty when the number is not on file. */
@@ -125,16 +140,29 @@ export class IdRecoveryService {
       select: { id: true },
     });
 
-    if (known && !isTest && !(await this.sender.send(dto.phone, code, OTP_VALID_MINUTES))) {
-      await this.prisma.idRecoveryOtp.update({ where: { id: row.id }, data: { usedAt: new Date() } });
-      throw new ServiceUnavailableException("We couldn't send the code just now. Please try again, or call us.");
+    if (known && !isTest) {
+      let delivered = false;
+      if (this.sender.smsReady) {
+        delivered = await this.sender.send(dto.phone, code, OTP_VALID_MINUTES);
+      } else {
+        // No SMS number yet: the code goes to the email on file. With none on file nothing is sent, and the answer below
+        // is the same, so nobody can use this to find out who is a client.
+        const email = await this.emailFor(dto.kind, dto.phone);
+        if (!email) this.log.warn(`An ID was asked for but no email is on file for ${dto.kind} ${dto.phone}`);
+        delivered = email ? await this.alerts.idRecoveryCodeEmail(email, code, OTP_VALID_MINUTES, dto.kind) : true;
+      }
+      if (!delivered) {
+        await this.prisma.idRecoveryOtp.update({ where: { id: row.id }, data: { usedAt: new Date() } });
+        throw new ServiceUnavailableException("We couldn't send the code just now. Please try again, or call us.");
+      }
     }
 
     void this.prisma.idRecoveryOtp
       .deleteMany({ where: { expiresAt: { lt: new Date(now - DAY) } } })
       .catch(() => undefined);
 
-    return { sent: true, resendAfterSeconds: OTP_RESEND_SECONDS, validMinutes: OTP_VALID_MINUTES };
+    // `via` says how codes are sent in general, never how this number's code went, so it gives nothing away.
+    return { sent: true, resendAfterSeconds: OTP_RESEND_SECONDS, validMinutes: OTP_VALID_MINUTES, via: this.sender.smsReady ? "sms" : "email" };
   }
 
   async verify(dto: VerifyIdCodeDto) {
@@ -169,13 +197,25 @@ export class IdRecoveryService {
     if (used.count === 0) throw new BadRequestException("That code has already been used. Please ask for a new one.");
 
     const ids = await this.idsFor(dto.kind, dto.phone);
-    // Oldest first, so the newest file's message is the one that lands last on the phone.
-    for (const id of [...ids].reverse()) {
-      if (!(await this.sender.sendGcsId(dto.phone, id))) {
-        this.log.error(`Could not deliver a GCS ID to ${dto.phone}`);
-        throw new ServiceUnavailableException("Your number is confirmed, but we couldn't send the message just now. Please try again, or call us.");
+    if (ids.length === 0) return { sent: false, via: this.sender.smsIdReady ? "sms" : "email" };
+    const trouble = new ServiceUnavailableException("Your number is confirmed, but we couldn't send the message just now. Please try again, or call us.");
+    if (this.sender.smsIdReady) {
+      // Oldest first, so the newest file's message is the one that lands last on the phone.
+      for (const id of [...ids].reverse()) {
+        if (!(await this.sender.sendGcsId(dto.phone, id))) {
+          this.log.error(`Could not deliver a GCS ID to ${dto.phone}`);
+          throw trouble;
+        }
       }
+      return { sent: true, via: "sms" };
     }
-    return { sent: ids.length > 0 };
+    // No SMS number yet: the ID goes to the email on file, and only there.
+    const email = await this.emailFor(dto.kind, dto.phone);
+    if (!email) {
+      this.log.error(`No email on file to send a GCS ID to for ${dto.kind} ${dto.phone}`);
+      return { sent: false, via: "email", noEmail: true };
+    }
+    if (!(await this.alerts.gcsIdEmail(email, dto.kind, ids))) throw trouble;
+    return { sent: true, via: "email" };
   }
 }
