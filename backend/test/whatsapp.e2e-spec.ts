@@ -67,6 +67,7 @@ describe("WhatsApp inbox and notifications", () => {
   let msgCounter = 0;
   /** How many of the person's own turns the assistant was shown, per call — to prove the chat is remembered. */
   const turnsShown: number[] = [];
+  const historiesShown: string[][] = [];
 
   const as = (t: string) => ({ Authorization: `Bearer ${t}` });
   const get = (path: string, t: string) => http.get(`${API}${path}`).set(as(t));
@@ -113,7 +114,10 @@ describe("WhatsApp inbox and notifications", () => {
     const assistant = {
       async ask(history: { role: string; content: string }[], user: { name: string }) {
         turnsShown.push(history.filter((m) => m.role === "user").length);
-        return { reply: `Assistant answer for ${user.name}: ${history[history.length - 1].content}` };
+        historiesShown.push(history.map((m) => m.content));
+        const last = history[history.length - 1].content;
+        // `reply` is what the person reads; `raw` is what may be shown to the AI again.
+        return { reply: `Assistant answer for ${user.name}: ${last}`, raw: `RAW answer to: ${last}` };
       },
     };
     app = await createTestApp({ assistant, whatsappProvider: provider });
@@ -283,11 +287,14 @@ describe("WhatsApp inbox and notifications", () => {
     it("remembers the conversation, until it is reset", async () => {
       await customerSays(`91${STAFF.phone}`, "reset");
       turnsShown.length = 0;
+      historiesShown.length = 0;
       provider.sent.length = 0;
       await customerSays(`91${STAFF.phone}`, "first question");
       await customerSays(`91${STAFF.phone}`, "and a follow-up");
       expect(turnsShown).toEqual([1, 2]);
       expect(provider.texts()[1]).toBe("Assistant answer for Asha Staff: and a follow-up");
+      // The AI is shown its own earlier answer in the placeholder form, never the version the person read.
+      expect(historiesShown[1]).toEqual(["first question", "RAW answer to: first question", "and a follow-up"]);
 
       await customerSays(`91${STAFF.phone}`, "clear");
       await customerSays(`91${STAFF.phone}`, "a new topic");

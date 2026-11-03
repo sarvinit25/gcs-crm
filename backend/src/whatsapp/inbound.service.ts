@@ -183,8 +183,10 @@ export class InboundService {
     turns.push({ role: "user", content: text.slice(0, 2000) });
 
     try {
-      const { reply } = await this.assistant.ask(turns.slice(-MAX_TURNS), { id: user.id, name: user.name, email: user.email, role: user.role });
-      turns.push({ role: "assistant", content: reply });
+      const { reply, raw } = await this.assistant.ask(turns.slice(-MAX_TURNS), { id: user.id, name: user.name, email: user.email, role: user.role });
+      // The person gets `reply`; what is remembered for the next question is `raw`, which still holds the
+      // placeholders — revealed identity details must never be sent back to the AI provider.
+      turns.push({ role: "assistant", content: raw });
       this.memory.set(user.id, { turns: turns.slice(-MAX_TURNS), at: Date.now() });
       await this.say(phone, reply);
     } catch (err) {
