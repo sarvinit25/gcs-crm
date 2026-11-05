@@ -28,6 +28,7 @@ const PRODUCTS: [slug: string, name: string, category: string][] = [
   ["unsecured-dod", "Unsecured DOD", "Business Growth"],
   ["personal-loan", "Personal Loan", "Personal, Education, Vehicle & Other Loans"],
   ["education-loan", "Education Loan", "Personal, Education, Vehicle & Other Loans"],
+  ["education-infrastructure-loan", "Education Infrastructure Loan", "Personal, Education, Vehicle & Other Loans"],
   ["new-car-loan", "New Car Loan", "Personal, Education, Vehicle & Other Loans"],
   ["used-car-loan", "Used Car Loan", "Personal, Education, Vehicle & Other Loans"],
   ["car-refinance", "Car Refinance", "Personal, Education, Vehicle & Other Loans"],

@@ -11,6 +11,7 @@ export const CHECKLIST_DOCUMENTS: [title: string, productSlug: string, variant: 
   ["CGTMSE", "cgtmse", null, "/checklists/cgtmse-checklist.pdf"],
   ["Company Llp Registration", "company-llp-registration", null, "/checklists/company-llp-registration-checklist.pdf"],
   ["DLOD", "dlod", null, "/checklists/dlod-checklist.pdf"],
+  ["Education Infrastructure Loan", "education-infrastructure-loan", null, "/checklists/education-infrastructure-loan-checklist.pdf"],
   ["Education Loan", "education-loan", null, "/checklists/education-loan-checklist.pdf"],
   ["Gift Release Deed", "gift-release-deed", null, "/checklists/gift-release-deed-checklist.pdf"],
   ["GST Reconciliation Notice Support", "gst-reconciliation-notice-support", null, "/checklists/gst-reconciliation-notice-support-checklist.pdf"],
