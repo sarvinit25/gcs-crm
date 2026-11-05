@@ -32,13 +32,28 @@ const PERSONAS = [
     about:
       "You are Amit, a shop owner in Navi Mumbai. First you ask what interest rate you will get and whether approval is sure, then try to send your PAN card number ABCDE1234F in the chat, then you want a loan of 15 lakh for business. You answer briefly in English.",
   },
+  {
+    phone: "9000000014",
+    opening: "मला शैक्षणिक कर्ज हवे आहे",
+    about:
+      "You are Prakash Jadhav, who lives in Pune and writes in Marathi (Devanagari script). You want an education loan of about 12 lakh for your daughter's MBA in India. You are salaried, take-home 85000 a month. Answer in Marathi, one short line at a time, and tap the options when they fit.",
+  },
+  {
+    phone: "9000000015",
+    opening: "मुझे बिज़नेस लोन चाहिए",
+    about:
+      "You are Neha Sharma, who runs a boutique in Mumbai (Andheri) and writes in Hindi (Devanagari script). You want a business loan of about 20 lakh. Answer in Hindi, one short line at a time, and tap the options when they fit.",
+  },
 ] as const;
 
-async function pretendCustomer(persona: string, transcript: { who: "gia" | "me"; text: string }[]) {
+async function pretendCustomer(persona: string, transcript: { who: "gia" | "me"; text: string }[], offered: string[]) {
+  const choice = offered.length
+    ? `\nThe assistant showed tap-to-choose options: ${offered.map((o) => `"${o}"`).join(", ")}. If one fits what you want, answer with EXACTLY that option's text and nothing else. If none fits, type your own short answer.`
+    : "";
   const messages = [
     {
       role: "system",
-      content: `${persona}\nYou are chatting with a loan company's WhatsApp assistant. Answer only what is asked, in character, in one or two short lines. If you do not know, make a sensible small answer. When the assistant says an expert will contact you, reply "ok thanks" and nothing more.`,
+      content: `${persona}\nYou are chatting with a loan company's WhatsApp assistant. Answer only what is asked, in character, in one or two short lines. If you do not know, make a sensible small answer. When the assistant says an expert will contact you, reply "ok thanks" and nothing more.${choice}`,
     },
     ...transcript.map((t) => ({ role: t.who === "me" ? "assistant" : "user", content: t.text })),
   ];
@@ -63,35 +78,38 @@ async function main() {
 
   const transcript: { who: "gia" | "me"; text: string }[] = [];
   let customerSays: string = persona.opening;
+  let offered: { id: string; title: string }[] = [];
   for (let turn = 0; turn < Number(process.env.DEMO_TURNS ?? 24); turn++) {
+    // a typed message, unless it is exactly one of the options just offered: then it is a tap
+    const tapped = offered.find((o) => o.title.toLowerCase() === customerSays.trim().toLowerCase());
     transcript.push({ who: "me", text: customerSays });
-    console.log(`\nCUSTOMER: ${customerSays}`);
+    console.log(`\nCUSTOMER${tapped ? " (tapped)" : ""}: ${customerSays}`);
     const before = provider.sent.length;
-    inbound.accept({
-      entry: [
-        {
-          changes: [
-            {
-              value: {
-                metadata: { phone_number_id: "demo-number" },
-                contacts: [{ wa_id: `91${persona.phone}`, profile: { name: "" } }],
-                messages: [{ id: `demo.${persona.phone}.${turn}.${Date.now()}`, from: `91${persona.phone}`, type: "text", timestamp: String(Math.floor(Date.now() / 1000)), text: { body: customerSays } }],
-              },
-            },
-          ],
-        },
-      ],
-    });
+    const message = tapped
+      ? { id: `demo.${persona.phone}.${turn}.${Date.now()}`, from: `91${persona.phone}`, type: "interactive", timestamp: String(Math.floor(Date.now() / 1000)), interactive: { list_reply: { id: tapped.id, title: tapped.title } } }
+      : { id: `demo.${persona.phone}.${turn}.${Date.now()}`, from: `91${persona.phone}`, type: "text", timestamp: String(Math.floor(Date.now() / 1000)), text: { body: customerSays } };
+    inbound.accept({ entry: [{ changes: [{ value: { metadata: { phone_number_id: "demo-number" }, contacts: [{ wa_id: `91${persona.phone}`, profile: { name: "" } }], messages: [message] } }] }] });
     await inbound.idle();
-    const reply = provider.sent.slice(before).filter((s) => s.kind === "text").map((s) => s.body).join("\n");
-    if (!reply) {
+    const sent = provider.sent.slice(before);
+    if (!sent.length) {
       console.log("GIA: (no reply: a person takes over)");
       break;
     }
+    offered = [];
+    const lines: string[] = [];
+    for (const m of sent) {
+      if (m.kind === "interactive" && m.interactive) {
+        const i = m.interactive;
+        const titles = i.kind === "buttons" ? i.buttons : i.rows;
+        offered = titles.map((t) => ({ id: t.id, title: t.title }));
+        lines.push(`${i.body}\n      [${i.kind === "buttons" ? "BUTTONS" : `LIST: ${i.button}`}]  ${titles.map((t) => `( ${t.title} )`).join("  ")}`);
+      } else if (m.kind === "text") lines.push(m.body ?? "");
+    }
+    const reply = lines.join("\n");
     console.log(`GIA: ${reply}`);
-    transcript.push({ who: "gia", text: reply });
-    if (/expert .*(contact|call|reach)|team member will/i.test(reply) && turn > 5) break;
-    customerSays = await pretendCustomer(persona.about, transcript);
+    transcript.push({ who: "gia", text: reply.split("\n")[0] ?? reply });
+    if (/expert .*(contact|call|reach)|team member will|विशेषज्ञ|तज्ञ/i.test(reply) && turn > 5) break;
+    customerSays = await pretendCustomer(persona.about, transcript, offered.map((o) => o.title));
   }
 
   const lead = await db.lead.findFirst({ where: { phone: persona.phone }, include: { loanProduct: true, answers: { orderBy: { createdAt: "asc" } } } });

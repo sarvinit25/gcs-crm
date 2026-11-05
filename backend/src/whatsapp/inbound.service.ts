@@ -7,7 +7,7 @@ import { LeadsService } from "../leads/leads.service";
 import { AssistantService, type ChatMessage as ChatTurn } from "../assistant/assistant.service";
 import { ConversationsService } from "./conversations.service";
 import { IntakeService } from "./intake/intake.service";
-import { WHATSAPP_PROVIDER, type WhatsAppProvider } from "./whatsapp.provider";
+import { WHATSAPP_PROVIDER, type Interactive, type WhatsAppProvider } from "./whatsapp.provider";
 import { contactKey, toWaId } from "./phone";
 import { STAGE_LABEL } from "./templates.util";
 
@@ -15,6 +15,8 @@ type Incoming = {
   id: string;
   from: string;
   type: string;
+  /** The id of the button or list row the customer tapped, when they tapped rather than typed. */
+  replyId?: string;
   body: string | null;
   name: string | null;
   at: Date;
@@ -105,13 +107,16 @@ export class InboundService {
       const names = new Map<string, string>(
         ((value.contacts as { wa_id?: string; profile?: { name?: string } }[] | undefined) ?? []).map((c) => [c.wa_id ?? "", c.profile?.name ?? ""]),
       );
-      for (const m of (value.messages as { id?: string; from?: string; type?: string; timestamp?: string; text?: { body?: string } }[] | undefined) ?? []) {
+      type Tap = { id?: string; title?: string };
+      for (const m of (value.messages as { id?: string; from?: string; type?: string; timestamp?: string; text?: { body?: string }; interactive?: { button_reply?: Tap; list_reply?: Tap } }[] | undefined) ?? []) {
         if (!m.id || !m.from) continue;
+        const tap = m.type === "interactive" ? (m.interactive?.button_reply ?? m.interactive?.list_reply) : undefined;
         await this.handleMessage({
           id: m.id,
           from: m.from,
           type: m.type ?? "unknown",
-          body: m.type === "text" ? (m.text?.body ?? "") : null,
+          ...(tap?.id ? { replyId: tap.id } : {}),
+          body: m.type === "text" ? (m.text?.body ?? "") : tap ? (tap.title ?? "") : null,
           name: names.get(m.from) || null,
           at: m.timestamp ? new Date(Number(m.timestamp) * 1000) : new Date(),
         });
@@ -125,6 +130,17 @@ export class InboundService {
     } catch (err) {
       this.log.error(`Could not reply on WhatsApp: ${(err as Error).message}`);
       return null;
+    }
+  }
+
+  /** Sends a tap-to-choose message; if WhatsApp refuses it, sends the same question as plain text with the choices listed. */
+  private async sayOptions(phone: string, content: Interactive) {
+    try {
+      return await this.provider.sendInteractive(toWaId(phone), content);
+    } catch (err) {
+      this.log.warn(`Could not send a tap-to-choose message, sending text instead: ${(err as Error).message}`);
+      const choices = content.kind === "buttons" ? content.buttons.map((b) => b.title) : content.rows.map((r) => r.title);
+      return this.say(phone, `${content.body}\n\n${choices.map((c) => `- ${c}`).join("\n")}`);
     }
   }
 
@@ -231,13 +247,18 @@ export class InboundService {
     // Gia, when switched on, takes the conversation: she asks the website's questions and saves the answers on the lead.
     // "status" and a request for a person still work as before. If she cannot answer, the lines below take over.
     const wantsPerson = /^(agent|human|person|callback|call me|talk to)\b/.test(text);
-    if (m.type === "text" && text !== "status" && !wantsPerson && this.intake.enabled()) {
-      const ai = await this.intake.reply({ id: conversation.id, leadId: conversation.leadId, name: conversation.name });
+    const typedOrTapped = m.type === "text" || (m.type === "interactive" && Boolean(m.replyId));
+    if (typedOrTapped && text !== "status" && !wantsPerson && this.intake.enabled()) {
+      const ai = await this.intake.reply({ id: conversation.id, leadId: conversation.leadId, name: conversation.name }, m.replyId);
+      if (ai.silent) return;
       if (ai.text) {
         if (ai.handoff) await this.prisma.whatsAppConversation.update({ where: { id: conversation.id }, data: { needsHuman: true } });
-        const sent = await this.say(phone, ai.text);
+        const sent = ai.options ? await this.sayOptions(phone, ai.options) : await this.say(phone, ai.text);
         if (sent) {
-          await this.conversations.recordOutbound({ conversationId: conversation.id, sender: WhatsAppSender.BOT, type: "text", body: ai.text, waMessageId: sent.waMessageId });
+          // staff see the choices that were offered under the message
+          const offered = ai.options ? (ai.options.kind === "buttons" ? ai.options.buttons.map((b) => b.title) : ai.options.rows.map((r) => r.title)) : [];
+          const body = offered.length ? `${ai.text}\n\n${offered.map((t) => `▫ ${t}`).join("\n")}` : ai.text;
+          await this.conversations.recordOutbound({ conversationId: conversation.id, sender: WhatsAppSender.BOT, type: "text", body, waMessageId: sent.waMessageId });
         }
         return;
       }

@@ -14,6 +14,14 @@ export class ProviderError extends Error {
 
 export type SendResult = { waMessageId: string };
 
+/**
+ * A message the customer answers by tapping. WhatsApp allows up to 3 reply buttons (title up to 20 characters) or a
+ * pick-list of up to 10 rows (title up to 24, description up to 72). Free inside the 24 hours after the customer wrote.
+ */
+export type Interactive =
+  | { kind: "buttons"; body: string; buttons: { id: string; title: string }[] }
+  | { kind: "list"; body: string; button: string; rows: { id: string; title: string; description?: string }[] };
+
 export type ConnectionInfo = {
   state: "not_configured" | "connected" | "error";
   provider: "meta" | "sandbox" | "none";
@@ -42,6 +50,7 @@ export interface WhatsAppProvider {
   /** True when a template must be approved by Meta before it can be sent. */
   readonly requiresApproval: boolean;
   sendText(to: string, body: string): Promise<SendResult>;
+  sendInteractive(to: string, content: Interactive): Promise<SendResult>;
   sendTemplate(to: string, name: string, language: string, params: string[]): Promise<SendResult>;
   submitTemplate(template: TemplateSubmission): Promise<{ status: MetaTemplateStatus; reason?: string }>;
   listTemplates(): Promise<{ name: string; status: MetaTemplateStatus; reason?: string }[]>;
@@ -109,6 +118,29 @@ export class MetaCloudProvider implements WhatsAppProvider {
     const res = await this.call<{ messages?: { id: string }[] }>(`/${env("WHATSAPP_PHONE_NUMBER_ID")}/messages`, {
       method: "POST",
       body: { messaging_product: "whatsapp", to, type: "text", text: { body, preview_url: false } },
+    });
+    return { waMessageId: res.messages?.[0]?.id ?? "" };
+  }
+
+  async sendInteractive(to: string, c: Interactive) {
+    const interactive =
+      c.kind === "buttons"
+        ? {
+            type: "button",
+            body: { text: c.body.slice(0, 1024) },
+            action: { buttons: c.buttons.slice(0, 3).map((b) => ({ type: "reply", reply: { id: b.id.slice(0, 256), title: b.title.slice(0, 20) } })) },
+          }
+        : {
+            type: "list",
+            body: { text: c.body.slice(0, 1024) },
+            action: {
+              button: c.button.slice(0, 20),
+              sections: [{ rows: c.rows.slice(0, 10).map((r) => ({ id: r.id.slice(0, 200), title: r.title.slice(0, 24), ...(r.description ? { description: r.description.slice(0, 72) } : {}) })) }],
+            },
+          };
+    const res = await this.call<{ messages?: { id: string }[] }>(`/${env("WHATSAPP_PHONE_NUMBER_ID")}/messages`, {
+      method: "POST",
+      body: { messaging_product: "whatsapp", to, type: "interactive", interactive },
     });
     return { waMessageId: res.messages?.[0]?.id ?? "" };
   }
@@ -205,7 +237,7 @@ export class MetaCloudProvider implements WhatsAppProvider {
 export class SandboxWhatsAppProvider implements WhatsAppProvider {
   readonly kind = "sandbox" as const;
   readonly requiresApproval = false;
-  sent: { to: string; kind: "text" | "template"; body?: string; name?: string; params?: string[] }[] = [];
+  sent: { to: string; kind: "text" | "template" | "interactive"; body?: string; name?: string; params?: string[]; interactive?: Interactive }[] = [];
   private counter = 0;
 
   get configured() {
@@ -214,6 +246,10 @@ export class SandboxWhatsAppProvider implements WhatsAppProvider {
 
   async sendText(to: string, body: string) {
     this.sent.push({ to, kind: "text", body });
+    return { waMessageId: `sandbox.${++this.counter}` };
+  }
+  async sendInteractive(to: string, content: Interactive) {
+    this.sent.push({ to, kind: "interactive", body: content.body, interactive: content });
     return { waMessageId: `sandbox.${++this.counter}` };
   }
   async sendTemplate(to: string, name: string, _language: string, params: string[]) {
@@ -246,6 +282,9 @@ export class UnconfiguredWhatsAppProvider implements WhatsAppProvider {
     throw new ProviderError("WhatsApp isn't connected yet");
   }
   sendText(): Promise<SendResult> {
+    return this.fail();
+  }
+  sendInteractive(): Promise<SendResult> {
     return this.fail();
   }
   sendTemplate(): Promise<SendResult> {

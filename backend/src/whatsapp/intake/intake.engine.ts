@@ -136,8 +136,7 @@ export function resolveField(loanSlug: string, answers: Answers, key: string, va
   const open = nextQuestions(loanSlug, answers, 6).fields;
   const byChoice = open.filter((f) => f.options?.some((o) => o.toLowerCase() === low));
   if (byChoice.length === 1) return byChoice[0]!;
-  const byName = open.filter((f) => answerKey(f.label).includes(answerKey(key)) || answerKey(key).includes(answerKey(f.label)));
-  return byName.length === 1 ? byName[0]! : null;
+  return null;
 }
 
 /** Turns the lead's saved answer rows (keyed by the question's wording) into answers by the form's question key. */
