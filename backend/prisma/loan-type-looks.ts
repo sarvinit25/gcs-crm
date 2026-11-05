@@ -21,6 +21,7 @@ export const LOAN_TYPE_ICONS: Record<string, string> = {
   "unsecured-dod": "wallet",
   "personal-loan": "user",
   "education-loan": "graduation",
+  "education-infrastructure-loan": "school",
   "new-car-loan": "car",
   "used-car-loan": "car",
   "car-refinance": "car",
