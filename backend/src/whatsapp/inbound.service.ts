@@ -249,6 +249,8 @@ export class InboundService {
     const wantsPerson = /^(agent|human|person|callback|call me|talk to)\b/.test(text);
     const typedOrTapped = m.type === "text" || (m.type === "interactive" && Boolean(m.replyId));
     if (typedOrTapped && text !== "status" && !wantsPerson && this.intake.enabled()) {
+      // blue ticks and "typing..." while the answer is being written, so it feels like a person
+      void this.provider.showTyping(m.id);
       const ai = await this.intake.reply({ id: conversation.id, leadId: conversation.leadId, name: conversation.name }, m.replyId);
       if (ai.silent) return;
       if (ai.text) {

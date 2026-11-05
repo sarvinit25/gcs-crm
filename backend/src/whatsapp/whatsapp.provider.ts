@@ -51,6 +51,8 @@ export interface WhatsAppProvider {
   readonly requiresApproval: boolean;
   sendText(to: string, body: string): Promise<SendResult>;
   sendInteractive(to: string, content: Interactive): Promise<SendResult>;
+  /** Marks the customer's message as read (blue ticks) and shows "typing..." to them until we reply (up to about 25 seconds). Never throws. */
+  showTyping(messageId: string): Promise<void>;
   sendTemplate(to: string, name: string, language: string, params: string[]): Promise<SendResult>;
   submitTemplate(template: TemplateSubmission): Promise<{ status: MetaTemplateStatus; reason?: string }>;
   listTemplates(): Promise<{ name: string; status: MetaTemplateStatus; reason?: string }[]>;
@@ -120,6 +122,18 @@ export class MetaCloudProvider implements WhatsAppProvider {
       body: { messaging_product: "whatsapp", to, type: "text", text: { body, preview_url: false } },
     });
     return { waMessageId: res.messages?.[0]?.id ?? "" };
+  }
+
+  async showTyping(messageId: string) {
+    if (!this.configured || !messageId) return;
+    try {
+      await this.call(`/${env("WHATSAPP_PHONE_NUMBER_ID")}/messages`, {
+        method: "POST",
+        body: { messaging_product: "whatsapp", status: "read", message_id: messageId, typing_indicator: { type: "text" } },
+      });
+    } catch {
+      // a nicety: if WhatsApp declines it, the reply simply arrives without it
+    }
   }
 
   async sendInteractive(to: string, c: Interactive) {
@@ -248,6 +262,9 @@ export class SandboxWhatsAppProvider implements WhatsAppProvider {
     this.sent.push({ to, kind: "text", body });
     return { waMessageId: `sandbox.${++this.counter}` };
   }
+  async showTyping() {
+    // nothing to show in the sandbox
+  }
   async sendInteractive(to: string, content: Interactive) {
     this.sent.push({ to, kind: "interactive", body: content.body, interactive: content });
     return { waMessageId: `sandbox.${++this.counter}` };
@@ -286,6 +303,9 @@ export class UnconfiguredWhatsAppProvider implements WhatsAppProvider {
   }
   sendInteractive(): Promise<SendResult> {
     return this.fail();
+  }
+  async showTyping() {
+    // not connected: nothing to show
   }
   sendTemplate(): Promise<SendResult> {
     return this.fail();

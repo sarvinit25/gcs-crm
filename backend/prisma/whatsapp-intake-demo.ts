@@ -114,7 +114,7 @@ async function main() {
     const reply = lines.join("\n");
     console.log(`GIA: ${reply}`);
     transcript.push({ who: "gia", text: reply.split("\n")[0] ?? reply });
-    if (/expert .*(contact|call|reach)|team member will|विशेषज्ञ|तज्ञ/i.test(reply) && turn > 5) break;
+    if (!offered.length && /expert .*(contact|call|reach)|team member will|विशेषज्ञ|तज्ञ|एक्सपर्ट/i.test(reply) && turn > 5) break;
     customerSays = await pretendCustomer(persona.about, transcript, offered.map((o) => o.title));
   }
 
