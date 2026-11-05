@@ -174,6 +174,41 @@ function HubBody({ hub }: { hub: Hub }) {
             />
           </ChartCard>
         )}
+
+        <ChartCard title="Conversion funnel" note="From enquiry to payout" empty={hub.funnel[0].count === 0} emptyText="No leads in this period.">
+          <HBarChart
+            ariaLabel="Conversion funnel: leads, files opened, logged in with a bank, sanctioned and disbursed"
+            rows={hub.funnel.map((st) => ({
+              key: st.key,
+              label: st.label,
+              value: st.count,
+              display: String(st.count),
+              sub: st.ofPrevious == null ? undefined : `${st.ofPrevious}% of the step before`,
+            }))}
+          />
+        </ChartCard>
+
+        <ChartCard title="Loan type breakdown" note="Files by loan type" empty={hub.loanTypes.length === 0} emptyText="No files in this period.">
+          <DonutChart
+            slices={hub.loanTypes.map((t, i) => ({ key: `${i}`, label: t.name, value: t.count, display: `${t.count} · ${formatCompact(t.amount)}` }))}
+            centreValue={String(hub.loanTypes.reduce((n, t) => n + t.count, 0))}
+            centreLabel="files"
+            ariaLabel={`Files by loan type: ${hub.loanTypes.map((t) => `${t.name} ${t.count}`).join(", ")}`}
+          />
+        </ChartCard>
+
+        <ChartCard
+          title="Why enquiries are lost"
+          note="Reasons recorded when a lead is closed"
+          empty={hub.lostReasons.length === 0}
+          emptyText="No lost leads in this period."
+          className="lg:col-span-2"
+        >
+          <HBarChart
+            ariaLabel="Reasons leads were lost"
+            rows={hub.lostReasons.map((r) => ({ key: r.reason, label: r.reason, value: r.count, display: String(r.count) }))}
+          />
+        </ChartCard>
       </div>
 
       <div>

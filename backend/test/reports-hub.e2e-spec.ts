@@ -227,6 +227,55 @@ describe("reports hub, detailed reports and custom exports", () => {
     it("gives Manager the commission figures too", async () => {
       expect((await get("/reports/hub", manager)).body.kpis.commission.total).toBeGreaterThanOrEqual(9000);
     });
+
+    describe("funnel, loan types and why enquiries are lost", () => {
+      const REASON = "RPT price was too high";
+
+      beforeAll(async () => {
+        const lead = await post("/leads", admin, { name: "Rpt Lost Lead", phone: "9000033301", source: SOURCE_A, assignedOfficerId: staffId });
+        const closed = await patch(`/leads/${lead.body.id}`, admin, { status: "LOST", lostReason: REASON });
+        expect(closed.status).toBe(200);
+      });
+
+      it("shows the journey from enquiry to payout, each step against the one before", async () => {
+        const { funnel } = (await get("/reports/hub", admin)).body;
+        expect(funnel.map((f: any) => f.key)).toEqual(["leads", "files", "logged-in", "sanctioned", "disbursed"]);
+        expect(funnel[0].ofPrevious).toBeNull();
+        expect(funnel[0].ofFirst).toBe(100);
+        for (const step of funnel.slice(1)) {
+          expect(step.ofPrevious === null || (step.ofPrevious >= 0 && step.ofPrevious <= 100)).toBe(true);
+          expect(step.ofFirst === null || step.ofFirst <= 100).toBe(true);
+        }
+        expect(funnel[3].count).toBeGreaterThanOrEqual(1);
+        expect(funnel[4].count).toBeGreaterThanOrEqual(1);
+      });
+
+      it("splits files by loan type, biggest first, with the amounts asked for", async () => {
+        const { loanTypes, pipeline } = (await get("/reports/hub", admin)).body;
+        expect(loanTypes.length).toBeGreaterThan(0);
+        expect(loanTypes.length).toBeLessThanOrEqual(8);
+        expect(loanTypes.reduce((n: number, t: any) => n + t.count, 0)).toBe(pipeline.total);
+        // Biggest first (the folded-together "other" row, if any, closes the list).
+        const counts = loanTypes.filter((t: any) => t.name !== "Other loan types").map((t: any) => t.count);
+        expect(counts).toEqual([...counts].sort((x: number, y: number) => y - x));
+        expect(loanTypes.every((t: any) => typeof t.name === "string" && t.amount >= 0)).toBe(true);
+      });
+
+      it("lists the reasons recorded when leads were lost, and keeps Staff to their own", async () => {
+        const mine = (await get("/reports/hub", staff)).body.lostReasons;
+        expect(mine.find((r: any) => r.reason === REASON).count).toBe(1);
+        expect((await get("/reports/hub", other)).body.lostReasons.find((r: any) => r.reason === REASON)).toBeUndefined();
+        expect((await get("/reports/hub", admin)).body.lostReasons.find((r: any) => r.reason === REASON).count).toBe(1);
+      });
+
+      it("follows the date range", async () => {
+        const res = await get("/reports/hub?from=2000-01-01&to=2000-01-31", admin);
+        expect(res.body.funnel.every((f: any) => f.count === 0)).toBe(true);
+        expect(res.body.funnel.slice(1).every((f: any) => f.ofPrevious === null && f.ofFirst === null)).toBe(true);
+        expect(res.body.loanTypes).toEqual([]);
+        expect(res.body.lostReasons).toEqual([]);
+      });
+    });
   });
 
   describe("detailed reports", () => {

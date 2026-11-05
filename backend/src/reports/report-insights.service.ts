@@ -89,6 +89,7 @@ export class ReportInsightsService {
 
     const commission = withCommission ? await this.commissionPosition(range) : null;
     const monthTotals = withCommission ? await this.commissionPosition(month) : null;
+    const { funnel, loanTypes, lostReasons } = await this.shape(user, range, leads, sanctioned._count);
 
     return {
       range: { from: range.from?.toISOString() ?? null, to: range.to?.toISOString() ?? null, label: describeRange(range, f.range) },
@@ -118,9 +119,80 @@ export class ReportInsightsService {
         .sort((a, b) => b.sanctionedAmount - a.sanctionedAmount)
         .slice(0, 8)
         .map((l) => ({ lender: l.lender, sanctions: l.sanctions, sanctionedAmount: l.sanctionedAmount, disbursedAmount: l.disbursedAmount })),
+      funnel,
+      loanTypes,
+      lostReasons,
       commission,
       reports: this.kindsFor(user),
     };
+  }
+
+  /**
+   * The hub's three "where does it go" panels, for the same period and the same people as the headline numbers:
+   * the conversion funnel from enquiry to payout, files by loan type, and why enquiries are lost. (A file has no
+   * rejection reason of its own, so the reasons shown are the ones recorded when a lead is closed out as lost.)
+   */
+  private async shape(user: AuthUser, range: Range, leads: number, sanctions: number) {
+    const created = rangeFilter(range);
+    const files = { ...appScope(user), ...(created && { createdAt: created }) };
+
+    const [fileCount, loggedIn, disbursedFiles, byType, lost] = await Promise.all([
+      this.prisma.application.count({ where: files }),
+      this.prisma.application.count({ where: { ...files, bankLoginAt: { not: null } } }),
+      this.prisma.disbursement.findMany({
+        where: { application: appScope(user), ...(created && { disbursedAt: created }) },
+        distinct: ["applicationId"],
+        select: { applicationId: true },
+      }),
+      this.prisma.application.groupBy({
+        by: ["loanProductId"],
+        where: files,
+        _count: { _all: true },
+        _sum: { requestedAmount: true },
+        orderBy: { loanProductId: "asc" },
+      }),
+      this.prisma.lead.groupBy({
+        by: ["lostReason"],
+        where: { ...leadScope(user), status: "LOST", ...(created && { createdAt: created }) },
+        _count: { _all: true },
+        orderBy: { lostReason: "asc" },
+      }),
+    ]);
+
+    const steps = [
+      { key: "leads", label: "Leads", count: leads },
+      { key: "files", label: "Files opened", count: fileCount },
+      { key: "logged-in", label: "Logged in with a bank", count: loggedIn },
+      { key: "sanctioned", label: "Sanctioned", count: sanctions },
+      { key: "disbursed", label: "Disbursed", count: disbursedFiles.length },
+    ];
+    const funnel = steps.map((st, i) => ({
+      ...st,
+      // Each step against the one before it, and against the first — never above 100%.
+      ofPrevious: i === 0 ? null : steps[i - 1].count > 0 ? Math.min(Math.round((st.count / steps[i - 1].count) * 100), 100) : null,
+      ofFirst: steps[0].count > 0 ? Math.min(Math.round((st.count / steps[0].count) * 100), 100) : null,
+    }));
+
+    const products = await this.prisma.loanProduct.findMany({
+      where: { id: { in: byType.map((r) => r.loanProductId) } },
+      select: { id: true, name: true },
+    });
+    const nameOf = new Map(products.map((p) => [p.id, p.name]));
+    const types = byType
+      .map((r) => ({ name: nameOf.get(r.loanProductId) ?? UNKNOWN_TYPE, count: r._count._all, amount: money(r._sum.requestedAmount) }))
+      .sort((a, b) => b.count - a.count);
+    // Eight slices read; the rest are folded into one so a long tail doesn't crowd the chart.
+    const loanTypes =
+      types.length > 8
+        ? [...types.slice(0, 7), types.slice(7).reduce((acc, t) => ({ name: "Other loan types", count: acc.count + t.count, amount: acc.amount + t.amount }), { name: "Other loan types", count: 0, amount: 0 })]
+        : types;
+
+    const lostReasons = lost
+      .map((r) => ({ reason: r.lostReason?.trim() || "No reason recorded", count: r._count._all }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    return { funnel, loanTypes, lostReasons };
   }
 
   /** Leads, files, sanctions and disbursals per month for the six months up to `now`. */

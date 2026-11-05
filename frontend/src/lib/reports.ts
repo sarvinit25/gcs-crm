@@ -19,6 +19,9 @@ export type Hub = {
   trends: { month: string; label: string; leads: number; files: number; sanctions: number; disbursals: number }[];
   pipeline: { total: number; stages: { key: string; label: string; count: number }[] };
   lenders: { lender: string; sanctions: number; sanctionedAmount: number; disbursedAmount: number }[];
+  funnel: { key: string; label: string; count: number; ofPrevious: number | null; ofFirst: number | null }[];
+  loanTypes: { name: string; count: number; amount: number }[];
+  lostReasons: { reason: string; count: number }[];
   commission: { due: number; claimed: number; received: number; total: number } | null;
   reports: ReportCard[];
 };
