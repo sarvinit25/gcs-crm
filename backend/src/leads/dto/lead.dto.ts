@@ -127,7 +127,8 @@ export class CreateLeadDto extends PublicLeadDto {
 /** The optional second form on a loan page: more answers for the lead the visitor just created. */
 export class LeadFollowUpDto {
   @IsString() @Length(10, 400) token: string;
-  @IsString() @Length(2, 2000) detail: string;
+  // A long second form can run past 2,000 characters once every question is answered.
+  @IsString() @Length(2, 6000) detail: string;
   @IsOptional() @IsArray() @ArrayMaxSize(80) @ValidateNested({ each: true }) @Type(() => AnswerDto) answers?: AnswerDto[];
   @IsOptional() @IsIn(["SALARIED", "SELF_EMPLOYED"]) employmentType?: "SALARIED" | "SELF_EMPLOYED";
   @IsOptional() @IsNumber() @Min(0) monthlyIncome?: number;
