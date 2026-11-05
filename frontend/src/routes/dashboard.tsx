@@ -15,6 +15,8 @@ import { LEAD_STATUSES, LEAD_STATUS_LABEL } from "../lib/types";
 import { useAuth } from "../lib/auth";
 import { PageHeader } from "../components/app-shell";
 import { PunchCard } from "../components/punch-card";
+import { HubCharts } from "./reports-hub";
+import type { Hub } from "../lib/reports";
 import { CountUp } from "../components/count-up";
 import { TodayList } from "../components/today-list";
 import { Link } from "@tanstack/react-router";
@@ -125,6 +127,13 @@ export function DashboardPage() {
   const query = useQuery({
     queryKey: ["dashboard", range],
     queryFn: () => api<Summary>(`/dashboard/summary?range=${range}`),
+    placeholderData: (prev) => prev,
+  });
+
+  // The same charts as the Reports page, for the period chosen above.
+  const overview = useQuery({
+    queryKey: ["dashboard-overview", range],
+    queryFn: () => api<Hub>(`/reports/hub?range=${range}`),
     placeholderData: (prev) => prev,
   });
 
@@ -302,6 +311,18 @@ export function DashboardPage() {
                 )}
               </section>
             </div>
+
+            {overview.data && (
+              <section className="mt-6">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h2 className="text-sm font-bold text-navy">Business overview</h2>
+                  <Link to={"/reports" as never} className="text-[13px] font-semibold text-gold-dark hover:text-navy">
+                    All reports →
+                  </Link>
+                </div>
+                <HubCharts hub={overview.data} />
+              </section>
+            )}
           </>
         )}
       </div>

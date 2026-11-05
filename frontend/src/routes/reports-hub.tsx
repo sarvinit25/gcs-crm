@@ -104,10 +104,6 @@ function HubBody({ hub }: { hub: Hub }) {
   const lastKpi = fillLast(cards.length, [{ at: "", cols: 2 }]);
   const kpiCols = cards.length === 5 ? "xl:grid-cols-5" : "xl:grid-cols-4";
 
-  const months = hub.trends.map((t) => t.month);
-  const noTrend = hub.trends.every((t) => t.leads + t.files + t.sanctions + t.disbursals === 0);
-  const pipelineSlices = hub.pipeline.stages.map((s) => ({ key: s.key, label: s.label, value: s.count }));
-  const c = hub.commission;
   const cards2 = hub.reports;
   const cardClass = fillLast(cards2.length, [
     { at: "sm:", cols: 2 },
@@ -122,94 +118,7 @@ function HubBody({ hub }: { hub: Hub }) {
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <ChartCard title="Monthly trends" note="Last 6 months" empty={noTrend} emptyText="No leads, files, sanctions or disbursals in the last 6 months.">
-          <LineChart
-            months={months}
-            labels={hub.trends.map((t) => t.label)}
-            ariaLabel="Monthly trends for the last 6 months: leads, files, sanctions and disbursals"
-            series={[
-              { name: "Leads", color: SERIES[0], values: hub.trends.map((t) => t.leads) },
-              { name: "Files", color: SERIES[1], values: hub.trends.map((t) => t.files) },
-              { name: "Sanctions", color: SERIES[2], values: hub.trends.map((t) => t.sanctions) },
-              { name: "Disbursals", color: SERIES[3], values: hub.trends.map((t) => t.disbursals) },
-            ]}
-          />
-        </ChartCard>
-
-        <ChartCard title="File pipeline" note="Files by stage" empty={hub.pipeline.total === 0} emptyText="No files in this period.">
-          <DonutChart slices={pipelineSlices} centreValue={String(hub.pipeline.total)} centreLabel="files" ariaLabel={`File pipeline: ${hub.pipeline.total} files by stage`} />
-        </ChartCard>
-
-        <ChartCard
-          title="Lender performance"
-          note="Top by sanctioned amount"
-          empty={hub.lenders.length === 0}
-          emptyText="No sanctions from lenders in this period."
-          className={c ? undefined : "lg:col-span-2"}
-        >
-          <HBarChart
-            ariaLabel="Lenders by sanctioned amount"
-            rows={hub.lenders.map((l) => ({
-              key: l.lender,
-              label: l.lender,
-              value: l.sanctionedAmount,
-              display: formatCompact(l.sanctionedAmount),
-              sub: `${l.sanctions} ${l.sanctions === 1 ? "sanction" : "sanctions"}`,
-            }))}
-          />
-        </ChartCard>
-
-        {c && (
-          <ChartCard title="Commission breakdown" note="Due, claimed and received" empty={c.total === 0} emptyText="No commission in this period.">
-            <DonutChart
-              slices={[
-                { key: "due", label: "Due", value: c.due, display: formatCompact(c.due) },
-                { key: "claimed", label: "Claimed", value: c.claimed, display: formatCompact(c.claimed) },
-                { key: "received", label: "Received", value: c.received, display: formatCompact(c.received) },
-              ]}
-              centreValue={formatCompact(c.total)}
-              centreLabel="gross"
-              ariaLabel={`Commission of ${formatAmount(c.total)}: ${formatAmount(c.due)} due, ${formatAmount(c.claimed)} claimed, ${formatAmount(c.received)} received`}
-            />
-          </ChartCard>
-        )}
-
-        <ChartCard title="Conversion funnel" note="From enquiry to payout" empty={hub.funnel[0].count === 0} emptyText="No leads in this period.">
-          <HBarChart
-            ariaLabel="Conversion funnel: leads, files opened, logged in with a bank, sanctioned and disbursed"
-            rows={hub.funnel.map((st) => ({
-              key: st.key,
-              label: st.label,
-              value: st.count,
-              display: String(st.count),
-              sub: st.ofPrevious == null ? undefined : `${st.ofPrevious}% of the step before`,
-            }))}
-          />
-        </ChartCard>
-
-        <ChartCard title="Loan type breakdown" note="Files by loan type" empty={hub.loanTypes.length === 0} emptyText="No files in this period.">
-          <DonutChart
-            slices={hub.loanTypes.map((t, i) => ({ key: `${i}`, label: t.name, value: t.count, display: `${t.count} · ${formatCompact(t.amount)}` }))}
-            centreValue={String(hub.loanTypes.reduce((n, t) => n + t.count, 0))}
-            centreLabel="files"
-            ariaLabel={`Files by loan type: ${hub.loanTypes.map((t) => `${t.name} ${t.count}`).join(", ")}`}
-          />
-        </ChartCard>
-
-        <ChartCard
-          title="Why enquiries are lost"
-          note="Reasons recorded when a lead is closed"
-          empty={hub.lostReasons.length === 0}
-          emptyText="No lost leads in this period."
-          className="lg:col-span-2"
-        >
-          <HBarChart
-            ariaLabel="Reasons leads were lost"
-            rows={hub.lostReasons.map((r) => ({ key: r.reason, label: r.reason, value: r.count, display: String(r.count) }))}
-          />
-        </ChartCard>
-      </div>
+      <HubCharts hub={hub} />
 
       <div>
         <h2 className="mb-3 text-sm font-bold text-navy">Detailed reports</h2>
@@ -235,6 +144,105 @@ function HubBody({ hub }: { hub: Hub }) {
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Every chart on the hub: trends, pipeline, lenders, commission, funnel, loan types and lost reasons. Also shown on the Dashboard. */
+export function HubCharts({ hub }: { hub: Hub }) {
+  const months = hub.trends.map((t) => t.month);
+  const noTrend = hub.trends.every((t) => t.leads + t.files + t.sanctions + t.disbursals === 0);
+  const pipelineSlices = hub.pipeline.stages.map((s) => ({ key: s.key, label: s.label, value: s.count }));
+  const c = hub.commission;
+
+  return (
+    <div className="grid gap-5 lg:grid-cols-2">
+      <ChartCard title="Monthly trends" note="Last 6 months" empty={noTrend} emptyText="No leads, files, sanctions or disbursals in the last 6 months.">
+        <LineChart
+          months={months}
+          labels={hub.trends.map((t) => t.label)}
+          ariaLabel="Monthly trends for the last 6 months: leads, files, sanctions and disbursals"
+          series={[
+            { name: "Leads", color: SERIES[0], values: hub.trends.map((t) => t.leads) },
+            { name: "Files", color: SERIES[1], values: hub.trends.map((t) => t.files) },
+            { name: "Sanctions", color: SERIES[2], values: hub.trends.map((t) => t.sanctions) },
+            { name: "Disbursals", color: SERIES[3], values: hub.trends.map((t) => t.disbursals) },
+          ]}
+        />
+      </ChartCard>
+
+      <ChartCard title="File pipeline" note="Files by stage" empty={hub.pipeline.total === 0} emptyText="No files in this period.">
+        <DonutChart slices={pipelineSlices} centreValue={String(hub.pipeline.total)} centreLabel="files" ariaLabel={`File pipeline: ${hub.pipeline.total} files by stage`} />
+      </ChartCard>
+
+      <ChartCard
+        title="Lender performance"
+        note="Top by sanctioned amount"
+        empty={hub.lenders.length === 0}
+        emptyText="No sanctions from lenders in this period."
+        className={c ? undefined : "lg:col-span-2"}
+      >
+        <HBarChart
+          ariaLabel="Lenders by sanctioned amount"
+          rows={hub.lenders.map((l) => ({
+            key: l.lender,
+            label: l.lender,
+            value: l.sanctionedAmount,
+            display: formatCompact(l.sanctionedAmount),
+            sub: `${l.sanctions} ${l.sanctions === 1 ? "sanction" : "sanctions"}`,
+          }))}
+        />
+      </ChartCard>
+
+      {c && (
+        <ChartCard title="Commission breakdown" note="Due, claimed and received" empty={c.total === 0} emptyText="No commission in this period.">
+          <DonutChart
+            slices={[
+              { key: "due", label: "Due", value: c.due, display: formatCompact(c.due) },
+              { key: "claimed", label: "Claimed", value: c.claimed, display: formatCompact(c.claimed) },
+              { key: "received", label: "Received", value: c.received, display: formatCompact(c.received) },
+            ]}
+            centreValue={formatCompact(c.total)}
+            centreLabel="gross"
+            ariaLabel={`Commission of ${formatAmount(c.total)}: ${formatAmount(c.due)} due, ${formatAmount(c.claimed)} claimed, ${formatAmount(c.received)} received`}
+          />
+        </ChartCard>
+      )}
+
+      <ChartCard title="Conversion funnel" note="From enquiry to payout" empty={hub.funnel[0].count === 0} emptyText="No leads in this period.">
+        <HBarChart
+          ariaLabel="Conversion funnel: leads, files opened, logged in with a bank, sanctioned and disbursed"
+          rows={hub.funnel.map((st) => ({
+            key: st.key,
+            label: st.label,
+            value: st.count,
+            display: String(st.count),
+            sub: st.ofPrevious == null ? undefined : `${st.ofPrevious}% of the step before`,
+          }))}
+        />
+      </ChartCard>
+
+      <ChartCard title="Loan type breakdown" note="Files by loan type" empty={hub.loanTypes.length === 0} emptyText="No files in this period.">
+        <DonutChart
+          slices={hub.loanTypes.map((t, i) => ({ key: `${i}`, label: t.name, value: t.count, display: `${t.count} · ${formatCompact(t.amount)}` }))}
+          centreValue={String(hub.loanTypes.reduce((n, t) => n + t.count, 0))}
+          centreLabel="files"
+          ariaLabel={`Files by loan type: ${hub.loanTypes.map((t) => `${t.name} ${t.count}`).join(", ")}`}
+        />
+      </ChartCard>
+
+      <ChartCard
+        title="Why enquiries are lost"
+        note="Reasons recorded when a lead is closed"
+        empty={hub.lostReasons.length === 0}
+        emptyText="No lost leads in this period."
+        className="lg:col-span-2"
+      >
+        <HBarChart
+          ariaLabel="Reasons leads were lost"
+          rows={hub.lostReasons.map((r) => ({ key: r.reason, label: r.reason, value: r.count, display: String(r.count) }))}
+        />
+      </ChartCard>
     </div>
   );
 }
