@@ -71,8 +71,10 @@ sudo -u gcs crontab -e
 ```
 ```cron
 # 02:30 every night: dump the database, verify it, keep 30 days
-30 2 * * * BACKUP_DIR=/var/backups/gcs-crm /opt/gcs-crm/ops/backup.sh >> /var/log/gcs-crm-backup.log 2>&1
+30 2 * * * BACKUP_DIR=/var/backups/gcs-crm BACKUP_UPLOAD_CMD="node /opt/gcs-crm/ops/upload-to-b2.cjs" /opt/gcs-crm/ops/backup.sh >> /var/log/gcs-crm-backup.log 2>&1
 ```
+The off-server copy goes to a second B2 bucket with `ops/upload-to-b2.cjs`. Give it a **Write Only** key limited to that bucket, and put its settings in `/etc/gcs-crm-backup.env` (`B2_ENDPOINT`, `B2_REGION`, `B2_BACKUP_BUCKET`, `B2_BACKUP_KEY_ID`, `B2_BACKUP_APPLICATION_KEY`; owner root, group gcs, mode 640). The server can then send backups in but never read or permanently delete them.
+
 A backup on the same machine does not survive that machine. Copy it **off the server** too — set
 `BACKUP_UPLOAD_CMD` (for example `rclone copy --config /home/gcs/.config/rclone/rclone.conf` with a second B2 bucket
 or another provider as the destination; the file path is appended automatically).
