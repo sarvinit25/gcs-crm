@@ -104,7 +104,12 @@ export class IntakeService {
       extracted.wants_person = Boolean(extracted.wants_person) && WANTS_PERSON.test(raw);
       if (!ASKS_ABOUT.test(raw)) extracted.their_question = null;
     }
-    const saved = await this.apply(leadId, extracted, new Set(tap?.kind === "answer" ? [tap.key] : asked.map((a) => a.key)));
+    // A first message often says several things at once ("40 lakh home loan"); after that only what was asked counts, so a
+    // price or an EMI mentioned in passing is never taken for the loan amount.
+    const firstMessage = !turns.some((t) => t.role === "assistant");
+    const allowed = new Set(tap?.kind === "answer" ? [tap.key] : asked.map((a) => a.key));
+    if (firstMessage) ["loan_slug", "loan_amount", "name", "city"].forEach((k) => allowed.add(k));
+    const saved = await this.apply(leadId, extracted, allowed);
     // everything needed is in and an expert has been promised: a bare "thanks" needs no answer
     const lastTyped = [...turns].reverse().find((t) => t.role === "user")?.content ?? "";
     if (!tap && JUST_THANKS.test(lastTyped) && this.toAsk(await this.snapshot(leadId)).length === 0) return { text: null, handoff: false, silent: true };
@@ -226,6 +231,7 @@ ${JSON.stringify(asked)}${loans}
 Return: {"name": string|null, "city": string|null, "loan_slug": string|null, "loan_amount": number|null, "answers": [{"key": string, "value": string}], "wants_person": boolean, "shared_private_number": boolean, "their_question": string|null}
 Rules:
 - Fill only what the customer clearly said in their LATEST message(s) since the assistant last spoke, in answer to the questions above. Never guess and never infer from context: if their words do not state it, leave it out. Use null or [] otherwise.
+- Numbers may be written as Hindi or Marathi words, in English or Devanagari letters (ek, do, teen, paanch, das, pachchis, chabbis = 26, pachaas = 50, sau = 100; "chabbis lakh" = 26 lakh = 2600000; "डेढ़ करोड़" = 15000000). Convert them to a rupee number.
 - "answers": use the exact "key" from the list above. For a question with choices, "value" must be one of the choices, written exactly. The customer may write in Hindi, Marathi or Hinglish: translate their meaning to the matching choice. For amounts give a rupee number (40 lakh = 4000000, 2 crore = 20000000). For yes/no questions use "Yes" or "No".
 - Messages marked "(tapped)" are the customer's pick from a list we showed; the text after it is the option's title.
 - loan_slug: only if they clearly name a loan, or what it is for matches one loan; otherwise null.
@@ -258,13 +264,13 @@ Rules:
       data.city = city;
       saved.push("city");
     }
-    const amount = x.loan_amount !== null && x.loan_amount !== undefined ? parseMoney(String(x.loan_amount)) : null;
+    const amount = allowed.has("loan_amount") && x.loan_amount !== null && x.loan_amount !== undefined ? parseMoney(String(x.loan_amount)) : null;
     if (amount && amount > 0) {
       data.amount = amount;
       saved.push("loan amount");
       if (x.amount_range_label) await this.writeAnswer(leadId, "Loan amount asked (range chosen)", x.amount_range_label);
     }
-    const wanted = typeof x.loan_slug === "string" ? x.loan_slug.trim() : "";
+    const wanted = allowed.has("loan_slug") && typeof x.loan_slug === "string" ? x.loan_slug.trim() : "";
     if (wanted && loanFor(wanted)) {
       const product = await this.prisma.loanProduct.findUnique({ where: { slug: wanted }, select: { id: true } });
       if (product) {
@@ -382,7 +388,12 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
       body = raw.trim();
     }
     if (!body) return null;
-    const rows = options.choices.map((c, i) => ({ id: c.id, title: shorten(titles.length === options.choices.length && titles[i] ? titles[i]! : c.english, limit) }));
+    const rows = options.choices.map((c, i) => {
+      const title = shorten(titles.length === options.choices.length && titles[i] ? titles[i]! : c.english, limit);
+      // a list row can carry a longer line under its title: use it when the title had to be short
+      const full = options.kind === "list" && c.english.length > title.length && c.english.length <= 72 ? { description: c.english } : {};
+      return { id: c.id, title, ...full };
+    });
     const content: Interactive =
       options.kind === "buttons"
         ? { kind: "buttons", body, buttons: rows }

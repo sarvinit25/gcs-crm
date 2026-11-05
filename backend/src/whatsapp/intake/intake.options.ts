@@ -88,9 +88,11 @@ export function optionsFor(key: string, field?: Pick<IntakeField, "kind" | "opti
   }
   const options = field?.options;
   if (field && (field.kind === "choice") && options && options.length >= 2 && options.length <= 10) {
+    // buttons cannot carry a longer line, so they are used only when every choice fits in 20 characters
+    const asButtons = options.length <= 3 && options.every((o) => o.length <= 20);
     return {
-      kind: options.length <= 3 ? "buttons" : "list",
-      titleLimit: options.length <= 3 ? 20 : 24,
+      kind: asButtons ? "buttons" : "list",
+      titleLimit: asButtons ? 20 : 24,
       choices: options.map((o, i) => ({ id: `ans|${key}|${i}`, value: o, english: o })),
     };
   }

@@ -44,6 +44,12 @@ const PERSONAS = [
     about:
       "You are Neha Sharma, who runs a boutique in Mumbai (Andheri) and writes in Hindi (Devanagari script). You want a business loan of about 20 lakh. Answer in Hindi, one short line at a time, and tap the options when they fit.",
   },
+  {
+    phone: "9000000016",
+    opening: "hi",
+    about:
+      "You are Rohan Mehta in Mumbai, who wants a new car loan. When you are offered amount choices, pick 'Type the exact amount' and then type the amount in Hindi words exactly like: chabbis lakh. The car is a Kia with an on-road price of 43 lakh and you can put in about 17 lakh. You are salaried, take-home 65000. Reply briefly in English or Hinglish and tap options when they fit.",
+  },
 ] as const;
 
 async function pretendCustomer(persona: string, transcript: { who: "gia" | "me"; text: string }[], offered: string[]) {
