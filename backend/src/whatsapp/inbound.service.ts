@@ -6,6 +6,7 @@ import { SettingsService } from "../settings/settings.service";
 import { LeadsService } from "../leads/leads.service";
 import { AssistantService, type ChatMessage as ChatTurn } from "../assistant/assistant.service";
 import { ConversationsService } from "./conversations.service";
+import { IntakeService } from "./intake/intake.service";
 import { WHATSAPP_PROVIDER, type WhatsAppProvider } from "./whatsapp.provider";
 import { contactKey, toWaId } from "./phone";
 import { STAGE_LABEL } from "./templates.util";
@@ -49,6 +50,7 @@ export class InboundService {
     private conversations: ConversationsService,
     private leads: LeadsService,
     private assistant: AssistantService,
+    private intake: IntakeService,
     @Inject(WHATSAPP_PROVIDER) private provider: WhatsAppProvider,
   ) {}
 
@@ -225,6 +227,21 @@ export class InboundService {
     const company = this.settings.get<string>("org.name") || "Growth Capital Services";
     let reply: string | null = null;
     let flag = false;
+
+    // Gia, when switched on, takes the conversation: she asks the website's questions and saves the answers on the lead.
+    // "status" and a request for a person still work as before. If she cannot answer, the lines below take over.
+    const wantsPerson = /^(agent|human|person|callback|call me|talk to)\b/.test(text);
+    if (m.type === "text" && text !== "status" && !wantsPerson && this.intake.enabled()) {
+      const ai = await this.intake.reply({ id: conversation.id, leadId: conversation.leadId, name: conversation.name });
+      if (ai.text) {
+        if (ai.handoff) await this.prisma.whatsAppConversation.update({ where: { id: conversation.id }, data: { needsHuman: true } });
+        const sent = await this.say(phone, ai.text);
+        if (sent) {
+          await this.conversations.recordOutbound({ conversationId: conversation.id, sender: WhatsAppSender.BOT, type: "text", body: ai.text, waMessageId: sent.waMessageId });
+        }
+        return;
+      }
+    }
 
     if (m.type !== "text") {
       reply = "Thank you — we've received it. A team member will look at it and reply here shortly.";

@@ -8,7 +8,7 @@ const MAX_ANSWERS = 80;
 /** Identity numbers stay in the lead's own protected fields, not in the answers table. */
 const SENSITIVE = /(^|-)(pan|aadhaar|aadhar|otp|password|dob)(-|$)|date-of-birth/;
 
-const slug = (label: string) =>
+export const slug = (label: string) =>
   label
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
