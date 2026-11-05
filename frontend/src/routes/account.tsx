@@ -6,6 +6,7 @@ import { api, tokenStore } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { ROLE_LABEL } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
+import { PasswordInput } from "../components/password-input";
 
 /** Sets a new password. Used on the Account page and as the screen a new account is forced through. */
 export function ChangePasswordForm({ onDone }: { onDone?: () => void }) {
@@ -35,16 +36,16 @@ export function ChangePasswordForm({ onDone }: { onDone?: () => void }) {
     >
       <label className="block text-[13px] font-semibold text-navy">
         Current password
-        <input type="password" required autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} className="field mt-1.5 font-normal" />
+        <PasswordInput required autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} className="field font-normal" wrapperClassName="mt-1.5" />
       </label>
       <label className="block text-[13px] font-semibold text-navy">
         New password
-        <input type="password" required minLength={10} autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} className="field mt-1.5 font-normal" />
+        <PasswordInput required minLength={10} autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} className="field font-normal" wrapperClassName="mt-1.5" />
         <span className="mt-1 block text-[12px] font-normal text-muted">At least 10 characters. A few random words is stronger than clever symbols.</span>
       </label>
       <label className="block text-[13px] font-semibold text-navy">
         Type it again
-        <input type="password" required autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} className="field mt-1.5 font-normal" />
+        <PasswordInput required autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} className="field font-normal" wrapperClassName="mt-1.5" />
       </label>
       {mismatch && <p className="text-[13px] text-red-600">The two passwords don't match.</p>}
       {change.isError && <p className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">{(change.error as Error).message}</p>}
@@ -107,7 +108,7 @@ function TwoFactor() {
           className="mt-4 max-w-sm space-y-3"
         >
           <p className="text-[12px] font-semibold text-muted">To turn it off, confirm it's you</p>
-          <input type="password" required placeholder="Your password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="field" />
+          <PasswordInput required placeholder="Your password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           <input required inputMode="numeric" placeholder="6-digit code" maxLength={7} value={code} onChange={(e) => setCode(e.target.value)} className="field font-mono tracking-widest" />
           {disable.isError && <p className="text-[13px] text-red-600">{(disable.error as Error).message}</p>}
           <button type="submit" disabled={disable.isPending} className="btn-ghost">

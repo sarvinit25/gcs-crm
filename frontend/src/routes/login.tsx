@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "../lib/auth";
+import { PasswordInput } from "../components/password-input";
 
 export function LoginPage() {
   const { login, verifyTwoFactor, cancelTwoFactor } = useAuth();
@@ -64,13 +65,13 @@ export function LoginPage() {
 
               <label className="mt-4 block text-[13px] font-semibold text-navy">
                 Password
-                <input
-                  type="password"
+                <PasswordInput
                   required
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="field mt-1.5 font-normal"
+                  className="field font-normal"
+                  wrapperClassName="mt-1.5"
                 />
               </label>
             </>

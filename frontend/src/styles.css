@@ -331,3 +331,15 @@ main [id] {
     border: 0;
   }
 }
+
+/* The eye toggle replaces the browser's own password-reveal and autofill icons, which would sit on top of it. */
+.password-box input::-ms-reveal,
+.password-box input::-ms-clear {
+  display: none;
+}
+.password-box input::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}

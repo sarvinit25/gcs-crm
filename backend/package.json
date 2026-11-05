@@ -11,6 +11,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "seed": "ts-node prisma/seed.ts",
+    "reset:admin": "ts-node prisma/reset-admin-password.ts",
     "backfill:answers": "ts-node prisma/backfill-lead-answers.ts",
     "test": "jest",
     "test:watch": "jest --watch",
