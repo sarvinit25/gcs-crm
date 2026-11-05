@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Loader2, Send, Sparkles, X } from "lucide-react";
+import { Loader2, Send, X } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
+import { GiaOrb, type GiaMood } from "./gia-orb";
 
 // `content` is what is shown. `raw` is what goes back to the assistant as history: it still holds placeholders where
 // a PAN or date of birth was shown, so those numbers are never sent to the AI service.
@@ -21,6 +22,8 @@ export function AskAi() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
+  // a short bright flare when an answer arrives
+  const [flare, setFlare] = useState(false);
   const end = useRef<HTMLDivElement>(null);
 
   const status = useQuery({
@@ -36,13 +39,25 @@ export function AskAi() {
         method: "POST",
         body: JSON.stringify({ messages: history.map((m) => ({ role: m.role, content: m.raw ?? m.content })) }),
       }),
-    onSuccess: ({ reply, raw }) => setMessages((m) => [...m, { role: "assistant", content: reply, raw: raw ?? reply }]),
+    onSuccess: ({ reply, raw }) => {
+      setMessages((m) => [...m, { role: "assistant", content: reply, raw: raw ?? reply }]);
+      setFlare(true);
+    },
     onError: (e) => setError((e as Error).message),
   });
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: "end" });
   }, [messages, ask.isPending, open]);
+
+  useEffect(() => {
+    if (!flare) return;
+    const t = window.setTimeout(() => setFlare(false), 2500);
+    return () => window.clearTimeout(t);
+  }, [flare]);
+
+  // The ring around the G shows what the assistant is doing: swirling fast while it looks things up, calm when idle.
+  const mood: GiaMood = error ? "concerned" : ask.isPending ? "thinking" : flare ? "joy" : "idle";
 
   const send = (text: string) => {
     const content = text.trim();
@@ -59,17 +74,29 @@ export function AskAi() {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label={open ? "Close the assistant" : "Ask the assistant"}
-        className="no-print fixed right-4 bottom-4 z-40 flex items-center gap-2 rounded-full bg-navy px-4 py-3 text-[13px] font-semibold text-white shadow-lg transition hover:bg-navy/90"
+        className="no-print fixed right-4 bottom-4 z-40 flex h-[72px] items-center gap-2.5 rounded-full bg-navy px-2 pr-5 text-white shadow-lg ring-1 ring-gold/50 transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
       >
-        {open ? <X className="h-4 w-4" /> : <Sparkles className="h-4 w-4 text-gold" />}
-        {open ? "Close" : "Ask AI"}
+        {open ? (
+          <span className="grid h-16 w-16 place-items-center">
+            <X className="h-5 w-5" />
+          </span>
+        ) : (
+          <GiaOrb mood={mood} tone="dark" className="h-16 w-16" />
+        )}
+        <span className="text-left">
+          <span className="block text-sm leading-tight font-bold">{open ? "Close" : "Ask Gia"}</span>
+          <span className="block text-[10px] text-white/70">{open ? "the assistant" : "AI assistant"}</span>
+        </span>
       </button>
 
       {open && (
-        <div className="no-print card pop-enter fixed right-4 bottom-20 z-40 flex h-[32rem] max-h-[calc(100vh-7rem)] w-[24rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden shadow-xl">
-          <div className="border-b border-line px-4 py-3">
-            <p className="text-[13px] font-bold text-navy">Ask about a client or your pipeline</p>
-            <p className="text-[11px] text-muted">It only reads. It shows what you can already see in the CRM.</p>
+        <div className="no-print card pop-enter fixed right-4 bottom-[6.25rem] z-40 flex h-[32rem] max-h-[calc(100vh-8rem)] w-[24rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden shadow-xl">
+          <div className="flex items-center gap-3 bg-navy px-4 py-3 text-white">
+            <GiaOrb mood={mood} tone="dark" className="h-[52px] w-[52px]" />
+            <div className="min-w-0">
+              <p className="text-[14px] leading-tight font-bold">Gia</p>
+              <p className="mt-0.5 text-[11px] text-white/70">Ask about a client or your pipeline. It only reads.</p>
+            </div>
           </div>
 
           <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-[13px]">
