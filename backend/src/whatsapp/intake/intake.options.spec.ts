@@ -7,6 +7,10 @@ describe("tap-to-choose options", () => {
     expect(parseTap("amt|3750000")).toEqual({ kind: "amount", value: 3_750_000, label: "₹25 – 50 lakh" });
     expect(parseTap("amt|type")).toEqual({ kind: "amount-type" });
     expect(parseTap("ans|yearsRunning|2")).toEqual({ kind: "answer", key: "yearsRunning", index: 2 });
+    expect(parseTap("you|0")).toEqual({ kind: "you", index: 0 });
+    expect(parseTap("you|9")).toBeNull();
+    expect(parseTap("more|yes")).toEqual({ kind: "more", yes: true });
+    expect(parseTap("more|no")).toEqual({ kind: "more", yes: false });
     expect(parseTap("junk")).toBeNull();
     expect(parseTap("amt|12345")).toBeNull();
     expect(parseTap(undefined)).toBeNull();

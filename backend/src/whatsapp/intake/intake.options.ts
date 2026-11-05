@@ -21,6 +21,15 @@ export const MAIN_LOANS: { slug: string; title: string }[] = [
   { slug: "education-infrastructure-loan", title: "School / College Funding" },
 ];
 
+/** The website's "You Are" list, so a lead from WhatsApp says the same thing as one from the form. */
+export const YOU_ARE = ["Salaried", "Proprietor", "Partner", "Director", "Professional", "NRI", "Other"];
+
+/** The two buttons that ask whether the customer will answer more questions. */
+export const MORE_CHOICES = [
+  { id: "more|yes", value: "Yes", english: "Yes, continue" },
+  { id: "more|no", value: "No", english: "Not now" },
+];
+
 /** Ranges of loan amount to pick from. The number is a middle figure that goes on the lead; the exact amount can follow. */
 export const AMOUNT_RANGES: { value: number; label: string }[] = [
   { value: 500_000, label: "Up to ₹5 lakh" },
@@ -38,6 +47,8 @@ export type Tap =
   | { kind: "loan-other" }
   | { kind: "amount"; value: number; label: string }
   | { kind: "amount-type" }
+  | { kind: "you"; index: number }
+  | { kind: "more"; yes: boolean }
   | { kind: "answer"; key: string; index: number };
 
 export function parseTap(id: string | undefined): Tap | null {
@@ -51,6 +62,8 @@ export function parseTap(id: string | undefined): Tap | null {
     const range = AMOUNT_RANGES.find((r) => r.value === value);
     return Number.isFinite(value) && range ? { kind: "amount", value, label: range.label } : null;
   }
+  if (kind === "you" && a !== undefined && Number.isInteger(Number(a)) && Number(a) >= 0 && Number(a) < YOU_ARE.length) return { kind: "you", index: Number(a) };
+  if (kind === "more" && (a === "yes" || a === "no")) return { kind: "more", yes: a === "yes" };
   if (kind === "ans" && a && b !== undefined && Number.isInteger(Number(b))) return { kind: "answer", key: a, index: Number(b) };
   return null;
 }
@@ -76,6 +89,10 @@ export function optionsFor(key: string, field?: Pick<IntakeField, "kind" | "opti
       ],
     };
   }
+  if (key === "applicant") {
+    return { kind: "list", titleLimit: 24, choices: YOU_ARE.map((v, i) => ({ id: `you|${i}`, value: v, english: v })) };
+  }
+  if (key === "more_details") return { kind: "buttons", titleLimit: 20, choices: MORE_CHOICES };
   if (key === "loan_amount") {
     return {
       kind: "list",
