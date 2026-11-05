@@ -35,8 +35,9 @@ Postgres listens on localhost only by default — leave it that way.
 sudo git clone https://github.com/sarvinit25/gcs-crm.git /opt/gcs-crm && sudo chown -R gcs:gcs /opt/gcs-crm
 cd /opt/gcs-crm/backend
 sudo -u gcs cp ../ops/backend.env.production.example .env && sudo -u gcs nano .env     # fill every blank
-
-> `SECRETS_ENCRYPTION_KEY` encrypts two-step login secrets. Store a copy with your backups (but apart from the database dump) — without it, every two-step login has to be reset by a Super Admin.sudo -u gcs npm ci && sudo -u gcs npx prisma migrate deploy && sudo -u gcs npm run build
+# SECRETS_ENCRYPTION_KEY encrypts two-step login secrets. Store a copy with your backups (but apart from the database
+# dump) - without it, every two-step login has to be reset by a Super Admin.
+sudo -u gcs npm ci && sudo -u gcs npx prisma migrate deploy && sudo -u gcs npm run build
 sudo -u gcs npx ts-node --compiler-options '{"module":"commonjs"}' prisma/seed.ts       # loads products, lenders, first admin
 ```
 The seed prints the first admin login. **That password must be changed on first sign-in** (the app forces it). Turn on
@@ -70,8 +71,10 @@ sudo -u gcs crontab -e
 ```
 ```cron
 # 02:30 every night: dump the database, verify it, keep 30 days
-30 2 * * * BACKUP_DIR=/var/backups/gcs-crm /opt/gcs-crm/ops/backup.sh >> /var/log/gcs-crm-backup.log 2>&1
+30 2 * * * BACKUP_DIR=/var/backups/gcs-crm BACKUP_UPLOAD_CMD="node /opt/gcs-crm/ops/upload-to-b2.cjs" /opt/gcs-crm/ops/backup.sh >> /var/log/gcs-crm-backup.log 2>&1
 ```
+The off-server copy goes to a second B2 bucket with `ops/upload-to-b2.cjs`. Give it a **Write Only** key limited to that bucket, and put its settings in `/etc/gcs-crm-backup.env` (`B2_ENDPOINT`, `B2_REGION`, `B2_BACKUP_BUCKET`, `B2_BACKUP_KEY_ID`, `B2_BACKUP_APPLICATION_KEY`; owner root, group gcs, mode 640). The server can then send backups in but never read or permanently delete them.
+
 A backup on the same machine does not survive that machine. Copy it **off the server** too — set
 `BACKUP_UPLOAD_CMD` (for example `rclone copy --config /home/gcs/.config/rclone/rclone.conf` with a second B2 bucket
 or another provider as the destination; the file path is appended automatically).

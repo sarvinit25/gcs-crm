@@ -974,6 +974,54 @@
         }
       ]
     },
+    "education-infrastructure-loan": {
+      "title": "Education Infrastructure Loan",
+      "tagline": "Funding for schools and institutions to build and grow.",
+      "about": "Funding for schools and education institutions that want to build, expand or improve their campus. There are three programmes: unsecured funding for schools, secured funding for schools, and secured funding for institutions that run higher education courses. The one that suits you depends on the size of the institution, how long it has been running, and whether you can offer property as security. We compare the options from our lender partners, prepare your file, and follow it through. Interest rate, loan amount, tenure and approval depend on the lender's policy and the assessment of your institution.",
+      "features": [
+        "Three programmes, so there is an option with or without property as security",
+        "Longer repayment, up to 15 years, on the secured programmes",
+        "Assessed on the institution's reported income",
+        "Simple documentation, subject to the lender's policy",
+        "Our team compares lenders, prepares your file and follows it up"
+      ],
+      "eligibility": [
+        "A school, college or education institute run by a trust, a society, a company, a firm or an owner",
+        "Affiliation or recognition from the right board or authorised body",
+        "A minimum student strength, from 200 to 400 depending on the programme",
+        "A minimum number of years running, from 3 to 5 depending on the programme",
+        "Income that can be shown on paper, with audited accounts and tax returns",
+        "Property to offer as security, for the secured programmes",
+        "A clean repayment record on the institution's existing loans helps"
+      ],
+      "documents": [
+        "KYC of every trustee, director, partner or proprietor",
+        "Affiliation certificate and proof of student strength",
+        "Audited financials and tax returns, and 12 months' bank statements"
+      ],
+      "facts": [
+        {
+          "label": "Loan amount",
+          "value": "₹10 Lakh to ₹10 Cr*"
+        },
+        {
+          "label": "Tenure",
+          "value": "Up to 15 years*"
+        },
+        {
+          "label": "Security",
+          "value": "With or without property*"
+        },
+        {
+          "label": "For",
+          "value": "Schools and education institutions"
+        },
+        {
+          "label": "Minimum ticket size",
+          "value": "₹10 Lakh"
+        }
+      ]
+    },
     "new-car-loan": {
       "title": "New Car Loan",
       "tagline": "From showroom to driveway, fully funded.",
@@ -1271,14 +1319,14 @@
       "slug": "home-loan-non-conventional-income",
       "group": "Home & Property",
       "category": "Home Loan · Non-Conventional Income",
-      "headline": "₹2.4 crore sanctioned — no salary slip, no problem",
-      "amountLabel": "₹2.4 Crore",
+      "headline": "₹40 lakhs sanctioned — no salary slip, no problem",
+      "amountLabel": "₹40 Lakhs",
       "productSlug": "home-loan",
       "productLabel": "Home Loan",
       "clientProfile": "A self-employed architect running an established design practice in Thane, with strong monthly billings but no salary slip and income that varies year to year.",
       "challenge": "Two banks rejected the application at the initial screening stage, citing \"income not verifiable\" — a common outcome for self-employed applicants whose income doesn't fit a standard salaried-income template.",
       "structuring": "GCS reviewed 18 months of banking activity and client-billing records alongside the applicant's ITRs, and matched the profile with a lender whose underwriting norms specifically accommodate self-employed and professional income assessed on banking turnover rather than salary slips.",
-      "outcome": "₹2.4 crore home loan sanctioned by the matched lender, against the client's target property in Thane.",
+      "outcome": "₹40 lakh home loan sanctioned by the matched lender, against the client's target property in Thane.",
       "visible": true
     },
     {
@@ -1864,9 +1912,9 @@
     "email": "connect.gcs@growthcapitalservices.in",
     "address": "Avadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084",
     "hours": "Monday to Saturday · 10:00 AM – 6:00 PM",
-    "reportPrice": 500,
+    "reportPrice": 549,
     "upiId": "",
-    "upiName": "Growth Capital Services",
+    "upiName": "Mahesh Ghadge",
     "facebook": "",
     "instagram": "",
     "linkedin": "",
@@ -2216,6 +2264,12 @@
       "description": ""
     },
     {
+      "path": "/services/education-infrastructure-loan",
+      "label": "Loan: Education Infrastructure Loan",
+      "title": "",
+      "description": ""
+    },
+    {
       "path": "/services/new-car-loan",
       "label": "Loan: New Car Loan",
       "title": "",
@@ -2421,7 +2475,7 @@
     },
     {
       "path": "/case-studies/home-loan-non-conventional-income",
-      "label": "Case study: ₹2.4 crore sanctioned — no salary slip, no problem",
+      "label": "Case study: ₹40 lakhs sanctioned — no salary slip, no problem",
       "title": "",
       "description": ""
     },
@@ -3014,7 +3068,7 @@
     ],
     "services.stats": [
       {
-        "value": "27+",
+        "value": "28+",
         "label": "Loan Products"
       },
       {
@@ -3204,10 +3258,6 @@
         "to": "/rates"
       },
       {
-        "label": "Insights",
-        "to": "/insights"
-      },
-      {
         "label": "CIBIL Report",
         "to": "/cibil"
       },
@@ -3354,6 +3404,10 @@
       {
         "title": "Education Loan",
         "slug": "education-loan"
+      },
+      {
+        "title": "Education Infrastructure Loan",
+        "slug": "education-infrastructure-loan"
       },
       {
         "title": "New Car Loan",
@@ -4111,6 +4165,11 @@
         "visible": "yes"
       },
       {
+        "title": "Education Infrastructure Loan",
+        "slug": "education-infrastructure-loan",
+        "visible": "yes"
+      },
+      {
         "title": "New Car Loan",
         "slug": "new-car-loan",
         "visible": "yes"
@@ -4353,6 +4412,72 @@
         "placeholder": "",
         "amount": "",
         "key": "country",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "education-infrastructure-loan",
+        "label": "Loan Amount Required",
+        "type": "text",
+        "options": "",
+        "placeholder": "e.g. 2,00,00,000",
+        "amount": "yes",
+        "key": "loanAmount",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "education-infrastructure-loan",
+        "label": "Name of the Institution",
+        "type": "text",
+        "options": "",
+        "placeholder": "",
+        "amount": "",
+        "key": "institutionName",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "education-infrastructure-loan",
+        "label": "Type of Institution",
+        "type": "select",
+        "options": "School, College or higher education institute, Other",
+        "placeholder": "",
+        "amount": "",
+        "key": "institutionType",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "education-infrastructure-loan",
+        "label": "How is it run?",
+        "type": "select",
+        "options": "Trust, Society, Company, Partnership or LLP, Proprietorship, Other",
+        "placeholder": "",
+        "amount": "",
+        "key": "runBy",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "education-infrastructure-loan",
+        "label": "Number of Students",
+        "type": "text",
+        "options": "",
+        "placeholder": "",
+        "amount": "",
+        "key": "studentStrength",
+        "showWhenKey": "",
+        "showWhenValues": ""
+      },
+      {
+        "slug": "education-infrastructure-loan",
+        "label": "Will you offer property as security?",
+        "type": "select",
+        "options": "Yes, No, Not sure",
+        "placeholder": "",
+        "amount": "",
+        "key": "securityOffered",
         "showWhenKey": "",
         "showWhenValues": ""
       },
@@ -9734,7 +9859,7 @@
     "short.clients": "Why Clients Choose This",
     "qualify.title": "Do you qualify?",
     "qualify.which": "Which One Are You",
-    "docs.title": "Documents Required",
+    "docs.title": "Documents Required (Checklist)",
     "why.eyebrow": "Why Growth Capital Services",
     "why.title": "One conversation, many lenders to compare.",
     "why.body": "We are a loan consultant, not the lender. We help you compare options from 75+ Banks and NBFCs, prepare your documents, and follow your application through each step.",
@@ -9838,7 +9963,7 @@
         {
           "id": "docs.title",
           "label": "Heading of the documents box",
-          "text": "Documents Required"
+          "text": "Documents Required (Checklist)"
         }
       ]
     },

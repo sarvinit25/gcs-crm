@@ -2,6 +2,17 @@
 // Only product-specific sections are listed; universal KYC and the profile-based
 // income sets live in seed.ts. [productSlug, label, category]
 export const PRODUCT_CHECKLIST_ITEMS: [string, string, string][] = [
+  // education-infrastructure-loan
+  ["education-infrastructure-loan", "Trust deed or society registration, or incorporation papers with MOA & AOA, or partnership deed", "Business proof"],
+  ["education-infrastructure-loan", "Resolution or consent to borrow, and to offer the property as security", "Business proof"],
+  ["education-infrastructure-loan", "Recognition and affiliation certificate", "Business proof"],
+  ["education-infrastructure-loan", "Proof of student strength — enrolment register or latest returns", "Business proof"],
+  ["education-infrastructure-loan", "Fee structure and last 12 months' fee collection records", "Business proof"],
+  ["education-infrastructure-loan", "Audited financial statements of the institution — latest 3 years", "Income proof"],
+  ["education-infrastructure-loan", "ITR with computation of income — latest 3 years", "Income proof"],
+  ["education-infrastructure-loan", "Institution bank statements — latest 12 months", "Bank statement"],
+  ["education-infrastructure-loan", "Purpose of the loan, cost estimate, and approved plans or quotations", "Business proof"],
+  ["education-infrastructure-loan", "Property papers — conveyance deed, title documents and tax receipts (secured programmes)", "Property papers"],
   // education-loan
   ["education-loan", "10th, 12th & graduation mark sheets", "KYC"],
   ["education-loan", "Entrance exam scorecard — GMAT / GRE / IELTS / TOEFL, etc.", "KYC"],

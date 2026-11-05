@@ -1,0 +1,4 @@
+# Scripts and service files run on Linux: always keep Unix line endings, whatever the machine they were saved on.
+*.sh text eol=lf
+ops/*.service text eol=lf
+ops/*.example text eol=lf
