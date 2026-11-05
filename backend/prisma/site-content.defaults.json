@@ -9859,7 +9859,7 @@
     "short.clients": "Why Clients Choose This",
     "qualify.title": "Do you qualify?",
     "qualify.which": "Which One Are You",
-    "docs.title": "Documents Required",
+    "docs.title": "Documents Required (Checklist)",
     "why.eyebrow": "Why Growth Capital Services",
     "why.title": "One conversation, many lenders to compare.",
     "why.body": "We are a loan consultant, not the lender. We help you compare options from 75+ Banks and NBFCs, prepare your documents, and follow your application through each step.",
@@ -9963,7 +9963,7 @@
         {
           "id": "docs.title",
           "label": "Heading of the documents box",
-          "text": "Documents Required"
+          "text": "Documents Required (Checklist)"
         }
       ]
     },
