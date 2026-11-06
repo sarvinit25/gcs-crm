@@ -264,7 +264,7 @@ export class InboundService {
       let kind = m.type;
       if (m.mediaId && conversation.leadId) {
         const result = await this.media.save({ leadId: conversation.leadId, mediaId: m.mediaId, fileName: m.fileName, caption: m.caption });
-        kind = result.saved ? "saved" : `not_saved_${result.reason}`;
+        kind = result.saved ? `saved_${m.type}` : `not_saved_${result.reason}`;
       }
       const ai = await this.intake.reply({ id: conversation.id, leadId: conversation.leadId, name: conversation.name }, undefined, kind);
       if (ai.text) {
