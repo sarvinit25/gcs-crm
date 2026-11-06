@@ -204,7 +204,7 @@ export const SETTINGS: SettingDef[] = [
     group: "Organisation",
     label: "WhatsApp number",
     type: "phone",
-    default: "8828001700",
+    default: "8828003900",
     publicFacing: true,
   },
   {
