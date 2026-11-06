@@ -145,6 +145,8 @@ export type LeadDetail = Lead & {
   application: { id: string; applicationNo: string; status: string } | null;
   /** What the visitor answered on the website forms, one row per question. */
   answers?: { key: string; label: string; value: string; stage: string; updatedAt: string }[];
+  /** Files the customer sent (for example a PDF on WhatsApp). */
+  files?: { id: string; fileName: string; mimeType: string; sizeBytes: number; source: string; caption: string | null; createdAt: string }[];
 };
 
 export type Paginated<T> = { items: T[]; total: number; page: number; pageSize: number };

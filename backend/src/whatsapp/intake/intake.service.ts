@@ -108,7 +108,7 @@ export class IntakeService {
     // A file, photo or voice note cannot be read here: nothing is learned from it, and the same question is asked again.
     const extracted: Extracted | null = media ? { sent_file: media } : tap ? this.fromTap(tap, before) : await this.extract(turns, asked, before);
     if (!extracted) return { text: null, handoff: true };
-    if (media && ["document", "image", "video"].includes(media)) await this.writeAnswer(leadId, "Tried to send a file on WhatsApp", `${media} (not saved: ask for documents on the call)`);
+    if (media && !["saved", "audio", "sticker"].includes(media)) await this.writeAnswer(leadId, "Tried to send a file on WhatsApp", `${media.replace(/_/g, " ")} (not kept: ask for it on the call)`);
     // These are decided on the customer's LATEST typed message only, in code, so an old message cannot keep raising them.
     if (!tap && !media) {
       const latest = await this.prisma.whatsAppMessage.findFirst({
@@ -387,7 +387,12 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
       );
     }
     if (x.sent_file === "audio") lines.push("They sent a voice note, which you cannot listen to here. Kindly say so and ask them to type, or tap an option, instead. Then ask the question again.");
-    else if (x.sent_file) lines.push("They sent a file or photo instead of answering. Kindly say you cannot open files here and there is no need to send documents now: our expert will collect them safely later. Then ask the question again.");
+    else if (x.sent_file === "saved") lines.push("They sent a document or photo and it has been saved safely on their file. Thank them warmly in one line, say our expert will look at it, and that they need not send anything else for now. Then ask the question again.");
+    else if (x.sent_file === "not_saved_unsupported") lines.push("They sent a file that could not be kept (only PDF, JPG, PNG, WebP or HEIC work). Kindly ask them to send it again as a PDF or a clear photo, or say our expert will collect it later. Then ask the question again.");
+    else if (x.sent_file === "not_saved_too_large") lines.push("They sent a file that is too big (the limit is 15 MB). Kindly ask them to send a smaller one or a photo, or say our expert will collect it later. Then ask the question again.");
+    else if (x.sent_file === "not_saved_failed") lines.push("They sent a file but it could not be saved just now. Apologise briefly, ask them to try once more, or say our expert will collect it later. Then ask the question again.");
+    else if (x.sent_file === "video") lines.push("They sent a video, which cannot be opened here. Kindly ask for a photo or PDF instead, or say our expert will collect it later. Then ask the question again.");
+    else if (x.sent_file) lines.push("They sent something that cannot be opened here. Kindly say so and ask them to type or tap an option instead. Then ask the question again.");
     if (x.shared_private_number) lines.push("They sent a private number (it was hidden from you). Tell them kindly not to share such numbers here.");
     if (x.their_question) lines.push(`They asked: "${x.their_question}". Answer in one or two safe sentences (no promises), then continue.`);
     if (!saved.length && plan.kind === "ask" && !x.typing && !x.sent_file && !first) lines.push("They did not answer the last question. Ask it again in simpler words, in a friendly way.");

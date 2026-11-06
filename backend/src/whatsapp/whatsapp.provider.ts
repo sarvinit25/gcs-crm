@@ -51,6 +51,8 @@ export interface WhatsAppProvider {
   readonly requiresApproval: boolean;
   sendText(to: string, body: string): Promise<SendResult>;
   sendInteractive(to: string, content: Interactive): Promise<SendResult>;
+  /** Downloads a file the customer sent, by the id WhatsApp gave it. The link WhatsApp hands out expires within minutes. */
+  downloadMedia(mediaId: string): Promise<{ data: Buffer; mimeType: string }>;
   /** Marks the customer's message as read (blue ticks) and shows "typing..." to them until we reply (up to about 25 seconds). Never throws. */
   showTyping(messageId: string): Promise<void>;
   sendTemplate(to: string, name: string, language: string, params: string[]): Promise<SendResult>;
@@ -122,6 +124,22 @@ export class MetaCloudProvider implements WhatsAppProvider {
       body: { messaging_product: "whatsapp", to, type: "text", text: { body, preview_url: false } },
     });
     return { waMessageId: res.messages?.[0]?.id ?? "" };
+  }
+
+  async downloadMedia(mediaId: string) {
+    // two steps: the id gives a short-lived link, and the link gives the file (both need the token)
+    const meta = await this.call<{ url?: string; mime_type?: string; file_size?: number }>(`/${encodeURIComponent(mediaId)}`);
+    if (!meta.url) throw new ProviderError("WhatsApp did not give a link for that file");
+    if ((meta.file_size ?? 0) > 16 * 1024 * 1024) throw new ProviderError("That file is too large");
+    let res: Response;
+    try {
+      res = await fetch(meta.url, { headers: { authorization: `Bearer ${env("WHATSAPP_ACCESS_TOKEN")}` }, signal: AbortSignal.timeout(30_000) });
+    } catch {
+      throw new ProviderError("Could not download the file from WhatsApp");
+    }
+    if (!res.ok) throw new ProviderError(`WhatsApp refused the download (${res.status})`);
+    const data = Buffer.from(await res.arrayBuffer());
+    return { data, mimeType: meta.mime_type ?? "application/octet-stream" };
   }
 
   async showTyping(messageId: string) {
@@ -265,6 +283,10 @@ export class SandboxWhatsAppProvider implements WhatsAppProvider {
   async showTyping() {
     // nothing to show in the sandbox
   }
+  async downloadMedia() {
+    // a tiny but real PDF, so the whole path can be tried without Meta
+    return { data: Buffer.from("%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n"), mimeType: "application/pdf" };
+  }
   async sendInteractive(to: string, content: Interactive) {
     this.sent.push({ to, kind: "interactive", body: content.body, interactive: content });
     return { waMessageId: `sandbox.${++this.counter}` };
@@ -306,6 +328,9 @@ export class UnconfiguredWhatsAppProvider implements WhatsAppProvider {
   }
   async showTyping() {
     // not connected: nothing to show
+  }
+  downloadMedia(): Promise<{ data: Buffer; mimeType: string }> {
+    return this.fail();
   }
   sendTemplate(): Promise<SendResult> {
     return this.fail();

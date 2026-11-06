@@ -393,6 +393,7 @@ model Lead {
   followUps           FollowUp[]
   submissions         WebsiteSubmission[]
   answers             LeadAnswer[]
+  files    LeadFile[]
   partnerApplications PartnerApplication[]
 
   @@index([chatVerifiedAt])
@@ -707,6 +708,25 @@ model Reference {
 }
 
 // ─── Documents (stored in Backblaze B2, only keys held here) ─
+
+/**
+ * A file a customer sent while still only a lead (for example a PDF on WhatsApp). It is kept in the private storage bucket;
+ * only the key is here. When the customer already has a loan file, the same file also goes into that file's Documents.
+ */
+model LeadFile {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  fileName  String
+  objectKey String   @unique
+  mimeType  String
+  sizeBytes Int
+  source    String   @default("whatsapp")
+  caption   String?
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+}
 
 model Document {
   id            String      @id @default(cuid())

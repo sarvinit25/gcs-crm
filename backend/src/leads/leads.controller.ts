@@ -115,6 +115,11 @@ export class LeadsController {
     return this.leads.findOne(id, user);
   }
 
+  @Get(":id/files/:fileId/download")
+  fileDownload(@Param("id") id: string, @Param("fileId") fileId: string, @CurrentUser() user: AuthUser) {
+    return this.leads.fileDownloadUrl(id, fileId, user);
+  }
+
   @Post()
   create(@Body() dto: CreateLeadDto, @CurrentUser() user: AuthUser) {
     return this.leads.create(dto, user);

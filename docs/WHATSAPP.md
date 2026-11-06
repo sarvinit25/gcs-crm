@@ -18,7 +18,7 @@ Menu: **Messaging → WhatsApp Inbox, Notification templates, Notification logs,
 ## Decisions to make
 - **One webhook per Meta app.** The website's Gia assistant currently answers WhatsApp through its own webhook. Pointing Meta at the CRM instead moves answering to the CRM chatbot (commands above, then a person). To keep Gia, keep the website as the receiver and the CRM inbox stays empty until the website forwards messages to it — not built.
 - **Customer messages are off by default** (Settings → WhatsApp). Turn on only once customers have consented — the enquiry form does not yet carry a WhatsApp consent line.
-- **Documents sent by customers** are acknowledged and flagged, but the files are not downloaded into the CRM; staff open them on the phone. Pulling them into the file's documents is the next step.
+- **Documents sent by customers** (PDF, JPG, PNG, WebP, HEIC, up to 15 MB) are downloaded from Meta, checked by their contents, kept in the private storage bucket and listed under "Files received" on the lead, with a download button. Nothing is read out of them. Voice notes and videos cannot be opened; Gia says so kindly and carries on.
 
 ## Not built
 Callbacks module, Telegram, "Sales Agent" knowledge base, attaching documents by WhatsApp, and webhook forwarding from the website.
