@@ -8,17 +8,13 @@ import { formatDateTime } from "../lib/format";
 import { formatTimeIST } from "../lib/date";
 import {
   SENDER_LABEL,
-  extractVariables,
   formatPhone,
-  renderPreview,
   windowLeft,
   type Conversation,
   type ConversationList,
-  type NotificationTemplate,
   type WhatsAppMessage,
 } from "../lib/whatsapp";
 import { PageHeader } from "../components/app-shell";
-import { Modal } from "../components/modal";
 import { TableSkeleton } from "../components/skeleton";
 
 type Thread = { conversation: Conversation; messages: WhatsAppMessage[] };
@@ -73,93 +69,12 @@ function Bubble({ m }: { m: WhatsAppMessage }) {
   );
 }
 
-/** Pick an approved customer template and fill in what it needs — the only way to write first or after 24 hours. */
-function TemplatePicker({
-  templates,
-  conversationName,
-  onSend,
-  pending,
-  error,
-}: {
-  templates: NotificationTemplate[];
-  conversationName: string | null;
-  onSend: (templateId: string, variables: Record<string, string>) => void;
-  pending: boolean;
-  error?: string;
-}) {
-  const usable = templates.filter((t) => t.recipient === "CUSTOMER" && t.active);
-  const [id, setId] = useState("");
-  const [values, setValues] = useState<Record<string, string>>({});
-  const chosen = usable.find((t) => t.id === id);
-  const asked = chosen ? extractVariables(chosen.body).filter((k) => !SERVER_FILLED.includes(k) || (k === "name" && !conversationName)) : [];
-
-  return (
-    <div className="space-y-2">
-      <select value={id} onChange={(e) => { setId(e.target.value); setValues({}); }} className="field">
-        <option value="">Choose a message template…</option>
-        {usable.map((t) => (
-          <option key={t.id} value={t.id}>
-            {t.name}
-            {t.metaStatus !== "APPROVED" ? ` (${t.metaStatus.toLowerCase().replace("_", " ")})` : ""}
-          </option>
-        ))}
-      </select>
-      {chosen && (
-        <>
-          {asked.length > 0 && (
-            <div className="grid gap-2 sm:grid-cols-2">
-              {asked.map((k) => (
-                <input key={k} value={values[k] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [k]: e.target.value }))} placeholder={k} className="field" />
-              ))}
-            </div>
-          )}
-          <p className="rounded-lg bg-bg-light px-3 py-2 text-[12px] whitespace-pre-wrap text-muted">
-            {renderPreview(chosen.body, { name: conversationName ?? "", ...values })}
-          </p>
-        </>
-      )}
-      {error && <p className="text-[12px] text-red-600">{error}</p>}
-      <button disabled={!chosen || pending} onClick={() => chosen && onSend(chosen.id, values)} className="btn-primary">
-        {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send template
-      </button>
-    </div>
-  );
-}
-
-function NewChat({ templates, onClose, onStarted }: { templates: NotificationTemplate[]; onClose: () => void; onStarted: (id: string) => void }) {
-  const [phone, setPhone] = useState("");
-  const [name, setName] = useState("");
-  const start = useMutation({
-    mutationFn: (body: { templateId: string; variables: Record<string, string> }) =>
-      api<{ conversationId: string }>("/whatsapp/conversations", { method: "POST", body: JSON.stringify({ phone, name: name || undefined, ...body }) }),
-    onSuccess: (r) => onStarted(r.conversationId),
-  });
-  return (
-    <Modal title="New chat" subtitle="WhatsApp only lets you start a conversation with an approved template" onClose={onClose} maxWidth="max-w-lg">
-      <div className="space-y-3">
-        <div className="grid gap-2 sm:grid-cols-2">
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Mobile number" className="field" inputMode="tel" />
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)" className="field" />
-        </div>
-        <TemplatePicker
-          templates={templates}
-          conversationName={name || null}
-          pending={start.isPending}
-          error={start.isError ? (start.error as Error).message : undefined}
-          onSend={(templateId, variables) => start.mutate({ templateId, variables: { ...variables, ...(name && { name }) } })}
-        />
-      </div>
-    </Modal>
-  );
-}
-
 export function WhatsAppInboxPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [needsOnly, setNeedsOnly] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
-  const [newChat, setNewChat] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
 
   const list = useQuery({
@@ -175,11 +90,6 @@ export function WhatsAppInboxPage() {
     refetchInterval: 8_000,
   });
 
-  const templates = useQuery({
-    queryKey: ["wa-templates-for-inbox"],
-    queryFn: () => api<NotificationTemplate[]>("/whatsapp/conversations/templates"),
-  });
-
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ["wa-thread", selected] });
     void queryClient.invalidateQueries({ queryKey: ["wa-conversations"] });
@@ -187,7 +97,7 @@ export function WhatsAppInboxPage() {
   };
 
   const send = useMutation({
-    mutationFn: (body: { text?: string; templateId?: string; variables?: Record<string, string> }) =>
+    mutationFn: (body: { text: string }) =>
       api(`/whatsapp/conversations/${selected}/messages`, { method: "POST", body: JSON.stringify(body) }),
     onSuccess: () => {
       setDraft("");
@@ -211,18 +121,12 @@ export function WhatsAppInboxPage() {
 
   const c = thread.data?.conversation;
   const left = useMemo(() => (c ? windowLeft(c.lastInboundAt) : null), [c]);
-  const approvedTemplates = templates.data ?? [];
 
   return (
     <>
       <PageHeader
         title="WhatsApp Inbox"
         subtitle={list.data ? `${list.data.total} conversation${list.data.total === 1 ? "" : "s"}${list.data.needsHuman ? ` · ${list.data.needsHuman} need${list.data.needsHuman === 1 ? "s" : ""} you` : ""}` : "Every customer conversation in one place"}
-        actions={
-          <button onClick={() => setNewChat(true)} className="btn-primary">
-            <MessageSquarePlus className="h-4 w-4" /> New chat
-          </button>
-        }
       />
 
       <div className="px-4 py-4 lg:px-6">
@@ -368,18 +272,9 @@ export function WhatsAppInboxPage() {
                       </button>
                     </form>
                   ) : (
-                    <div>
-                      <p className="mb-2 text-[12px] text-muted">
-                        The customer last wrote more than 24 hours ago, so WhatsApp only lets you send an approved template.
-                      </p>
-                      <TemplatePicker
-                        templates={approvedTemplates}
-                        conversationName={c.name}
-                        pending={send.isPending}
-                        onSend={(templateId, variables) => send.mutate({ templateId, variables })}
-                      />
-                      {!approvedTemplates.length && <p className="mt-2 text-[12px] text-muted">There are no customer templates yet. An admin can add them under Notification templates.</p>}
-                    </div>
+                    <p className="text-[12px] text-muted">
+                      The customer last wrote more than 24 hours ago, so WhatsApp does not let you send a message now. You can call them, or reply when they write again.
+                    </p>
                   )}
                 </div>
               </>
@@ -388,17 +283,6 @@ export function WhatsAppInboxPage() {
         </div>
       </div>
 
-      {newChat && (
-        <NewChat
-          templates={approvedTemplates}
-          onClose={() => setNewChat(false)}
-          onStarted={(id) => {
-            setNewChat(false);
-            setSelected(id);
-            refresh();
-          }}
-        />
-      )}
     </>
   );
 }
