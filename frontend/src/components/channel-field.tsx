@@ -14,6 +14,7 @@ export function ChannelInput({
   id,
   defaultValue,
   onCommit,
+  required,
   placeholder = "Channel (e.g. Google Search Ads)",
   className = "field",
 }: {
@@ -21,6 +22,7 @@ export function ChannelInput({
   id: string;
   defaultValue?: string | null;
   onCommit?: (value: string) => void;
+  required?: boolean;
   placeholder?: string;
   className?: string;
 }) {
@@ -33,6 +35,7 @@ export function ChannelInput({
         defaultValue={defaultValue ?? ""}
         placeholder={placeholder}
         maxLength={60}
+        required={required}
         autoComplete="off"
         className={className}
         onBlur={onCommit ? (e) => onCommit(e.target.value.trim()) : undefined}

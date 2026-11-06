@@ -78,7 +78,7 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
   });
 
   return (
-    <Modal title="Quick add lead" subtitle="Name and phone are enough. Add the rest now or later." onClose={onClose} maxWidth="max-w-lg">
+    <Modal title="Quick add lead" subtitle="Step 1: the same short first form as the website. Save it now; add the loan's second form from the lead page later." onClose={onClose} maxWidth="max-w-lg">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -160,10 +160,6 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
             <p className="mt-1 text-amber-800/80">You can still create it if this is a genuinely separate enquiry.</p>
           </div>
         )}
-        <label className={LABEL}>
-          Email
-          <input name="email" type="email" placeholder="Enter email address" className="field font-normal" />
-        </label>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className={LABEL}>
             Loan type
@@ -182,8 +178,14 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
           </label>
         </div>
         <label className={LABEL}>
-          Lead source
-          <ChannelInput name="channel" id="new-lead-channels" placeholder="Pick or type where this lead came from" className="field font-normal" />
+          City
+          <input name="city" placeholder="City" className="field font-normal" />
+        </label>
+        <label className={LABEL}>
+          <span>
+            Lead source <span className="text-red-600">*</span>
+          </span>
+          <ChannelInput name="channel" id="new-lead-channels" defaultValue="Manual entry" required placeholder="Where did this lead come from?" className="field font-normal" />
         </label>
 
         <details className="group rounded-lg border border-line">
@@ -193,8 +195,8 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
           </summary>
           <div className="grid gap-3 border-t border-line px-3 py-3 sm:grid-cols-2">
             <label className={LABEL}>
-              City
-              <input name="city" placeholder="City" className="field font-normal" />
+              Email
+              <input name="email" type="email" placeholder="Enter email address" className="field font-normal" />
             </label>
             <label className={LABEL}>
               Campaign / activity
@@ -302,6 +304,20 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
     </Modal>
   );
 }
+
+/** How a lead got into the CRM, in plain words. */
+const ENTRY_LABEL: Record<string, string> = {
+  whatsapp: "WhatsApp chat",
+  "website-chat": "Website chat",
+  "ai-advisor": "Website assistant",
+  "manual-entry": "Added by hand",
+  "bulk-upload": "Bulk upload",
+  "cibil-report-request": "CIBIL request",
+  "checklist-download": "Checklist download",
+  "partner-enquiry": "Partner enquiry",
+  "ca-legal-enquiry": "CA / legal enquiry",
+};
+const entryLabel = (source: string) => ENTRY_LABEL[source] ?? "Website form";
 
 /** "today", "yesterday", "3 days ago" — how long since the last call or note. */
 function ago(iso: string) {
@@ -615,6 +631,7 @@ export function LeadsPage() {
                   <th className="px-4 py-2.5 font-bold">Priority</th>
                   <th className="px-4 py-2.5 font-bold">Product</th>
                   <th className="px-4 py-2.5 font-bold">Amount</th>
+                  <th className="px-4 py-2.5 font-bold">Source</th>
                   <th className="px-4 py-2.5 font-bold">Reference</th>
                   <th className="px-4 py-2.5 font-bold">Chatbot</th>
                   <th className="px-4 py-2.5 font-bold">Owner</th>
@@ -661,9 +678,10 @@ export function LeadsPage() {
                     <td className="px-4 py-3 text-muted">{lead.loanProduct?.name ?? "—"}</td>
                     <td className="px-4 py-3 font-medium">{formatAmount(lead.amount)}</td>
                     <td className="px-4 py-3 text-muted">
-                      {lead.sourcingPartner?.name ?? "Self"}
-                      <p className="text-[11px]">{humanize(lead.source)}</p>
+                      <span className="font-medium text-navy">{entryLabel(lead.source)}</span>
+                      <p className="text-[11px]">{lead.channel ?? "—"}</p>
                     </td>
+                    <td className="px-4 py-3 text-muted">{lead.sourcingPartner?.name ?? "Self"}</td>
                     <td className="px-4 py-3">
                       {lead.chatVerifiedAt ? (
                         <>
