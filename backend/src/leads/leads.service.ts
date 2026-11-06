@@ -25,6 +25,8 @@ import {
 } from "./dto/lead.dto";
 import { EventsService } from "../events/events.service";
 import { StorageService } from "../documents/storage.service";
+import { detectFile, safeFileName } from "../documents/file-sniff";
+import { randomUUID } from "crypto";
 import { answersByKey, checkAnswer, loanFor } from "../whatsapp/intake/intake.engine";
 
 /** The website's partner forms, by the source each posts under. */
@@ -560,6 +562,37 @@ export class LeadsService implements OnApplicationBootstrap {
     });
     await this.audit.record({ actor: user, action: AuditAction.UPDATE, entity: "Lead", entityId: id, entityLabel: lead.name, changes: { formAnswers: { from: null, to: rows.length } } });
     return this.formQuestions(id, user);
+  }
+
+  /** Staff upload a document to a lead (a customer's PDF from email or the office, say). Same checks as every other upload. */
+  async uploadFile(id: string, file: { originalname: string; size: number; buffer: Buffer } | undefined, caption: string | undefined, user: AuthUser) {
+    const lead = await this.prisma.lead.findFirst({ where: { id, ...this.scopeFor(user) }, select: { id: true, name: true } });
+    if (!lead) throw new NotFoundException("Lead not found");
+    if (!file) throw new BadRequestException("Choose a file to upload");
+    const detected = detectFile(file.buffer);
+    if (!detected) throw new BadRequestException("Only PDF, JPG, PNG, WebP or HEIC files can be uploaded");
+    const maxMb = this.settings.get<number>("documents.maxUploadMb");
+    if (file.size > maxMb * 1024 * 1024) throw new BadRequestException(`File is larger than ${maxMb}MB`);
+
+    const fileName = safeFileName(file.originalname, detected.extension);
+    const objectKey = `leads/${id}/${randomUUID()}${detected.extension}`;
+    await this.storage.put(objectKey, file.buffer, detected.mime);
+    const created = await this.prisma.leadFile.create({
+      data: { leadId: id, fileName, objectKey, mimeType: detected.mime, sizeBytes: file.size, source: "staff", caption: caption?.trim().slice(0, 500) || null },
+      select: { id: true, fileName: true, mimeType: true, sizeBytes: true, source: true, caption: true, createdAt: true },
+    });
+    await this.audit.record({ actor: user, action: AuditAction.CREATE, entity: "LeadFile", entityId: created.id, entityLabel: `${lead.name}: ${fileName}` });
+    return created;
+  }
+
+  async removeFile(leadId: string, fileId: string, user: AuthUser) {
+    const file = await this.prisma.leadFile.findFirst({ where: { id: fileId, leadId, lead: this.scopeFor(user) }, include: { lead: { select: { name: true } } } });
+    if (!file) throw new NotFoundException("File not found");
+    // The row goes first: a leftover object costs pennies, a row pointing at a missing file breaks every download.
+    await this.prisma.leadFile.delete({ where: { id: fileId } });
+    await this.storage.remove(file.objectKey);
+    await this.audit.record({ actor: user, action: AuditAction.DELETE, entity: "LeadFile", entityId: fileId, entityLabel: `${file.lead.name}: ${file.fileName}` });
+    return { ok: true };
   }
 
   /** A short-lived download link for a file the customer sent, for people who may see this lead. */
