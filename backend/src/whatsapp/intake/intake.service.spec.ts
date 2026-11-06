@@ -15,3 +15,17 @@ describe("scrub", () => {
     expect(scrub("my phone is 9820011177")).toBe("my phone is 9820011177");
   });
 });
+
+describe("stopping and resuming the questions", () => {
+  const { STOP_ASKING, RESUME_ASKING } = jest.requireActual("./intake.service");
+  it("hears that the customer is done with questions", () => {
+    for (const t of ["I'll say other things later on call", "baaki call pe bata dunga", "no more questions please", "stop asking", "that's all", "कॉल पर बताऊंगा"]) expect(STOP_ASKING.test(t)).toBe(true);
+  });
+  it("does not mistake an ordinary answer for it", () => {
+    for (const t of ["Mumbai", "salaried", "I need it later this year", "20 lakh", "within a month", "hi"]) expect(STOP_ASKING.test(t)).toBe(false);
+  });
+  it("only a clear yes brings the questions back, not a hello", () => {
+    for (const t of ["continue", "yes", "haan chalo", "go ahead"]) expect(RESUME_ASKING.test(t)).toBe(true);
+    for (const t of ["hi", "hello", "what is the rate", "ok thanks"]) expect(RESUME_ASKING.test(t)).toBe(false);
+  });
+});
