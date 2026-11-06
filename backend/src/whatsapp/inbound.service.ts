@@ -7,6 +7,7 @@ import { LeadsService } from "../leads/leads.service";
 import { AssistantService, type ChatMessage as ChatTurn } from "../assistant/assistant.service";
 import { ConversationsService } from "./conversations.service";
 import { IntakeService } from "./intake/intake.service";
+import { MediaService } from "./media.service";
 import { WHATSAPP_PROVIDER, type Interactive, type WhatsAppProvider } from "./whatsapp.provider";
 import { contactKey, toWaId } from "./phone";
 import { STAGE_LABEL } from "./templates.util";
@@ -17,6 +18,10 @@ type Incoming = {
   type: string;
   /** The id of the button or list row the customer tapped, when they tapped rather than typed. */
   replyId?: string;
+  /** WhatsApp's id for a file the customer sent, with the name and caption they gave it. */
+  mediaId?: string;
+  fileName?: string;
+  caption?: string;
   body: string | null;
   name: string | null;
   at: Date;
@@ -53,6 +58,7 @@ export class InboundService {
     private leads: LeadsService,
     private assistant: AssistantService,
     private intake: IntakeService,
+    private media: MediaService,
     @Inject(WHATSAPP_PROVIDER) private provider: WhatsAppProvider,
   ) {}
 
@@ -108,15 +114,18 @@ export class InboundService {
         ((value.contacts as { wa_id?: string; profile?: { name?: string } }[] | undefined) ?? []).map((c) => [c.wa_id ?? "", c.profile?.name ?? ""]),
       );
       type Tap = { id?: string; title?: string };
-      for (const m of (value.messages as { id?: string; from?: string; type?: string; timestamp?: string; text?: { body?: string }; interactive?: { button_reply?: Tap; list_reply?: Tap } }[] | undefined) ?? []) {
+      type Media = { id?: string; filename?: string; caption?: string };
+      for (const m of (value.messages as { id?: string; from?: string; type?: string; timestamp?: string; text?: { body?: string }; interactive?: { button_reply?: Tap; list_reply?: Tap }; document?: Media; image?: Media }[] | undefined) ?? []) {
         if (!m.id || !m.from) continue;
         const tap = m.type === "interactive" ? (m.interactive?.button_reply ?? m.interactive?.list_reply) : undefined;
+        const media = m.type === "document" ? m.document : m.type === "image" ? m.image : undefined;
         await this.handleMessage({
           id: m.id,
           from: m.from,
           type: m.type ?? "unknown",
           ...(tap?.id ? { replyId: tap.id } : {}),
-          body: m.type === "text" ? (m.text?.body ?? "") : tap ? (tap.title ?? "") : null,
+          ...(media?.id ? { mediaId: media.id, fileName: media.filename, caption: media.caption } : {}),
+          body: m.type === "text" ? (m.text?.body ?? "") : tap ? (tap.title ?? "") : media ? (media.caption || `📎 ${media.filename ?? (m.type === "image" ? "Photo" : "File")}`) : null,
           name: names.get(m.from) || null,
           at: m.timestamp ? new Date(Number(m.timestamp) * 1000) : new Date(),
         });
@@ -251,7 +260,13 @@ export class InboundService {
     // A file, photo or voice note: Gia says kindly she cannot open it and carries on, instead of going quiet.
     if (["document", "image", "video", "audio", "sticker"].includes(m.type) && !wantsPerson && this.intake.enabled()) {
       void this.provider.showTyping(m.id);
-      const ai = await this.intake.reply({ id: conversation.id, leadId: conversation.leadId, name: conversation.name }, undefined, m.type);
+      // Documents and photos are kept on the lead; voice notes and videos still cannot be opened.
+      let kind = m.type;
+      if (m.mediaId && conversation.leadId) {
+        const result = await this.media.save({ leadId: conversation.leadId, mediaId: m.mediaId, fileName: m.fileName, caption: m.caption });
+        kind = result.saved ? "saved" : `not_saved_${result.reason}`;
+      }
+      const ai = await this.intake.reply({ id: conversation.id, leadId: conversation.leadId, name: conversation.name }, undefined, kind);
       if (ai.text) {
         const sent = ai.options ? await this.sayOptions(phone, ai.options) : await this.say(phone, ai.text);
         if (sent) {

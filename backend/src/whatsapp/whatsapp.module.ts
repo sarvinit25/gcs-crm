@@ -1,10 +1,12 @@
 import { Module } from "@nestjs/common";
 import { LeadsModule } from "../leads/leads.module";
+import { DocumentsModule } from "../documents/documents.module";
 import { AssistantModule } from "../assistant/assistant.module";
 import { BriefsService } from "./briefs.service";
 import { ConversationsService } from "./conversations.service";
 import { InboundService } from "./inbound.service";
 import { IntakeService } from "./intake/intake.service";
+import { MediaService } from "./media.service";
 import { NotificationEngine } from "./notification-engine.service";
 import { TemplatesService } from "./templates.service";
 import {
@@ -17,7 +19,7 @@ import {
 import { WHATSAPP_PROVIDER, createWhatsAppProvider } from "./whatsapp.provider";
 
 @Module({
-  imports: [LeadsModule, AssistantModule],
+  imports: [LeadsModule, AssistantModule, DocumentsModule],
   controllers: [
     WhatsAppWebhookController,
     ConversationsController,
@@ -30,6 +32,7 @@ import { WHATSAPP_PROVIDER, createWhatsAppProvider } from "./whatsapp.provider";
     ConversationsService,
     InboundService,
     IntakeService,
+    MediaService,
     NotificationEngine,
     TemplatesService,
     BriefsService,

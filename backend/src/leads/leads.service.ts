@@ -24,6 +24,7 @@ import {
   UpdateLeadDto,
 } from "./dto/lead.dto";
 import { EventsService } from "../events/events.service";
+import { StorageService } from "../documents/storage.service";
 
 /** The website's partner forms, by the source each posts under. */
 const PARTNER_FORMS: Record<string, string> = {
@@ -86,6 +87,7 @@ export class LeadsService implements OnApplicationBootstrap {
     private sources: LeadSourcesService,
     private config: ConfigService,
     private events: EventsService,
+    private storage: StorageService,
   ) {}
 
   /** Advisors only ever see their own leads; managers and admins see everything. */
@@ -513,6 +515,14 @@ export class LeadsService implements OnApplicationBootstrap {
     };
   }
 
+  /** A short-lived download link for a file the customer sent, for people who may see this lead. */
+  async fileDownloadUrl(leadId: string, fileId: string, user: AuthUser) {
+    const file = await this.prisma.leadFile.findFirst({ where: { id: fileId, leadId, lead: this.scopeFor(user) } });
+    if (!file) throw new NotFoundException("File not found");
+    const minutes = this.settings.get<number>("documents.downloadLinkMinutes");
+    return { url: await this.storage.signedDownloadUrl(file.objectKey, file.fileName, minutes * 60, file.mimeType) };
+  }
+
   async findOne(id: string, user: AuthUser) {
     const lead = await this.prisma.lead.findFirst({
       where: { id, ...this.scopeFor(user) },
@@ -520,6 +530,7 @@ export class LeadsService implements OnApplicationBootstrap {
         ...LIST_INCLUDE,
         application: { select: { id: true, seq: true, createdAt: true, status: true } },
         answers: { select: { key: true, label: true, value: true, stage: true, updatedAt: true }, orderBy: { createdAt: "asc" } },
+        files: { select: { id: true, fileName: true, mimeType: true, sizeBytes: true, source: true, caption: true, createdAt: true }, orderBy: { createdAt: "desc" } },
         followUps: {
           include: { user: { select: { id: true, name: true } } },
           orderBy: { createdAt: "desc" },

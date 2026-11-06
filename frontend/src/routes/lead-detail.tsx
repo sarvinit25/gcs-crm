@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, FileText, Loader2, Pencil, Plus } from "lucide-react";
+import { ArrowLeft, Download, FileText, Loader2, Pencil, Plus } from "lucide-react";
 import { api } from "../lib/api";
 import { SmartMatchPanel } from "../components/smart-match-panel";
 import { formatAmount, formatCompact, formatDate, formatDateTime, humanize } from "../lib/format";
@@ -587,6 +587,34 @@ export function LeadDetailPage() {
                     </div>
                   ))}
                 </dl>
+              </div>
+            )}
+            {lead.files && lead.files.length > 0 && (
+              <div className="mt-5">
+                <h3 className="text-[12px] font-bold tracking-wide text-muted uppercase">Files received</h3>
+                <ul className="mt-2 divide-y divide-line rounded-md border border-line">
+                  {lead.files.map((f) => (
+                    <li key={f.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-semibold text-navy">{f.fileName}</p>
+                        <p className="text-[11px] text-muted">
+                          {f.source === "whatsapp" ? "WhatsApp" : humanize(f.source)} · {f.sizeBytes < 1024 * 1024 ? `${Math.max(1, Math.round(f.sizeBytes / 1024))} KB` : `${(f.sizeBytes / 1024 / 1024).toFixed(1)} MB`} · {formatDateTime(f.createdAt)}
+                          {f.caption ? ` · “${f.caption}”` : ""}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-ghost inline-flex shrink-0 items-center gap-1.5 text-[12px]"
+                        onClick={async () => {
+                          const { url } = await api<{ url: string }>(`/leads/${lead.id}/files/${f.id}/download`);
+                          window.open(url, "_blank", "noopener");
+                        }}
+                      >
+                        <Download size={13} /> Download
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
             {lead.notes && (

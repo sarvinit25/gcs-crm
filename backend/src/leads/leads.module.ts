@@ -2,11 +2,12 @@ import { Module } from "@nestjs/common";
 import { LeadsController, PublicLeadsController } from "./leads.controller";
 import { TeamsModule } from "../teams/teams.module";
 import { LeadSourcesModule } from "../lead-sources/lead-sources.module";
+import { DocumentsModule } from "../documents/documents.module";
 import { LeadsService } from "./leads.service";
 import { TurnstileService } from "./turnstile.service";
 
 @Module({
-  imports: [TeamsModule, LeadSourcesModule],
+  imports: [TeamsModule, LeadSourcesModule, DocumentsModule],
   controllers: [LeadsController, PublicLeadsController],
   providers: [LeadsService, TurnstileService],
   exports: [LeadsService, TurnstileService],
