@@ -103,7 +103,7 @@
     "mumbai": [
       {
         "q": "Where exactly is your Mumbai office?",
-        "a": "Avadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084."
+        "a": "Avadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Kadam Marg, Bhatwadi, near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084."
       },
       {
         "q": "Can I meet an expert in person?",
@@ -456,6 +456,50 @@
         {
           "label": "Release",
           "value": "Stage by stage"
+        }
+      ]
+    },
+    "personal-loan": {
+      "title": "Personal Loan",
+      "tagline": "Money for life's plans, minus the paperwork.",
+      "about": "A personal loan needs no collateral. You can use it for a wedding, a medical bill, travel, or to clear a more costly debt. We help you choose an amount and EMI that fit your monthly budget, not just the maximum you are eligible for.",
+      "features": [
+        "No security or guarantor needed",
+        "Minimal paperwork, handled fully online",
+        "Refinance to a lower rate later if one becomes available",
+        "Open to both salaried and self-employed applicants"
+      ],
+      "eligibility": [
+        "Between roughly 21 and 60 years of age",
+        "Salaried take-home from about ₹25,000/month, or 2 years of ITR if self-employed",
+        "A CIBIL score of 700+ may help you get a better rate; scores from the mid-600s may still be considered at a higher rate",
+        "Resident Indian",
+        "Salaried, or a self-employed professional or business owner",
+        "If salaried, generally at least 1 year with your current employer"
+      ],
+      "documents": [
+        "KYC (PAN, Aadhaar, address proof)"
+      ],
+      "facts": [
+        {
+          "label": "Interest rate",
+          "value": "From 10.49%* p.a."
+        },
+        {
+          "label": "Loan amount",
+          "value": "Up to ₹1 Cr"
+        },
+        {
+          "label": "Tenure",
+          "value": "12 — 60 months"
+        },
+        {
+          "label": "Disbursal",
+          "value": "As fast as 48 hours"
+        },
+        {
+          "label": "Minimum ticket size",
+          "value": "₹2 Lakh"
         }
       ]
     },
@@ -881,50 +925,6 @@
         {
           "label": "Interest rate",
           "value": "From 13.50%* p.a. on the drawn balance"
-        }
-      ]
-    },
-    "personal-loan": {
-      "title": "Personal Loan",
-      "tagline": "Money for life's plans, minus the paperwork.",
-      "about": "A personal loan needs no collateral. You can use it for a wedding, a medical bill, travel, or to clear a more costly debt. We help you choose an amount and EMI that fit your monthly budget, not just the maximum you are eligible for.",
-      "features": [
-        "No security or guarantor needed",
-        "Minimal paperwork, handled fully online",
-        "Refinance to a lower rate later if one becomes available",
-        "Open to both salaried and self-employed applicants"
-      ],
-      "eligibility": [
-        "Between roughly 21 and 60 years of age",
-        "Salaried take-home from about ₹25,000/month, or 2 years of ITR if self-employed",
-        "A CIBIL score of 700+ may help you get a better rate; scores from the mid-600s may still be considered at a higher rate",
-        "Resident Indian",
-        "Salaried, or a self-employed professional or business owner",
-        "If salaried, generally at least 1 year with your current employer"
-      ],
-      "documents": [
-        "KYC (PAN, Aadhaar, address proof)"
-      ],
-      "facts": [
-        {
-          "label": "Interest rate",
-          "value": "From 10.49%* p.a."
-        },
-        {
-          "label": "Loan amount",
-          "value": "Up to ₹1 Cr"
-        },
-        {
-          "label": "Tenure",
-          "value": "12 — 60 months"
-        },
-        {
-          "label": "Disbursal",
-          "value": "As fast as 48 hours"
-        },
-        {
-          "label": "Minimum ticket size",
-          "value": "₹2 Lakh"
         }
       ]
     },
@@ -1910,7 +1910,7 @@
     "phone": "+91 88280 01700",
     "whatsapp": "918828001700",
     "email": "connect.gcs@growthcapitalservices.in",
-    "address": "Avadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084",
+    "address": "Avadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Kadam Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084",
     "hours": "Monday to Saturday · 10:00 AM – 6:00 PM",
     "reportPrice": 549,
     "upiId": "",
@@ -1954,6 +1954,11 @@
         "rateFrom": "12%"
       },
       {
+        "product": "Personal Loan",
+        "bank": "Our network of banks & NBFCs",
+        "rateFrom": "10.49%"
+      },
+      {
         "product": "Business Loan",
         "bank": "Our network of banks & NBFCs",
         "rateFrom": "14%"
@@ -1972,11 +1977,6 @@
         "product": "Unsecured DOD",
         "bank": "Our network of banks & NBFCs",
         "rateFrom": "13.50%"
-      },
-      {
-        "product": "Personal Loan",
-        "bank": "Our network of banks & NBFCs",
-        "rateFrom": "10.49%"
       },
       {
         "product": "Education Loan",
@@ -2186,6 +2186,12 @@
       "description": ""
     },
     {
+      "path": "/services/personal-loan",
+      "label": "Loan: Personal Loan",
+      "title": "",
+      "description": ""
+    },
+    {
       "path": "/services/business-loan",
       "label": "Loan: Business Loan",
       "title": "",
@@ -2248,12 +2254,6 @@
     {
       "path": "/services/unsecured-dod",
       "label": "Loan: Unsecured DOD",
-      "title": "",
-      "description": ""
-    },
-    {
-      "path": "/services/personal-loan",
-      "label": "Loan: Personal Loan",
       "title": "",
       "description": ""
     },
@@ -2602,7 +2602,7 @@
       "published": false,
       "showInFooter": true,
       "summary": "How Growth Capital Services collects, uses and protects your personal information.",
-      "body": "## Who we are\n\nGrowth Capital Services (\"we\", \"us\") is a loan advisory and facilitation firm. This policy explains what personal information we collect through this website, why, and the choices you have.\n\n## What we collect\n\n- Details you give us in forms: name, mobile number, email, city, the loan you need and the amount.\n- Details you share while we work on your enquiry, such as income, employment and property information, and identity and address documents.\n- Basic technical data when you visit: pages viewed, device and browser type, and the page you came from, collected through cookies and analytics tools.\n\n## How we use it\n\n- To contact you about your enquiry and assess which lenders may suit your profile.\n- To prepare and submit your loan application to banks and NBFCs you ask us to approach.\n- To send you updates about your file, and, where you agree, information about our services.\n- To keep our records, meet legal obligations and improve this website.\n\n## Who we share it with\n\nWe share your details with the banks, NBFCs and service providers (for example valuers, legal and technical agencies, and credit bureaus) needed to process your request, and only for that purpose. We do not sell your personal information.\n\n## Credit reports\n\nIf you ask us to fetch a credit report, we do so only with your consent and use it only to advise you on your request.\n\n## How long we keep it\n\nWe keep your information for as long as needed to serve you and to meet legal and record-keeping requirements, and then delete or anonymise it.\n\n## Security\n\nWe use reasonable technical and organisational safeguards to protect your information. No system is completely secure, so please share sensitive documents only through the channels we give you.\n\n## Your choices\n\nYou may ask to see, correct or delete the personal information we hold about you, or withdraw your consent to marketing, by contacting us below. We will respond within a reasonable time.\n\n## Cookies\n\nWe use cookies and similar tools to make the site work and to understand how it is used. You can control cookies in your browser settings.\n\n## Contact\n\nAvadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084. Email: connect.gcs@growthcapitalservices.in. Phone: +91 88280 01700."
+      "body": "## Who we are\n\nGrowth Capital Services (\"we\", \"us\") is a loan advisory and facilitation firm. This policy explains what personal information we collect through this website, why, and the choices you have.\n\n## What we collect\n\n- Details you give us in forms: name, mobile number, email, city, the loan you need and the amount.\n- Details you share while we work on your enquiry, such as income, employment and property information, and identity and address documents.\n- Basic technical data when you visit: pages viewed, device and browser type, and the page you came from, collected through cookies and analytics tools.\n\n## How we use it\n\n- To contact you about your enquiry and assess which lenders may suit your profile.\n- To prepare and submit your loan application to banks and NBFCs you ask us to approach.\n- To send you updates about your file, and, where you agree, information about our services.\n- To keep our records, meet legal obligations and improve this website.\n\n## Who we share it with\n\nWe share your details with the banks, NBFCs and service providers (for example valuers, legal and technical agencies, and credit bureaus) needed to process your request, and only for that purpose. We do not sell your personal information.\n\n## WhatsApp and phone messages\n\nIf you message us on WhatsApp, or ask us to contact you there, we receive your WhatsApp number, name and the messages and files you send. We use them only to reply, to work on your enquiry and application, and to send you updates about your file. WhatsApp is operated by Meta, which processes messages under its own privacy policy. You can stop receiving messages at any time by replying STOP or telling us you no longer wish to be contacted.\n\n## Credit reports\n\nIf you ask us to fetch a credit report, we do so only with your consent and use it only to advise you on your request.\n\n## How long we keep it\n\nWe keep your information for as long as needed to serve you and to meet legal and record-keeping requirements, and then delete or anonymise it.\n\n## Security\n\nWe use reasonable technical and organisational safeguards to protect your information. No system is completely secure, so please share sensitive documents only through the channels we give you.\n\n## Your choices\n\nYou may ask to see, correct or delete the personal information we hold about you, or withdraw your consent to marketing, by contacting us below. To have your data deleted, email us from the address you used with us, or message us on WhatsApp, and we will delete it within a reasonable time unless the law requires us to keep it.\n\n## Cookies\n\nWe use cookies and similar tools to make the site work and to understand how it is used. You can control cookies in your browser settings.\n\n## Contact\n\nAvadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Kadam Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084. Email: connect.gcs@growthcapitalservices.in. Phone: +91 88280 01700."
     },
     {
       "slug": "terms-and-conditions",
@@ -2611,7 +2611,7 @@
       "published": false,
       "showInFooter": true,
       "summary": "The terms for using the Growth Capital Services website and our advisory services.",
-      "body": "## About these terms\n\nBy using this website or contacting Growth Capital Services you agree to these terms. If you do not agree, please do not use the site.\n\n## What we do\n\nWe are a loan advisory and facilitation firm. We help you compare options across banks and NBFCs and support you through documentation and processing. We are not a bank or lender, and we do not sanction or disburse loans ourselves.\n\n## No guarantee of approval\n\nWhether a loan is approved, and its amount, rate and terms, is decided by the lender alone. Information on this site, including interest rates, calculators and eligibility tools, is indicative and is not an offer or commitment.\n\n## Our fees\n\nWe do not charge customers an advisory fee for arranging most loans. For some facilities, such as cash-flow and trade facilities and the two micro loans, we charge a service fee, which is shown on that loan's page. We always tell you any fee in writing before you proceed. Lenders may charge their own processing and other fees, which will be stated in their sanction documents.\n\n## Your responsibilities\n\n- Give us accurate and complete information and documents.\n- Tell us promptly if anything changes.\n- Do not misuse the site or attempt to disrupt it.\n\n## Third-party content and links\n\nLinks to other websites are for convenience. We are not responsible for their content or practices.\n\n## Limitation of liability\n\nTo the extent permitted by law, we are not liable for any indirect or consequential loss arising from use of this site or from a lender's decision.\n\n## Changes\n\nWe may update these terms from time to time. The version on this page applies from the date it is published.\n\n## Governing law\n\nThese terms are governed by the laws of India, and the courts at Mumbai have jurisdiction.\n\n## Contact\n\nAvadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084. Email: connect.gcs@growthcapitalservices.in. Phone: +91 88280 01700."
+      "body": "## About these terms\n\nBy using this website or contacting Growth Capital Services you agree to these terms. If you do not agree, please do not use the site.\n\n## What we do\n\nWe are a loan advisory and facilitation firm. We help you compare options across banks and NBFCs and support you through documentation and processing. We are not a bank or lender, and we do not sanction or disburse loans ourselves.\n\n## No guarantee of approval\n\nWhether a loan is approved, and its amount, rate and terms, is decided by the lender alone. Information on this site, including interest rates, calculators and eligibility tools, is indicative and is not an offer or commitment.\n\n## Our fees\n\nWe do not charge customers an advisory fee for arranging most loans. For some facilities, such as cash-flow and trade facilities and the two micro loans, we charge a service fee, which is shown on that loan's page. We always tell you any fee in writing before you proceed. Lenders may charge their own processing and other fees, which will be stated in their sanction documents.\n\n## Your responsibilities\n\n- Give us accurate and complete information and documents.\n- Tell us promptly if anything changes.\n- Do not misuse the site or attempt to disrupt it.\n\n## Third-party content and links\n\nLinks to other websites are for convenience. We are not responsible for their content or practices.\n\n## Limitation of liability\n\nTo the extent permitted by law, we are not liable for any indirect or consequential loss arising from use of this site or from a lender's decision.\n\n## Changes\n\nWe may update these terms from time to time. The version on this page applies from the date it is published.\n\n## Governing law\n\nThese terms are governed by the laws of India, and the courts at Mumbai have jurisdiction.\n\n## Contact\n\nAvadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Kadam Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084. Email: connect.gcs@growthcapitalservices.in. Phone: +91 88280 01700."
     },
     {
       "slug": "disclaimer",
@@ -2620,7 +2620,7 @@
       "published": false,
       "showInFooter": true,
       "summary": "Important information about the content on the Growth Capital Services website.",
-      "body": "## General\n\nThe information on this website is for general guidance only. It is not financial, legal, tax or investment advice, and you should consider your own circumstances before acting on it.\n\n## We are not a lender\n\nGrowth Capital Services is not a bank, NBFC or lender. We facilitate loan applications with banks and NBFCs. All loans are subject to the lender's own eligibility criteria, credit assessment, documentation and approval.\n\n## Rates, fees and calculators\n\nInterest rates, processing fees, eligibility estimates and calculator results shown here are indicative and may change without notice. The final terms are those in the lender's sanction letter.\n\n## Names and logos\n\nBank and lender names and logos appear only to indicate the institutions we work with. They remain the property of their owners, and their appearance does not imply endorsement.\n\n## Accuracy\n\nWe try to keep the information current and accurate but do not guarantee that it is complete or error-free.\n\n## Contact\n\nAvadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084. Email: connect.gcs@growthcapitalservices.in. Phone: +91 88280 01700."
+      "body": "## General\n\nThe information on this website is for general guidance only. It is not financial, legal, tax or investment advice, and you should consider your own circumstances before acting on it.\n\n## We are not a lender\n\nGrowth Capital Services is not a bank, NBFC or lender. We facilitate loan applications with banks and NBFCs. All loans are subject to the lender's own eligibility criteria, credit assessment, documentation and approval.\n\n## Rates, fees and calculators\n\nInterest rates, processing fees, eligibility estimates and calculator results shown here are indicative and may change without notice. The final terms are those in the lender's sanction letter.\n\n## Names and logos\n\nBank and lender names and logos appear only to indicate the institutions we work with. They remain the property of their owners, and their appearance does not imply endorsement.\n\n## Accuracy\n\nWe try to keep the information current and accurate but do not guarantee that it is complete or error-free.\n\n## Contact\n\nAvadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Kadam Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084. Email: connect.gcs@growthcapitalservices.in. Phone: +91 88280 01700."
     }
   ],
   "lists": {
@@ -2836,7 +2836,7 @@
         "label": "Bank & NBFC Partners"
       },
       {
-        "value": "27+",
+        "value": "28+",
         "label": "Loan Products"
       },
       {
@@ -3346,6 +3346,10 @@
         "slug": "project-funding"
       },
       {
+        "title": "Personal Loan",
+        "slug": "personal-loan"
+      },
+      {
         "title": "Business Loan",
         "slug": "business-loan"
       },
@@ -3396,10 +3400,6 @@
       {
         "title": "Bill Discounting",
         "slug": "bill-discounting"
-      },
-      {
-        "title": "Personal Loan",
-        "slug": "personal-loan"
       },
       {
         "title": "Education Loan",
@@ -3751,6 +3751,15 @@
       },
       {
         "category": "Business & Cash Flow",
+        "icon": "Wallet",
+        "goal": "Fund a personal plan",
+        "product": "Personal Loan",
+        "slug": "personal-loan",
+        "line": "For a wedding, travel or medical needs. No collateral needed.",
+        "featured": ""
+      },
+      {
+        "category": "Business & Cash Flow",
         "icon": "Briefcase",
         "goal": "Grow your business",
         "product": "Business Loan",
@@ -3765,15 +3774,6 @@
         "product": "Working Capital Term Loan",
         "slug": "working-capital-term-loan",
         "line": "Working capital term loans, cash credit, overdraft and bill discounting to match your business cycle.",
-        "featured": ""
-      },
-      {
-        "category": "Personal Goals",
-        "icon": "Wallet",
-        "goal": "Fund a personal plan",
-        "product": "Personal Loan",
-        "slug": "personal-loan",
-        "line": "For a wedding, travel or medical needs. No collateral needed.",
         "featured": ""
       },
       {
@@ -3856,7 +3856,7 @@
       {
         "name": "Business Growth",
         "heading": "Funding that keeps pace with your business.",
-        "description": "Whether it's working capital fast or collateral-free funding to scale, structured for businesses actually moving."
+        "description": "Personal and business loans, working capital fast, or collateral-free funding to scale, structured for people and businesses actually moving."
       },
       {
         "name": "Cash Flow & Trade",
@@ -3864,9 +3864,9 @@
         "description": "The day-to-day financial plumbing — credit lines, guarantees and limits that keep operations from stalling."
       },
       {
-        "name": "Personal, Education, Vehicle & Other Loans",
-        "heading": "Personal, education, vehicle and other loans.",
-        "description": "For personal needs, studies, cars and commercial vehicles, or funds against the shares and mutual funds you already hold."
+        "name": "Education, Vehicle & Other Loans",
+        "heading": "Education, vehicle and other loans.",
+        "description": "For studies, cars and commercial vehicles, or funds against the shares and mutual funds you already hold."
       }
     ],
     "cibil.steps": [
@@ -3930,7 +3930,7 @@
       {
         "slug": "mumbai",
         "city": "Mumbai",
-        "intro": "Our advisory office sits on R. B. Marg in Ghatkopar West, near Jagruti Nagar Metro Station, in the middle of Mumbai's western suburbs. If you're anywhere from Andheri to Mulund, Bandra to Chembur, a senior expert is a short trip away — or a phone call, if that's easier.",
+        "intro": "Our advisory office sits on R. B. Kadam Marg in Ghatkopar West, near Jagruti Nagar Metro Station, in the middle of Mumbai's western suburbs. If you're anywhere from Andheri to Mulund, Bandra to Chembur, a senior expert is a short trip away — or a phone call, if that's easier.",
         "serviceNote": "Walk in by appointment for a face-to-face file review, or handle the entire process over phone, WhatsApp and email — most Mumbai clients do a mix of both.",
         "hasOffice": "yes"
       },
@@ -4100,6 +4100,11 @@
         "visible": "yes"
       },
       {
+        "title": "Personal Loan",
+        "slug": "personal-loan",
+        "visible": "yes"
+      },
+      {
         "title": "Business Loan",
         "slug": "business-loan",
         "visible": "yes"
@@ -4152,11 +4157,6 @@
       {
         "title": "Unsecured DOD",
         "slug": "unsecured-dod",
-        "visible": "yes"
-      },
-      {
-        "title": "Personal Loan",
-        "slug": "personal-loan",
         "visible": "yes"
       },
       {
@@ -7112,7 +7112,7 @@
     "office.eyebrow": "Visit Our Office",
     "office.title": "Our Office in",
     "office.gold": "Ghatkopar West.",
-    "office.body": "Our advisory team is based at Avadhoot Chhaya CHS on R. B. Marg, near Jagruti Nagar Metro Station, accessible to clients across the western suburbs. Visit by appointment for a structured file review.",
+    "office.body": "Our advisory team is based at Avadhoot Chhaya CHS on R. B. Kadam Marg, near Jagruti Nagar Metro Station, accessible to clients across the western suburbs. Visit by appointment for a structured file review.",
     "office.addressLabel": "Address",
     "office.hoursLabel": "Hours",
     "office.directions": "Get directions",
@@ -7195,7 +7195,7 @@
         {
           "id": "office.body",
           "label": "Paragraph",
-          "text": "Our advisory team is based at Avadhoot Chhaya CHS on R. B. Marg, near Jagruti Nagar Metro Station, accessible to clients across the western suburbs. Visit by appointment for a structured file review.",
+          "text": "Our advisory team is based at Avadhoot Chhaya CHS on R. B. Kadam Marg, near Jagruti Nagar Metro Station, accessible to clients across the western suburbs. Visit by appointment for a structured file review.",
           "long": true
         },
         {

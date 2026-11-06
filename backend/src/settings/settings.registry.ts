@@ -172,7 +172,7 @@ export const SETTINGS: SettingDef[] = [
     group: "Organisation",
     label: "Registered address",
     type: "text",
-    default: "Avadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084",
+    default: "Avadhoot Chhaya CHS Ltd., 3rd Floor, R. B. Kadam Marg, Bhatwadi, Near Jagruti Nagar Metro Station, Ghatkopar West, Mumbai 400084",
   },
   {
     key: "org.phone",
