@@ -30,6 +30,8 @@ type Extracted = {
   amount_range_label?: string | null;
   /** The customer chose to type the loan or the amount themselves. */
   typing?: "loan" | "amount" | null;
+  /** They sent a file, photo, video or voice note instead of text: its kind. */
+  sent_file?: string | null;
 };
 
 type ConversationRef = { id: string; leadId: string | null; name: string | null };
@@ -87,11 +89,11 @@ export class IntakeService {
   }
 
   /** The reply to send to the customer, or null if the assistant has nothing to say (a person takes over). */
-  async reply(conversation: ConversationRef, replyId?: string): Promise<IntakeReply> {
+  async reply(conversation: ConversationRef, replyId?: string, media?: string): Promise<IntakeReply> {
     if (!conversation.leadId) return { text: null, handoff: false };
     const leadId = conversation.leadId;
     const turns = await this.history(conversation.id);
-    if (!turns.length) return { text: null, handoff: false };
+    if (!turns.length && !media) return { text: null, handoff: false };
     const lastTyped = [...turns].reverse().find((t) => t.role === "user" && !t.content.startsWith("(tapped)"))?.content ?? "";
 
     // 1. What did the customer say? A tap is exact; typed words are read by the AI.
@@ -103,10 +105,12 @@ export class IntakeService {
       before = await this.snapshot(leadId);
     }
     const asked = this.focus(before).ask;
-    const extracted = tap ? this.fromTap(tap, before) : await this.extract(turns, asked, before);
+    // A file, photo or voice note cannot be read here: nothing is learned from it, and the same question is asked again.
+    const extracted: Extracted | null = media ? { sent_file: media } : tap ? this.fromTap(tap, before) : await this.extract(turns, asked, before);
     if (!extracted) return { text: null, handoff: true };
+    if (media && ["document", "image", "video"].includes(media)) await this.writeAnswer(leadId, "Tried to send a file on WhatsApp", `${media} (not saved: ask for documents on the call)`);
     // These are decided on the customer's LATEST typed message only, in code, so an old message cannot keep raising them.
-    if (!tap) {
+    if (!tap && !media) {
       const latest = await this.prisma.whatsAppMessage.findFirst({
         where: { conversationId: conversation.id, direction: WhatsAppDirection.IN, type: "text", body: { not: null } },
         orderBy: { createdAt: "desc" },
@@ -382,9 +386,11 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
         "This is the customer's first message, so this is your WELCOME. In two or three short sentences: greet them warmly (one emoji is fine), say you are Gia from the company, that you compare loan offers from 75+ banks and NBFCs for them at no cost, and that you will ask a few quick questions (about a minute). Then ask your first question.",
       );
     }
+    if (x.sent_file === "audio") lines.push("They sent a voice note, which you cannot listen to here. Kindly say so and ask them to type, or tap an option, instead. Then ask the question again.");
+    else if (x.sent_file) lines.push("They sent a file or photo instead of answering. Kindly say you cannot open files here and there is no need to send documents now: our expert will collect them safely later. Then ask the question again.");
     if (x.shared_private_number) lines.push("They sent a private number (it was hidden from you). Tell them kindly not to share such numbers here.");
     if (x.their_question) lines.push(`They asked: "${x.their_question}". Answer in one or two safe sentences (no promises), then continue.`);
-    if (!saved.length && plan.kind === "ask" && !x.typing && !first) lines.push("They did not answer the last question. Ask it again in simpler words, in a friendly way.");
+    if (!saved.length && plan.kind === "ask" && !x.typing && !x.sent_file && !first) lines.push("They did not answer the last question. Ask it again in simpler words, in a friendly way.");
     if (figures.length) lines.push(`They typed an amount in their own words. Repeat it back once, briefly and naturally, in digits, so they can correct it if it is wrong. Use exactly these figures: ${figures.join("; ")}.`);
     if (x.typing === "loan") lines.push("They chose to type which loan they need. Ask them to type it in their own words.");
     if (x.typing === "amount") lines.push("They chose to type the amount. Ask them to type about how much they need, for example 25 lakh.");

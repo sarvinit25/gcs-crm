@@ -89,9 +89,13 @@ async function main() {
     // a typed message, unless it is exactly one of the options just offered: then it is a tap
     const tapped = offered.find((o) => o.title.toLowerCase() === customerSays.trim().toLowerCase());
     transcript.push({ who: "me", text: customerSays });
+    if (process.env.DEMO_DOC_AT !== undefined && Number(process.env.DEMO_DOC_AT) === turn) customerSays = "[sends a PDF: salary-slip.pdf]";
     console.log(`\nCUSTOMER${tapped ? " (tapped)" : ""}: ${customerSays}`);
     const before = provider.sent.length;
-    const message = tapped
+    const sendDoc = process.env.DEMO_DOC_AT !== undefined && Number(process.env.DEMO_DOC_AT) === turn;
+    const message = sendDoc
+      ? { id: `demo.${persona.phone}.${turn}.${Date.now()}`, from: `91${persona.phone}`, type: "document", timestamp: String(Math.floor(Date.now() / 1000)), document: { id: "demo-media", filename: "salary-slip.pdf" } }
+      : tapped
       ? { id: `demo.${persona.phone}.${turn}.${Date.now()}`, from: `91${persona.phone}`, type: "interactive", timestamp: String(Math.floor(Date.now() / 1000)), interactive: { list_reply: { id: tapped.id, title: tapped.title } } }
       : { id: `demo.${persona.phone}.${turn}.${Date.now()}`, from: `91${persona.phone}`, type: "text", timestamp: String(Math.floor(Date.now() / 1000)), text: { body: customerSays } };
     inbound.accept({ entry: [{ changes: [{ value: { metadata: { phone_number_id: "demo-number" }, contacts: [{ wa_id: `91${persona.phone}`, profile: { name: "" } }], messages: [message] } }] }] });

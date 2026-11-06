@@ -248,6 +248,20 @@ export class InboundService {
     // "status" and a request for a person still work as before. If she cannot answer, the lines below take over.
     const wantsPerson = /^(agent|human|person|callback|call me|talk to)\b/.test(text);
     const typedOrTapped = m.type === "text" || (m.type === "interactive" && Boolean(m.replyId));
+    // A file, photo or voice note: Gia says kindly she cannot open it and carries on, instead of going quiet.
+    if (["document", "image", "video", "audio", "sticker"].includes(m.type) && !wantsPerson && this.intake.enabled()) {
+      void this.provider.showTyping(m.id);
+      const ai = await this.intake.reply({ id: conversation.id, leadId: conversation.leadId, name: conversation.name }, undefined, m.type);
+      if (ai.text) {
+        const sent = ai.options ? await this.sayOptions(phone, ai.options) : await this.say(phone, ai.text);
+        if (sent) {
+          const offered = ai.options ? (ai.options.kind === "buttons" ? ai.options.buttons.map((b) => b.title) : ai.options.rows.map((r) => r.title)) : [];
+          const body = offered.length ? `${ai.text}\n\n${offered.map((t) => `▫ ${t}`).join("\n")}` : ai.text;
+          await this.conversations.recordOutbound({ conversationId: conversation.id, sender: WhatsAppSender.BOT, type: "text", body, waMessageId: sent.waMessageId });
+        }
+        return;
+      }
+    }
     if (typedOrTapped && text !== "status" && !wantsPerson && this.intake.enabled()) {
       // blue ticks and "typing..." while the answer is being written, so it feels like a person
       void this.provider.showTyping(m.id);
