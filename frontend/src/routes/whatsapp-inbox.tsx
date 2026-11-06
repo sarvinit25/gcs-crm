@@ -325,10 +325,10 @@ export function WhatsAppInboxPage() {
                   </span>
                   <button
                     onClick={() => flag.mutate(!c.needsHuman)}
-                    title={c.needsHuman ? "Hand this back to the chatbot" : "Mark as needing a person — the chatbot stays quiet"}
+                    title={c.needsHuman ? "A person is handling this chat and Gia stays quiet. Click to hand it back to Gia" : "Take over this chat: Gia stays quiet until you hand it back. Sending a reply does this automatically"}
                     className={clsx("btn-ghost", c.needsHuman && "!border-amber-300 !bg-amber-50 !text-amber-800")}
                   >
-                    <Hand className="h-4 w-4" /> {c.needsHuman ? "Needs me" : "Take over"}
+                    <Hand className="h-4 w-4" /> {c.needsHuman ? "You have it · hand back to Gia" : "Take over"}
                   </button>
                 </div>
 
