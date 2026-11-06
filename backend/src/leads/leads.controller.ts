@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Ip, Param, Patch, Post, Query, StreamableFile, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Header, Ip, Param, Patch, Post, Query, StreamableFile, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Throttle } from "@nestjs/throttler";
 import { Role } from "@prisma/client";
@@ -123,6 +123,17 @@ export class LeadsController {
   @Patch(":id/form-answers")
   saveFormAnswers(@Param("id") id: string, @Body() body: { values?: Record<string, string> }, @CurrentUser() user: AuthUser) {
     return this.leads.saveFormAnswers(id, body?.values ?? {}, user);
+  }
+
+  @Post(":id/files")
+  @UseInterceptors(FileInterceptor("file", { limits: { fileSize: 100 * 1024 * 1024 } }))
+  uploadFile(@Param("id") id: string, @UploadedFile() file: Express.Multer.File, @Body() body: { caption?: string }, @CurrentUser() user: AuthUser) {
+    return this.leads.uploadFile(id, file, body?.caption, user);
+  }
+
+  @Delete(":id/files/:fileId")
+  removeFile(@Param("id") id: string, @Param("fileId") fileId: string, @CurrentUser() user: AuthUser) {
+    return this.leads.removeFile(id, fileId, user);
   }
 
   @Get(":id/files/:fileId/download")
