@@ -25,6 +25,7 @@ import { LeadStatusBadge, SegmentBadge } from "../components/status-badge";
 import { NewApplicationWizard } from "../components/new-application-wizard";
 import { ChannelInput } from "../components/channel-field";
 import { Modal } from "../components/modal";
+import { LeadSecondForm } from "../components/lead-second-form";
 import { todayIST } from "../lib/date";
 import { DatePicker } from "../components/date-picker";
 import { ArchiveButton, ArchivedBadge } from "../components/archive-button";
@@ -623,6 +624,8 @@ export function LeadDetailPage() {
               </p>
             )}
           </section>
+
+          <LeadSecondForm leadId={lead.id} />
 
           <section className="card p-5">
             <h2 className="text-sm font-bold text-navy">Application</h2>

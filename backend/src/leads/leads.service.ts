@@ -2,7 +2,7 @@ import { channelFromUtm, cleanLandingPage, cleanTag } from "../marketing/channel
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, type OnApplicationBootstrap } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { checkFollowUpToken } from "./follow-up-token";
-import { answersFromDetail, mergeAnswers } from "./lead-answers";
+import { answersFromDetail, mergeAnswers, slug } from "./lead-answers";
 import { AuditAction, AuditActorType, LeadSegment, LeadStatus, Prisma, Role, SubmissionOutcome } from "@prisma/client";
 import { classifyLead, missingForMeeting } from "./lead-segment";
 import { entryCount, isFuller, nameTokens, namesMatch, type Entry } from "./lead-dedupe";
@@ -25,6 +25,7 @@ import {
 } from "./dto/lead.dto";
 import { EventsService } from "../events/events.service";
 import { StorageService } from "../documents/storage.service";
+import { answersByKey, checkAnswer, loanFor } from "../whatsapp/intake/intake.engine";
 
 /** The website's partner forms, by the source each posts under. */
 const PARTNER_FORMS: Record<string, string> = {
@@ -395,6 +396,8 @@ export class LeadsService implements OnApplicationBootstrap {
         amount: dto.amount,
         notes: dto.detail,
         ...this.attribution(dto),
+        // Every lead says where it came from: a person adding one by hand who does not pick a source gets "Manual entry".
+        channel: this.attribution(dto).channel ?? "Manual entry",
         sourcingPartnerId: dto.sourcingPartnerId,
         // An advisor creating a lead owns it unless someone else is named.
         assignedOfficerId: officerId,
@@ -513,6 +516,50 @@ export class LeadsService implements OnApplicationBootstrap {
         .flatMap((r) => (r.loanProductId && name.has(r.loanProductId) ? [{ loanProductId: r.loanProductId, name: name.get(r.loanProductId)!, count: r._count._all }] : []))
         .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
     };
+  }
+
+  /** The chosen loan's second-form questions with what is already answered, so staff can fill the rest in over time. */
+  async formQuestions(id: string, user: AuthUser) {
+    const lead = await this.prisma.lead.findFirst({
+      where: { id, ...this.scopeFor(user) },
+      select: { loanProduct: { select: { slug: true } }, answers: { select: { key: true, value: true } } },
+    });
+    if (!lead) throw new NotFoundException("Lead not found");
+    const slug = lead.loanProduct?.slug ?? null;
+    const loan = loanFor(slug);
+    if (!loan) return { loanSlug: slug, title: null, kinds: [], fields: [], values: {} };
+    return { loanSlug: slug, title: loan.title, kinds: loan.kinds, kindSeeds: loan.kindSeeds, fields: loan.fields, values: answersByKey(slug, lead.answers) };
+  }
+
+  /** Saves some of the second-form answers (any number, any time). A blank answer clears that question. */
+  async saveFormAnswers(id: string, values: Record<string, string>, user: AuthUser) {
+    const lead = await this.prisma.lead.findFirst({
+      where: { id, ...this.scopeFor(user) },
+      select: { id: true, name: true, loanProduct: { select: { slug: true } } },
+    });
+    if (!lead) throw new NotFoundException("Lead not found");
+    const loan = loanFor(lead.loanProduct?.slug);
+    if (!loan) throw new BadRequestException("Choose a loan type for this lead first");
+
+    const rows: { key: string; label: string; value: string }[] = [];
+    const clear: string[] = [];
+    const problems: string[] = [];
+    for (const [fieldKey, raw] of Object.entries(values ?? {})) {
+      const field = loan.fields.find((f) => f.key === fieldKey);
+      if (!field) continue;
+      const key = slug(field.label);
+      if (!String(raw ?? "").trim()) { clear.push(key); continue; }
+      const checked = checkAnswer(field, String(raw));
+      if (!checked.ok) { problems.push(`${field.label}: ${checked.hint}`); continue; }
+      rows.push({ key, label: field.label.slice(0, 80), value: checked.value.slice(0, 500) });
+    }
+    if (problems.length) throw new BadRequestException(problems.join(" "));
+    await this.prisma.$transaction(async (tx) => {
+      await this.saveAnswers(tx, id, "staff", rows);
+      if (clear.length) await tx.leadAnswer.deleteMany({ where: { leadId: id, key: { in: clear } } });
+    });
+    await this.audit.record({ actor: user, action: AuditAction.UPDATE, entity: "Lead", entityId: id, entityLabel: lead.name, changes: { formAnswers: { from: null, to: rows.length } } });
+    return this.formQuestions(id, user);
   }
 
   /** A short-lived download link for a file the customer sent, for people who may see this lead. */

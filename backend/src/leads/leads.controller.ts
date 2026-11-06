@@ -115,6 +115,16 @@ export class LeadsController {
     return this.leads.findOne(id, user);
   }
 
+  @Get(":id/form-questions")
+  formQuestions(@Param("id") id: string, @CurrentUser() user: AuthUser) {
+    return this.leads.formQuestions(id, user);
+  }
+
+  @Patch(":id/form-answers")
+  saveFormAnswers(@Param("id") id: string, @Body() body: { values?: Record<string, string> }, @CurrentUser() user: AuthUser) {
+    return this.leads.saveFormAnswers(id, body?.values ?? {}, user);
+  }
+
   @Get(":id/files/:fileId/download")
   fileDownload(@Param("id") id: string, @Param("fileId") fileId: string, @CurrentUser() user: AuthUser) {
     return this.leads.fileDownloadUrl(id, fileId, user);
