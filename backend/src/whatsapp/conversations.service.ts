@@ -198,6 +198,13 @@ export class ConversationsService {
 
   /** The inbox's own send: free text inside the 24-hour window, an approved template outside it. */
   async reply(conversationId: string, input: ReplyInput, user: AuthUser) {
+    const message = await this.send(conversationId, input, user);
+    // A person has stepped in, so the chatbot stays quiet from here until someone hands the chat back.
+    await this.prisma.whatsAppConversation.update({ where: { id: conversationId }, data: { needsHuman: true } });
+    return message;
+  }
+
+  private async send(conversationId: string, input: ReplyInput, user: AuthUser) {
     const conversation = await this.getScoped(conversationId, user);
     const to = toWaId(conversation.phone);
 
