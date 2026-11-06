@@ -274,7 +274,7 @@
         },
         {
           "label": "Interest rate",
-          "value": "From 7.50%* p.a."
+          "value": "From 8.40%* p.a."
         },
         {
           "label": "Tenure",
@@ -323,7 +323,7 @@
         },
         {
           "label": "Indicative rate",
-          "value": "19% to 24% p.a. reducing*"
+          "value": "19% to 27% p.a. reducing*"
         },
         {
           "label": "For",
@@ -357,7 +357,7 @@
       "facts": [
         {
           "label": "Interest rate",
-          "value": "From 7.50%* p.a."
+          "value": "From 8.75%* p.a."
         },
         {
           "label": "Loan amount",
@@ -365,7 +365,7 @@
         },
         {
           "label": "Tenure",
-          "value": "Up to 10 years*"
+          "value": "10 to 15 years*"
         }
       ]
     },
@@ -402,7 +402,7 @@
         },
         {
           "label": "Interest rate",
-          "value": "From 9.75%* p.a. on the drawn balance"
+          "value": "From 9%* p.a. on the drawn balance"
         }
       ]
     },
@@ -1936,17 +1936,17 @@
       {
         "product": "Loan Against Property",
         "bank": "Our network of banks & NBFCs",
-        "rateFrom": "7.50%"
+        "rateFrom": "8.40%"
       },
       {
         "product": "Lease Rental Discounting",
         "bank": "Our network of banks & NBFCs",
-        "rateFrom": "7.50%"
+        "rateFrom": "8.75%"
       },
       {
         "product": "Drop-Line Overdraft (Secured)",
         "bank": "Our network of banks & NBFCs",
-        "rateFrom": "9.75%"
+        "rateFrom": "9%"
       },
       {
         "product": "Project Funding",

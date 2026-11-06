@@ -48,6 +48,10 @@ const ROW_YOU_ARE = "You are";
 const ROW_MORE = "Agreed to answer more questions";
 /** A message that only says thanks or ok, in the languages we write in. */
 const JUST_THANKS = /^\s*(ok|okay|k|thanks?|thank you|thanks a lot|thx|ty|great|fine|cool|dhanyavad|dhanyawad|shukriya|bahut dhanyavad|theek hai|thik hai|ji|धन्यवाद|बहुत धन्यवाद|शुक्रिया|ठीक है|जी|आभारी आहे|ठीक आहे|ok thanks|okay thanks|ok thank you)[\s.!🙏👍]*$/i;
+/** They say they are done with questions ("I'll tell the rest on the call"). Needs clear wording, so an ordinary answer is never mistaken for it. */
+export const STOP_ASKING = /\b(on (the )?(call|phone)|during (the )?call|call (par|pe|mein|me)|no more questions|stop asking|enough questions|don'?t ask|do not ask|dont ask|that'?s all|thats all|nothing more|rest (later|on)|baaki (call|baad)|bas (ab|itna|itne)|ab nahi|nahi batana)\b|कॉल पर|कॉल में|बाद में बताऊंगा|बस इतना/i;
+/** After "not now", only these words bring the questions back. Writing again, even "hi", does not. */
+export const RESUME_ASKING = /\b(continue|go ahead|go on|ask (me|away)|more questions|ask now|chalo|haan|haa|yes|sure|ok ask)\b|चलो|हाँ|हां|होय/i;
 /** Words that mean "let me talk to a person" or "I am unhappy". The AI's own judgement is not enough to hand a chat over. */
 const WANTS_PERSON = /\b(agent|human|person|real person|representative|executive|manager|call me|call back|callback|talk to|speak to|complaint|complain|fraud|cheat|cheated|useless|worst)\b|बात करनी|बात करना|कॉल करो|phone karo|call karo|baat karni|baat karna/i;
 /** A question about rates, approval, documents or charges: only then does the reply answer one. */
@@ -99,9 +103,14 @@ export class IntakeService {
     // 1. What did the customer say? A tap is exact; typed words are read by the AI.
     let before = await this.snapshot(leadId);
     const tap = parseTap(replyId);
-    // someone who said "not now" and then writes again is happy to go on
-    if (!tap && before.more === "No" && before.basicsDone && !JUST_THANKS.test(lastTyped)) {
+    // Someone who said "not now" stays at "not now" until they clearly ask to go on; just writing again does not restart the questions.
+    if (!tap && !media && before.more === "No" && before.basicsDone && RESUME_ASKING.test(lastTyped)) {
       await this.writeAnswer(leadId, ROW_MORE, "Yes");
+      before = await this.snapshot(leadId);
+    }
+    // And someone who says they will give the rest on the call is not asked anything more.
+    if (!tap && !media && before.more !== "No" && before.basicsDone && STOP_ASKING.test(lastTyped)) {
+      await this.writeAnswer(leadId, ROW_MORE, "No");
       before = await this.snapshot(leadId);
     }
     const asked = this.focus(before).ask;
@@ -422,7 +431,7 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
     } else if (plan.kind === "wrap") {
       lines.push(
         plan.declined
-          ? "They would rather not answer more questions now. Say that is perfectly fine, an expert from our team will contact them soon with what they have shared, and they can message here any time to add more details. Do not ask any question."
+          ? "They would rather not answer more questions now. Say that is perfectly fine, an expert from our team will contact them soon with what they have shared, and they can message here any time to add more details. If they only said hello or something small, welcome them back in one short line and say that if they wish to carry on with the questions they can just say continue. Do not ask any question."
           : "You have what is needed. Thank them warmly by first name and say an expert from our team will contact them soon and will go through anything else. Do not ask any more questions. If one of your earlier messages already said an expert will contact them, do NOT say it again: reply with one short friendly closing line only.",
       );
     } else {
