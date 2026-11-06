@@ -8,6 +8,8 @@ import { SettingsService } from "../settings/settings.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { CreateUserDto, UpdateUserDto } from "./dto/team.dto";
 import { istToday } from "../common/date.util";
+import { MailService } from "../alerts/mail.service";
+import { welcomeEmail } from "./welcome-email";
 
 const PUBLIC_FIELDS = {
   id: true,
@@ -34,6 +36,7 @@ export class TeamService {
     private audit: AuditService,
     private settings: SettingsService,
     private locks: LoginLockService,
+    private mail: MailService,
   ) {}
 
   private assertPasswordPolicy(password: string) {
@@ -117,6 +120,13 @@ export class TeamService {
       changes: { role: { from: null, to: user.role } },
       ip,
     });
+
+    // The welcome mail never blocks creating the account: if mail is off or fails, the admin still has the password to pass on.
+    try {
+      if (this.mail.enabled) await this.mail.send({ to: user.email, ...welcomeEmail({ name: user.name, email: user.email, role: user.role, password: dto.password }) });
+    } catch {
+      /* the mail service records why it could not send */
+    }
 
     return user;
   }
