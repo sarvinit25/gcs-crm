@@ -15,10 +15,16 @@ export type Hub = {
     sanctioned: { count: number; amount: number; thisMonth: number };
     disbursed: { count: number; amount: number; thisMonth: number; thisMonthAmount: number };
     commission: { total: number; pending: number; thisMonth: number } | null;
+    /** This month against last month, in percent; null when there is nothing to compare with. */
+    change: { leads: number | null; sanctioned: number | null; disbursed: number | null; commission: number | null };
   };
+  /** Why files were turned down, where lenders' reasons were recorded. */
+  rejectionReasons: { reason: string; count: number }[];
+  /** Records behind each detailed report, for the report buttons. */
+  counts: Record<string, number>;
   trends: { month: string; label: string; leads: number; files: number; sanctions: number; disbursals: number }[];
   pipeline: { total: number; stages: { key: string; label: string; count: number }[] };
-  lenders: { lender: string; sanctions: number; sanctionedAmount: number; disbursedAmount: number }[];
+  lenders: { lender: string; sanctions: number; rejected: number; approvalRate: number | null; sanctionedAmount: number; disbursedAmount: number }[];
   funnel: { key: string; label: string; count: number; ofPrevious: number | null; ofFirst: number | null }[];
   loanTypes: { name: string; count: number; amount: number }[];
   lostReasons: { reason: string; count: number }[];

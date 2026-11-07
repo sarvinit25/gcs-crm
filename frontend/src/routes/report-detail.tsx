@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { ArrowLeft, FileDown, Loader2 } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
-import { formatAmount, formatCompact, formatIndianNumber } from "../lib/format";
+import { formatAmount, formatCompact, formatDate, formatIndianNumber } from "../lib/format";
 import { SERIES } from "../lib/charts";
 import { EXPORT_EXTRA, EXPORT_TYPE, NO_FILTERS, filtersActive, type Detail, type DetailFilters } from "../lib/reports";
 import type { Lender } from "../lib/types";
-import type { ReportType } from "../lib/download-report";
+import { downloadReport, type ReportType } from "../lib/download-report";
 import { PageHeader } from "../components/app-shell";
 import { DatePicker } from "../components/date-picker";
 import { ExportMenu } from "../components/export-menu";
@@ -20,6 +20,11 @@ const tileValue = (t: { value: number; kind: "count" | "amount" }) => (t.kind ==
 
 export function ReportDetailPage() {
   const { kind } = useParams({ strict: false }) as { kind: string };
+  return <ReportPanel kind={kind} page />;
+}
+
+/** One detailed report: filter bar, charts, tables and the records behind them. Used as a page and inside the hub's Stage reports tab. */
+export function ReportPanel({ kind, page = false }: { kind: string; page?: boolean }) {
   const [draft, setDraft] = useState<DetailFilters>(NO_FILTERS);
   const [applied, setApplied] = useState<DetailFilters>(NO_FILTERS);
 
@@ -45,20 +50,23 @@ export function ReportDetailPage() {
   const exportType = (EXPORT_TYPE[kind] ?? "applications") as ReportType;
   // The export uses the filters on screen, so the file matches the report.
   const exportFilters = { ...params, ...EXPORT_EXTRA[kind] };
+  const csv = useMutation({ mutationFn: () => downloadReport(exportType, exportFilters, "csv") });
 
   return (
     <>
-      <PageHeader
-        title={d?.title ?? "Report"}
-        subtitle={d ? `${d.blurb} · ${d.rangeLabel}` : undefined}
-        actions={
-          <Link to={"/reports" as never} className="btn-ghost">
-            <ArrowLeft className="h-4 w-4" /> All reports
-          </Link>
-        }
-      />
+      {page && (
+        <PageHeader
+          title={d?.title ?? "Report"}
+          subtitle={d ? `${d.blurb} · ${d.rangeLabel}` : undefined}
+          actions={
+            <Link to={"/reports" as never} className="btn-ghost">
+              <ArrowLeft className="h-4 w-4" /> All reports
+            </Link>
+          }
+        />
+      )}
 
-      <div className="px-4 py-5 sm:px-6">
+      <div className={page ? "px-4 py-5 sm:px-6" : undefined}>
         <form
           className="card mb-5 flex flex-wrap items-end gap-3 p-4"
           onSubmit={(e) => {
@@ -110,7 +118,16 @@ export function ReportDetailPage() {
               Reset
             </button>
           </div>
-          <div className="sm:ml-auto">
+          <div className="flex items-center gap-2 sm:ml-auto">
+            <button
+              type="button"
+              className="btn-ghost"
+              disabled={csv.isPending}
+              onClick={() => csv.mutate()}
+              title="Download every matching record as a CSV file"
+            >
+              {csv.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />} Export CSV
+            </button>
             <ExportMenu type={exportType} filters={exportFilters} />
           </div>
         </form>
@@ -124,6 +141,7 @@ export function ReportDetailPage() {
         ) : (
           <div className={clsx("space-y-5 transition-opacity", query.isFetching && "opacity-60")} aria-busy={query.isFetching}>
             <DetailBody d={d} />
+            <RecordsTable type={exportType} filters={exportFilters} />
           </div>
         )}
         {query.isFetching && !query.isPending && (
@@ -259,5 +277,70 @@ function DetailBody({ d }: { d: Detail }) {
         </div>
       </section>
     </>
+  );
+}
+
+type PreviewColumn = { key: string; label: string; type: "text" | "amount" | "date" | "percent" | "number" };
+const SHOWN = 50;
+
+const pretty = (v: string) => (/^[A-Z_]+$/.test(v) && !["RTGS", "NEFT", "IMPS", "UPI"].includes(v) ? v.charAt(0) + v.slice(1).toLowerCase().replace(/_/g, " ") : v);
+
+function cell(type: PreviewColumn["type"], value: string | number | null) {
+  if (value === null || value === "") return "—";
+  if (type === "amount") return formatAmount(value);
+  if (type === "date") return formatDate(String(value));
+  if (type === "percent") return `${value}%`;
+  return typeof value === "string" ? pretty(value) : String(value);
+}
+
+/** The records behind the numbers above, newest first (the first 50; Export has every one). */
+function RecordsTable({ type, filters }: { type: ReportType; filters: Record<string, string | undefined> }) {
+  const q = useQuery({
+    queryKey: ["report-preview", type, filters],
+    queryFn: () => api<{ columns: PreviewColumn[]; rows: Record<string, string | number | null>[]; truncated: boolean }>(`/reports/records${qs({ type, ...filters })}`),
+  });
+  return (
+    <section className="card min-w-0 overflow-hidden">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 px-5 pt-5">
+        <h2 className="text-sm font-bold text-navy">Records</h2>
+        {q.data && (
+          <p className="text-[12px] text-muted">
+            {q.data.rows.length > SHOWN || q.data.truncated ? `Showing the first ${SHOWN} — Export has every record` : `${q.data.rows.length} ${q.data.rows.length === 1 ? "record" : "records"}`}
+          </p>
+        )}
+      </div>
+      <div className="mt-3 overflow-x-auto">
+        {q.isPending ? (
+          <TableSkeleton rows={4} cols={5} />
+        ) : q.isError ? (
+          <p className="px-5 py-8 text-center text-sm text-red-600">{(q.error as Error).message}</p>
+        ) : q.data.rows.length === 0 ? (
+          <p className="px-5 py-8 text-center text-[13px] text-muted">No records match these filters.</p>
+        ) : (
+          <table className="w-full text-left text-[13px]">
+            <thead className="border-y border-line bg-bg-light/60 text-[11px] tracking-wide text-muted uppercase">
+              <tr>
+                {q.data.columns.map((c) => (
+                  <th key={c.key} className={clsx("px-4 py-2.5 font-bold", c.type === "amount" && "text-right")}>
+                    {c.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {q.data.rows.slice(0, SHOWN).map((r, i) => (
+                <tr key={i} className="border-b border-line/70 last:border-0">
+                  {q.data.columns.map((c) => (
+                    <td key={c.key} className={clsx("px-4 py-2.5", c.type === "amount" && "text-right")}>
+                      {cell(c.type, r[c.key] ?? null)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </section>
   );
 }

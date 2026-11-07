@@ -89,6 +89,9 @@ export class ReportInsightsService {
 
     const commission = withCommission ? await this.commissionPosition(range) : null;
     const monthTotals = withCommission ? await this.commissionPosition(month) : null;
+    const prevMonth = monthSpan([lastMonths(2, now)[0]]);
+    const compare = await this.monthOverMonth(user, month, prevMonth, withCommission);
+    const extras = await this.overviewExtras(user, range, created, withCommission);
     const { funnel, loanTypes, lostReasons } = await this.shape(user, range, leads, sanctioned._count);
 
     return {
@@ -104,7 +107,11 @@ export class ReportInsightsService {
           thisMonthAmount: money(disbursedMonth._sum.amount),
         },
         commission: commission && monthTotals ? { total: commission.total, pending: commission.due + commission.claimed, thisMonth: monthTotals.total } : null,
+        /** This month against the month before, as a percentage change (null when there was nothing to compare). */
+        change: compare,
       },
+      rejectionReasons: extras.rejectionReasons,
+      counts: extras.counts,
       trends: await this.trends(user, now),
       pipeline: {
         total: pipeline.reduce((n, r) => n + (r._count._all ?? 0), 0),
@@ -118,7 +125,14 @@ export class ReportInsightsService {
         .filter((l) => l.sanctionedAmount > 0)
         .sort((a, b) => b.sanctionedAmount - a.sanctionedAmount)
         .slice(0, 8)
-        .map((l) => ({ lender: l.lender, sanctions: l.sanctions, sanctionedAmount: l.sanctionedAmount, disbursedAmount: l.disbursedAmount })),
+        .map((l) => ({
+          lender: l.lender,
+          sanctions: l.sanctions,
+          rejected: l.rejected,
+          approvalRate: l.approvalRate,
+          sanctionedAmount: l.sanctionedAmount,
+          disbursedAmount: l.disbursedAmount,
+        })),
       funnel,
       loanTypes,
       lostReasons,
@@ -193,6 +207,77 @@ export class ReportInsightsService {
       .slice(0, 8);
 
     return { funnel, loanTypes, lostReasons };
+  }
+
+  /** Percentage change of this month on the one before, for the four headline cards. */
+  private async monthOverMonth(user: AuthUser, month: Range, prev: Range, withCommission: boolean) {
+    const at = (r: Range) => rangeFilter(r)!;
+    const approved = { financialStatus: SanctionStatus.APPROVED, application: appScope(user) };
+    const one = async (r: Range) => {
+      const [leads, sanc, disb] = await Promise.all([
+        this.prisma.lead.count({ where: { ...leadScope(user), createdAt: at(r) } }),
+        this.prisma.sanction.aggregate({ where: { ...approved, ...sanctionedInRange(r) }, _sum: { sanctionedAmount: true } }),
+        this.prisma.disbursement.aggregate({ where: { application: appScope(user), disbursedAt: at(r) }, _sum: { amount: true } }),
+      ]);
+      const comm = withCommission ? (await this.commissionPosition(r)).total : null;
+      return { leads, sanctioned: money(sanc._sum.sanctionedAmount), disbursed: money(disb._sum.amount), commission: comm };
+    };
+    const [now, before] = await Promise.all([one(month), one(prev)]);
+    const change = (a: number | null, b: number | null) => (a === null || b === null || b === 0 ? null : Math.round(((a - b) / b) * 1000) / 10);
+    return {
+      leads: change(now.leads, before.leads),
+      sanctioned: change(now.sanctioned, before.sanctioned),
+      disbursed: change(now.disbursed, before.disbursed),
+      commission: change(now.commission, before.commission),
+    };
+  }
+
+  /** Why files were turned down (where lenders' reasons were recorded) and the per-report record counts for the report cards. */
+  private async overviewExtras(user: AuthUser, range: Range, created: ReturnType<typeof rangeFilter>, withCommission: boolean) {
+    const apps = appScope(user);
+    const inRange = created && { createdAt: created };
+    const [leads, files, loggedIn, sanctioned, followUps, sanctionRows, disbRows, rejected, commissions, outcomes] =
+      await Promise.all([
+        this.prisma.lead.count({ where: { ...leadScope(user), ...inRange } }),
+        this.prisma.application.count({ where: { ...apps, ...inRange } }),
+        this.prisma.application.count({ where: { ...apps, bankLoginAt: created ?? { not: null } } }),
+        this.prisma.sanction.count({ where: { financialStatus: SanctionStatus.APPROVED, application: apps, ...sanctionedInRange(range) } }),
+        this.prisma.followUp.count({ where: { lead: leadScope(user), ...(created && { OR: [{ dueAt: created }, { dueAt: null, createdAt: created }] }) } }),
+        this.prisma.sanction.count({ where: { application: apps, ...sanctionedInRange(range) } }),
+        this.prisma.disbursement.count({ where: { application: apps, ...(created && { disbursedAt: created }) } }),
+        this.prisma.application.count({ where: { ...apps, status: ApplicationStatus.REJECTED, ...(created && { updatedAt: created }) } }),
+        withCommission ? this.prisma.commission.count({ where: created ? { disbursement: { disbursedAt: created } } : {} }) : Promise.resolve(null),
+        this.prisma.caseOutcome.findMany({
+          where: { rejectionReason: { not: null }, ...(created && { createdAt: created }) },
+          select: { rejectionReason: true, applicationId: true },
+        }),
+      ]);
+
+    // Staff only learn about rejections on their own files.
+    let reasons = outcomes;
+    if (user.role === "ADVISOR") {
+      const mine = new Set((await this.prisma.application.findMany({ where: apps, select: { id: true } })).map((a) => a.id));
+      reasons = outcomes.filter((o) => o.applicationId && mine.has(o.applicationId));
+    }
+    const reasonCount = new Map<string, number>();
+    for (const o of reasons) {
+      const key = o.rejectionReason!.trim().replace(/\s+/g, " ").slice(0, 80);
+      if (key) reasonCount.set(key, (reasonCount.get(key) ?? 0) + 1);
+    }
+
+    return {
+      rejectionReasons: [...reasonCount.entries()].map(([reason, count]) => ({ reason, count })).sort((a, b) => b.count - a.count).slice(0, 8),
+      counts: {
+        leads,
+        callbacks: followUps,
+        files,
+        "login-files": loggedIn,
+        sanctions: sanctionRows,
+        disbursals: disbRows,
+        rejects: rejected,
+        ...(commissions === null ? {} : { commissions }),
+      } as Record<string, number>,
+    };
   }
 
   /** Leads, files, sanctions and disbursals per month for the six months up to `now`. */
