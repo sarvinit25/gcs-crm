@@ -300,7 +300,7 @@ export class InboundService {
       }
     }
 
-        if (inProfile && /^(stop|pause|later|cancel|exit|quit)$/.test(text)) {
+    if (inProfile && /^(stop|pause|later|cancel|exit|quit)$/.test(text)) {
       await this.prisma.whatsAppConversation.update({ where: { id: conversation.id }, data: { profileState: null } });
       reply = "No problem — your answers so far are saved. Type *apply* whenever you'd like to continue.";
     } else if (inProfile && /^(agent|human|person|callback|call me|talk to.*)$/.test(text)) {

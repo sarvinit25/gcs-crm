@@ -33,6 +33,17 @@ class FakeProvider implements WhatsAppProvider {
     this.sent.push({ to, kind: "text", body });
     return { waMessageId: `wamid.fake${++this.n}` };
   }
+  async sendInteractive(to: string, c: { body: string }) {
+    this.check();
+    this.sent.push({ to, kind: "text", body: c.body });
+    return { waMessageId: `wamid.fake${++this.n}` };
+  }
+  async downloadMedia(): Promise<{ data: Buffer; mimeType: string }> {
+    throw new ProviderError("no media in tests");
+  }
+  async showTyping() {
+    // nothing to show in tests
+  }
   async sendTemplate(to: string, name: string, _l: string, params: string[]) {
     this.check();
     this.sent.push({ to, kind: "template", name, params });
