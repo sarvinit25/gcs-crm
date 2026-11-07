@@ -192,6 +192,35 @@ describe("WhatsApp inbox and notifications", () => {
       expect(thread.map((m) => `${m.direction}/${m.sender}`)).toEqual(["IN/CUSTOMER", "OUT/BOT"]);
     });
 
+    it("apply walks the customer through the loan profile and stores only allowed answers", async () => {
+      const p = "9000055590";
+      await customerSays(`91${p}`, "hi", { name: "Profile Tester" });
+      provider.sent.length = 0;
+      await customerSays(`91${p}`, "apply");
+      expect(provider.texts()[0]).toMatch(/Home Loan \(HL\)/);
+      const conv = await prisma.whatsAppConversation.findUniqueOrThrow({ where: { phone: p } });
+      expect(conv.profileState).toBe("active");
+
+      provider.sent.length = 0;
+      await customerSays(`91${p}`, "maybe something");
+      expect(provider.texts()[0]).toMatch(/pick one of the options/);
+
+      for (const reply of ["lap", "1.5 cr", "business expansion", "41", "business owner"]) await customerSays(`91${p}`, reply);
+      const rows = await prisma.leadAnswer.findMany({ where: { leadId: conv.leadId!, key: { startsWith: "lp-" } } });
+      const v = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+      expect(v).toMatchObject({ "lp-loan-product": "Loan Against Property (LAP)", "lp-loan-amount": "15000000", "lp-purpose": "Business Expansion", "lp-age": "41", "lp-profile": "Business Owner" });
+      const lead = await prisma.lead.findUniqueOrThrow({ where: { id: conv.leadId! } });
+      expect(Number(lead.amount)).toBe(15000000);
+
+      provider.sent.length = 0;
+      await customerSays(`91${p}`, "stop");
+      expect(provider.texts()[0]).toMatch(/saved/);
+      expect((await prisma.whatsAppConversation.findUniqueOrThrow({ where: { phone: p } })).profileState).toBeNull();
+      provider.sent.length = 0;
+      await customerSays(`91${p}`, "apply");
+      expect(provider.texts()[0]).toMatch(/co-applicant/i); // resumes where it left off
+    });
+
     it("a message Meta delivers twice is handled once", async () => {
       provider.sent.length = 0;
       await customerSays(`91${phone}`, "hi", { id: "wamid.dup1" });

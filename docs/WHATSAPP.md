@@ -22,3 +22,15 @@ Menu: **Messaging → WhatsApp Inbox, Notification templates, Notification logs,
 
 ## Not built
 Callbacks module, Telegram, "Sales Agent" knowledge base, attaching documents by WhatsApp, and webhook forwarding from the website.
+
+## Customer loan profile (the interview)
+
+The question list lives in one place: `backend/src/loan-profile/profile-schema.ts` (sections 1–10: loan requirement,
+applicant, income, additional earner, property, other property, rental, existing loans, credit, previous application).
+The AI may word each question its own way, but every answer is read against the form and only an allowed option,
+number or text is stored (as `lp-…` answers on the lead, shown with the lead's other answers).
+
+- WhatsApp: the customer types **apply**; **stop** pauses (answers stay saved), **apply** resumes where they left off.
+- Telecaller / staff: `GET /leads/:id/loan-profile` (progress, next question, answers) and `POST /leads/:id/loan-profile/answer` `{ reply, key? }`.
+- Website assistant (Gia): `GET /public/loan-profile/schema`, `GET /public/loan-profile/:leadId/next?token=…`, `POST /public/loan-profile/:leadId/answer` `{ reply, token }` using the lead's follow-up token.
+- Needs `OPENAI_API_KEY` only for the friendlier wording and for reading loosely written replies; without it the plain wording and reader are used.

@@ -1578,6 +1578,8 @@ model WhatsAppConversation {
   application   Application?        @relation(fields: [applicationId], references: [id], onDelete: SetNull)
   // Raised when the customer asks for a person, or the bot has nothing to say. The bot stays quiet while it is on.
   needsHuman    Boolean             @default(false)
+  // Set while the assistant is walking the customer through the loan profile questions ("active"), cleared when it finishes or they pause.
+  profileState  String?
   unreadCount   Int                 @default(0)
   // When the customer last wrote — free-form replies are only allowed for 24 hours after this.
   lastInboundAt DateTime?

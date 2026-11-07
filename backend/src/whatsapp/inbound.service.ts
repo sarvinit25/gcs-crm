@@ -11,6 +11,7 @@ import { MediaService } from "./media.service";
 import { WHATSAPP_PROVIDER, type Interactive, type WhatsAppProvider } from "./whatsapp.provider";
 import { contactKey, toWaId } from "./phone";
 import { STAGE_LABEL } from "./templates.util";
+import { LoanProfileService } from "../loan-profile/loan-profile.service";
 
 type Incoming = {
   id: string;
@@ -59,6 +60,7 @@ export class InboundService {
     private assistant: AssistantService,
     private intake: IntakeService,
     private media: MediaService,
+    private profile: LoanProfileService,
     @Inject(WHATSAPP_PROVIDER) private provider: WhatsAppProvider,
   ) {}
 
@@ -252,13 +254,16 @@ export class InboundService {
     const company = this.settings.get<string>("org.name") || "Growth Capital Services";
     let reply: string | null = null;
     let flag = false;
+    const firstName = conversation.name ? conversation.name.split(" ")[0]! : null;
+    const wantsProfile = /^(apply|start|continue|resume|loan details|my details|loan profile|apply for (a )?loan)$/.test(text);
+    const inProfile = conversation.profileState === "active" && m.type === "text";
 
     // Gia, when switched on, takes the conversation: she asks the website's questions and saves the answers on the lead.
     // "status" and a request for a person still work as before. If she cannot answer, the lines below take over.
     const wantsPerson = /^(agent|human|person|callback|call me|talk to)\b/.test(text);
     const typedOrTapped = m.type === "text" || (m.type === "interactive" && Boolean(m.replyId));
     // A file, photo or voice note: Gia says kindly she cannot open it and carries on, instead of going quiet.
-    if (["document", "image", "video", "audio", "sticker"].includes(m.type) && !wantsPerson && this.intake.enabled()) {
+    if (["document", "image", "video", "audio", "sticker"].includes(m.type) && !wantsPerson && !inProfile && !wantsProfile && this.intake.enabled()) {
       void this.provider.showTyping(m.id);
       // Documents and photos are kept on the lead; voice notes and videos still cannot be opened.
       let kind = m.type;
@@ -277,7 +282,7 @@ export class InboundService {
         return;
       }
     }
-    if (typedOrTapped && text !== "status" && !wantsPerson && this.intake.enabled()) {
+    if (typedOrTapped && text !== "status" && !wantsPerson && !inProfile && !wantsProfile && this.intake.enabled()) {
       // blue ticks and "typing..." while the answer is being written, so it feels like a person
       void this.provider.showTyping(m.id);
       const ai = await this.intake.reply({ id: conversation.id, leadId: conversation.leadId, name: conversation.name }, m.replyId);
@@ -295,13 +300,22 @@ export class InboundService {
       }
     }
 
-    if (m.type !== "text") {
+        if (inProfile && /^(stop|pause|later|cancel|exit|quit)$/.test(text)) {
+      await this.prisma.whatsAppConversation.update({ where: { id: conversation.id }, data: { profileState: null } });
+      reply = "No problem — your answers so far are saved. Type *apply* whenever you'd like to continue.";
+    } else if (inProfile && /^(agent|human|person|callback|call me|talk to.*)$/.test(text)) {
+      await this.prisma.whatsAppConversation.update({ where: { id: conversation.id }, data: { profileState: null } });
+      reply = "Of course — a team member will message you here shortly.";
+      flag = true;
+    } else if ((inProfile || wantsProfile) && conversation.leadId) {
+      reply = await this.profileTurn(conversation.id, conversation.leadId, firstName, inProfile ? (m.body ?? "") : null);
+    } else if (m.type !== "text") {
       reply = "Thank you — we've received it. A team member will look at it and reply here shortly.";
       flag = true;
     } else if (/^(hi+|hello+|hey+|hlo|namaste|namaskar|good (morning|afternoon|evening))\b/.test(text)) {
-      reply = `Hello${conversation.name ? ` ${conversation.name.split(" ")[0]}` : ""}! Welcome to ${company}. You can type:\n- *status* — to see where your loan file stands\n- *agent* — to talk to a team member\n- *help* — to see this list again`;
+      reply = `Hello${conversation.name ? ` ${conversation.name.split(" ")[0]}` : ""}! Welcome to ${company}. You can type:\n- *apply* — to share your loan details\n- *status* — to see where your loan file stands\n- *agent* — to talk to a team member\n- *help* — to see this list again`;
     } else if (["help", "menu", "commands"].includes(text)) {
-      reply = "You can type:\n- *status* — where your loan file stands\n- *agent* — talk to a team member\n- anything else, and a team member will reply";
+      reply = "You can type:\n- *apply* — share your loan details\n- *status* — where your loan file stands\n- *agent* — talk to a team member\n- anything else, and a team member will reply";
     } else if (text === "status") {
       reply = await this.statusFor(phone);
     } else if (/^(agent|human|person|callback|call me|talk to)\b/.test(text)) {
@@ -325,6 +339,24 @@ export class InboundService {
         await this.conversations.recordOutbound({ conversationId: conversation.id, sender: WhatsAppSender.BOT, type: "text", body: reply, waMessageId: sent.waMessageId });
       }
     }
+  }
+
+  /**
+   * One turn of the loan profile interview. With no reply it starts (or resumes) and asks the next question;
+   * with a reply it reads it against the question that was asked. Wording may come from the AI, but only a
+   * valid answer from the form is ever stored.
+   */
+  private async profileTurn(conversationId: string, leadId: string, firstName: string | null, reply: string | null): Promise<string> {
+    if (reply === null) {
+      const q = await this.profile.question(leadId, firstName);
+      if (!q) return "We already have all the details we need. A team member will get back to you shortly.";
+      await this.prisma.whatsAppConversation.update({ where: { id: conversationId }, data: { profileState: "active" } });
+      const intro = "Happy to help. I'll ask a few short questions so our experts can understand your requirement. You can type *stop* any time and continue later.\n\n";
+      return intro + q.text;
+    }
+    const result = await this.profile.step(leadId, reply, { firstName });
+    if (!result.nextKey) await this.prisma.whatsAppConversation.update({ where: { id: conversationId }, data: { profileState: null } });
+    return result.reply;
   }
 
   /** Where this number's files stand. Only the stage is shared — nothing about amounts or other people. */
