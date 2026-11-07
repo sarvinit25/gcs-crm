@@ -43,3 +43,9 @@ export class CheckSessionDto {
   @Length(20, 200)
   token: string;
 }
+
+export class ProfileAnswerDto {
+  @IsString() @Length(20, 200) token: string;
+  /** What the visitor wrote, exactly as they wrote it; the loan profile reads it. */
+  @IsString() @Length(1, 2000) reply: string;
+}

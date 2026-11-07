@@ -202,6 +202,16 @@ export class ChatAuthService {
     return result.id;
   }
 
+  /** The lead behind a chat pass, when the pass is still good. */
+  async leadFor(token: string) {
+    const session = await this.prisma.chatSession.findUnique({
+      where: { tokenHash: this.hashToken(token) },
+      select: { leadId: true, name: true, expiresAt: true },
+    });
+    if (!session || session.expiresAt.getTime() <= Date.now() || !session.leadId) return null;
+    return { leadId: session.leadId, firstName: session.name.split(" ")[0] ?? null };
+  }
+
   /** Is this chat pass still good, and is the chat paused for this number? Asked by the website's server before each answer. */
   async check(token: string) {
     const session = await this.prisma.chatSession.findUnique({
