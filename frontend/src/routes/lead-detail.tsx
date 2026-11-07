@@ -26,6 +26,7 @@ import { NewApplicationWizard } from "../components/new-application-wizard";
 import { ChannelInput } from "../components/channel-field";
 import { Modal } from "../components/modal";
 import { LeadSecondForm } from "../components/lead-second-form";
+import { LoanProfilePanel } from "../components/loan-profile-panel";
 import { LeadDocuments } from "../components/lead-documents";
 import { todayIST } from "../lib/date";
 import { DatePicker } from "../components/date-picker";
@@ -601,6 +602,8 @@ export function LeadDetailPage() {
           <LeadDocuments leadId={lead.id} files={lead.files ?? []} />
 
           <LeadSecondForm leadId={lead.id} />
+
+          <LoanProfilePanel leadId={lead.id} />
 
           <section className="card p-5">
             <h2 className="text-sm font-bold text-navy">Application</h2>

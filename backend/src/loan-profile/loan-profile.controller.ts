@@ -1,6 +1,7 @@
 import { Body, Controller, ForbiddenException, Get, Param, Post, Query } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { ConfigService } from "@nestjs/config";
+import { IsOptional, IsString, Length } from "class-validator";
 import { CurrentUser, Public, type AuthUser } from "../auth/auth.decorators";
 import { LeadsService } from "../leads/leads.service";
 import { checkFollowUpToken } from "../leads/follow-up-token";
@@ -8,9 +9,9 @@ import { LoanProfileService } from "./loan-profile.service";
 import { fieldsFor } from "./profile-schema";
 
 class AnswerDto {
-  reply!: string;
-  key?: string;
-  token?: string;
+  @IsString() @Length(0, 2000) reply!: string;
+  @IsOptional() @IsString() @Length(1, 80) key?: string;
+  @IsOptional() @IsString() @Length(1, 400) token?: string;
 }
 
 /** The whole form, for anything that wants to show or ask it (the telecaller's script, Gia). */
