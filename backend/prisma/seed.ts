@@ -1,4 +1,5 @@
 import { LENDER_CONTACTS, NEW_LENDERS } from "./lender-contacts-data";
+import { seedLenderDirectory } from "./seed-lender-directory";
 import { CHECKLIST_DOCUMENTS } from "./checklist-documents.data";
 import { ChecklistApplicantType, LenderType, PrismaClient, Role } from "@prisma/client";
 import { PRODUCT_CHECKLIST_ITEMS } from "./checklist-data";
@@ -267,6 +268,9 @@ async function main() {
     contactsAdded++;
   }
   console.log(`Lender directory: ${contactsAdded} new contact(s) added, ${LENDER_CONTACTS.length - contactsAdded} already present`);
+
+  // The banker / SPOC lists and the broker codes & payouts the client supplied (see prisma/tools/lender-directory).
+  await seedLenderDirectory(prisma);
 
   for (const [i, [title, productSlug, variant, fileUrl]] of CHECKLIST_DOCUMENTS.entries()) {
     await prisma.checklistDocument.upsert({

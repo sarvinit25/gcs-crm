@@ -11,6 +11,8 @@ export type LenderRow = {
   defaultCommission: string | null;
   applicationCount: number;
   contactCount: number;
+  codeCount: number;
+  branchCount: number;
   policyCount: number;
   activePolicyCount: number;
   relationshipManager: { name: string; phone: string | null; email: string | null } | null;

@@ -6,14 +6,15 @@ describe("segmentsForProduct", () => {
     ["Business Loan", ["Business Loan", "Small Business Loan"]],
     ["MSME Loan", ["Business Loan", "Small Business Loan"]],
     ["Machinery Loan", ["Machinery Loan"]],
-    ["Working Capital Loan", ["Overdraft"]],
+    ["Working Capital Loan", ["Overdraft", "Working Capital"]],
+    ["Education Loan", ["Education Loan"]],
     ["Loan Against Property", ["Secured Loan", "Loan Against Property"]],
     ["Home Loan", ["Secured Loan", "Home Loan"]],
     ["Personal Loan", ["Personal Loan"]],
   ])("%s → %j", (name, expected) => expect(segmentsForProduct(name).sort()).toEqual([...expected].sort()));
 
   it("matches nothing for an unknown product or no product", () => {
-    expect(segmentsForProduct("Education Loan")).toEqual([]);
+    expect(segmentsForProduct("Gold Loan")).toEqual([]);
     expect(segmentsForProduct(null)).toEqual([]);
     expect(segmentsForProduct(undefined)).toEqual([]);
   });

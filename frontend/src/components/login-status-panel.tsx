@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { api } from "../lib/api";
 import { formatAmount, formatDate } from "../lib/format";
 import type { ApplicationDetail } from "../lib/types";
-import { rankContacts, type LenderContact } from "../lib/lender-contacts";
+import { rankContacts, type LenderContact, type Paged } from "../lib/lender-contacts";
 import { Modal } from "./modal";
 import { ContactLinks } from "./lender-contacts";
 import { DatePicker } from "./date-picker";
@@ -47,11 +47,11 @@ export function LoginStatusPanel({ applicationId }: { applicationId: string }) {
   const lenderId = app?.lender?.id;
   const directory = useQuery({
     queryKey: ["lender-contacts", { lenderId }],
-    queryFn: () => api<LenderContact[]>(`/lender-contacts?lenderId=${lenderId}`),
+    queryFn: () => api<Paged<LenderContact>>(`/lender-contacts?lenderId=${lenderId}&limit=100`),
     enabled: editing && Boolean(lenderId),
   });
   if (!app) return null;
-  const ranked = rankContacts(directory.data ?? [], app.loanProduct?.name);
+  const ranked = rankContacts(directory.data?.items ?? [], app.loanProduct?.name);
 
   const isLoggedIn = !!app.bankLoginAt;
 

@@ -137,7 +137,7 @@ export function LendersPage() {
               <StatCard value={all.length} label="All lenders" tone="text-navy" selected={status === "all"} onClick={() => setStatus("all")} />
               <StatCard value={all.filter((l) => l.active).length} label="Active" tone="text-emerald-700" selected={status === "active"} onClick={() => setStatus("active")} />
               <StatCard value={all.filter((l) => !l.active).length} label="Inactive" tone="text-red-600" selected={status === "inactive"} onClick={() => setStatus("inactive")} />
-              <StatCard value={all.reduce((n, l) => n + l.policyCount, 0)} label="Loan types offered" tone="text-sky-700" />
+              <StatCard value={all.reduce((n, l) => n + l.contactCount, 0).toLocaleString("en-IN")} label="People in the directory" tone="text-sky-700" />
             </div>
 
             <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -175,6 +175,8 @@ export function LendersPage() {
                       <th className="px-4 py-2.5 font-bold">Type</th>
                       <th className="px-4 py-2.5 font-bold">Relationship manager</th>
                       <th className="px-4 py-2.5 font-bold">Loan types</th>
+                      <th className="px-4 py-2.5 font-bold">People</th>
+                      <th className="px-4 py-2.5 font-bold">Codes</th>
                       <th className="px-4 py-2.5 font-bold">Our commission</th>
                       <th className="px-4 py-2.5 font-bold">Files</th>
                       <th className="px-4 py-2.5 font-bold">On website</th>
@@ -212,6 +214,8 @@ export function LendersPage() {
                         <td className="px-4 py-3 text-muted" title={`${l.activePolicyCount} active of ${l.policyCount}`}>
                           {l.policyCount}
                         </td>
+                        <td className="px-4 py-3 text-muted">{l.contactCount.toLocaleString("en-IN")}</td>
+                        <td className="px-4 py-3 text-muted">{l.codeCount}</td>
                         <td className="px-4 py-3 text-muted">{percent(l.defaultCommission)}</td>
                         <td className="px-4 py-3 text-muted">{l.applicationCount}</td>
                         <td className="px-4 py-3">

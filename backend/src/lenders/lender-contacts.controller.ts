@@ -15,6 +15,12 @@ export class LenderContactsController {
     return this.contacts.segments();
   }
 
+  /** States and towns that have people in them (optionally for one lender). */
+  @Get("places")
+  places(@Query("lenderId") lenderId?: string) {
+    return this.contacts.places(lenderId);
+  }
+
   @Get()
   list(@Query() query: ListLenderContactsQuery) {
     return this.contacts.list(query);

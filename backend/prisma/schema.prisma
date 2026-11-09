@@ -176,6 +176,8 @@ model Lender {
   applications Application[]
   contacts     LenderContact[]
   policies     LenderPolicy[]
+  codes        LenderCode[]
+  branches     LenderBranch[]
 
   @@index([active, isPublic])
 }
@@ -199,7 +201,83 @@ model LenderContact {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // RELATIONSHIP = a manager who takes our files; DIRECTORY = a regional / branch / escalation name from a lender's own contact list.
+  kind         LenderContactKind @default(RELATIONSHIP)
+  altPhone     String?
+  // Where they sit and what they cover, as the lender's list gives it.
+  city         String?
+  state        String?
+  region       String?
+  branch       String?
+  // Every town / branch they look after, joined with " · " so one search finds them.
+  coverage     String?
+  employeeCode String?
+  // The people above them: [{ role, name, phone, email }].
+  escalation   Json?
+  // Anything else the lender's list carries, label → value.
+  details      Json?
+  // Which sheet this came from.
+  source       String?
+
   @@index([lenderId])
+  @@index([lenderId, kind])
+  @@index([state])
+  @@index([city])
+}
+
+enum LenderContactKind {
+  RELATIONSHIP
+  DIRECTORY
+}
+
+/**
+ * The code GCS is registered under at a lender for a loan type, and what the lender pays on it.
+ */
+model LenderCode {
+  id               String       @id @default(cuid())
+  lenderId         String
+  lender           Lender       @relation(fields: [lenderId], references: [id], onDelete: Cascade)
+  // The loan type as the sheet names it (e.g. "Used Car Loan"), and the CRM loan type it matches, when one does.
+  product          String
+  loanProductId    String?
+  loanProduct      LoanProduct? @relation(fields: [loanProductId], references: [id], onDelete: SetNull)
+  code             String?
+  // The company the code is issued to.
+  registeredName   String?
+  // Payout exactly as written ("100% of PF", "Slab wise"), and the plain percentage when it is one.
+  payoutText       String?
+  payoutPercent    Decimal?     @db.Decimal(6, 3)
+  contactText      String?
+  contactPhone     String?
+  specialCondition String?
+  source           String?
+  active           Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([lenderId])
+}
+
+/**
+ * A branch / office of a lender, where the lender's list gives one.
+ */
+model LenderBranch {
+  id          String   @id @default(cuid())
+  lenderId    String
+  lender      Lender   @relation(fields: [lenderId], references: [id], onDelete: Cascade)
+  name        String
+  city        String?
+  state       String?
+  region      String?
+  zone        String?
+  area        String?
+  // Whether the lender takes DSA-sourced files at this branch ("Allowed", "Not Allowed", "Non-Serviceable").
+  dsaSourcing String?
+  details     Json?
+  source      String?
+  createdAt   DateTime @default(now())
+
+  @@index([lenderId, name])
 }
 
 model LoanProduct {
@@ -225,6 +303,7 @@ model LoanProduct {
   applications   Application[]
   documentTypes  DocumentType[]
   lenderPolicies LenderPolicy[]
+  lenderCodes    LenderCode[]
 }
 
 model SourcingPartner {
@@ -393,7 +472,7 @@ model Lead {
   followUps           FollowUp[]
   submissions         WebsiteSubmission[]
   answers             LeadAnswer[]
-  files    LeadFile[]
+  files               LeadFile[]
   partnerApplications PartnerApplication[]
 
   @@index([chatVerifiedAt])
@@ -783,20 +862,20 @@ model Sanction {
   validTill        DateTime?
 
   // Register number (SN-2026-00003) — handed out in order, never reused.
-  seq          Int       @unique @default(autoincrement())
-  sanctionDate DateTime?
+  seq                  Int       @unique @default(autoincrement())
+  sanctionDate         DateTime?
   // The lender-side relationship manager who issued it.
-  bankRm       String?
+  bankRm               String?
   // Worked out from amount, rate and tenure unless the lender's own figure is keyed in.
-  emiAmount    Decimal?  @db.Decimal(14, 2)
-  firstEmiDate DateTime?
+  emiAmount            Decimal?  @db.Decimal(14, 2)
+  firstEmiDate         DateTime?
   // The fee is stored as an amount; the percentage is kept when that is how it was quoted.
-  processingFeePercent Decimal? @db.Decimal(5, 2)
-  processingFee        Decimal? @db.Decimal(14, 2)
+  processingFeePercent Decimal?  @db.Decimal(5, 2)
+  processingFee        Decimal?  @db.Decimal(14, 2)
   // What GCS expects the lender to pay on this sanction, so the commission
   // form can be pre-filled when money is released.
-  commissionPercent Decimal? @db.Decimal(5, 2)
-  notes             String?
+  commissionPercent    Decimal?  @db.Decimal(5, 2)
+  notes                String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1644,20 +1723,20 @@ enum MetaTemplateStatus {
  * approval state alongside the wording.
  */
 model NotificationTemplate {
-  id          String                @id @default(cuid())
-  name        String
+  id         String                @id @default(cuid())
+  name       String
   // Meta's template name: lowercase letters, digits and underscores.
-  code        String                @unique
-  trigger     NotificationTrigger
-  recipient   NotificationRecipient
+  code       String                @unique
+  trigger    NotificationTrigger
+  recipient  NotificationRecipient
   // Wording with {{name}}-style placeholders. They are numbered in order of appearance when sent to Meta.
-  body        String
-  language    String                @default("en")
-  active      Boolean               @default(true)
-  metaStatus  MetaTemplateStatus    @default(NOT_SUBMITTED)
-  metaReason  String?
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
+  body       String
+  language   String                @default("en")
+  active     Boolean               @default(true)
+  metaStatus MetaTemplateStatus    @default(NOT_SUBMITTED)
+  metaReason String?
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
 
   @@unique([trigger, recipient])
 }
@@ -1668,23 +1747,25 @@ enum NotificationStatus {
   SKIPPED
 }
 
-/** Every automatic message: sent, failed, or deliberately not sent (and why). */
+/**
+ * Every automatic message: sent, failed, or deliberately not sent (and why).
+ */
 model NotificationLog {
-  id            String                @id @default(cuid())
-  trigger       NotificationTrigger
-  recipient     NotificationRecipient
-  templateCode  String?
-  toPhone       String?
-  toName        String?
-  status        NotificationStatus
+  id           String                @id @default(cuid())
+  trigger      NotificationTrigger
+  recipient    NotificationRecipient
+  templateCode String?
+  toPhone      String?
+  toName       String?
+  status       NotificationStatus
   // For SKIPPED and FAILED: the reason, in words a person can act on.
-  reason        String?
-  waMessageId   String?
-  entityType    String?
-  entityId      String?
+  reason       String?
+  waMessageId  String?
+  entityType   String?
+  entityId     String?
   // Day (India time, YYYY-MM-DD) for the daily briefs, so each goes out once a day.
-  dayKey        String?
-  createdAt     DateTime              @default(now())
+  dayKey       String?
+  createdAt    DateTime              @default(now())
 
   @@index([createdAt])
   @@index([trigger, dayKey])

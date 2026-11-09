@@ -1,9 +1,11 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { AuditAction } from "@prisma/client";
+import { AuditAction, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService, diff } from "../audit/audit.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { CreateLenderDto, UpdateLenderDto } from "./dto/lender.dto";
+import { ListBranchesQuery } from "./dto/lender-code.dto";
+import { shapeCode } from "./lender-codes.service";
 
 /** Text fields left empty on the form are stored as "nothing", not as an empty string. */
 const TEXT = ["shortName", "brokerCode", "portalUrl", "branchName", "branchCity", "branchAddress", "notes"] as const;
@@ -67,6 +69,9 @@ export class LendersService {
     });
     const contactsBy = new Map(contactCounts.map((c) => [c.lenderId, c._count]));
 
+    const codeCounts = new Map((await this.prisma.lenderCode.groupBy({ by: ["lenderId"], _count: true, orderBy: { lenderId: "asc" } })).map((c) => [c.lenderId, c._count]));
+    const branchCounts = new Map((await this.prisma.lenderBranch.groupBy({ by: ["lenderId"], _count: true, orderBy: { lenderId: "asc" } })).map((c) => [c.lenderId, c._count]));
+
     const policies = await this.prisma.lenderPolicy.groupBy({
       by: ["lenderId", "active"],
       _count: true,
@@ -79,11 +84,11 @@ export class LendersService {
       if (p.active) cur.active += p._count;
       policiesBy.set(p.lenderId, cur);
     }
-    // The first active contact is the one shown as the relationship manager.
+    // The first active relationship manager (before any regional / branch name) is the one shown.
     const people = await this.prisma.lenderContact.findMany({
       where: { active: true },
       select: { lenderId: true, name: true, phone: true, email: true },
-      orderBy: [{ createdAt: "asc" }],
+      orderBy: [{ kind: "asc" }, { createdAt: "asc" }],
     });
     const manager = new Map<string, (typeof people)[number]>();
     for (const c of people) if (!manager.has(c.lenderId)) manager.set(c.lenderId, c);
@@ -92,28 +97,53 @@ export class LendersService {
       ...l,
       applicationCount: byLender.get(l.id) ?? 0,
       contactCount: contactsBy.get(l.id) ?? 0,
+      codeCount: codeCounts.get(l.id) ?? 0,
+      branchCount: branchCounts.get(l.id) ?? 0,
       policyCount: policiesBy.get(l.id)?.all ?? 0,
       activePolicyCount: policiesBy.get(l.id)?.active ?? 0,
       relationshipManager: manager.get(l.id) ?? null,
     }));
   }
 
-  /** One lender with its policies (what it offers, per loan type) and its people. */
-  async findOne(id: string) {
+  /** One lender with its policies, broker codes and a first few of its people (the rest are paged through /lender-contacts). */
+  async findOne(id: string, user: AuthUser) {
     const lender = await this.prisma.lender.findUnique({
       where: { id },
       include: {
-        contacts: { where: { active: true }, orderBy: { createdAt: "asc" } },
+        contacts: { where: { active: true }, orderBy: [{ kind: "asc" }, { createdAt: "asc" }, { id: "asc" }], take: 5 },
         policies: {
           include: { loanProduct: { select: { id: true, name: true, slug: true } } },
           orderBy: { loanProduct: { name: "asc" } },
         },
-        _count: { select: { applications: true } },
+        codes: { include: { loanProduct: { select: { id: true, name: true } } }, orderBy: [{ active: "desc" }, { product: "asc" }, { code: "asc" }] },
+        _count: { select: { applications: true, branches: true } },
       },
     });
     if (!lender) throw new NotFoundException("Lender not found");
-    const { _count, ...rest } = lender;
-    return { ...rest, applicationCount: _count.applications };
+    const contactCount = await this.prisma.lenderContact.count({ where: { lenderId: id, active: true } });
+    const { _count, codes, ...rest } = lender;
+    return { ...rest, codes: codes.map((c) => shapeCode(c, user)), applicationCount: _count.applications, branchCount: _count.branches, contactCount };
+  }
+
+  /** A lender's branches / offices, searchable and paged. */
+  async branches(id: string, query: ListBranchesQuery) {
+    const words = (query.search ?? "").trim().split(/\s+/).filter(Boolean).slice(0, 6);
+    const where: Prisma.LenderBranchWhereInput = {
+      lenderId: id,
+      ...(query.state && { state: query.state }),
+      ...(words.length && {
+        AND: words.map((w) => ({
+          OR: ["name", "city", "state", "region", "zone", "area", "dsaSourcing"].map((f) => ({ [f]: { contains: w, mode: "insensitive" as const } })),
+        })),
+      }),
+    };
+    const limit = query.limit ?? 50;
+    const page = query.page ?? 1;
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.lenderBranch.findMany({ where, orderBy: [{ state: "asc" }, { name: "asc" }, { id: "asc" }], skip: (page - 1) * limit, take: limit }),
+      this.prisma.lenderBranch.count({ where }),
+    ]);
+    return { items, total, page, limit };
   }
 
   async create(dto: CreateLenderDto, actor: AuthUser, ip?: string) {

@@ -3,6 +3,7 @@ import { Role } from "@prisma/client";
 import { CurrentUser, Public, Roles, type AuthUser } from "../auth/auth.decorators";
 import { LendersService } from "./lenders.service";
 import { CreateLenderDto, UpdateLenderDto } from "./dto/lender.dto";
+import { ListBranchesQuery } from "./dto/lender-code.dto";
 
 /** Read-only feed for the website's partner directory. */
 @Controller("public/lenders")
@@ -32,8 +33,13 @@ export class LendersController {
   }
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.lenders.findOne(id);
+  findOne(@Param("id") id: string, @CurrentUser() user: AuthUser) {
+    return this.lenders.findOne(id, user);
+  }
+
+  @Get(":id/branches")
+  branches(@Param("id") id: string, @Query() query: ListBranchesQuery) {
+    return this.lenders.branches(id, query);
   }
 
   @Post()

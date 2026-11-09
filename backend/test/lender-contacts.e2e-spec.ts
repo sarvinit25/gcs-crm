@@ -40,9 +40,11 @@ describe("lender contacts", () => {
   });
 
   it("is seeded from the client's sheet, with the lenders it introduced kept off the public website", async () => {
-    const all = (await get("/lender-contacts", staff)).body as any[];
-    expect(all.length).toBeGreaterThanOrEqual(55);
-    expect(all.find((c) => c.name === "Rahul Astana")).toMatchObject({ lender: { name: "HDFC Bank" }, phone: "9820592765", segments: ["Business Loan"] });
+    const all = (await get("/lender-contacts", staff)).body;
+    expect(all.total).toBeGreaterThanOrEqual(4500);
+    expect(all.items).toHaveLength(50);
+    const rahul = (await get("/lender-contacts?search=Rahul%20Astana", staff)).body.items;
+    expect(rahul[0]).toMatchObject({ lender: { name: "HDFC Bank" }, phone: "9820592765", segments: ["Business Loan"], kind: "RELATIONSHIP" });
 
     const added = await prisma.lender.findUniqueOrThrow({ where: { name: "UGRO Capital" } });
     expect(added.isPublic).toBe(false);
@@ -59,16 +61,17 @@ describe("lender contacts", () => {
   });
 
   it("lets every signed-in person search it, finding any word across name, number, email or lender", async () => {
-    const hits = async (q: string) => ((await get(`/lender-contacts?search=${encodeURIComponent(q)}`, staff)).body as any[]).map((c) => c.name);
-    expect(await hits("sachin")).toEqual(["Sachin Mishra"]);
+    const hits = async (q: string) => ((await get(`/lender-contacts?search=${encodeURIComponent(q)}&limit=200`, staff)).body.items as any[]).map((c) => c.name);
+    expect(await hits("sachin mishra")).toContain("Sachin Mishra");
     expect(await hits("7977114209")).toEqual(["Sachin Mishra"]);
     expect(await hits("+91 79771 14209")).toEqual(["Sachin Mishra"]);
-    expect(await hits("icicibank.com")).toEqual(["Sachin Mishra"]);
-    expect(await hits("godrej sonali")).toEqual(["Sonali Mishra"]);
+    expect(await hits("sachin.mishra6@icicibank.com")).toEqual(["Sachin Mishra"]);
+    expect(await hits("godrej sonali mishra")).toContain("Sonali Mishra");
     expect(await hits("zzzz-nobody")).toEqual([]);
-    const machinery = ((await get("/lender-contacts?segment=Machinery%20Loan", staff)).body as any[]).map((c) => c.name);
-    expect(machinery).toEqual(["Roshan Thorat"]);
-    const byLender = (await get(`/lender-contacts?lenderId=${hdfcId}`, staff)).body as any[];
+    const machinery = ((await get("/lender-contacts?segment=Machinery%20Loan&limit=200", staff)).body.items as any[]).map((c) => c.name);
+    expect(machinery).toContain("Roshan Thorat");
+    const byLender = (await get(`/lender-contacts?lenderId=${hdfcId}`, staff)).body.items as any[];
+    expect(byLender.length).toBeGreaterThan(0);
     expect(byLender.every((c) => c.lender.id === hdfcId)).toBe(true);
   });
 
@@ -95,8 +98,117 @@ describe("lender contacts", () => {
 
   it("shows how many contacts each lender has in the lender list", async () => {
     const lenders = (await get("/lenders", staff)).body as any[];
-    expect(lenders.find((l) => l.name === "Godrej Capital").contactCount).toBe(3);
-    expect(lenders.find((l) => l.name === "SBI").contactCount).toBe(0);
+    expect(lenders.find((l) => l.name === "Godrej Capital").contactCount).toBeGreaterThanOrEqual(3);
+    expect(lenders.find((l) => l.name === "Cholamandalam").contactCount).toBeGreaterThan(1000);
+  });
+
+  describe("the regional and branch directory loaded from the banker lists", () => {
+    it("pages through everyone, relationship managers before regional / branch names, and filters by kind, place and lender", async () => {
+      const first = (await get("/lender-contacts?limit=10", staff)).body;
+      expect(first.items).toHaveLength(10);
+      expect(first.items.every((c: any) => c.kind === "RELATIONSHIP")).toBe(true);
+      const second = (await get("/lender-contacts?limit=10&page=2", staff)).body;
+      expect(second.items.map((c: any) => c.id)).not.toEqual(expect.arrayContaining(first.items.map((c: any) => c.id)));
+
+      const directory = (await get("/lender-contacts?kind=DIRECTORY&limit=200", staff)).body;
+      expect(directory.total).toBeGreaterThan(3000);
+      expect(directory.items.every((c: any) => c.kind === "DIRECTORY")).toBe(true);
+
+      const rajkot = (await get("/lender-contacts?city=Rajkot&limit=200", staff)).body;
+      expect(rajkot.total).toBeGreaterThan(50);
+      expect(rajkot.items.every((c: any) => c.city === "Rajkot")).toBe(true);
+      expect((await get("/lender-contacts?limit=500", staff)).status).toBe(400);
+    });
+
+    it("finds people by town, state, branch or territory, and carries their escalation chain", async () => {
+      const dombivli = (await get("/lender-contacts?search=dombivli&limit=200", staff)).body.items as any[];
+      expect(dombivli.some((c) => c.lender.name === "PNB Housing")).toBe(true);
+      const ambit = (await get("/lender-contacts?search=prince%20malhotra", staff)).body.items[0];
+      expect(ambit).toMatchObject({ lender: { name: "Ambit" }, phone: "9311839921", city: "Delhi" });
+      expect(ambit.escalation.map((e: any) => e.name)).toEqual(["Suneel Yadav", "Ravi Harjai"]);
+      expect(ambit.coverage).toContain("Ghaziabad");
+    });
+
+    it("keeps numbers that look incomplete out of the phone field, with a note", async () => {
+      const rows = (await get("/lender-contacts?search=Agrim&limit=200", staff)).body.items as any[];
+      const flagged = rows.filter((c) => c.notes?.includes("looks incomplete"));
+      expect(flagged.length).toBeGreaterThan(0);
+      expect(flagged.every((c) => c.phone === null)).toBe(true);
+    });
+
+    it("lists the states and towns people are filed under", async () => {
+      const places = (await get("/lender-contacts/places", staff)).body;
+      expect(places.states).toEqual(expect.arrayContaining(["Maharashtra", "Gujarat", "Karnataka"]));
+      expect(places.cities.some((c: any) => c.city === "Rajkot" && c.state === "Gujarat")).toBe(true);
+    });
+
+    it("lets an admin record where a person sits, and refuses an unknown kind", async () => {
+      const made = await post("/lender-contacts", admin, { lenderId: hdfcId, name: "Placed Person", city: " Nagpur ", state: "Maharashtra", kind: "DIRECTORY", phone: "9000000077" });
+      expect(made.status).toBe(201);
+      expect(made.body).toMatchObject({ city: "Nagpur", state: "Maharashtra", kind: "DIRECTORY" });
+      expect((await patch(`/lender-contacts/${made.body.id}`, admin, { city: "" })).body.city).toBeNull();
+      expect((await post("/lender-contacts", admin, { lenderId: hdfcId, name: "Odd Kind", kind: "BOSS" })).status).toBe(400);
+      await del(`/lender-contacts/${made.body.id}`, admin);
+    });
+  });
+
+  describe("broker codes, payouts and branches", () => {
+    let chola: string;
+    beforeAll(async () => {
+      chola = (await prisma.lender.findUniqueOrThrow({ where: { name: "Cholamandalam" } })).id;
+    });
+
+    it("shows a lender's codes to everyone, but the payout only to admins and managers", async () => {
+      const hdfc = (await get(`/lenders/${hdfcId}`, staff)).body;
+      expect(hdfc.codes[0]).toMatchObject({ product: "New Car Loan", code: "300573", registeredName: expect.stringMatching(/FINWIZZ/i), payoutText: null, payoutPercent: null });
+      const asManager = (await get(`/lenders/${hdfcId}`, manager)).body;
+      expect(asManager.codes[0].payoutText).toBe("Payout based on Rate & PF");
+      const icici = (await prisma.lender.findUniqueOrThrow({ where: { name: "ICICI Bank" } })).id;
+      const rows = (await get(`/lenders/${icici}`, admin)).body.codes as any[];
+      expect(rows.find((c) => c.product === "New Car Loan").payoutPercent).toBe("1");
+      expect(rows.find((c) => c.product === "Educational Loan").payoutText).toBe("1.18% (Inc of GST)");
+      expect((await get(`/lenders/${icici}`, staff)).body.codes.every((c: any) => c.payoutText === null)).toBe(true);
+    });
+
+    it("reports counts on the lender list, and the first few people on the lender page", async () => {
+      const list = (await get("/lenders", staff)).body as any[];
+      expect(list.find((l) => l.name === "HDFC Bank").codeCount).toBe(1);
+      expect(list.find((l) => l.name === "Cholamandalam").branchCount).toBeGreaterThan(700);
+      const detail = (await get(`/lenders/${chola}`, staff)).body;
+      expect(detail.contacts).toHaveLength(5);
+      expect(detail.contactCount).toBeGreaterThan(1000);
+      expect(detail.branchCount).toBeGreaterThan(700);
+    });
+
+    it("pages and searches a lender's branches, including where DSA files are not taken", async () => {
+      const page = (await get(`/lenders/${chola}/branches?limit=20`, staff)).body;
+      expect(page.items).toHaveLength(20);
+      const hit = (await get(`/lenders/${chola}/branches?search=chandauli`, staff)).body;
+      expect(hit.items[0]).toMatchObject({ name: "Chandauli Hl", state: "Uttar Pradesh" });
+      const aadhar = (await prisma.lender.findUniqueOrThrow({ where: { name: "Aadhar Housing" } })).id;
+      const blocked = (await get(`/lenders/${aadhar}/branches?search=not%20allowed`, staff)).body.items as any[];
+      expect(blocked.map((b) => b.name)).toEqual(expect.arrayContaining(["Vizag"]));
+      expect((await prisma.lender.findUniqueOrThrow({ where: { id: aadhar } })).notes).toMatch(/DSA sourcing not allowed/);
+    });
+
+    it("lets admins and managers keep codes up to date — audited, and not staff", async () => {
+      const body = { lenderId: hdfcId, product: "Home Loan", code: "HL-TEST-1", payoutText: "0.5% of disbursal", payoutPercent: 0.5, contactPhone: "+91 98765 43210" };
+      expect((await post("/lender-codes", staff, body)).status).toBe(403);
+      const made = await post("/lender-codes", manager, body);
+      expect(made.status).toBe(201);
+      expect(made.body).toMatchObject({ code: "HL-TEST-1", contactPhone: "9876543210" });
+      expect((await post("/lender-codes", admin, { ...body, contactPhone: "123" })).status).toBe(400);
+      expect((await post("/lender-codes", admin, { ...body, lenderId: "nope" })).status).toBe(404);
+      const id = made.body.id;
+      expect((await patch(`/lender-codes/${id}`, staff, { code: "X" })).status).toBe(403);
+      const edited = await patch(`/lender-codes/${id}`, admin, { payoutText: "", active: false });
+      expect(edited.body).toMatchObject({ payoutText: null, active: false });
+      expect((await del(`/lender-codes/${id}`, staff)).status).toBe(403);
+      expect((await del(`/lender-codes/${id}`, admin)).status).toBe(200);
+      expect((await del(`/lender-codes/${id}`, admin)).status).toBe(404);
+      const trail = await prisma.auditLog.findMany({ where: { entity: "LenderCode", entityId: id }, orderBy: { createdAt: "asc" } });
+      expect(trail.map((t) => t.action)).toEqual(["CREATE", "UPDATE", "DELETE"]);
+    });
   });
 
   describe("keeping it up to date", () => {
@@ -132,8 +244,8 @@ describe("lender contacts", () => {
       const edited = await patch(`/lender-contacts/${id}`, admin, { designation: "Area Manager", phone: "", notes: "Left the bank" });
       expect(edited.body).toMatchObject({ designation: "Area Manager", phone: null });
       expect((await patch(`/lender-contacts/${id}`, admin, { active: false })).status).toBe(200);
-      expect(((await get("/lender-contacts?search=Test%20Person", staff)).body as any[]).length).toBe(0);
-      expect(((await get("/lender-contacts?search=Test%20Person&includeInactive=true", staff)).body as any[]).length).toBe(1);
+      expect((await get("/lender-contacts?search=Test%20Person", staff)).body.items).toHaveLength(0);
+      expect((await get("/lender-contacts?search=Test%20Person&includeInactive=true", staff)).body.items).toHaveLength(1);
 
       expect((await del(`/lender-contacts/${id}`, admin)).status).toBe(200);
       expect((await del(`/lender-contacts/${id}`, admin)).status).toBe(404);

@@ -11,6 +11,8 @@ import type { LenderContact } from "../lib/lender-contacts";
 import { PageHeader } from "../components/app-shell";
 import { LenderAvatar } from "../components/lender-avatar";
 import { LenderContactsModal, ContactLinks } from "../components/lender-contacts";
+import { LenderCodes, type LenderCodeRow } from "../components/lender-codes";
+import { LenderBranches } from "../components/lender-branches";
 
 type Policy = {
   id: string;
@@ -41,6 +43,9 @@ type LenderDetail = {
   branchAddress: string | null;
   notes: string | null;
   applicationCount: number;
+  contactCount: number;
+  branchCount: number;
+  codes: LenderCodeRow[];
   policies: Policy[];
   contacts: Omit<LenderContact, "lender">[];
 };
@@ -127,15 +132,18 @@ export function LenderDetailPage() {
               <p className="text-[13px] text-muted">{l.isPublic ? "Shown on the website" : "Not shown on the website"}</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-line/70 border-t border-line/70 lg:grid-cols-4">
+          <div className="grid grid-cols-3 divide-x divide-line/70 border-t border-line/70 lg:grid-cols-6">
             <Stat value={l.policies.length} label="Loan types" />
-            <Stat value={l.policies.filter((p) => p.active).length} label="Active loan types" />
+            <Stat value={l.contactCount.toLocaleString("en-IN")} label="People" />
+            <Stat value={l.codes.length} label="Codes" />
+            <Stat value={l.branchCount.toLocaleString("en-IN")} label="Branches" />
             <Stat value={percent(l.defaultCommission)} label="Our commission" />
             <Stat value={l.applicationCount} label="Files" />
           </div>
         </section>
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          <div className="min-w-0 space-y-5">
           <section className="card p-5">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-sm font-bold text-navy">Loan types offered</h2>
@@ -187,13 +195,16 @@ export function LenderDetailPage() {
               </div>
             )}
           </section>
+          <LenderCodes lenderId={l.id} codes={l.codes} canEdit={canPolicies} showPayout={canPolicies} />
+          <LenderBranches lenderId={l.id} count={l.branchCount} />
+          </div>
 
           <div className="space-y-5">
             <section className="card p-5">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-bold text-navy">Relationship managers</h2>
                 <button onClick={() => setContacts(true)} className="btn-ghost !px-2 !py-1 text-[12px]">
-                  <Users className="h-3.5 w-3.5" /> {canPolicies ? "Manage" : "View all"}
+                  <Users className="h-3.5 w-3.5" /> {canPolicies ? "Manage" : "View all"} ({l.contactCount.toLocaleString("en-IN")})
                 </button>
               </div>
               {!l.contacts.length ? (
@@ -209,7 +220,7 @@ export function LenderDetailPage() {
                       <ContactLinks phone={c.phone} email={c.email} />
                     </li>
                   ))}
-                  {l.contacts.length > 4 && <li className="pt-2 text-[12px] text-muted">+{l.contacts.length - 4} more</li>}
+                  {l.contactCount > 4 && <li className="pt-2 text-[12px] text-muted">+{(l.contactCount - 4).toLocaleString("en-IN")} more — use Manage / View all to search them</li>}
                 </ul>
               )}
             </section>

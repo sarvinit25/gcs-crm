@@ -22,8 +22,8 @@ export class LenderContactsService {
     return [...new Set([...this.settings.get<string[]>("lenders.segments"), ...used.map((u) => u.s)])];
   }
 
-  /** Every word typed must be found somewhere — name, number, email, the bank or a note. */
-  list(query: ListLenderContactsQuery) {
+  /** Every word typed must be found somewhere — name, number, email, the bank, the place or a note. */
+  async list(query: ListLenderContactsQuery) {
     const search = (query.search ?? "").trim();
     // A pasted phone number ("+91 98205 92765") is one thing to look for, not three words.
     const words = /^[\d\s+()-]{6,}$/.test(search)
@@ -33,26 +33,54 @@ export class LenderContactsService {
       ...(query.includeInactive === "true" ? {} : { active: true }),
       ...(query.lenderId && { lenderId: query.lenderId }),
       ...(query.segment && { segments: { has: query.segment } }),
+      ...(query.kind && { kind: query.kind }),
+      ...(query.state && { state: query.state }),
+      ...(query.city && { city: query.city }),
       ...(words.length && {
         AND: words.map((w) => ({
           OR: [
+            // Only digit-like words are matched against numbers — "sachin.mishra6@…" must not match every number with a 6 in it.
+            ...(/^\+?[\d\s()-]{3,}$/.test(w) ? [{ phone: { contains: w.replace(/\D/g, "") } }, { altPhone: { contains: w.replace(/\D/g, "") } }] : []),
             { name: { contains: w, mode: "insensitive" as const } },
-            { phone: { contains: w.replace(/\D/g, "") || w } },
             { email: { contains: w, mode: "insensitive" as const } },
             { designation: { contains: w, mode: "insensitive" as const } },
             { notes: { contains: w, mode: "insensitive" as const } },
+            { city: { contains: w, mode: "insensitive" as const } },
+            { state: { contains: w, mode: "insensitive" as const } },
+            { region: { contains: w, mode: "insensitive" as const } },
+            { branch: { contains: w, mode: "insensitive" as const } },
+            { coverage: { contains: w, mode: "insensitive" as const } },
+            { employeeCode: { contains: w, mode: "insensitive" as const } },
             { segments: { has: w } },
             { lender: { name: { contains: w, mode: "insensitive" as const } } },
           ],
         })),
       }),
     };
-    return this.prisma.lenderContact.findMany({
-      where,
-      include: WITH_LENDER,
-      orderBy: [{ lender: { name: "asc" } }, { name: "asc" }],
-      take: 500,
-    });
+    const limit = query.limit ?? 50;
+    const page = query.page ?? 1;
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.lenderContact.findMany({
+        where,
+        include: WITH_LENDER,
+        // The people who take our files come before regional / branch names.
+        orderBy: [{ kind: "asc" }, { lender: { name: "asc" } }, { name: "asc" }, { id: "asc" }],
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.lenderContact.count({ where }),
+    ]);
+    return { items, total, page, limit };
+  }
+
+  /** The states and towns people are filed under, for the filter lists. */
+  async places(lenderId?: string) {
+    const where = { active: true, ...(lenderId && { lenderId }) };
+    const [states, cities] = await Promise.all([
+      this.prisma.lenderContact.findMany({ where: { ...where, state: { not: null } }, distinct: ["state"], select: { state: true }, orderBy: { state: "asc" } }),
+      this.prisma.lenderContact.findMany({ where: { ...where, city: { not: null } }, distinct: ["city"], select: { city: true, state: true }, orderBy: { city: "asc" } }),
+    ]);
+    return { states: states.map((s) => s.state as string), cities: cities.map((c) => ({ city: c.city as string, state: c.state })) };
   }
 
   async create(dto: CreateLenderContactDto, actor: AuthUser, ip?: string) {
