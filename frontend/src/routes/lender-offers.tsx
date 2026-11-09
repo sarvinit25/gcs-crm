@@ -20,10 +20,14 @@ type Extraction = { kind: Kind; summary: string; lenderName: string | null; lend
 type Row = { id: string; source: string; fileName: string | null; kind: Kind; summary: string | null; status: string; createdAt: string; createdByName: string | null; lenderName: string | null; offerCount: number };
 type Detail = Row & {
   extracted: Extraction; hasFile: boolean; lenderMatch: { id: string; name: string } | null;
-  preview: { productSlug: string; productName: string; exists: boolean; schemes: number }[]; skipped: number;
+  preview: { productSlug: string; productName: string; exists: boolean; schemes: number; changes: string[] }[]; skipped: number;
   lenders: { id: string; name: string }[]; products: { slug: string; name: string }[];
+  appliedSummary: Applied | null; duplicate?: boolean;
 };
-type Applied = { lender: { name: string; isNew: boolean }; created: string[]; updated: string[]; contactsAdded: number; skippedProducts: number };
+type Applied = {
+  lender: { name: string; isNew: boolean }; created: string[]; updated: string[]; unchanged: string[];
+  changes: { product: string; items: string[] }[]; contactsAdded: number; contactsUpdated: number; lenderFilled: string[]; skippedProducts: number;
+};
 
 const KIND_LABEL: Record<Kind, { text: string; tone: string }> = {
   LENDER_OFFER: { text: "Lender offer", tone: "bg-emerald-50 text-emerald-700" },
@@ -98,6 +102,8 @@ function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
   const [done, setDone] = useState<Applied | null>(null);
 
   const data = q.data;
+  // A reading that was added already (by you earlier, or automatically on upload) shows what it changed.
+  const result = done ?? (data?.status === "APPLIED" ? data.appliedSummary : null);
   const x = draft ?? data?.extracted;
   const matchId = lenderId ?? data?.lenderMatch?.id ?? "";
   const editable = data?.status === "DRAFT";
@@ -119,16 +125,30 @@ function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
   const openFile = async () => { const { url } = await api<{ url: string }>(`/lender-offers/${id}/file`); window.open(url, "_blank", "noopener"); };
 
   return (
-    <Modal title="Review what was read" subtitle="Check every figure against the flyer. Nothing is added to Lender match until you press the button." onClose={onClose} maxWidth="max-w-3xl">
+    <Modal title={result ? "What was added" : "Review what was read"} subtitle={result ? "This is what this reading added to the lender. Nothing was copied twice." : "Check every figure against the flyer. This one waits: nothing is added to Lender match until you press the button."} onClose={onClose} maxWidth="max-w-3xl">
       {!data || !x ? (
         <div className="py-10 text-center text-muted"><Loader2 className="mx-auto h-5 w-5 animate-spin" /></div>
-      ) : done ? (
+      ) : result ? (
         <div className="grid gap-3 text-[13px]">
-          <p className="flex items-center gap-2 text-base font-bold text-emerald-700"><Check className="h-5 w-5" /> Added to {done.lender.name}{done.lender.isNew ? " (new lender)" : ""}</p>
-          {done.created.length > 0 && <p>New policies: <strong>{done.created.join(", ")}</strong></p>}
-          {done.updated.length > 0 && <p>Updated policies: <strong>{done.updated.join(", ")}</strong></p>}
-          {done.contactsAdded > 0 && <p>{done.contactsAdded} contact{done.contactsAdded === 1 ? "" : "s"} added to the lender.</p>}
-          <p className="rounded-md bg-amber-50 px-3 py-2 text-amber-900">These are marked <strong>not yet verified</strong>. Lender match sends them to a person until you check them against the lender and press Verify on the policy.</p>
+          <p className="flex items-center gap-2 text-base font-bold text-emerald-700"><Check className="h-5 w-5" /> Added to {result.lender.name}{result.lender.isNew ? " (new lender)" : ""}</p>
+          {result.created.length > 0 && <p>New policies: <strong>{result.created.join(", ")}</strong></p>}
+          {result.changes.map((c) => (
+            <div key={c.product} className="rounded-md bg-bg-light px-3 py-2">
+              <p><strong>{c.product}</strong> already existed, so this was added to it:</p>
+              <ul className="mt-1 list-disc pl-5 text-muted">{c.items.map((i) => <li key={i}>{i}</li>)}</ul>
+            </div>
+          ))}
+          {result.unchanged.length > 0 && <p className="text-muted">Nothing new for <strong>{result.unchanged.join(", ")}</strong>: the lender already had all of this.</p>}
+          {(result.contactsAdded > 0 || result.contactsUpdated > 0) && (
+            <p>
+              {result.contactsAdded > 0 && <>{result.contactsAdded} new contact{result.contactsAdded === 1 ? "" : "s"} added. </>}
+              {result.contactsUpdated > 0 && <>{result.contactsUpdated} existing contact{result.contactsUpdated === 1 ? "" : "s"} filled in, not copied.</>}
+            </p>
+          )}
+          {result.lenderFilled.length > 0 && <p>Added to the lender's details: <strong>{result.lenderFilled.join(", ")}</strong>.</p>}
+          {(result.created.length > 0 || result.changes.length > 0) && (
+            <p className="rounded-md bg-amber-50 px-3 py-2 text-amber-900">These are marked <strong>not yet verified</strong>. Lender match sends them to a person until you check them against the lender and press Verify on the policy.</p>
+          )}
           <div className="flex justify-end"><button className="btn-primary" onClick={onClose}>Done</button></div>
         </div>
       ) : (
@@ -187,10 +207,16 @@ function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
           )}
 
           {x.kind === "LENDER_OFFER" && data.preview.length > 0 && !draft && (
-            <p className="rounded-md bg-bg-light px-3 py-2.5 text-muted">
-              This will {data.preview.map((p) => `${p.exists ? "update" : "create"} the ${p.productName} policy${p.schemes > 1 ? ` (${p.schemes} schemes combined)` : ""}`).join(", ")}.
-              {data.skipped > 0 ? ` ${data.skipped} product${data.skipped === 1 ? "" : "s"} without a loan type will be skipped.` : ""}
-            </p>
+            <div className="grid gap-1.5 rounded-md bg-bg-light px-3 py-2.5 text-muted">
+              {data.preview.map((p) => (
+                <p key={p.productSlug}>
+                  {p.exists ? (
+                    p.changes.length ? <>The <strong className="text-navy">{p.productName}</strong> policy already exists. This will add: {p.changes.join("; ")}.</> : <>The <strong className="text-navy">{p.productName}</strong> policy already has all of this, so nothing will change.</>
+                  ) : <>This will create the <strong className="text-navy">{p.productName}</strong> policy{p.schemes > 1 ? ` (${p.schemes} schemes combined)` : ""}.</>}
+                </p>
+              ))}
+              {data.skipped > 0 ? <p>{data.skipped} product{data.skipped === 1 ? "" : "s"} without a loan type will be skipped.</p> : null}
+            </div>
           )}
           {(save.isError || apply.isError || discard.isError) && <p className="rounded-md bg-red-50 px-3 py-2 text-red-700">{((save.error ?? apply.error ?? discard.error) as Error).message}</p>}
 
@@ -220,6 +246,7 @@ export function LenderOffersPage() {
   const [text, setText] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const list = useQuery({ queryKey: ["lender-offers"], queryFn: () => api<Row[]>("/lender-offers") });
+  const [notice, setNotice] = useState("");
 
   const read = useMutation({
     mutationFn: async () => {
@@ -236,13 +263,16 @@ export function LenderOffersPage() {
       setFiles([]); setText("");
       if (fileInput.current) fileInput.current.value = "";
       void queryClient.invalidateQueries({ queryKey: ["lender-offers"] });
+      void queryClient.invalidateQueries({ queryKey: ["lender-policies"] });
+      const repeats = made.filter((m) => m.duplicate);
+      setNotice(repeats.length ? `${repeats.length === 1 ? "That was" : `${repeats.length} of those were`} already read before, so nothing was added twice.` : "");
       if (made.length === 1) setOpen(made[0]!.id);
     },
   });
 
   return (
     <>
-      <PageHeader title="Lender offers" subtitle="Drop in a lender's flyer or paste their message. It is read for you, you check it, and it goes into Lender match." />
+      <PageHeader title="Lender offers" subtitle="Drop in a lender's flyer or paste their message. It is read for you and added to the lender: a lender already in the CRM is updated straight away, a new one waits for you to check it. The same thing put in twice is never added twice." />
       <div className="grid gap-4 px-4 py-4 lg:px-6">
         <section className="card p-5">
           <div className="grid gap-4 md:grid-cols-2">
@@ -261,6 +291,7 @@ export function LenderOffersPage() {
             </label>
           </div>
           {read.isError && <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">{(read.error as Error).message}</p>}
+          {notice && !read.isPending && <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-[13px] text-amber-900">{notice}</p>}
           <div className="mt-4 flex items-center justify-end gap-3">
             {read.isPending && <span className="text-[12px] text-muted">Reading. This takes about 10 seconds for each file.</span>}
             <button type="button" className="btn-primary" disabled={read.isPending || (!files.length && !text.trim())} onClick={() => read.mutate()}>

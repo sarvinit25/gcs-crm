@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { AuditAction, LenderType, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
@@ -10,7 +10,7 @@ import { StorageService } from "../documents/storage.service";
 import { LenderPoliciesService } from "../lender-policies/lender-policies.service";
 import { OfferReaderService } from "./offer-reader.service";
 import { isDocx, isOldWord, readDocx } from "./docx-text";
-import { bestLender, cleanPhone, mergeOffers, normalizeExtraction, type Extraction, type PolicyDraft } from "./offer-extraction";
+import { bestLender, cleanPhone, fillContact, mergeIntoPolicy, mergeOffers, normalizedForHash, normalizeExtraction, type ExistingPolicy, type Extraction, type PolicyDraft } from "./offer-extraction";
 
 const READABLE = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
 const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -19,6 +19,17 @@ const json = (v: unknown) => JSON.parse(JSON.stringify(v)) as Prisma.InputJsonVa
 const TODAY = () => new Date().toISOString().slice(0, 10);
 
 type UploadedFile = { originalname: string; size: number; buffer: Buffer };
+
+/** A stored policy, in the plain-number shape the merge works with. */
+function existingOf(p: Prisma.LenderPolicyGetPayload<object>): ExistingPolicy {
+  const n = (d: Prisma.Decimal | null) => (d === null ? null : d.toNumber());
+  return {
+    minAmount: n(p.minAmount), maxAmount: n(p.maxAmount), minRate: n(p.minRate), maxRate: n(p.maxRate),
+    minTenureMonths: p.minTenureMonths, maxTenureMonths: p.maxTenureMonths, rateType: p.rateType, processingFee: p.processingFee,
+    specialScheme: p.specialScheme, employmentTypes: p.employmentTypes, cities: p.cities, gstRequired: p.gstRequired,
+    allIndia: p.allIndia, minCreditScore: p.minCreditScore, notes: p.notes,
+  };
+}
 
 @Injectable()
 export class LenderOffersService {
@@ -43,7 +54,7 @@ export class LenderOffersService {
     if (!files.length && !pasted) throw new BadRequestException("Choose a picture, PDF or Word file, or paste the message.");
     if (files.length > 10) throw new BadRequestException("Send at most 10 files at a time.");
     const products = await this.products();
-    const made: string[] = [];
+    const made: { id: string; duplicate?: boolean }[] = [];
 
     for (const file of files) {
       if (isOldWord(file.buffer)) throw new BadRequestException(`${file.originalname} is an old-style Word file (.doc). Save it as .docx or PDF and send that.`);
@@ -51,6 +62,10 @@ export class LenderOffersService {
       const detected = word ? { mime: DOCX, extension: ".docx" } : detectFile(file.buffer);
       if (!detected || (!word && !READABLE.has(detected.mime))) throw new BadRequestException(`${file.originalname}: only PDF, Word (.docx), JPG, PNG or WebP can be read. A phone photo in HEIC format should be sent as JPG.`);
       if (file.size > MAX_BYTES) throw new BadRequestException(`${file.originalname} is larger than 15MB.`);
+      // The same file put in twice is recognised and not read again (it would only make a copy).
+      const contentHash = createHash("sha256").update(file.buffer).digest("hex");
+      const repeat = await this.repeatOf(contentHash);
+      if (repeat) { made.push({ id: repeat, duplicate: true }); continue; }
       let extracted: Extraction;
       if (word) {
         // Word: its text, plus any pictures on the page (a flyer saved in Word is often just an image).
@@ -69,17 +84,51 @@ export class LenderOffersService {
         this.log.error(`Could not keep the original of ${file.originalname}: ${(err as Error).message}`);
         objectKey = null;
       }
-      made.push(await this.save({ source: "upload", fileName: safeFileName(file.originalname, detected.extension), objectKey, mimeType: detected.mime, sizeBytes: file.size, extracted }, actor));
+      const id = await this.save({ source: "upload", fileName: safeFileName(file.originalname, detected.extension), objectKey, mimeType: detected.mime, sizeBytes: file.size, extracted, contentHash }, actor);
+      await this.autoAdd(id, actor);
+      made.push({ id });
     }
     if (pasted) {
-      const extracted = await this.reader.read({ text: pasted }, products);
-      made.push(await this.save({ source: "paste", rawText: pasted.slice(0, 20_000), extracted }, actor));
+      const contentHash = createHash("sha256").update(normalizedForHash(pasted)).digest("hex");
+      const repeat = await this.repeatOf(contentHash);
+      if (repeat) {
+        made.push({ id: repeat, duplicate: true });
+      } else {
+        const extracted = await this.reader.read({ text: pasted }, products);
+        const id = await this.save({ source: "paste", rawText: pasted.slice(0, 20_000), extracted, contentHash }, actor);
+        await this.autoAdd(id, actor);
+        made.push({ id });
+      }
     }
-    return Promise.all(made.map((id) => this.get(id)));
+    return Promise.all(made.map(async (m) => ({ ...(await this.get(m.id)), duplicate: Boolean(m.duplicate) })));
+  }
+
+  /** An earlier reading of exactly the same file or text (one that was not thrown away). */
+  private async repeatOf(contentHash: string) {
+    const found = await this.prisma.lenderOffer.findFirst({ where: { contentHash, status: { not: "DISCARDED" } }, orderBy: { createdAt: "desc" }, select: { id: true } });
+    return found?.id ?? null;
+  }
+
+  /**
+   * When the lender on a flyer is already in the CRM, its terms are added to that lender at once (if the switch under
+   * Settings is on). A lender we do not know yet always waits for a person to look, so a misread name never makes a lender.
+   */
+  private async autoAdd(id: string, actor: AuthUser) {
+    if (this.settings.get<boolean>("lenderOffers.autoAdd") === false) return;
+    try {
+      const row = await this.prisma.lenderOffer.findUnique({ where: { id }, select: { extracted: true } });
+      const x = row?.extracted as unknown as Extraction | undefined;
+      if (!x || x.kind !== "LENDER_OFFER" || !mergeOffers(x.offers).policies.length) return;
+      const lenders = await this.prisma.lender.findMany({ select: { id: true, name: true, shortName: true } });
+      const match = bestLender(x.lenderName, lenders);
+      if (match) await this.apply(id, { lenderId: match.id }, actor);
+    } catch (err) {
+      this.log.warn(`A reading was not added automatically, so it waits for review: ${(err as Error).message}`);
+    }
   }
 
   private async save(
-    d: { source: string; fileName?: string; objectKey?: string | null; mimeType?: string; sizeBytes?: number; rawText?: string; extracted: Extraction },
+    d: { source: string; fileName?: string; objectKey?: string | null; mimeType?: string; sizeBytes?: number; rawText?: string; extracted: Extraction; contentHash?: string },
     actor: AuthUser,
   ) {
     const row = await this.prisma.lenderOffer.create({
@@ -90,6 +139,7 @@ export class LenderOffersService {
         mimeType: d.mimeType,
         sizeBytes: d.sizeBytes,
         rawText: d.rawText,
+        contentHash: d.contentHash,
         kind: d.extracted.kind,
         summary: d.extracted.summary || null,
         extracted: json(d.extracted),
@@ -125,11 +175,15 @@ export class LenderOffersService {
     const match = bestLender(extracted.lenderName, lenders);
     const { policies, skipped } = mergeOffers(extracted.offers);
     const name = new Map(products.map((p) => [p.slug, p.name]));
+    const held = match ? await this.prisma.lenderPolicy.findMany({ where: { lenderId: match.id }, include: { loanProduct: { select: { slug: true } } } }) : [];
     return {
       ...row,
       hasFile: Boolean(await this.prisma.lenderOffer.count({ where: { id, objectKey: { not: null } } })),
       lenderMatch: match ? { id: match.id, name: match.name } : null,
-      preview: policies.map((p) => ({ ...p, productName: name.get(p.productSlug) ?? p.productSlug, exists: Boolean(match?.policies.some((x) => x.loanProduct.slug === p.productSlug)) })),
+      preview: policies.map((p) => {
+        const have = held.find((h) => h.loanProduct.slug === p.productSlug);
+        return { ...p, productName: name.get(p.productSlug) ?? p.productSlug, exists: Boolean(have), changes: have ? mergeIntoPolicy(existingOf(have), p, TODAY()).changes : [] };
+      }),
       skipped,
       lenders: lenders.map((l) => ({ id: l.id, name: l.name })).sort((a, b) => a.name.localeCompare(b.name)),
       products: products.map((p) => ({ slug: p.slug, name: p.name })),
@@ -186,35 +240,57 @@ export class LenderOffersService {
     const source = `Flyer reading: ${row.fileName ?? "pasted message"} (${TODAY()})`;
     const created: string[] = [];
     const updated: string[] = [];
+    const unchanged: string[] = [];
+    const changes: { product: string; items: string[] }[] = [];
 
     for (const p of policies) {
       const product = idOf.get(p.productSlug)!;
       const existing = await this.prisma.lenderPolicy.findUnique({ where: { lenderId_loanProductId: { lenderId: lender.id, loanProductId: product.id } } });
       if (existing) {
-        await this.policies.update(existing.id, { ...this.fields(p, existing.notes), source, reason: `Terms from ${source}` }, actor, ip);
+        // The lender already has this loan type: what the flyer says is added to it. Ranges only widen, lists only gain entries,
+        // and nothing the flyer repeats is written twice.
+        const merged = mergeIntoPolicy(existingOf(existing), p, TODAY());
+        if (!merged.changes.length) { unchanged.push(product.name); continue; }
+        const trail = existing.source && !existing.source.startsWith("Flyer reading") ? `${existing.source}; ${source}`.slice(0, 300) : source;
+        await this.policies.update(existing.id, { ...merged.fields, source: trail, reason: `Added from ${source}` }, actor, ip);
         // The terms changed on the strength of a flyer: it needs checking again before the matcher trusts it.
         await this.prisma.lenderPolicy.update({ where: { id: existing.id }, data: { lastVerifiedAt: null, verifiedById: null, verifiedByName: null } });
         updated.push(product.name);
+        changes.push({ product: product.name, items: merged.changes });
       } else {
-        await this.policies.create({ ...this.fields(p, null), source, lenderId: lender.id, loanProductId: product.id }, actor, ip);
+        await this.policies.create({ ...this.fields(p), source, lenderId: lender.id, loanProductId: product.id }, actor, ip);
         created.push(product.name);
       }
     }
+    const lenderFilled = lender.isNew ? [] : await this.fillLender(lender.id, x);
     const contacts = await this.saveContacts(lender.id, x, policies.map((p) => idOf.get(p.productSlug)!.name));
-    await this.prisma.lenderOffer.update({ where: { id }, data: { status: "APPLIED", appliedLenderId: lender.id } });
+    const summary = { lender: { id: lender.id, name: lender.name, isNew: lender.isNew }, created, updated, unchanged, changes, contactsAdded: contacts.added, contactsUpdated: contacts.updated, lenderFilled, skippedProducts: skipped };
+    await this.prisma.lenderOffer.update({ where: { id }, data: { status: "APPLIED", appliedLenderId: lender.id, appliedSummary: json(summary) } });
     await this.audit.record({ actor, action: AuditAction.UPDATE, entity: "LenderOffer", entityId: id, entityLabel: `Added to ${lender.name}`, ip });
-    return { lender: { id: lender.id, name: lender.name, isNew: lender.isNew }, created, updated, contactsAdded: contacts, skippedProducts: skipped };
+    return summary;
   }
 
-  /** Only values the flyer actually gave: a blank never wipes out something already known. */
-  private fields(p: PolicyDraft, existingNotes: string | null) {
+  /** Details of the lender that the flyer gave and the CRM did not hold yet: the website, the office address and city. */
+  private async fillLender(lenderId: string, x: Extraction) {
+    const l = await this.prisma.lender.findUnique({ where: { id: lenderId }, select: { portalUrl: true, branchAddress: true, branchCity: true } });
+    if (!l) return [];
+    const data: Prisma.LenderUpdateInput = {};
+    const filled: string[] = [];
+    if (!l.portalUrl && x.website?.startsWith("http")) { data.portalUrl = x.website.slice(0, 200); filled.push("website"); }
+    if (!l.branchAddress && x.address) { data.branchAddress = x.address; filled.push("address"); }
+    if (!l.branchCity && x.city) { data.branchCity = x.city; filled.push("city"); }
+    if (filled.length) await this.prisma.lender.update({ where: { id: lenderId }, data });
+    return filled;
+  }
+
+  /** The values for a brand-new policy: only what the flyer actually gave. */
+  private fields(p: PolicyDraft) {
     const out: Record<string, unknown> = { gstRequired: p.gstRequired, allIndia: p.allIndia };
     const set = (k: string, v: unknown) => { if (v !== null && v !== undefined && !(Array.isArray(v) && !v.length)) out[k] = v; };
     for (const k of ["minAmount", "maxAmount", "minRate", "maxRate", "minTenureMonths", "maxTenureMonths", "rateType", "processingFee", "specialScheme", "minCreditScore"] as const) set(k, p[k]);
     set("employmentTypes", p.employmentTypes);
     set("cities", p.cities);
-    const notes = [existingNotes, p.notes ? `From flyer ${TODAY()}: ${p.notes}` : null].filter(Boolean).join("\n").slice(0, 1000);
-    if (notes) out.notes = notes;
+    if (p.notes) out.notes = `From flyer ${TODAY()}: ${p.notes}`.slice(0, 1000);
     return out;
   }
 
@@ -236,6 +312,8 @@ export class LenderOffersService {
         // A lender added from a flyer is for our own use until someone decides to show it on the website.
         isPublic: false,
         portalUrl: x.website?.startsWith("http") ? x.website.slice(0, 200) : undefined,
+        branchAddress: x.address ?? undefined,
+        branchCity: x.city ?? undefined,
         notes: `Added from a flyer on ${TODAY()}.${x.website && !x.website.startsWith("http") ? ` Website: ${x.website}` : ""}`,
       },
     });
@@ -243,18 +321,29 @@ export class LenderOffersService {
   }
 
   private async saveContacts(lenderId: string, x: Extraction, segments: string[]) {
-    if (!x.contacts.length) return 0;
-    const have = await this.prisma.lenderContact.findMany({ where: { lenderId }, select: { phone: true, email: true } });
-    const phones = new Set(have.map((c) => cleanPhone(c.phone)).filter(Boolean));
-    const emails = new Set(have.map((c) => c.email?.toLowerCase()).filter(Boolean));
+    if (!x.contacts.length) return { added: 0, updated: 0 };
+    const have = await this.prisma.lenderContact.findMany({ where: { lenderId }, select: { id: true, name: true, designation: true, phone: true, email: true, segments: true } });
     let added = 0;
+    let updated = 0;
     for (const c of x.contacts) {
-      if ((c.phone && phones.has(c.phone)) || (c.email && emails.has(c.email))) continue;
-      await this.prisma.lenderContact.create({
+      // The same person (same phone or same email) is never added twice; the flyer only fills what we did not have for them.
+      const known = have.find((h) => (c.phone && cleanPhone(h.phone) === c.phone) || (c.email && h.email?.toLowerCase() === c.email));
+      if (known) {
+        const { data, filled } = fillContact(known, c, segments);
+        if (filled.length) {
+          await this.prisma.lenderContact.update({ where: { id: known.id }, data });
+          Object.assign(known, data);
+          updated += 1;
+        }
+        continue;
+      }
+      const made = await this.prisma.lenderContact.create({
         data: { lenderId, name: c.name ?? "Contact from flyer", designation: c.designation, phone: c.phone, email: c.email, segments, notes: `From a flyer on ${TODAY()}` },
+        select: { id: true, name: true, designation: true, phone: true, email: true, segments: true },
       });
+      have.push(made);
       added += 1;
     }
-    return added;
+    return { added, updated };
   }
 }
