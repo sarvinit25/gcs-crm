@@ -37,6 +37,9 @@ export type Extraction = {
   lenderName: string | null;
   lenderType: "BANK" | "NBFC" | null;
   website: string | null;
+  /** The lender's office address and city, when the page prints them. */
+  address: string | null;
+  city: string | null;
   contacts: OfferContact[];
   offers: OfferTerms[];
 };
@@ -145,6 +148,8 @@ export function normalizeExtraction(raw: unknown, slugs: ReadonlySet<string>): E
     lenderName: text(r.lenderName, 120),
     lenderType: type === "BANK" || type === "NBFC" ? type : null,
     website: text(r.website, 200),
+    address: text(r.address, 300),
+    city: text(r.city, 60),
     contacts,
     offers,
   };
@@ -236,3 +241,119 @@ export function mergeOffers(offers: OfferTerms[]): { policies: PolicyDraft[]; sk
   });
   return { policies, skipped };
 }
+
+/** What a policy already holds, in the shapes this file works with. */
+export type ExistingPolicy = {
+  minAmount: number | null;
+  maxAmount: number | null;
+  minRate: number | null;
+  maxRate: number | null;
+  minTenureMonths: number | null;
+  maxTenureMonths: number | null;
+  rateType: string | null;
+  processingFee: string | null;
+  specialScheme: string | null;
+  employmentTypes: string[];
+  cities: string[];
+  gstRequired: boolean;
+  allIndia: boolean;
+  minCreditScore: number | null;
+  notes: string | null;
+};
+
+const rupees = (n: number) => "₹" + n.toLocaleString("en-IN");
+const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+const union = (a: string[], b: string[]) => {
+  const out = [...a];
+  for (const x of b) if (!out.some((y) => same(x, y))) out.push(x);
+  return out;
+};
+const splitList = (s: string | null) => (s ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+const squash = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+/**
+ * How a newly read flyer adds to a policy that already exists. Nothing is replaced and nothing is duplicated: a range only
+ * widens, a list only gains the entries it lacked, a blank is filled, and a note already recorded is not written twice.
+ * `changes` says in plain words what is new, and is empty when the flyer told us nothing we did not already hold.
+ */
+export function mergeIntoPolicy(existing: ExistingPolicy, draft: PolicyDraft, today: string): { fields: Record<string, unknown>; changes: string[] } {
+  const fields: Record<string, unknown> = {};
+  const changes: string[] = [];
+  const range = (label: string, loKey: "minAmount" | "minRate" | "minTenureMonths", hiKey: "maxAmount" | "maxRate" | "maxTenureMonths", show: (n: number) => string) => {
+    const lowAfter = lo(existing[loKey], draft[loKey]);
+    const highAfter = hi(existing[hiKey], draft[hiKey]);
+    if (lowAfter !== existing[loKey] || highAfter !== existing[hiKey]) {
+      if (lowAfter !== null) fields[loKey] = lowAfter;
+      if (highAfter !== null) fields[hiKey] = highAfter;
+      const a = lowAfter !== null ? show(lowAfter) : null;
+      const b = highAfter !== null ? show(highAfter) : null;
+      changes.push(`${label} now ${a && b && a !== b ? `${a} to ${b}` : (a ?? b)}`);
+    }
+  };
+  range("amount", "minAmount", "maxAmount", rupees);
+  range("rate", "minRate", "maxRate", (n) => `${n}%`);
+  range("tenure", "minTenureMonths", "maxTenureMonths", (n) => `${n} months`);
+
+  if (draft.minCreditScore !== null && (existing.minCreditScore === null || draft.minCreditScore < existing.minCreditScore)) {
+    fields.minCreditScore = draft.minCreditScore;
+    changes.push(`minimum credit score ${draft.minCreditScore}`);
+  }
+  if (!existing.rateType && draft.rateType) {
+    fields.rateType = draft.rateType;
+    changes.push(`rate type ${draft.rateType.toLowerCase()}`);
+  }
+  if (draft.processingFee && (!existing.processingFee || (!squash(existing.processingFee).includes(squash(draft.processingFee)) && existing.processingFee.length + draft.processingFee.length + 2 <= 200))) {
+    fields.processingFee = existing.processingFee ? `${existing.processingFee}; ${draft.processingFee}` : draft.processingFee;
+    changes.push(`processing fee: ${draft.processingFee}`);
+  }
+  const schemes = union(splitList(existing.specialScheme), splitList(draft.specialScheme));
+  if (schemes.length > splitList(existing.specialScheme).length && schemes.join(", ").length <= 200) {
+    fields.specialScheme = schemes.join(", ");
+    changes.push(`schemes: ${schemes.slice(splitList(existing.specialScheme).length).join(", ")}`);
+  }
+  for (const key of ["employmentTypes", "cities"] as const) {
+    const merged = union(existing[key], draft[key]);
+    if (merged.length > existing[key].length) {
+      fields[key] = merged;
+      changes.push(`${key === "cities" ? "cities" : "who can apply"} added: ${merged.slice(existing[key].length).join(", ")}`);
+    }
+  }
+  // A lender that asks for GST on one scheme but not on another does not need it on the product as a whole.
+  if (existing.gstRequired && !draft.gstRequired) {
+    fields.gstRequired = false;
+    changes.push("GST no longer required");
+  }
+  if (!existing.allIndia && draft.allIndia) {
+    fields.allIndia = true;
+    changes.push("available all India");
+  }
+  if (draft.notes && !squash(existing.notes ?? "").includes(squash(draft.notes))) {
+    const next = [existing.notes, `From flyer ${today}: ${draft.notes}`].filter(Boolean).join("\n");
+    if (next.length <= 1000) {
+      fields.notes = next;
+      changes.push("new notes from the flyer (schemes, charges, documents)");
+    }
+  }
+  return { fields, changes };
+}
+
+/** Fills only the blanks of a contact already on file; says what it filled. */
+export function fillContact(
+  have: { name: string | null; designation: string | null; phone: string | null; email: string | null; segments: string[] },
+  incoming: OfferContact,
+  segments: string[],
+): { data: Record<string, unknown>; filled: string[] } {
+  const data: Record<string, unknown> = {};
+  const filled: string[] = [];
+  const placeholder = !have.name || /^contact from flyer$/i.test(have.name);
+  if (incoming.name && placeholder) { data.name = incoming.name; filled.push("name"); }
+  if (incoming.designation && !have.designation) { data.designation = incoming.designation; filled.push("designation"); }
+  if (incoming.phone && !have.phone) { data.phone = incoming.phone; filled.push("phone"); }
+  if (incoming.email && !have.email) { data.email = incoming.email; filled.push("email"); }
+  const merged = union(have.segments, segments);
+  if (merged.length > have.segments.length) { data.segments = merged; filled.push("loan types"); }
+  return { data, filled };
+}
+
+/** The same thing put in twice, however it is spaced or capitalised, gives the same fingerprint. */
+export const normalizedForHash = (text: string) => text.toLowerCase().replace(/\s+/g, " ").trim();

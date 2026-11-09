@@ -56,6 +56,14 @@ export const SETTINGS: SettingDef[] = [
     default: false,
   },
   {
+    key: "lenderOffers.autoAdd",
+    group: "Lenders",
+    label: "Add a read flyer to the lender automatically",
+    help: "On: when a flyer or message is read and its lender is already in the CRM, the terms are added to that lender straight away (policies, contacts, details). They are saved as not yet verified, so Lender match sends them to a person until someone checks them. A lender the CRM does not know yet always waits for you to review it. Off: every reading waits for you to review it first.",
+    type: "boolean",
+    default: true,
+  },
+  {
     key: "whatsapp.sessionTimeoutMinutes",
     group: "WhatsApp",
     label: "Chatbot memory (minutes)",

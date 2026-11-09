@@ -1814,10 +1814,15 @@ model LenderOffer {
   // DRAFT, APPLIED or DISCARDED.
   status          String   @default("DRAFT")
   appliedLenderId String?
+  // A fingerprint of the file or text, so the same thing put in twice is recognised instead of read again.
+  contentHash     String?
+  // What adding it changed: the lender, the policies created or widened, the contacts, in plain words.
+  appliedSummary  Json?
   createdById     String?
   createdByName   String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@index([status, createdAt])
+  @@index([contentHash])
 }

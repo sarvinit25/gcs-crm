@@ -91,3 +91,73 @@ describe("finding the lender already in the CRM", () => {
     expect(bestLender(null, lenders)).toBeNull();
   });
 });
+
+import { fillContact, mergeIntoPolicy, normalizedForHash, type ExistingPolicy, type PolicyDraft } from "./offer-extraction";
+
+const held = (over: Partial<ExistingPolicy> = {}): ExistingPolicy => ({
+  minAmount: 300_000, maxAmount: 2_000_000, minRate: 19, maxRate: 24, minTenureMonths: 12, maxTenureMonths: 120, rateType: null, processingFee: null,
+  specialScheme: "Quasi, Property Power", employmentTypes: ["Salaried"], cities: ["Mumbai"], gstRequired: false, allIndia: false, minCreditScore: null, notes: null, ...over,
+});
+const flyer = (over: Partial<PolicyDraft> = {}): PolicyDraft => ({
+  productSlug: "micro-lap", minAmount: 300_000, maxAmount: 2_000_000, minRate: 19, maxRate: 24, minTenureMonths: 12, maxTenureMonths: 120, rateType: null, processingFee: null,
+  specialScheme: "Quasi, Property Power", employmentTypes: ["Salaried"], gstRequired: false, minCreditScore: null, allIndia: false, cities: ["Mumbai"], notes: "turnaround 4 days", schemes: 2, ...over,
+});
+
+describe("adding a new flyer to a policy that already exists", () => {
+  it("changes nothing when the flyer only repeats what is already held", () => {
+    const already = held({ notes: "From flyer 2026-11-09: turnaround 4 days" });
+    expect(mergeIntoPolicy(already, flyer(), "2026-11-10")).toEqual({ fields: {}, changes: [] });
+  });
+
+  it("widens a range and never narrows one", () => {
+    const wider = mergeIntoPolicy(held({ notes: "From flyer 2026-11-09: turnaround 4 days" }), flyer({ maxAmount: 2_500_000, minRate: 18 }), "2026-11-10");
+    expect(wider.fields).toMatchObject({ maxAmount: 2_500_000, minAmount: 300_000, minRate: 18, maxRate: 24 });
+    expect(wider.changes.join(" | ")).toContain("amount now ₹3,00,000 to ₹25,00,000");
+    const narrower = mergeIntoPolicy(held({ notes: "From flyer 2026-11-09: turnaround 4 days" }), flyer({ maxAmount: 1_000_000, minRate: 21, maxRate: 22 }), "2026-11-10");
+    expect(narrower.fields).toEqual({});
+  });
+
+  it("adds only the entries a list lacked, ignoring capitals", () => {
+    const m = mergeIntoPolicy(held({ notes: "From flyer 2026-11-09: turnaround 4 days" }), flyer({ cities: ["mumbai", "Pune"], employmentTypes: ["Salaried", "Self-employed"], specialScheme: "quasi, Micro LAP" }), "2026-11-10");
+    expect(m.fields).toMatchObject({ cities: ["Mumbai", "Pune"], employmentTypes: ["Salaried", "Self-employed"], specialScheme: "Quasi, Property Power, Micro LAP" });
+  });
+
+  it("fills a blank but never overwrites a value it already has", () => {
+    const m = mergeIntoPolicy(held({ minRate: null, maxRate: null, rateType: "FIXED", processingFee: "1% plus GST", notes: "From flyer 2026-11-09: turnaround 4 days" }), flyer({ rateType: "FLOATING", processingFee: "1% plus GST" }), "2026-11-10");
+    expect(m.fields).toMatchObject({ minRate: 19, maxRate: 24 });
+    expect(m.fields.rateType).toBeUndefined();
+    expect(m.fields.processingFee).toBeUndefined();
+  });
+
+  it("writes a note once, and a different note is added beneath it", () => {
+    const base = held({ notes: "From flyer 2026-11-09: turnaround 4 days" });
+    expect(mergeIntoPolicy(base, flyer({ notes: "Turnaround 4 days." }), "2026-11-10").fields.notes).toBeUndefined();
+    const m = mergeIntoPolicy(base, flyer({ notes: "login fee 1,180" }), "2026-11-10");
+    expect(m.fields.notes).toBe("From flyer 2026-11-09: turnaround 4 days\nFrom flyer 2026-11-10: login fee 1,180");
+  });
+
+  it("treats GST as not needed once any scheme says so, and never makes it needed", () => {
+    const base = { notes: "From flyer 2026-11-09: turnaround 4 days" };
+    expect(mergeIntoPolicy(held({ ...base, gstRequired: true }), flyer({ gstRequired: false }), "d").fields.gstRequired).toBe(false);
+    expect(mergeIntoPolicy(held({ ...base, gstRequired: false }), flyer({ gstRequired: true }), "d").fields.gstRequired).toBeUndefined();
+  });
+});
+
+describe("a contact already on file", () => {
+  const have = { name: "Contact from flyer", designation: null, phone: "9820011223", email: null, segments: ["Micro LAP"] };
+  it("gets its blanks filled and nothing replaced", () => {
+    const { data, filled } = fillContact(have, { name: "Rohit Shah", designation: "RM", phone: "9820011223", email: "r@x.in" }, ["Micro LAP", "Business Loan"]);
+    expect(data).toEqual({ name: "Rohit Shah", designation: "RM", email: "r@x.in", segments: ["Micro LAP", "Business Loan"] });
+    expect(filled).toEqual(["name", "designation", "email", "loan types"]);
+  });
+  it("keeps a real name and reports nothing to change when there is nothing new", () => {
+    const named = { ...have, name: "Rohit", designation: "RM", email: "r@x.in" };
+    expect(fillContact(named, { name: "Someone Else", designation: "Head", phone: "9820011223", email: "other@x.in" }, ["Micro LAP"])).toEqual({ data: {}, filled: [] });
+  });
+});
+
+describe("recognising the same text put in twice", () => {
+  it("ignores spacing and capitals", () => {
+    expect(normalizedForHash("Manba  Finance\n  Micro LAP")).toBe(normalizedForHash("manba finance micro lap "));
+  });
+});

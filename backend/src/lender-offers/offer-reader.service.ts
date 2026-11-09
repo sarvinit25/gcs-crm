@@ -36,6 +36,8 @@ JSON shape:
  "lenderName": the company's name as printed, or null,
  "lenderType": "BANK" | "NBFC" | null (null when unsure),
  "website": string | null,
+ "address": the lender's own office address as printed, or null,
+ "city": the city of that address, or null,
  "contacts": [{"name": string|null, "designation": string|null, "phone": string|null, "email": string|null}],
  "offers": [ one entry per product or scheme on the page, only when kind is LENDER_OFFER:
    {"scheme": the product's printed name or null,
