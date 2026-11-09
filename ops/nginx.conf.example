@@ -38,7 +38,7 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;   # overwrite, never append: clients must not spoof it
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 60s;
+        proxy_read_timeout 300s;   # a long document can take a few minutes to read
     }
 
     # CRM front end (built files from frontend/dist). Any unknown path falls back to the app.
