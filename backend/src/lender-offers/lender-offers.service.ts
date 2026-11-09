@@ -9,9 +9,11 @@ import { detectFile, safeFileName } from "../documents/file-sniff";
 import { StorageService } from "../documents/storage.service";
 import { LenderPoliciesService } from "../lender-policies/lender-policies.service";
 import { OfferReaderService } from "./offer-reader.service";
+import { isDocx, isOldWord, readDocx } from "./docx-text";
 import { bestLender, cleanPhone, mergeOffers, normalizeExtraction, type Extraction, type PolicyDraft } from "./offer-extraction";
 
 const READABLE = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
+const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const MAX_BYTES = 15 * 1024 * 1024;
 const json = (v: unknown) => JSON.parse(JSON.stringify(v)) as Prisma.InputJsonValue;
 const TODAY = () => new Date().toISOString().slice(0, 10);
@@ -38,16 +40,26 @@ export class LenderOffersService {
   /** Reads each picture or PDF (one draft per file) and any pasted text (one more draft). Nothing is added to Lender match yet. */
   async create(files: UploadedFile[], text: string | undefined, actor: AuthUser) {
     const pasted = text?.trim();
-    if (!files.length && !pasted) throw new BadRequestException("Choose a picture or PDF, or paste the message.");
+    if (!files.length && !pasted) throw new BadRequestException("Choose a picture, PDF or Word file, or paste the message.");
     if (files.length > 10) throw new BadRequestException("Send at most 10 files at a time.");
     const products = await this.products();
     const made: string[] = [];
 
     for (const file of files) {
-      const detected = detectFile(file.buffer);
-      if (!detected || !READABLE.has(detected.mime)) throw new BadRequestException(`${file.originalname}: only PDF, JPG, PNG or WebP can be read. A phone photo in HEIC format should be sent as JPG.`);
+      if (isOldWord(file.buffer)) throw new BadRequestException(`${file.originalname} is an old-style Word file (.doc). Save it as .docx or PDF and send that.`);
+      const word = isDocx(file.buffer);
+      const detected = word ? { mime: DOCX, extension: ".docx" } : detectFile(file.buffer);
+      if (!detected || (!word && !READABLE.has(detected.mime))) throw new BadRequestException(`${file.originalname}: only PDF, Word (.docx), JPG, PNG or WebP can be read. A phone photo in HEIC format should be sent as JPG.`);
       if (file.size > MAX_BYTES) throw new BadRequestException(`${file.originalname} is larger than 15MB.`);
-      const extracted = await this.reader.read({ file: { buffer: file.buffer, mime: detected.mime, name: file.originalname } }, products);
+      let extracted: Extraction;
+      if (word) {
+        // Word: its text, plus any pictures on the page (a flyer saved in Word is often just an image).
+        const doc = readDocx(file.buffer);
+        if (!doc.text && !doc.images.length) throw new BadRequestException(`${file.originalname} has no text or pictures that can be read.`);
+        extracted = await this.reader.read({ text: doc.text || undefined, images: doc.images }, products);
+      } else {
+        extracted = await this.reader.read({ file: { buffer: file.buffer, mime: detected.mime, name: file.originalname } }, products);
+      }
       // The original is kept so a person can look at what was read; failing to keep it does not lose the reading.
       let objectKey: string | null = null;
       try {

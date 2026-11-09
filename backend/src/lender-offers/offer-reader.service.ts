@@ -2,7 +2,12 @@ import { BadGatewayException, BadRequestException, Injectable, Logger } from "@n
 import { ConfigService } from "@nestjs/config";
 import { normalizeExtraction, type Extraction } from "./offer-extraction";
 
-export type OfferInput = { text?: string; file?: { buffer: Buffer; mime: string; name: string } };
+export type OfferInput = {
+  text?: string;
+  file?: { buffer: Buffer; mime: string; name: string };
+  /** Pictures taken out of a Word file, read together with its text. */
+  images?: { buffer: Buffer; mime: string }[];
+};
 
 /** Reads a lender's flyer, poster or forwarded message and says what it offers. It reads; it never decides. */
 @Injectable()
@@ -64,6 +69,7 @@ ${products.map((p) => `  ${p.slug}: ${p.name}`).join("\n")}`;
     if (!this.enabled) throw new BadRequestException("The AI reader is not switched on: the OpenAI key is missing on the server.");
     const content: Record<string, unknown>[] = [{ type: "input_text", text: this.prompt(products) }];
     if (input.text?.trim()) content.push({ type: "input_text", text: `Message to read:\n\n${input.text.trim().slice(0, 20_000)}` });
+    for (const img of input.images ?? []) content.push({ type: "input_image", image_url: `data:${img.mime};base64,${img.buffer.toString("base64")}` });
     if (input.file) {
       const uri = `data:${input.file.mime};base64,${input.file.buffer.toString("base64")}`;
       content.push(input.file.mime === "application/pdf" ? { type: "input_file", filename: input.file.name.slice(0, 100), file_data: uri } : { type: "input_image", image_url: uri });
