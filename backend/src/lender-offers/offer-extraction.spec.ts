@@ -225,4 +225,8 @@ describe("schemes with nothing to record, and offers that have ended", () => {
     const x = normalizeExtraction({ kind: "LENDER_OFFER", offers: [{ productSlug: "micro-lap", minRate: 20, ltv: "Registered Sale Deed, Namuna 8" }, { productSlug: "business-loan", minRate: 20, ltv: "55% - 75%" }] }, SLUGS);
     expect(x.offers.map((o) => o.ltv)).toEqual([null, "55% - 75%"]);
   });
+  it("does not read a printed zero as a minimum loan size", () => {
+    const x = normalizeExtraction({ kind: "LENDER_OFFER", offers: [{ productSlug: "micro-lap", minAmount: 0, maxAmount: "50 lakh", minRate: 7.5 }] }, SLUGS);
+    expect([x.offers[0]!.minAmount, x.offers[0]!.maxAmount]).toEqual([null, 5_000_000]);
+  });
 });

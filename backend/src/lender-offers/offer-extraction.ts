@@ -99,7 +99,9 @@ function terms(raw: Record<string, unknown>, slugs: ReadonlySet<string>): OfferT
   const perMonth = String(raw.ratePeriod ?? "").toUpperCase() === "MONTH";
   const yearly = (n: number | null) => (n !== null && perMonth ? Math.round(n * 12 * 100) / 100 : n);
   const rate = (v: unknown) => { const n = yearly(percent(v)); return n !== null && n <= 100 ? n : null; };
-  const [minAmount, maxAmount] = ordered(toRupees(raw.minAmount), toRupees(raw.maxAmount));
+  // A printed "0" or "nil" is no loan size at all; it must not read as a minimum of zero.
+  const rupeesOrNull = (v: unknown) => { const n = toRupees(v); return n ? n : null; };
+  const [minAmount, maxAmount] = ordered(rupeesOrNull(raw.minAmount), rupeesOrNull(raw.maxAmount));
   const [minRate, maxRate] = ordered(rate(raw.minRate), rate(raw.maxRate ?? raw.minRate));
   const [minTenureMonths, maxTenureMonths] = ordered(whole(raw.minTenureMonths, 1, 600), whole(raw.maxTenureMonths, 1, 600));
   const slug = text(raw.productSlug, 60);
