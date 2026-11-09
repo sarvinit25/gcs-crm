@@ -1,0 +1,238 @@
+// What a flyer, poster or forwarded message says about a lender, as plain data. The AI only reads; everything it returns
+// passes through `normalizeExtraction` here, so a bad or invented value is dropped before a person ever sees it.
+
+export type OfferKind = "LENDER_OFFER" | "SERVICE_PROVIDER" | "OTHER";
+
+export type OfferContact = { name: string | null; designation: string | null; phone: string | null; email: string | null };
+
+export type OfferTerms = {
+  /** The product's own name on the flyer (for example "Quasi" or "Property Power"). */
+  scheme: string | null;
+  /** One of our loan-product slugs, or null when the flyer's product is not one we offer. */
+  productSlug: string | null;
+  minAmount: number | null;
+  maxAmount: number | null;
+  /** Percent a year. */
+  minRate: number | null;
+  maxRate: number | null;
+  minTenureMonths: number | null;
+  maxTenureMonths: number | null;
+  rateType: "FLOATING" | "FIXED" | null;
+  processingFee: string | null;
+  employmentTypes: string[];
+  gstRequired: boolean | null;
+  minCreditScore: number | null;
+  allIndia: boolean | null;
+  cities: string[];
+  ltv: string | null;
+  documents: string[];
+  charges: string | null;
+  turnaround: string | null;
+  notes: string | null;
+};
+
+export type Extraction = {
+  kind: OfferKind;
+  summary: string;
+  lenderName: string | null;
+  lenderType: "BANK" | "NBFC" | null;
+  website: string | null;
+  contacts: OfferContact[];
+  offers: OfferTerms[];
+};
+
+const KINDS: OfferKind[] = ["LENDER_OFFER", "SERVICE_PROVIDER", "OTHER"];
+const EMPLOYMENT = ["Salaried", "Self-employed", "Professional", "Business"];
+
+const text = (v: unknown, max: number): string | null => {
+  if (typeof v !== "string" && typeof v !== "number") return null;
+  const t = String(v).replace(/\s+/g, " ").trim();
+  return t ? t.slice(0, max) : null;
+};
+const list = (v: unknown, max: number, each: number): string[] =>
+  Array.isArray(v) ? [...new Set(v.map((x) => text(x, each)).filter((x): x is string => Boolean(x)))].slice(0, max) : [];
+
+/** "₹10 Lacs", "7.5 lakh", "2 crore", "1,50,000" or a plain number, as rupees. Anything else is unknown. */
+export function toRupees(v: unknown): number | null {
+  if (typeof v === "number") return Number.isFinite(v) && v >= 0 ? Math.round(v) : null;
+  if (typeof v !== "string") return null;
+  const m = v.toLowerCase().replace(/[₹,]/g, "").trim().replace(/^(rs\.?|inr)\s*/, "").trim().match(/^(\d+(?:\.\d+)?)\s*(lakhs?|lacs?|l|crores?|crs?|k)?$/);
+  if (!m) return null;
+  const n = Number(m[1]);
+  const unit = m[2] ?? "";
+  const scale = /^(lakh|lac|l)/.test(unit) ? 1e5 : /^(crore|cr)/.test(unit) ? 1e7 : unit === "k" ? 1e3 : 1;
+  return Math.round(n * scale);
+}
+
+const percent = (v: unknown): number | null => {
+  const n = typeof v === "number" ? v : typeof v === "string" ? Number(v.replace(/%/g, "").trim()) : NaN;
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? Math.round(n * 100) / 100 : null;
+};
+
+const whole = (v: unknown, min: number, max: number): number | null => {
+  const n = typeof v === "number" ? v : typeof v === "string" ? Number(v.trim()) : NaN;
+  return Number.isFinite(n) && Math.round(n) >= min && Math.round(n) <= max ? Math.round(n) : null;
+};
+
+/** A phone number as ten digits when it is an Indian number, otherwise left as the digits written. */
+export function cleanPhone(v: unknown): string | null {
+  const digits = String(v ?? "").replace(/\D/g, "");
+  const tail = digits.length >= 12 && digits.startsWith("91") ? digits.slice(-10) : digits.length === 11 && digits.startsWith("0") ? digits.slice(1) : digits;
+  return tail.length >= 8 && tail.length <= 15 ? tail : null;
+}
+
+const email = (v: unknown): string | null => {
+  const t = text(v, 120)?.toLowerCase() ?? null;
+  return t && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t) ? t : null;
+};
+
+/** Keeps a range the right way round: a flyer's "10 to 5" is a misreading, not a rule. */
+const ordered = (lo: number | null, hi: number | null): [number | null, number | null] => (lo !== null && hi !== null && lo > hi ? [hi, lo] : [lo, hi]);
+
+function terms(raw: Record<string, unknown>, slugs: ReadonlySet<string>): OfferTerms {
+  // A monthly rate (2.7% a month) is stored as the yearly figure, since that is what the matcher compares.
+  const perMonth = String(raw.ratePeriod ?? "").toUpperCase() === "MONTH";
+  const yearly = (n: number | null) => (n !== null && perMonth ? Math.round(n * 12 * 100) / 100 : n);
+  const rate = (v: unknown) => { const n = yearly(percent(v)); return n !== null && n <= 100 ? n : null; };
+  const [minAmount, maxAmount] = ordered(toRupees(raw.minAmount), toRupees(raw.maxAmount));
+  const [minRate, maxRate] = ordered(rate(raw.minRate), rate(raw.maxRate ?? raw.minRate));
+  const [minTenureMonths, maxTenureMonths] = ordered(whole(raw.minTenureMonths, 1, 600), whole(raw.maxTenureMonths, 1, 600));
+  const slug = text(raw.productSlug, 60);
+  const employment = list(raw.employmentTypes, 6, 40)
+    .map((e) => EMPLOYMENT.find((x) => x.toLowerCase().replace(/[^a-z]/g, "") === e.toLowerCase().replace(/[^a-z]/g, "")) ?? null)
+    .filter((e): e is string => Boolean(e));
+  const rateType = String(raw.rateType ?? "").toUpperCase();
+  return {
+    scheme: text(raw.scheme, 80),
+    productSlug: slug && slugs.has(slug) ? slug : null,
+    minAmount,
+    maxAmount,
+    minRate: minRate ?? (maxRate !== null ? maxRate : null),
+    maxRate,
+    minTenureMonths,
+    maxTenureMonths,
+    rateType: rateType === "FIXED" || rateType === "FLOATING" ? rateType : null,
+    processingFee: text(raw.processingFee, 200),
+    employmentTypes: [...new Set(employment)],
+    gstRequired: typeof raw.gstRequired === "boolean" ? raw.gstRequired : null,
+    minCreditScore: whole(raw.minCreditScore, 300, 900),
+    allIndia: typeof raw.allIndia === "boolean" ? raw.allIndia : null,
+    cities: list(raw.cities, 40, 60),
+    ltv: text(raw.ltv, 120),
+    documents: list(raw.documents, 20, 120),
+    charges: text(raw.charges, 300),
+    turnaround: text(raw.turnaround, 120),
+    notes: text(raw.notes, 400),
+  };
+}
+
+/** Turns whatever the model returned into a safe Extraction. `slugs` are the loan types this CRM knows. */
+export function normalizeExtraction(raw: unknown, slugs: ReadonlySet<string>): Extraction {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const kind = KINDS.includes(r.kind as OfferKind) ? (r.kind as OfferKind) : "OTHER";
+  const contacts = (Array.isArray(r.contacts) ? r.contacts : [])
+    .map((c): OfferContact => {
+      const o = (c ?? {}) as Record<string, unknown>;
+      return { name: text(o.name, 120), designation: text(o.designation, 80), phone: cleanPhone(o.phone), email: email(o.email) };
+    })
+    .filter((c) => c.phone || c.email)
+    .slice(0, 10);
+  const offers = kind === "LENDER_OFFER" ? (Array.isArray(r.offers) ? r.offers : []).slice(0, 12).map((o) => terms((o ?? {}) as Record<string, unknown>, slugs)) : [];
+  const type = String(r.lenderType ?? "").toUpperCase();
+  return {
+    kind,
+    summary: text(r.summary, 400) ?? "",
+    lenderName: text(r.lenderName, 120),
+    lenderType: type === "BANK" || type === "NBFC" ? type : null,
+    website: text(r.website, 200),
+    contacts,
+    offers,
+  };
+}
+
+/** The lender already in the CRM that this name most likely means, or null. Whole-name matches only, never a guess on one word. */
+export function bestLender<T extends { id: string; name: string; shortName?: string | null }>(name: string | null, lenders: T[]): T | null {
+  if (!name) return null;
+  const strip = (s: string) =>
+    s.toLowerCase().replace(/\b(private|pvt|limited|ltd|finance|finserv|financial|services|solutions|bank|housing|capital|and|&)\b/g, " ").replace(/[^a-z0-9]+/g, " ").trim();
+  const target = strip(name);
+  if (!target) return null;
+  return lenders.find((l) => strip(l.name) === target || (l.shortName ? strip(l.shortName) === target : false)) ?? null;
+}
+
+const lo = (a: number | null, b: number | null) => (a === null ? b : b === null ? a : Math.min(a, b));
+const hi = (a: number | null, b: number | null) => (a === null ? b : b === null ? a : Math.max(a, b));
+
+export type PolicyDraft = {
+  productSlug: string;
+  minAmount: number | null;
+  maxAmount: number | null;
+  minRate: number | null;
+  maxRate: number | null;
+  minTenureMonths: number | null;
+  maxTenureMonths: number | null;
+  rateType: "FLOATING" | "FIXED" | null;
+  processingFee: string | null;
+  specialScheme: string | null;
+  employmentTypes: string[];
+  gstRequired: boolean;
+  minCreditScore: number | null;
+  allIndia: boolean;
+  cities: string[];
+  notes: string | null;
+  schemes: number;
+};
+
+/**
+ * One policy per loan type: several schemes on one flyer (a lender's "Quasi", "Property Power" and "Micro LAP") widen the
+ * ranges, and each scheme's own figures are kept in the notes so nothing the flyer said is lost.
+ */
+export function mergeOffers(offers: OfferTerms[]): { policies: PolicyDraft[]; skipped: number } {
+  const bySlug = new Map<string, OfferTerms[]>();
+  let skipped = 0;
+  for (const o of offers) {
+    if (!o.productSlug) { skipped += 1; continue; }
+    bySlug.set(o.productSlug, [...(bySlug.get(o.productSlug) ?? []), o]);
+  }
+  const policies = [...bySlug.entries()].map(([productSlug, group]): PolicyDraft => {
+    const schemes = group.map((g) => g.scheme).filter((s): s is string => Boolean(s));
+    const notes = group
+      .map((g) => {
+        const bits = [
+          g.scheme && group.length > 1 ? g.scheme : null,
+          g.minAmount !== null || g.maxAmount !== null ? `amount ₹${(g.minAmount ?? g.maxAmount)?.toLocaleString("en-IN")}${g.maxAmount !== null && g.maxAmount !== g.minAmount ? ` to ₹${g.maxAmount.toLocaleString("en-IN")}` : ""}` : null,
+          g.minRate !== null ? `rate ${g.minRate}${g.maxRate !== null && g.maxRate !== g.minRate ? `% to ${g.maxRate}` : ""}%` : null,
+          g.ltv ? `LTV ${g.ltv}` : null,
+          g.turnaround ? `turnaround ${g.turnaround}` : null,
+          g.charges ? `charges: ${g.charges}` : null,
+          g.documents.length ? `documents: ${g.documents.join(", ")}` : null,
+          g.notes,
+        ].filter(Boolean);
+        return bits.join("; ");
+      })
+      .filter(Boolean)
+      .join(" | ")
+      .slice(0, 1000);
+    return {
+      productSlug,
+      minAmount: group.reduce<number | null>((a, g) => lo(a, g.minAmount), null),
+      maxAmount: group.reduce<number | null>((a, g) => hi(a, g.maxAmount), null),
+      minRate: group.reduce<number | null>((a, g) => lo(a, g.minRate), null),
+      maxRate: group.reduce<number | null>((a, g) => hi(a, g.maxRate), null),
+      minTenureMonths: group.reduce<number | null>((a, g) => lo(a, g.minTenureMonths), null),
+      maxTenureMonths: group.reduce<number | null>((a, g) => hi(a, g.maxTenureMonths), null),
+      rateType: group.every((g) => g.rateType === group[0]!.rateType) ? group[0]!.rateType : null,
+      processingFee: [...new Set(group.map((g) => g.processingFee).filter(Boolean))].join("; ").slice(0, 200) || null,
+      specialScheme: schemes.length ? [...new Set(schemes)].join(", ").slice(0, 200) : null,
+      employmentTypes: [...new Set(group.flatMap((g) => g.employmentTypes))],
+      // Needed only when every scheme on the flyer says so; a flyer that says "no GST needed" never sets it.
+      gstRequired: group.every((g) => g.gstRequired === true),
+      minCreditScore: group.reduce<number | null>((a, g) => lo(a, g.minCreditScore), null),
+      allIndia: group.some((g) => g.allIndia === true),
+      cities: [...new Set(group.flatMap((g) => g.cities))].slice(0, 40),
+      notes: notes || null,
+      schemes: group.length,
+    };
+  });
+  return { policies, skipped };
+}

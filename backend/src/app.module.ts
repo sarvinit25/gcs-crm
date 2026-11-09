@@ -10,6 +10,7 @@ import { DashboardModule } from "./dashboard/dashboard.module";
 import { ApplicationsModule } from "./applications/applications.module";
 import { LendersModule } from "./lenders/lenders.module";
 import { LenderPoliciesModule } from "./lender-policies/lender-policies.module";
+import { LenderOffersModule } from "./lender-offers/lender-offers.module";
 import { SanctionsModule } from "./sanctions/sanctions.module";
 import { AuditModule } from "./audit/audit.module";
 import { TeamModule } from "./team/team.module";
@@ -72,6 +73,7 @@ import { LoanProfileModule } from "./loan-profile/loan-profile.module";
     ApplicationsModule,
     LendersModule,
     LenderPoliciesModule,
+    LenderOffersModule,
     SanctionsModule,
     AuditModule,
     TeamModule,

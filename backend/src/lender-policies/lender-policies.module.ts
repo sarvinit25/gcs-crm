@@ -5,5 +5,6 @@ import { LenderPoliciesService } from "./lender-policies.service";
 @Module({
   controllers: [LenderPoliciesController],
   providers: [LenderPoliciesService],
+  exports: [LenderPoliciesService],
 })
 export class LenderPoliciesModule {}

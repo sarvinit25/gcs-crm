@@ -37,6 +37,7 @@ import { LendersPage } from "./routes/lenders";
 import { LenderDetailPage } from "./routes/lender-detail";
 import { LenderFormPage } from "./routes/lender-form";
 import { LenderPoliciesPage } from "./components/lender-policies";
+import { LenderOffersPage } from "./routes/lender-offers";
 import { AttendancePage } from "./routes/attendance";
 import { ReportsPage } from "./routes/reports";
 import { ReportsHubPage } from "./routes/reports-hub";
@@ -220,6 +221,7 @@ const routeTree = rootRoute.addChildren([
     createRoute({ getParentRoute: () => protectedRoute, path: "/lenders/$lenderId", component: LenderDetailPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/lenders/$lenderId/edit", component: LenderFormPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/lender-policies", component: LenderPoliciesPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/lender-offers", component: LenderOffersPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/partners", component: PartnersPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/lead-sources", component: LeadSourcesPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/loan-types", component: LoanTypesPage }),
