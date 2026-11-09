@@ -42,6 +42,8 @@ export type Extraction = {
   city: string | null;
   contacts: OfferContact[];
   offers: OfferTerms[];
+  /** The last day the offer holds (YYYY-MM-DD), when the page prints one. */
+  validTill: string | null;
 };
 
 const KINDS: OfferKind[] = ["LENDER_OFFER", "SERVICE_PROVIDER", "OTHER"];
@@ -121,13 +123,26 @@ function terms(raw: Record<string, unknown>, slugs: ReadonlySet<string>): OfferT
     minCreditScore: whole(raw.minCreditScore, 300, 900),
     allIndia: typeof raw.allIndia === "boolean" ? raw.allIndia : null,
     cities: list(raw.cities, 40, 60),
-    ltv: text(raw.ltv, 120),
+    // LTV is a percentage; a property type or document list put here by mistake is dropped.
+    ltv: ((t) => (t && /\d\s*%/.test(t) ? t : null))(text(raw.ltv, 120)),
     documents: list(raw.documents, 20, 120),
     charges: text(raw.charges, 300),
     turnaround: text(raw.turnaround, 120),
-    notes: text(raw.notes, 400),
+    notes: text(raw.notes, 500),
   };
 }
+
+/** A printed date as YYYY-MM-DD, or null when it is not a real date. */
+const isoDate = (v: unknown): string | null => {
+  const t = typeof v === "string" ? v.trim() : "";
+  const m = t.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  const d = new Date(`${t}T00:00:00Z`);
+  return Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== t ? null : t;
+};
+
+/** True when the page itself says the offer has ended before `today` (YYYY-MM-DD). */
+export const offerEnded = (validTill: string | null | undefined, today: string) => Boolean(validTill && validTill < today);
 
 /** Turns whatever the model returned into a safe Extraction. `slugs` are the loan types this CRM knows. */
 export function normalizeExtraction(raw: unknown, slugs: ReadonlySet<string>): Extraction {
@@ -152,6 +167,7 @@ export function normalizeExtraction(raw: unknown, slugs: ReadonlySet<string>): E
     city: text(r.city, 60),
     contacts,
     offers,
+    validTill: isoDate(r.validTill),
   };
 }
 
@@ -208,11 +224,19 @@ export type PolicyDraft = {
  * One policy per loan type: several schemes on one flyer (a lender's "Quasi", "Property Power" and "Micro LAP") widen the
  * ranges, and each scheme's own figures are kept in the notes so nothing the flyer said is lost.
  */
-export function mergeOffers(offers: OfferTerms[]): { policies: PolicyDraft[]; skipped: number } {
+/** A scheme that carries nothing to record: just a name. Adding it would only make an empty policy. */
+export const hasTerms = (o: OfferTerms) =>
+  [o.minAmount, o.maxAmount, o.minRate, o.maxRate, o.minTenureMonths, o.maxTenureMonths, o.minCreditScore].some((n) => n !== null) ||
+  Boolean(o.processingFee || o.ltv || o.charges || o.turnaround || o.notes || o.rateType) ||
+  o.employmentTypes.length > 0 || o.documents.length > 0 || o.cities.length > 0 || o.gstRequired !== null || o.allIndia !== null;
+
+export function mergeOffers(offers: OfferTerms[]): { policies: PolicyDraft[]; skipped: number; empty: number } {
   const bySlug = new Map<string, OfferTerms[]>();
   let skipped = 0;
+  let empty = 0;
   for (const o of offers) {
     if (!o.productSlug) { skipped += 1; continue; }
+    if (!hasTerms(o)) { empty += 1; continue; }
     bySlug.set(o.productSlug, [...(bySlug.get(o.productSlug) ?? []), o]);
   }
   const policies = [...bySlug.entries()].map(([productSlug, group]): PolicyDraft => {
@@ -255,7 +279,7 @@ export function mergeOffers(offers: OfferTerms[]): { policies: PolicyDraft[]; sk
       schemes: group.length,
     };
   });
-  return { policies, skipped };
+  return { policies, skipped, empty };
 }
 
 /** What a policy already holds, in the shapes this file works with. */

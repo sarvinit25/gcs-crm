@@ -25,7 +25,7 @@ export class OfferReaderService {
 The text may be in English, Hindi or Marathi. Return one JSON object and nothing else.
 
 First decide "kind":
-- "LENDER_OFFER": a bank, NBFC or private funder advertising loan products with terms.
+- "LENDER_OFFER": a bank, NBFC or private funder advertising loan products with terms. A page from a lender's product or credit-policy document (norms, eligibility, go/no-go criteria for a programme) is also a LENDER_OFFER: make one entry per programme and put its criteria in "notes".
 - "SERVICE_PROVIDER": a company selling a service (credit-score repair, CIBIL or CMR improvement, advisory, software). It lends nothing.
 - "OTHER": anything else (a festival-souvenir advert for a logistics or engineering firm, a greeting, a random message).
 
@@ -33,7 +33,8 @@ JSON shape:
 {
  "kind": "LENDER_OFFER" | "SERVICE_PROVIDER" | "OTHER",
  "summary": one plain sentence on what this is,
- "lenderName": the company's name as printed, or null,
+ "lenderName": the company's name as printed, or null. Read it from the logo, a watermark, the signature block or the email domain too (an email at godrejcapital.com means Godrej Capital; a logo reading CLIX means CLIX). null only when nothing on the page names the company,
+ "validTill": the last day the offer holds as YYYY-MM-DD when the page prints one ("valid till 30th Sep'26" is 2026-09-30), else null,
  "lenderType": "BANK" | "NBFC" | null (null when unsure),
  "website": string | null,
  "address": the lender's own office address as printed, or null,
@@ -63,6 +64,12 @@ Rules:
 - "employmentTypes" only when the page names who can apply (salaried, self-employed...). "Corporates, builders, traders" is a description of customers, not an entry. "allIndia" true only when the page says all India, pan India or nationwide; "cities" only cities printed as where it is available.
 - A pricing tier such as "cases above 5 crore get 8.50%" is a rate for large loans, not the product's minimum amount: leave minAmount null unless the page states the smallest loan.
 - Balance transfer, "BT" and top-up offers use "balance-transfer", even when the page calls them home-loan BT or HLBT.
+- "notes" is for everything else the page states about a scheme that has no field above, kept short and in plain words (up to about 400 characters): age limits, business vintage, FOIR, special rates by employment type ("9.5% salaried, 10% self-employed"), login fee, eligibility and go/no-go rules, who is excluded. Copy figures exactly. Do not leave a printed figure out just because it has no field.
+- "ltv" is only the loan-to-value percentage as printed ("85% up to 30 lakhs; LAP 70%", "55% - 75%"). Property types and documents (Registered Sale Deed, Namuna 8, 7/12) are not LTV: put them in "documents" or "notes".
+- A placeholder such as "up to ₹X crore", "XX%" or lorem-ipsum text is not a figure. Treat it as missing.
+- "minCreditScore" is the lowest CIBIL score the page asks for ("Consumer CIBIL: Min 720" is 720). When it changes with the loan size, use the lowest and put the rest in notes.
+- A scheme with no figures or conditions at all, only a name, still goes in, but only when the page lists it as a product.
+- Several photos or screenshots can be pages of one document: read each page on its own and fill in what that page says.
 - Phone numbers and emails exactly as printed. Do not copy a fax number as a phone number.
 - "Login fees", "legal and valuation charges" and similar go in "charges". "4 days" or "24 to 48 hours" goes in "turnaround".
 - Loan types we offer (slug: name):

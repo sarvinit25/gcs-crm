@@ -16,7 +16,7 @@ type Terms = {
   processingFee: string | null; employmentTypes: string[]; gstRequired: boolean | null; minCreditScore: number | null;
   allIndia: boolean | null; cities: string[]; ltv: string | null; documents: string[]; charges: string | null; turnaround: string | null; notes: string | null;
 };
-type Extraction = { kind: Kind; summary: string; lenderName: string | null; lenderType: "BANK" | "NBFC" | null; website: string | null; contacts: Contact[]; offers: Terms[] };
+type Extraction = { kind: Kind; summary: string; lenderName: string | null; lenderType: "BANK" | "NBFC" | null; website: string | null; contacts: Contact[]; offers: Terms[]; validTill?: string | null };
 type Row = { id: string; source: string; fileName: string | null; kind: Kind; summary: string | null; status: string; createdAt: string; createdByName: string | null; lenderName: string | null; offerCount: number };
 type Detail = Row & {
   extracted: Extraction; hasFile: boolean; lenderMatch: { id: string; name: string } | null;
@@ -163,6 +163,11 @@ function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
             )}
           </div>
           <p className="text-muted">{x.summary || "No summary."}</p>
+          {x.validTill && (
+            <p className={x.validTill < new Date().toISOString().slice(0, 10) ? "font-semibold text-amber-700" : "text-muted"}>
+              {x.validTill < new Date().toISOString().slice(0, 10) ? `This offer ended on ${x.validTill}, so it was not added automatically. Check with the lender before using it.` : `Valid till ${x.validTill}.`}
+            </p>
+          )}
 
           {x.kind !== "LENDER_OFFER" ? (
             <p className="rounded-md bg-bg-light px-3 py-2.5 text-muted">

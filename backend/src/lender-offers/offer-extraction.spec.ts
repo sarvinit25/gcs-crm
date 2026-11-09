@@ -1,4 +1,4 @@
-import { bestLender, cleanPhone, mergeOffers, normalizeExtraction, toRupees } from "./offer-extraction";
+import { bestLender, cleanPhone, mergeOffers, offerEnded, normalizeExtraction, toRupees } from "./offer-extraction";
 
 const SLUGS = new Set(["micro-lap", "micro-business-loan", "private-funding", "business-loan"]);
 
@@ -197,5 +197,32 @@ describe("telling lenders with a shared first word apart", () => {
     expect(id("FedBank Financial Services Ltd")).toBeNull();
     expect(id("Hero Housing Finance Ltd")).toBeNull();
     expect(id(null)).toBeNull();
+  });
+});
+
+describe("schemes with nothing to record, and offers that have ended", () => {
+  it("does not make a policy out of a scheme that is only a name", () => {
+    const x = normalizeExtraction({ kind: "LENDER_OFFER", offers: [{ scheme: "Business Overdraft", productSlug: "business-loan" }, { scheme: "Micro LAP", productSlug: "micro-lap", minRate: 19 }] }, SLUGS);
+    const m = mergeOffers(x.offers);
+    expect(m.policies.map((p) => p.productSlug)).toEqual(["micro-lap"]);
+    expect(m.empty).toBe(1);
+  });
+  it("keeps a scheme that only carries a note or a charge", () => {
+    const x = normalizeExtraction({ kind: "LENDER_OFFER", offers: [{ scheme: "March Spl", productSlug: "business-loan", charges: "Login fee 999 + GST" }] }, SLUGS);
+    expect(mergeOffers(x.offers).policies).toHaveLength(1);
+  });
+  it("reads a valid-till date only when it is a real date", () => {
+    expect(normalizeExtraction({ kind: "OTHER", validTill: "2026-09-30" }, SLUGS).validTill).toBe("2026-09-30");
+    expect(normalizeExtraction({ kind: "OTHER", validTill: "2026-02-31" }, SLUGS).validTill).toBeNull();
+    expect(normalizeExtraction({ kind: "OTHER", validTill: "30th Sep" }, SLUGS).validTill).toBeNull();
+  });
+  it("says an offer has ended only after its last day", () => {
+    expect(offerEnded("2026-09-30", "2026-11-09")).toBe(true);
+    expect(offerEnded("2026-09-30", "2026-09-30")).toBe(false);
+    expect(offerEnded(null, "2026-11-09")).toBe(false);
+  });
+  it("keeps LTV only when it is a percentage", () => {
+    const x = normalizeExtraction({ kind: "LENDER_OFFER", offers: [{ productSlug: "micro-lap", minRate: 20, ltv: "Registered Sale Deed, Namuna 8" }, { productSlug: "business-loan", minRate: 20, ltv: "55% - 75%" }] }, SLUGS);
+    expect(x.offers.map((o) => o.ltv)).toEqual([null, "55% - 75%"]);
   });
 });

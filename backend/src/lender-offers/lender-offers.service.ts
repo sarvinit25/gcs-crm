@@ -10,7 +10,7 @@ import { StorageService } from "../documents/storage.service";
 import { LenderPoliciesService } from "../lender-policies/lender-policies.service";
 import { OfferReaderService } from "./offer-reader.service";
 import { isDocx, isOldWord, readDocx } from "./docx-text";
-import { bestLender, cleanPhone, fillContact, mergeIntoPolicy, mergeOffers, normalizedForHash, normalizeExtraction, type ExistingPolicy, type Extraction, type PolicyDraft } from "./offer-extraction";
+import { bestLender, cleanPhone, fillContact, mergeIntoPolicy, mergeOffers, normalizedForHash, normalizeExtraction, offerEnded, type ExistingPolicy, type Extraction, type PolicyDraft } from "./offer-extraction";
 
 const READABLE = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
 const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -55,6 +55,8 @@ export class LenderOffersService {
     if (files.length > 10) throw new BadRequestException("Send at most 10 files at a time.");
     const products = await this.products();
     const made: { id: string; duplicate?: boolean }[] = [];
+    // Pages of one document sent together: a page that does not name the lender belongs to the one before it.
+    let previous: Extraction | null = null;
 
     for (const file of files) {
       if (isOldWord(file.buffer)) throw new BadRequestException(`${file.originalname} is an old-style Word file (.doc). Save it as .docx or PDF and send that.`);
@@ -75,6 +77,10 @@ export class LenderOffersService {
       } else {
         extracted = await this.reader.read({ file: { buffer: file.buffer, mime: detected.mime, name: file.originalname } }, products);
       }
+      if (previous?.lenderName && !extracted.lenderName) {
+        extracted = { ...extracted, lenderName: previous.lenderName, lenderType: extracted.lenderType ?? previous.lenderType };
+      }
+      if (extracted.lenderName) previous = extracted;
       // The original is kept so a person can look at what was read; failing to keep it does not lose the reading.
       let objectKey: string | null = null;
       try {
@@ -119,6 +125,8 @@ export class LenderOffersService {
       const row = await this.prisma.lenderOffer.findUnique({ where: { id }, select: { extracted: true } });
       const x = row?.extracted as unknown as Extraction | undefined;
       if (!x || x.kind !== "LENDER_OFFER" || !mergeOffers(x.offers).policies.length) return;
+      // An offer that has already ended is for a person to look at, not to put into the matcher.
+      if (offerEnded(x.validTill, TODAY())) return;
       const lenders = await this.prisma.lender.findMany({ select: { id: true, name: true, shortName: true } });
       const match = bestLender(x.lenderName, lenders);
       if (match) await this.apply(id, { lenderId: match.id }, actor);
@@ -173,7 +181,9 @@ export class LenderOffersService {
       this.products(),
     ]);
     const match = bestLender(extracted.lenderName, lenders);
-    const { policies, skipped } = mergeOffers(extracted.offers);
+    const merged = mergeOffers(extracted.offers);
+    const { policies } = merged;
+    const skipped = merged.skipped + merged.empty;
     const name = new Map(products.map((p) => [p.slug, p.name]));
     const held = match ? await this.prisma.lenderPolicy.findMany({ where: { lenderId: match.id }, include: { loanProduct: { select: { slug: true } } } }) : [];
     return {
@@ -231,8 +241,11 @@ export class LenderOffersService {
     const row = await this.draft(id);
     const x = row.extracted as unknown as Extraction;
     if (x.kind !== "LENDER_OFFER") throw new BadRequestException("This is not a lender's offer, so there is nothing to add to Lender match.");
-    const { policies, skipped } = mergeOffers(x.offers);
-    if (!policies.length) throw new BadRequestException("None of the products on this page match a loan type we offer. Pick a loan type for each product first.");
+    const merged0 = mergeOffers(x.offers);
+    const skipped = merged0.skipped + merged0.empty;
+    // The date the flyer says the offer holds till goes into each policy's notes, so nobody takes it for open-ended.
+    const policies = merged0.policies.map((p) => (x.validTill ? { ...p, notes: [p.notes, `offer valid till ${x.validTill}`].filter(Boolean).join("; ").slice(0, 900) } : p));
+    if (!policies.length) throw new BadRequestException("There is nothing here to add: no product has a loan type we offer together with figures or conditions to record. Pick a loan type for each product, or fill in what the page says.");
 
     const lender = await this.resolveLender(body, x);
     const products = await this.products();
