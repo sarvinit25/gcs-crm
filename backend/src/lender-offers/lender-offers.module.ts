@@ -9,5 +9,6 @@ import { OfferReaderService } from "./offer-reader.service";
   imports: [DocumentsModule, LenderPoliciesModule],
   controllers: [LenderOffersController],
   providers: [LenderOffersService, OfferReaderService],
+  exports: [LenderOffersService],
 })
 export class LenderOffersModule {}

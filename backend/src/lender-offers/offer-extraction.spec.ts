@@ -91,3 +91,18 @@ describe("finding the lender already in the CRM", () => {
     expect(bestLender(null, lenders)).toBeNull();
   });
 });
+
+describe("forwarding to the WhatsApp number", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { looksLikeOffer } = jest.requireActual("../whatsapp/inbound.service");
+  it("picks up a message marked as an offer, or one long enough to be a flyer", () => {
+    expect(looksLikeOffer("offer: Manba Finance micro LAP 19% to 24%")).toBe(true);
+    expect(looksLikeOffer("Flyer - bridge funding 10 lacs to 50 crs")).toBe(true);
+    expect(looksLikeOffer("x".repeat(400))).toBe(true);
+  });
+  it("leaves an ordinary question for the assistant", () => {
+    expect(looksLikeOffer("How many active files?")).toBe(false);
+    expect(looksLikeOffer("Aaj kitne follow-ups due hain?")).toBe(false);
+    expect(looksLikeOffer("this is not an offerletter")).toBe(false);
+  });
+});
