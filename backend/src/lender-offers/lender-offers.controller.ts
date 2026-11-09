@@ -16,7 +16,7 @@ export class LenderOffersController {
   }
 
   @Post()
-  @UseInterceptors(FilesInterceptor("files", 10, { limits: { fileSize: 16 * 1024 * 1024 } }))
+  @UseInterceptors(FilesInterceptor("files", 20, { limits: { fileSize: 100 * 1024 * 1024 } }))
   create(@UploadedFiles() files: Express.Multer.File[] | undefined, @Body() body: { text?: string }, @CurrentUser() user: AuthUser) {
     return this.offers.create(files ?? [], body?.text, user);
   }

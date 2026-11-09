@@ -23,7 +23,7 @@ server {
     ssl_certificate     /etc/letsencrypt/live/growthcapitalservices.in/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/growthcapitalservices.in/privkey.pem;
 
-    client_max_body_size 20m;   # document uploads are capped at 15 MB by the app
+    client_max_body_size 120m;   # lender-offer files have no everyday limit; other uploads are capped by the app
 
     add_header X-Content-Type-Options nosniff always;
     add_header X-Frame-Options SAMEORIGIN always;

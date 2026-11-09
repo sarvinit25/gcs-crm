@@ -16,7 +16,8 @@ import { bestLender, cleanPhone, fillContact, mergeIntoPolicy, mergeOffers, norm
 const READABLE = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
 const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-const MAX_BYTES = 15 * 1024 * 1024;
+// No everyday limit: big scanned PDFs are normal here. Only what the reader itself can take (about 40 MB a file) stops a file.
+const MAX_BYTES = 40 * 1024 * 1024;
 const json = (v: unknown) => JSON.parse(JSON.stringify(v)) as Prisma.InputJsonValue;
 const TODAY = () => new Date().toISOString().slice(0, 10);
 
@@ -54,7 +55,7 @@ export class LenderOffersService {
   async create(files: UploadedFile[], text: string | undefined, actor: AuthUser) {
     const pasted = text?.trim();
     if (!files.length && !pasted) throw new BadRequestException("Choose a picture, PDF or Word file, or paste the message.");
-    if (files.length > 10) throw new BadRequestException("Send at most 10 files at a time.");
+    if (files.length > 20) throw new BadRequestException("Send at most 20 files at a time.");
     const products = await this.products();
     const made: { id: string; duplicate?: boolean }[] = [];
     // Pages of one document sent together: a page that does not name the lender belongs to the one before it.
@@ -67,7 +68,7 @@ export class LenderOffersService {
       const sheet = !word && isXlsx(file.buffer);
       const detected = word ? { mime: DOCX, extension: ".docx" } : sheet ? { mime: XLSX, extension: ".xlsx" } : detectFile(file.buffer);
       if (!detected || (!word && !sheet && !READABLE.has(detected.mime))) throw new BadRequestException(`${file.originalname}: only PDF, Word (.docx), Excel (.xlsx), JPG, PNG or WebP can be read. A phone photo in HEIC format should be sent as JPG.`);
-      if (file.size > MAX_BYTES) throw new BadRequestException(`${file.originalname} is larger than 15MB.`);
+      if (file.size > MAX_BYTES) throw new BadRequestException(`${file.originalname} is larger than the reader can take (40 MB). Split it into two or three parts and send them together.`);
       // The same file put in twice is recognised and not read again (it would only make a copy).
       const contentHash = createHash("sha256").update(file.buffer).digest("hex");
       const repeat = await this.repeatOf(contentHash);
