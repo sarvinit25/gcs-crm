@@ -61,6 +61,8 @@ Rules:
 - When the page shows a range ("23% to 24%", "12 to 60 months"), give both ends.
 - "rateType" only when the page says fixed or floating. "Reducing" is not the same thing: leave rateType null.
 - "employmentTypes" only when the page names who can apply (salaried, self-employed...). "Corporates, builders, traders" is a description of customers, not an entry. "allIndia" true only when the page says all India, pan India or nationwide; "cities" only cities printed as where it is available.
+- A pricing tier such as "cases above 5 crore get 8.50%" is a rate for large loans, not the product's minimum amount: leave minAmount null unless the page states the smallest loan.
+- Balance transfer, "BT" and top-up offers use "balance-transfer", even when the page calls them home-loan BT or HLBT.
 - Phone numbers and emails exactly as printed. Do not copy a fax number as a phone number.
 - "Login fees", "legal and valuation charges" and similar go in "charges". "4 days" or "24 to 48 hours" goes in "turnaround".
 - Loan types we offer (slug: name):

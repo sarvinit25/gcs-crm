@@ -161,3 +161,41 @@ describe("recognising the same text put in twice", () => {
     expect(normalizedForHash("Manba  Finance\n  Micro LAP")).toBe(normalizedForHash("manba finance micro lap "));
   });
 });
+
+describe("telling lenders with a shared first word apart", () => {
+  const crm = [
+    { id: "ab", name: "Axis Bank" }, { id: "af", name: "Axis Finance" },
+    { id: "bf", name: "Bajaj Finserv", shortName: "Bajaj" }, { id: "bh", name: "Bajaj Housing" },
+    { id: "ib", name: "ICICI Bank" }, { id: "fb", name: "Federal Bank" },
+    { id: "au", name: "AU Small Finance" }, { id: "ch", name: "Cholamandalam" },
+    { id: "sb", name: "SBI" }, { id: "sh", name: "SBI Home Loans" },
+    { id: "hb", name: "HDFC Bank" }, { id: "hs", name: "HDFC Sales" }, { id: "hf", name: "Hero FinCorp" },
+  ];
+  const id = (n: string | null) => bestLender(n, crm)?.id ?? null;
+
+  it("keeps Axis Bank and Axis Finance apart, in both directions", () => {
+    expect(id("Axis Bank Ltd")).toBe("ab");
+    expect(id("Axis Finance")).toBe("af");
+    expect(id("AXIS FINANCE LIMITED")).toBe("af");
+  });
+  it("gives Bajaj Housing its own flyers, not Bajaj Finserv's", () => {
+    expect(id("Bajaj housing finance Limited")).toBe("bh");
+    expect(id("Bajaj Finserv")).toBe("bf");
+    expect(id("Bajaj")).toBe("bf");
+  });
+  it("finds a lender written a little differently, when only one fits", () => {
+    expect(id("AU Small Finance Bank")).toBe("au");
+    expect(id("CHOLAMANDALAM INVESTMENT & FINANCE CO. LTD.")).toBe("ch");
+    expect(id("CHOLA MANDALAM")).toBe("ch");
+    expect(id("HDFC")).toBe("hb");
+    expect(id("SBI")).toBe("sb");
+    expect(id("SBI Home Loans")).toBe("sh");
+  });
+  it("guesses nothing when it could be two lenders, or a different company", () => {
+    expect(id("Axis")).toBeNull();
+    expect(id("ICICI Home Finance Co. Ltd")).toBeNull();
+    expect(id("FedBank Financial Services Ltd")).toBeNull();
+    expect(id("Hero Housing Finance Ltd")).toBeNull();
+    expect(id(null)).toBeNull();
+  });
+});

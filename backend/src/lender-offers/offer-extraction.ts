@@ -155,14 +155,30 @@ export function normalizeExtraction(raw: unknown, slugs: ReadonlySet<string>): E
   };
 }
 
-/** The lender already in the CRM that this name most likely means, or null. Whole-name matches only, never a guess on one word. */
+const LEGAL = new Set(["private", "pvt", "limited", "ltd", "co", "company", "corp", "corporation", "and", "the", "of"]);
+/** Words that many different lenders share, so they can only be ignored when that leaves exactly one lender standing. */
+const GENERIC = new Set(["bank", "finance", "financial", "services", "investment", "holdings"]);
+const words = (s: string) => s.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").split(" ").filter((w) => w && !LEGAL.has(w));
+const compact = (ws: string[]) => ws.join("");
+
+/**
+ * The lender already in the CRM that this name means, or null when it is not certain.
+ * First the whole name must match (only "Ltd", "Pvt" and the like are ignored), so "Axis Finance" is never taken for
+ * "Axis Bank". Failing that, words such as Bank and Finance are ignored, but only if exactly ONE lender is left standing:
+ * "Bajaj Housing Finance Ltd" finds "Bajaj Housing", while a bare "Axis" matches nobody because two lenders fit.
+ */
 export function bestLender<T extends { id: string; name: string; shortName?: string | null }>(name: string | null, lenders: T[]): T | null {
   if (!name) return null;
-  const strip = (s: string) =>
-    s.toLowerCase().replace(/\b(private|pvt|limited|ltd|finance|finserv|financial|services|solutions|bank|housing|capital|and|&)\b/g, " ").replace(/[^a-z0-9]+/g, " ").trim();
-  const target = strip(name);
-  if (!target) return null;
-  return lenders.find((l) => strip(l.name) === target || (l.shortName ? strip(l.shortName) === target : false)) ?? null;
+  const target = words(name);
+  if (!target.length) return null;
+  const names = (l: T) => [l.name, ...(l.shortName ? [l.shortName] : [])].map(words).filter((w) => w.length);
+  const exact = lenders.filter((l) => names(l).some((w) => compact(w) === compact(target)));
+  if (exact.length) return exact.length === 1 ? exact[0]! : null;
+  const loose = (ws: string[]) => compact(ws.filter((w) => !GENERIC.has(w)));
+  const key = loose(target);
+  if (!key) return null;
+  const fits = lenders.filter((l) => names(l).some((w) => loose(w) === key));
+  return fits.length === 1 ? fits[0]! : null;
 }
 
 const lo = (a: number | null, b: number | null) => (a === null ? b : b === null ? a : Math.min(a, b));
