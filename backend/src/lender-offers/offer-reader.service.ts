@@ -94,7 +94,7 @@ ${products.map((p) => `  ${p.slug}: ${p.name}`).join("\n")}`;
         method: "POST",
         headers: { authorization: `Bearer ${this.config.get<string>("OPENAI_API_KEY")}`, "content-type": "application/json" },
         body: JSON.stringify({ model, input: [{ role: "user", content }], text: { format: { type: "json_object" } }, temperature: 0, max_output_tokens: 16000 }),
-        signal: AbortSignal.timeout(90_000),
+        signal: AbortSignal.timeout(240_000),
       });
     } catch (err) {
       this.log.error(`Reading a flyer failed: ${(err as Error).message}`);
