@@ -229,4 +229,9 @@ describe("schemes with nothing to record, and offers that have ended", () => {
     const x = normalizeExtraction({ kind: "LENDER_OFFER", offers: [{ productSlug: "micro-lap", minAmount: 0, maxAmount: "50 lakh", minRate: 7.5 }] }, SLUGS);
     expect([x.offers[0]!.minAmount, x.offers[0]!.maxAmount]).toEqual([null, 5_000_000]);
   });
+  it("drops a minimum amount that ends up above the maximum when schemes disagree", () => {
+    const x = normalizeExtraction({ kind: "LENDER_OFFER", offers: [{ productSlug: "micro-lap", minAmount: "1 crore" }, { productSlug: "micro-lap", maxAmount: "60 lakh" }] }, SLUGS);
+    const p = mergeOffers(x.offers).policies[0]!;
+    expect([p.minAmount, p.maxAmount]).toEqual([null, 6_000_000]);
+  });
 });

@@ -260,10 +260,13 @@ export function mergeOffers(offers: OfferTerms[]): { policies: PolicyDraft[]; sk
       .filter(Boolean)
       .join(" | ")
       .slice(0, 1000);
+    // Several schemes can disagree (one says "1 crore", another "up to 60 lakh"): a minimum above the maximum is dropped.
+    const amountLow = group.reduce<number | null>((a, g) => lo(a, g.minAmount), null);
+    const amountHigh = group.reduce<number | null>((a, g) => hi(a, g.maxAmount), null);
     return {
       productSlug,
-      minAmount: group.reduce<number | null>((a, g) => lo(a, g.minAmount), null),
-      maxAmount: group.reduce<number | null>((a, g) => hi(a, g.maxAmount), null),
+      minAmount: amountLow !== null && amountHigh !== null && amountLow > amountHigh ? null : amountLow,
+      maxAmount: amountHigh,
       minRate: group.reduce<number | null>((a, g) => lo(a, g.minRate), null),
       maxRate: group.reduce<number | null>((a, g) => hi(a, g.maxRate), null),
       minTenureMonths: group.reduce<number | null>((a, g) => lo(a, g.minTenureMonths), null),
