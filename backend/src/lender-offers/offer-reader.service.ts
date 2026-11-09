@@ -79,7 +79,7 @@ ${products.map((p) => `  ${p.slug}: ${p.name}`).join("\n")}`;
   async read(input: OfferInput, products: { slug: string; name: string }[]): Promise<Extraction> {
     if (!this.enabled) throw new BadRequestException("The AI reader is not switched on: the OpenAI key is missing on the server.");
     const content: Record<string, unknown>[] = [{ type: "input_text", text: this.prompt(products) }];
-    if (input.text?.trim()) content.push({ type: "input_text", text: `Message to read:\n\n${input.text.trim().slice(0, 20_000)}` });
+    if (input.text?.trim()) content.push({ type: "input_text", text: `Message to read:\n\n${input.text.trim().slice(0, 60_000)}` });
     for (const img of input.images ?? []) content.push({ type: "input_image", image_url: `data:${img.mime};base64,${img.buffer.toString("base64")}` });
     if (input.file) {
       const uri = `data:${input.file.mime};base64,${input.file.buffer.toString("base64")}`;
@@ -93,7 +93,7 @@ ${products.map((p) => `  ${p.slug}: ${p.name}`).join("\n")}`;
       res = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: { authorization: `Bearer ${this.config.get<string>("OPENAI_API_KEY")}`, "content-type": "application/json" },
-        body: JSON.stringify({ model, input: [{ role: "user", content }], text: { format: { type: "json_object" } }, temperature: 0, max_output_tokens: 4000 }),
+        body: JSON.stringify({ model, input: [{ role: "user", content }], text: { format: { type: "json_object" } }, temperature: 0, max_output_tokens: 16000 }),
         signal: AbortSignal.timeout(90_000),
       });
     } catch (err) {
@@ -104,7 +104,7 @@ ${products.map((p) => `  ${p.slug}: ${p.name}`).join("\n")}`;
       this.log.error(`The AI refused a flyer (${res.status}): ${(await res.text().catch(() => "")).slice(0, 300)}`);
       throw new BadGatewayException("The reader could not read that file. Try a clearer picture or paste the text.");
     }
-    const body = (await res.json()) as { output?: { type?: string; content?: { type?: string; text?: string }[] }[] };
+    const body = (await res.json()) as { status?: string; output?: { type?: string; content?: { type?: string; text?: string }[] }[] };
     const out = (body.output ?? []).flatMap((o) => o.content ?? []).find((c) => c.type === "output_text")?.text;
     let parsed: unknown;
     try {

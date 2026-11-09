@@ -10,10 +10,12 @@ import { StorageService } from "../documents/storage.service";
 import { LenderPoliciesService } from "../lender-policies/lender-policies.service";
 import { OfferReaderService } from "./offer-reader.service";
 import { isDocx, isOldWord, readDocx } from "./docx-text";
+import { isXlsx, readXlsx } from "./xlsx-text";
 import { bestLender, cleanPhone, fillContact, mergeIntoPolicy, mergeOffers, normalizedForHash, normalizeExtraction, offerEnded, type ExistingPolicy, type Extraction, type PolicyDraft } from "./offer-extraction";
 
 const READABLE = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
 const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 const MAX_BYTES = 15 * 1024 * 1024;
 const json = (v: unknown) => JSON.parse(JSON.stringify(v)) as Prisma.InputJsonValue;
 const TODAY = () => new Date().toISOString().slice(0, 10);
@@ -59,17 +61,24 @@ export class LenderOffersService {
     let previous: Extraction | null = null;
 
     for (const file of files) {
+      if (isOldWord(file.buffer) && /\.xls$/i.test(file.originalname)) throw new BadRequestException(`${file.originalname} is an old-style Excel file (.xls). Save it as .xlsx and send that.`);
       if (isOldWord(file.buffer)) throw new BadRequestException(`${file.originalname} is an old-style Word file (.doc). Save it as .docx or PDF and send that.`);
       const word = isDocx(file.buffer);
-      const detected = word ? { mime: DOCX, extension: ".docx" } : detectFile(file.buffer);
-      if (!detected || (!word && !READABLE.has(detected.mime))) throw new BadRequestException(`${file.originalname}: only PDF, Word (.docx), JPG, PNG or WebP can be read. A phone photo in HEIC format should be sent as JPG.`);
+      const sheet = !word && isXlsx(file.buffer);
+      const detected = word ? { mime: DOCX, extension: ".docx" } : sheet ? { mime: XLSX, extension: ".xlsx" } : detectFile(file.buffer);
+      if (!detected || (!word && !sheet && !READABLE.has(detected.mime))) throw new BadRequestException(`${file.originalname}: only PDF, Word (.docx), Excel (.xlsx), JPG, PNG or WebP can be read. A phone photo in HEIC format should be sent as JPG.`);
       if (file.size > MAX_BYTES) throw new BadRequestException(`${file.originalname} is larger than 15MB.`);
       // The same file put in twice is recognised and not read again (it would only make a copy).
       const contentHash = createHash("sha256").update(file.buffer).digest("hex");
       const repeat = await this.repeatOf(contentHash);
       if (repeat) { made.push({ id: repeat, duplicate: true }); continue; }
       let extracted: Extraction;
-      if (word) {
+      if (sheet) {
+        // Excel: every sheet as rows of text.
+        const text = readXlsx(file.buffer);
+        if (!text.trim()) throw new BadRequestException(`${file.originalname} has no cells with text that can be read.`);
+        extracted = await this.reader.read({ text }, products);
+      } else if (word) {
         // Word: its text, plus any pictures on the page (a flyer saved in Word is often just an image).
         const doc = readDocx(file.buffer);
         if (!doc.text && !doc.images.length) throw new BadRequestException(`${file.originalname} has no text or pictures that can be read.`);

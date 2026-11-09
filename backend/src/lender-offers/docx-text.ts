@@ -5,9 +5,9 @@ import { inflateRawSync } from "zlib";
 
 const MAX_PART = 40 * 1024 * 1024;
 
-type Entry = { name: string; method: number; compSize: number; offset: number };
+export type Entry = { name: string; method: number; compSize: number; offset: number };
 
-function entries(buf: Buffer): Map<string, Entry> {
+export function entries(buf: Buffer): Map<string, Entry> {
   const out = new Map<string, Entry>();
   // The end-of-central-directory record is near the end; a zip comment can push it back by up to 64 KB.
   let eocd = -1;
@@ -28,7 +28,7 @@ function entries(buf: Buffer): Map<string, Entry> {
   return out;
 }
 
-function part(buf: Buffer, e: Entry): Buffer | null {
+export function part(buf: Buffer, e: Entry): Buffer | null {
   if (e.offset + 30 > buf.length || buf.readUInt32LE(e.offset) !== 0x04034b50) return null;
   const start = e.offset + 30 + buf.readUInt16LE(e.offset + 26) + buf.readUInt16LE(e.offset + 28);
   const raw = buf.subarray(start, start + e.compSize);

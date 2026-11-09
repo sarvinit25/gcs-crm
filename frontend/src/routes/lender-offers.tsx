@@ -282,13 +282,13 @@ export function LenderOffersPage() {
         <section className="card p-5">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <p className="text-sm font-bold text-navy">Pictures, PDF or Word files</p>
-              <input ref={fileInput} type="file" multiple className="hidden" accept=".pdf,.docx,.jpg,.jpeg,.png,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png,image/webp" onChange={(e) => setFiles([...(e.target.files ?? [])])} />
+              <p className="text-sm font-bold text-navy">Pictures, PDF, Word or Excel files</p>
+              <input ref={fileInput} type="file" multiple className="hidden" accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/jpeg,image/png,image/webp" onChange={(e) => setFiles([...(e.target.files ?? [])])} />
               <button type="button" onClick={() => fileInput.current?.click()} onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => { e.preventDefault(); setFiles([...e.dataTransfer.files]); }}
                 className="mt-2 grid w-full place-items-center rounded-lg border-2 border-dashed border-line px-4 py-8 text-center text-[13px] text-muted transition hover:border-navy/40">
                 <Upload className="mb-1.5 h-5 w-5 text-navy" />
-                {files.length ? <span className="font-semibold text-navy">{files.map((f) => f.name).join(", ")}</span> : <span>Click to choose, or drop files here.<br />PDF, Word (.docx), JPG, PNG or WebP. Up to 10 files.</span>}
+                {files.length ? <span className="font-semibold text-navy">{files.map((f) => f.name).join(", ")}</span> : <span>Click to choose, or drop files here.<br />PDF, Word (.docx), Excel (.xlsx), JPG, PNG or WebP. Up to 10 files.</span>}
               </button>
             </div>
             <label className="grid text-sm font-bold text-navy">Or paste the message
