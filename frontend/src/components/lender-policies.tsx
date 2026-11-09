@@ -641,7 +641,11 @@ export function LenderPoliciesPage() {
                     {rows.map((p) => (
                       <tr key={p.id} className={clsx("border-t border-line", !p.active && "opacity-50")}>
                         <td className="px-4 py-2.5 font-semibold text-navy">{p.lender.name}</td>
-                        <td className="px-4 py-2.5">{p.loanProduct.name} <span className="text-[11px] text-muted">v{p.version}</span></td>
+                        <td className="px-4 py-2.5">{p.loanProduct.name} <span className="text-[11px] text-muted">v{p.version}</span>
+                          {p.source?.startsWith("Flyer reading") && (
+                            <span className="ml-1.5 rounded bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-violet-700" title={p.source}>OCR</span>
+                          )}
+                        </td>
                         <td className="px-4 py-2.5">{p.minAmount || p.maxAmount ? `${formatAmount(p.minAmount)} – ${formatAmount(p.maxAmount)}` : "—"}</td>
                         <td className="px-4 py-2.5">{p.minRate || p.maxRate ? `${p.minRate ?? "?"}% – ${p.maxRate ?? "?"}%` : "—"}</td>
                         <td className="px-4 py-2.5"><FreshnessBadge value={p.freshness} /></td>
