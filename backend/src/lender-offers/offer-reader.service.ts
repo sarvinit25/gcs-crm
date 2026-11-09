@@ -68,6 +68,8 @@ Rules:
 - "ltv" is only the loan-to-value percentage as printed ("85% up to 30 lakhs; LAP 70%", "55% - 75%"). Property types and documents (Registered Sale Deed, Namuna 8, 7/12) are not LTV: put them in "documents" or "notes".
 - A placeholder such as "up to ₹X crore", "XX%" or lorem-ipsum text is not a figure. Treat it as missing.
 - "minCreditScore" is the lowest CIBIL score the page asks for ("Consumer CIBIL: Min 720" is 720). When it changes with the loan size, use the lowest and put the rest in notes.
+- "Up to 15 years" or "up to 25 lakh" gives only the maximum: leave the minimum null. Never write 1 or 0 as a minimum.
+- A table of slabs or bands (for example loan sizes 0-15, 15-30, 30-75, 75 above, each with its own rate) is a rate grid, not the product's loan amount: give the lowest and highest rate across the grid, leave the amounts null, and put the slab breakdown in "notes".
 - A scheme with no figures or conditions at all, only a name, still goes in, but only when the page lists it as a product.
 - Several photos or screenshots can be pages of one document: read each page on its own and fill in what that page says.
 - Phone numbers and emails exactly as printed. Do not copy a fax number as a phone number.
