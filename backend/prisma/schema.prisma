@@ -1712,3 +1712,31 @@ model ReportTemplate {
   @@unique([userId, type, name])
   @@index([userId, type])
 }
+
+/**
+ * A lender flyer, poster or pasted message that has been read into structured terms. It stays a draft until a person
+ * reviews it and adds it to the lender-policy database; nothing here is trusted by the matcher on its own.
+ */
+model LenderOffer {
+  id              String   @id @default(cuid())
+  // "upload" or "paste".
+  source          String
+  fileName        String?
+  objectKey       String?  @unique
+  mimeType        String?
+  sizeBytes       Int?
+  rawText         String?
+  // LENDER_OFFER, SERVICE_PROVIDER (credit repair and the like) or OTHER (an unrelated advert).
+  kind            String   @default("OTHER")
+  summary         String?
+  extracted       Json
+  // DRAFT, APPLIED or DISCARDED.
+  status          String   @default("DRAFT")
+  appliedLenderId String?
+  createdById     String?
+  createdByName   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
