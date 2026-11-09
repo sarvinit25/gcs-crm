@@ -8,9 +8,6 @@ import { AssistantService, type ChatMessage as ChatTurn } from "../assistant/ass
 import { ConversationsService } from "./conversations.service";
 import { IntakeService } from "./intake/intake.service";
 import { MediaService } from "./media.service";
-import { LenderOffersService } from "../lender-offers/lender-offers.service";
-import type { Extraction } from "../lender-offers/offer-extraction";
-import { crmLoginUrl } from "../team/welcome-email";
 import { WHATSAPP_PROVIDER, type Interactive, type WhatsAppProvider } from "./whatsapp.provider";
 import { contactKey, toWaId } from "./phone";
 import { STAGE_LABEL } from "./templates.util";
@@ -32,10 +29,6 @@ type Incoming = {
 };
 
 const env = (key: string) => process.env[key]?.trim() || "";
-
-/** A lender's message forwarded by a team member: marked with a word like "offer", or simply long enough to be a flyer's text. */
-const OFFER_WORD = /^\s*(lender offer|offer|flyer|scheme)\b[:\-\s]*/i;
-export const looksLikeOffer = (text: string) => OFFER_WORD.test(text) || text.length >= 350;
 const MAX_REPLY = 3500;
 const MAX_TURNS = 12;
 
@@ -67,7 +60,6 @@ export class InboundService {
     private assistant: AssistantService,
     private intake: IntakeService,
     private media: MediaService,
-    private offers: LenderOffersService,
     private profile: LoanProfileService,
     @Inject(WHATSAPP_PROVIDER) private provider: WhatsAppProvider,
   ) {}
@@ -182,43 +174,8 @@ export class InboundService {
 
   // ── Team members ────────────────────────────────────────────
 
-  /**
-   * Admins and managers can forward a lender's flyer, photo or message to this number: it is read into Lender offers for
-   * review, exactly like an upload on the page. Nothing is added to Lender match until a person checks it there.
-   */
-  private async captureOffer(user: { id: string; name: string; email: string; role: Role }, phone: string, m: Incoming): Promise<boolean> {
-    const media = Boolean(m.mediaId) && (m.type === "document" || m.type === "image");
-    const typed = m.type === "text" && Boolean(m.body) && looksLikeOffer(m.body!);
-    if (!media && !typed) return false;
-    const actor = { id: user.id, email: user.email, role: user.role, name: user.name };
-    void this.provider.showTyping(m.id);
-    try {
-      let made;
-      if (media) {
-        const { data } = await this.provider.downloadMedia(m.mediaId!);
-        made = await this.offers.create([{ originalname: m.fileName ?? (m.type === "image" ? "whatsapp-photo.jpg" : "whatsapp-file.pdf"), size: data.length, buffer: data }], undefined, actor);
-      } else {
-        made = await this.offers.create([], m.body!.replace(OFFER_WORD, ""), actor);
-      }
-      const x = made[0]!.extracted as unknown as Extraction;
-      const link = crmLoginUrl().replace(/\/login$/, "/lender-offers");
-      const line =
-        x.kind === "LENDER_OFFER"
-          ? `Read it: ${x.lenderName ?? "lender not named"}, ${x.offers.length} product${x.offers.length === 1 ? "" : "s"}. Check it and add it to Lender match here:\n${link}`
-          : x.kind === "SERVICE_PROVIDER"
-            ? `Read it. This looks like a service provider's advert (${x.lenderName ?? "not named"}), not a lender, so there is nothing to add to Lender match. It is saved here if you want to look:\n${link}`
-            : `Read it, but it does not look like a lender's offer, so I have not added anything. It is saved here:\n${link}`;
-      await this.say(phone, line);
-    } catch (err) {
-      const message = err instanceof HttpException ? String((err.getResponse() as { message?: string }).message ?? err.message) : "I could not read that. Please try again, or upload it on the Lender offers page.";
-      await this.say(phone, message);
-    }
-    return true;
-  }
-
   private async handleEmployee(user: { id: string; name: string; email: string; role: Role }, phone: string, m: Incoming) {
     if (!this.settings.get<boolean>("whatsapp.chatbotEnabled")) return;
-    if ((user.role === Role.ADMIN || user.role === Role.MANAGER) && (await this.captureOffer(user, phone, m))) return;
     const text = m.body?.trim();
     if (m.type !== "text" || !text) {
       await this.say(phone, "I can only read text messages. Send your question as text, or reply *help*.");
@@ -235,7 +192,6 @@ export class InboundService {
           "- Aaj kitne follow-ups due hain?",
           "- Status of GCS-2026-0042",
           "",
-          "Admins and managers: forward a lender's flyer, photo, PDF or message here and it goes into Lender offers for you to check. For text, start with the word *offer*.",
           "*reset* or *clear* — start a fresh conversation",
           "*cancel* or *exit* — stop the current question",
           "*help* — show this list",

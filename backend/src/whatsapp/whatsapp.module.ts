@@ -1,7 +1,6 @@
 import { Module } from "@nestjs/common";
 import { LeadsModule } from "../leads/leads.module";
 import { DocumentsModule } from "../documents/documents.module";
-import { LenderOffersModule } from "../lender-offers/lender-offers.module";
 import { AssistantModule } from "../assistant/assistant.module";
 import { LoanProfileModule } from "../loan-profile/loan-profile.module";
 import { BriefsService } from "./briefs.service";
@@ -21,7 +20,7 @@ import {
 import { WHATSAPP_PROVIDER, createWhatsAppProvider } from "./whatsapp.provider";
 
 @Module({
-  imports: [LeadsModule, AssistantModule, DocumentsModule, LoanProfileModule, LenderOffersModule],
+  imports: [LeadsModule, AssistantModule, DocumentsModule, LoanProfileModule],
   controllers: [
     WhatsAppWebhookController,
     ConversationsController,
