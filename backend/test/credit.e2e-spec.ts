@@ -62,7 +62,7 @@ describe("credit checks", () => {
     it("says plainly that no bureau is connected, and offers the consent wording and bands", async () => {
       const s = (await get("/credit/status", staffA)).body;
       expect(s).toMatchObject({ mode: "none", live: false, available: false, simulated: false, recheckDays: 30 });
-      expect(s.consentText).toMatch(/credit information report/);
+      expect(s.consentText).toMatch(/credit information, report and score/);
       expect(s.consentMethods).toContain(METHOD);
       expect(s.bands.map((b: any) => b.key)).toEqual(["excellent", "good", "fair", "low"]);
       expect((await get("/credit/status")).status).toBe(401);
@@ -179,7 +179,7 @@ describe("credit checks", () => {
       expect(res.body.score).toBeGreaterThanOrEqual(560);
       expect(res.body.reference).toMatch(/^SIM-/);
       expect(res.body.note).toMatch(/not a real credit score/i);
-      expect(res.body.consentText).toMatch(/credit information report/);
+      expect(res.body.consentText).toMatch(/credit information, report and score/);
       expect(res.body.consentAt).toBeTruthy();
       expect(await applicant(f.applicationId)).toMatchObject({ cibilScore: 705 }); // untouched
       const list = ((await get(`/credit/applicants?search=${encodeURIComponent(f.applicationNo)}`, staffA)).body.items as any[])[0];

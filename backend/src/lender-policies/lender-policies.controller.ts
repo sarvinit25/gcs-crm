@@ -6,6 +6,7 @@ import {
   BulkPolicyDto,
   CreatePolicyDto,
   ExceptionDto,
+  VerifyManyDto,
   OutcomeDto,
   ReviewMatchDto,
   RunMatchDto,
@@ -92,6 +93,13 @@ export class LenderPoliciesController {
   @Roles(Role.ADMIN, Role.MANAGER)
   update(@Param("id") id: string, @Body() dto: UpdatePolicyDto, @CurrentUser() user: AuthUser, @Ip() ip: string) {
     return this.policies.update(id, dto, user, ip);
+  }
+
+  /** The bulk "I have checked these" on the policies page: each one is verified and recorded under the person's name. */
+  @Post("verify-many")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  verifyMany(@Body() dto: VerifyManyDto, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.policies.verifyMany(dto, user, ip);
   }
 
   @Post(":id/verify")

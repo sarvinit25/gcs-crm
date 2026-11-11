@@ -591,9 +591,27 @@ export function LenderPoliciesPage() {
     mutationFn: (id: string) => api(`/lender-policies/${id}/verify`, { method: "POST", body: JSON.stringify({}) }),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["lender-policies"] }),
   });
+  const [show, setShow] = useState<"all" | "attention" | "ocr">("all");
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const verifyMany = useMutation({
+    mutationFn: (ids: string[]) => api<{ verified: number }>("/lender-policies/verify-many", { method: "POST", body: JSON.stringify({ ids }) }),
+    onSuccess: () => {
+      setPicked(new Set());
+      void queryClient.invalidateQueries({ queryKey: ["lender-policies"] });
+    },
+  });
 
-  const rows = list.data ?? [];
-  const needAttention = rows.filter((r) => r.freshness === "STALE" || r.freshness === "NEVER").length;
+  const all = list.data ?? [];
+  const needsCheck = (r: PolicyRow) => r.freshness === "STALE" || r.freshness === "NEVER";
+  const needAttention = all.filter(needsCheck).length;
+  const fromOcr = (r: PolicyRow) => Boolean(r.source?.startsWith("Flyer reading"));
+  const rows = show === "attention" ? all.filter(needsCheck) : show === "ocr" ? all.filter(fromOcr) : all;
+  const allShownPicked = rows.length > 0 && rows.every((r) => picked.has(r.id));
+  const togglePick = (id: string) => setPicked((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const confirmPicked = () => {
+    const ids = [...picked];
+    if (window.confirm(`You are confirming that you have checked these ${ids.length} polic${ids.length === 1 ? "y" : "ies"} against each lender's current rules today. It is recorded under your name, and the matcher will start trusting ${ids.length === 1 ? "it" : "them"}.\n\nContinue?`)) verifyMany.mutate(ids);
+  };
 
   return (
     <>
@@ -627,6 +645,19 @@ export function LenderPoliciesPage() {
                 {needAttention} {needAttention === 1 ? "policy is" : "policies are"} not verified or out of date. The matcher will send these lenders to a person instead of matching them.
               </p>
             )}
+            <div className="flex flex-wrap items-center gap-2">
+              {([["all", `All (${all.length})`], ["attention", `Needs checking (${needAttention})`], ["ocr", `From flyers / OCR (${all.filter(fromOcr).length})`]] as const).map(([k, label]) => (
+                <button key={k} onClick={() => setShow(k)} className={clsx("rounded-full border px-3 py-1 text-[12px] font-semibold transition", show === k ? "border-navy bg-navy text-white" : "border-line bg-white text-navy hover:bg-bg-light")}>{label}</button>
+              ))}
+              {canEdit && picked.size > 0 && (
+                <span className="ml-auto flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-1.5 text-[13px] font-semibold text-emerald-800">
+                  {picked.size} selected
+                  <button className="btn-primary !py-1" disabled={verifyMany.isPending} onClick={confirmPicked}>{verifyMany.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />} Mark them checked</button>
+                  <button className="text-[12px] font-semibold text-muted hover:underline" onClick={() => setPicked(new Set())}>Clear</button>
+                </span>
+              )}
+            </div>
+            {verifyMany.isError && <p className="text-[13px] font-medium text-red-700">{(verifyMany.error as Error).message}</p>}
             <section className="card overflow-x-auto">
               {list.isLoading ? (
                 <TableSkeleton rows={5} cols={6} />
@@ -634,17 +665,20 @@ export function LenderPoliciesPage() {
                 <table className="w-full text-[13px]">
                   <thead>
                     <tr className="text-left text-[11px] tracking-wide text-muted uppercase">
+                      {canEdit && <th className="w-8 py-3 pl-4"><input type="checkbox" aria-label="Select every policy shown" checked={allShownPicked} onChange={() => setPicked(allShownPicked ? new Set() : new Set(rows.map((r) => r.id)))} /></th>}
                       <th className="px-4 py-3">Bank / NBFC</th><th className="px-4 py-3">Product</th><th className="px-4 py-3">Loan range</th><th className="px-4 py-3">Rate</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Last checked</th><th />
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map((p) => (
-                      <tr key={p.id} className={clsx("border-t border-line", !p.active && "opacity-50")}>
+                      <tr key={p.id} className={clsx("border-t border-line", !p.active && "opacity-50", picked.has(p.id) && "bg-emerald-50/50")}>
+                        {canEdit && <td className="py-2.5 pl-4"><input type="checkbox" aria-label={`Select ${p.lender.name} ${p.loanProduct.name}`} checked={picked.has(p.id)} onChange={() => togglePick(p.id)} /></td>}
                         <td className="px-4 py-2.5 font-semibold text-navy">{p.lender.name}</td>
                         <td className="px-4 py-2.5">{p.loanProduct.name} <span className="text-[11px] text-muted">v{p.version}</span>
                           {p.source?.startsWith("Flyer reading") && (
                             <span className="ml-1.5 rounded bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-violet-700" title={p.source}>OCR</span>
                           )}
+                          {p.notes && <div className="mt-0.5 max-w-sm truncate text-[11px] text-muted" title={p.notes}>{p.notes}</div>}
                         </td>
                         <td className="px-4 py-2.5">{p.minAmount || p.maxAmount ? `${formatAmount(p.minAmount)} – ${formatAmount(p.maxAmount)}` : "—"}</td>
                         <td className="px-4 py-2.5">{p.minRate || p.maxRate ? `${p.minRate ?? "?"}% – ${p.maxRate ?? "?"}%` : "—"}</td>
@@ -666,7 +700,7 @@ export function LenderPoliciesPage() {
                       </tr>
                     ))}
                     {rows.length === 0 && (
-                      <tr><td colSpan={7} className="px-4 py-10 text-center text-muted">No policies yet. {canEdit ? "Add the first one with “Add policy”." : "An admin or manager can add them."}</td></tr>
+                      <tr><td colSpan={8} className="px-4 py-10 text-center text-muted">No policies yet. {canEdit ? "Add the first one with “Add policy”." : "An admin or manager can add them."}</td></tr>
                     )}
                   </tbody>
                 </table>

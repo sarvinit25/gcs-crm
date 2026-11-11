@@ -241,6 +241,14 @@ export class LenderPoliciesService {
     return this.get(id);
   }
 
+  /** Verifies a list of policies, one by one so each gets its own history entry and audit line. Unknown ids are skipped. */
+  async verifyMany(dto: { ids: string[]; reason?: string }, actor: AuthUser, ip?: string) {
+    const ids = [...new Set(dto.ids)];
+    const found = await this.prisma.lenderPolicy.findMany({ where: { id: { in: ids } }, select: { id: true } });
+    for (const p of found) await this.verify(p.id, { reason: dto.reason ?? "Checked in a bulk review" }, actor, ip);
+    return { verified: found.length, skipped: ids.length - found.length };
+  }
+
   private async snapshot(policyId: string, actor: AuthUser, reason: string) {
     const p = await this.prisma.lenderPolicy.findUniqueOrThrow({ where: { id: policyId } });
     await this.prisma.lenderPolicyChange.create({

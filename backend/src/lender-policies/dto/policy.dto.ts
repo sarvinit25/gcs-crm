@@ -83,6 +83,11 @@ export class VerifyPolicyDto {
   @IsOptional() @IsString() @Length(0, 300) reason?: string;
 }
 
+export class VerifyManyDto {
+  @IsArray() @ArrayMinSize(1) @ArrayMaxSize(300) @IsString({ each: true }) ids: string[];
+  @IsOptional() @IsString() @Length(0, 300) reason?: string;
+}
+
 export class ExceptionDto {
   @IsOptional() @IsString() @Length(2, 300) scenario?: string;
   @IsOptional() @IsString() @Length(0, 500) normalRule?: string | null;
