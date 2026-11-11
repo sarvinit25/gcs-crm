@@ -129,6 +129,40 @@ export class CamService {
 
   // ── staff side ──────────────────────────────────────────────
 
+  /** Every lead that has a CAM started, newest first, with where each one stands. Advisors see only their own leads. */
+  async list(user: AuthUser, search?: string) {
+    const term = (search ?? "").trim().slice(0, 80);
+    const cases = await this.prisma.camCase.findMany({
+      where: {
+        lead: {
+          ...(user.role === Role.ADVISOR ? { assignedOfficerId: user.id } : {}),
+          ...(term && { OR: [{ name: { contains: term, mode: "insensitive" as const } }, { phone: { contains: term } }] }),
+        },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 200,
+      include: { lead: { select: LEAD_SELECT } },
+    });
+    return cases.map((c) => {
+      const stored = (c.data ?? {}) as CamData;
+      const family = this.familyOf(c.lead, stored);
+      const data = withPrefill(prefillFromLead(c.lead), stored);
+      return {
+        leadId: c.leadId,
+        leadNo: c.lead.leadNo,
+        name: c.lead.name,
+        phone: c.lead.phone,
+        productName: c.lead.loanProduct?.name ?? null,
+        familyLabel: FAMILY_LABEL[family],
+        progress: progress(family, data),
+        linkState: this.linkState(c),
+        submittedAt: c.customerSubmittedAt,
+        updatedAt: c.updatedAt,
+        updatedByName: c.updatedByName,
+      };
+    });
+  }
+
   async get(leadId: string, user: AuthUser) {
     const lead = await this.leadFor(leadId, user);
     const c = await this.peek(leadId);

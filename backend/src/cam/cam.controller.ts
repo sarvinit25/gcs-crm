@@ -1,7 +1,18 @@
-import { Body, Controller, Delete, Get, Header, Ip, Param, Post, Put, StreamableFile } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Header, Ip, Param, Post, Put, Query, StreamableFile } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { CurrentUser, Public, type AuthUser } from "../auth/auth.decorators";
 import { CamService } from "./cam.service";
+
+/** Staff: every CAM in one list, for the CAM page. */
+@Controller("cams")
+export class CamListController {
+  constructor(private cam: CamService) {}
+
+  @Get()
+  list(@CurrentUser() user: AuthUser, @Query("search") search?: string) {
+    return this.cam.list(user, search);
+  }
+}
 
 /** Staff: fill in the CAM, send or withdraw the customer's link, download the Excel. */
 @Controller("leads/:leadId/cam")

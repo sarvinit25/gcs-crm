@@ -14,6 +14,7 @@ import {
   IdCard,
   Scale,
   ScanText,
+  FileSpreadsheet,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -51,6 +52,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { to: "/website", label: "Website", icon: Globe, roles: ["ADMIN", "MANAGER"] },
       { to: "/applications", label: "Applications", icon: FileText },
       { to: "/cibil", label: "CIBIL", icon: Gauge },
+      { to: "/cams", label: "CAM", icon: FileSpreadsheet },
       { to: "/sanctions", label: "Sanctions", icon: ShieldCheck },
       { to: "/disbursements", label: "Disbursements", icon: Banknote },
       {

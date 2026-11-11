@@ -50,6 +50,7 @@ import { AccountPage, ForcePasswordChange } from "./routes/account";
 import { ApplyPage } from "./routes/apply";
 import { CamPublicPage } from "./routes/cam-public";
 import { LeadCamPage } from "./routes/lead-cam";
+import { CamsPage } from "./routes/cams";
 
 function RootLayout() {
   return <Outlet />;
@@ -237,6 +238,7 @@ const routeTree = rootRoute.addChildren([
     createRoute({ getParentRoute: () => protectedRoute, path: "/lenders/$lenderId/edit", component: LenderFormPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/lender-policies", component: LenderPoliciesPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/lender-offers", component: LenderOffersPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/cams", component: CamsPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/partners", component: PartnersPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/lead-sources", component: LeadSourcesPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/loan-types", component: LoanTypesPage }),
