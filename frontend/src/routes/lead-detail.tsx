@@ -28,6 +28,7 @@ import { Modal } from "../components/modal";
 import { LeadSecondForm } from "../components/lead-second-form";
 import { LoanProfilePanel } from "../components/loan-profile-panel";
 import { LeadDocuments } from "../components/lead-documents";
+import { LeadCamCard } from "../components/lead-cam-card";
 import { todayIST } from "../lib/date";
 import { DatePicker } from "../components/date-picker";
 import { ArchiveButton, ArchivedBadge } from "../components/archive-button";
@@ -602,6 +603,7 @@ export function LeadDetailPage() {
           <LeadDocuments leadId={lead.id} files={lead.files ?? []} />
 
           <LeadSecondForm leadId={lead.id} />
+          <LeadCamCard leadId={lead.id} />
 
           <LoanProfilePanel leadId={lead.id} />
 

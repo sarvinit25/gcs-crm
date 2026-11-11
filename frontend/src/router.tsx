@@ -48,6 +48,8 @@ import { SettingsPage } from "./routes/settings";
 import { SearchPage } from "./routes/search";
 import { AccountPage, ForcePasswordChange } from "./routes/account";
 import { ApplyPage } from "./routes/apply";
+import { CamPublicPage } from "./routes/cam-public";
+import { LeadCamPage } from "./routes/lead-cam";
 
 function RootLayout() {
   return <Outlet />;
@@ -71,6 +73,13 @@ const applyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/apply/$token",
   component: ApplyPage,
+});
+
+/** The customer's CAM information form: no login, the link's token is the credential. */
+const camPublicRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/cam/$token",
+  component: CamPublicPage,
 });
 
 /** Everything under here needs a session; unauthenticated users bounce to /login. */
@@ -169,6 +178,7 @@ const routeTree = rootRoute.addChildren([
   partnerLoginRoute,
   trackLoginRoute,
   applyRoute,
+  camPublicRoute,
   partnerProtectedRoute.addChildren([
     createRoute({
       getParentRoute: () => partnerProtectedRoute,
@@ -190,6 +200,11 @@ const routeTree = rootRoute.addChildren([
       getParentRoute: () => protectedRoute,
       path: "/leads/$leadId",
       component: LeadDetailPage,
+    }),
+    createRoute({
+      getParentRoute: () => protectedRoute,
+      path: "/leads/$leadId/cam",
+      component: LeadCamPage,
     }),
     createRoute({
       getParentRoute: () => protectedRoute,

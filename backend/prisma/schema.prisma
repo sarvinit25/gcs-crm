@@ -399,6 +399,7 @@ enum LeadStatus {
 
 model Lead {
   whatsAppConversations WhatsAppConversation[]
+  camCase               CamCase?
 
   id     String  @id @default(cuid())
   leadNo Int     @unique @default(autoincrement())
@@ -1825,4 +1826,32 @@ model LenderOffer {
 
   @@index([status, createdAt])
   @@index([contentHash])
+}
+
+/**
+ * The detailed credit appraisal memo (CAM) for one lead: everything staff and the customer have entered, section by section.
+ * `data` is { sectionId: { fieldKey: value, tableKey: [rows] } }. The customer fills their part through a private link; the
+ * link works like the application form's (only its hash is searchable, the token itself is kept encrypted for re-sending).
+ */
+model CamCase {
+  id     String @id @default(cuid())
+  leadId String @unique
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  data Json @default("{}")
+
+  tokenHash      String?   @unique
+  tokenEnc       String?
+  tokenExpiresAt DateTime?
+  tokenRevokedAt DateTime?
+  linkSentById   String?
+  linkCreatedAt  DateTime?
+
+  customerOpenedAt    DateTime?
+  customerSavedAt     DateTime?
+  customerSubmittedAt DateTime?
+
+  updatedByName String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

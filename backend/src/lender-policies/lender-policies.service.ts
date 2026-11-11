@@ -3,7 +3,7 @@ import { AuditAction, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import type { AuthUser } from "../auth/auth.decorators";
-import { matchAll, type Band, type PolicyRule } from "./policy-matcher";
+import { matchAll, type Band, type PolicyRule, type Profile } from "./policy-matcher";
 import type {
   BulkPolicyDto,
   CreatePolicyDto,
@@ -296,6 +296,12 @@ export class LenderPoliciesService {
       },
     });
     return { id: run.id, reviewStatus: run.reviewStatus, noPolicies: policies.length === 0, results: withNotes };
+  }
+
+  /** The same matching as runMatch, without saving a run: for a report that only needs to show the shortlist. */
+  async previewMatch(loanProductId: string, profile: Profile) {
+    const policies = await this.prisma.lenderPolicy.findMany({ where: { loanProductId }, include: { lender: true, loanProduct: true } });
+    return matchAll(profile, policies.map(toRule));
   }
 
   runs(leadId?: string) {
