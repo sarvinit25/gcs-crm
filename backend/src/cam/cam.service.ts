@@ -23,6 +23,8 @@ import {
 } from "./cam-schema";
 
 const DAY_MS = 86_400_000;
+/** Best fit first in the lender sheet. */
+const RANK: Record<string, number> = { STRONG: 0, POSSIBLE: 1, EXPERT_REVIEW: 2, EXCLUDED: 3 };
 
 const LEAD_SELECT = {
   id: true,
@@ -231,6 +233,7 @@ export class CamService {
         tenureMonths: analysis.tenureMonths,
       });
       if (!match.length) matchNote = "No lender rules are recorded for this loan type yet.";
+      else match = [...match].sort((x, y) => RANK[x.status] - RANK[y.status] || (y.score ?? -1) - (x.score ?? -1) || x.lenderName.localeCompare(y.lenderName));
     }
 
     const buffer = await buildCamWorkbook({

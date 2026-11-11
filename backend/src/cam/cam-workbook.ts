@@ -179,7 +179,7 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
       ["Property value used", a.property.value, "money"],
       ["Loan as % of property value", a.property.ltv, "percent"],
       ["CIBIL score", a.cibil, "number"],
-      ["Average monthly bank credits, 12 months", a.banking.avgCredits12, "money"],
+      ["Average monthly bank credits (months given)", a.banking.avgCredits12, "money"],
       ["Net worth (assets less loans and card dues)", a.netWorth.net, "money"],
     ]);
     r += 1;
@@ -342,7 +342,7 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
       r += 1;
     };
     method("As used above", a.monthlyIncome, null);
-    method("Average monthly bank credits (12 months) × margin", a.banking.avgCredits12, 15);
+    method("Average monthly bank credits × margin", a.banking.avgCredits12, 15);
     method("Average monthly GST sales × industry margin", a.gst.avg, 10);
     ws.mergeCells(r + 1, 1, r + 1, 4);
     ws.getCell(r + 1, 1).value = "The margins here are placeholders: lenders use their own industry margins (usually 5% to 15%). Change the yellow cells to the lender's figure.";
@@ -387,7 +387,7 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
     r = heading(ws, r, "Read-across", 6);
     pairs(ws, r, [
       ["Average balance against the new EMI (times)", a.banking.abbToEmi, "number"],
-      ["Returns in the last 12 months", a.banking.returns, "number"],
+      ["Cheque / EMI returns", a.banking.returns, "number"],
       ["Bank credits against GST sales (times)", a.gst.creditsToSales, "number"],
     ]);
   }
