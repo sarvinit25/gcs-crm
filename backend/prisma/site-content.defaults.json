@@ -201,7 +201,58 @@
           "label": "Minimum ticket size",
           "value": "₹20 Lakh"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Purchase / Builder Purchase / Resale / Self-Construction / Direct Allotment*"
+        },
+        {
+          "label": "Loan Amount",
+          "value": "Based on income, property value and eligibility*"
+        },
+        {
+          "label": "Tenure",
+          "value": "Up to 30 Years*"
+        },
+        {
+          "label": "LTV",
+          "value": "Up to 75%–90%, depending on loan amount*"
+        },
+        {
+          "label": "Eligible Applicants",
+          "value": "Salaried / Self-Employed*"
+        },
+        {
+          "label": "Residential Status",
+          "value": "Resident Indians / NRIs*"
+        },
+        {
+          "label": "Eligibility",
+          "value": "Based on Income / FOIR / Credit Profile / Existing Obligations*"
+        },
+        {
+          "label": "Property Options",
+          "value": "Resale / Builder Purchase / Self-Construction / Direct Allotment*"
+        },
+        {
+          "label": "Key Benefit",
+          "value": "Longer tenure with multiple assessment and repayment options*"
+        },
+        {
+          "label": "Interest Type",
+          "value": "Floating or fixed-rate options*"
+        },
+        {
+          "label": "Interest Saving",
+          "value": "Home Loan OD (Money Saver): surplus funds parked in the account help reduce interest outgo, with funds withdrawable when required*"
+        },
+        {
+          "label": "Tax Benefits",
+          "value": "Joint-applicant structuring for tax breaks under 80C and 24(b)*"
+        }
+      ],
+      "glanceNote": "*Eligibility, loan amount, tenure, LTV and other terms are subject to applicant profile, property assessment, credit evaluation and respective Bank/NBFC policy."
     },
     "balance-transfer": {
       "title": "Balance Transfer & Top-Up",
@@ -241,7 +292,46 @@
           "label": "Savings",
           "value": "Shown in writing first"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Transfer an existing loan for potential interest/EMI benefits and/or additional Top-Up funding*"
+        },
+        {
+          "label": "Eligible Products",
+          "value": "Home Loan / Land Loan / LAP / Commercial Property / Specialised Property / LRD / Loan Against Land*"
+        },
+        {
+          "label": "Loan Amount",
+          "value": "Up to ₹7.5 Crore for specified eligible profiles; other profile limits may vary*"
+        },
+        {
+          "label": "Tenure",
+          "value": "Up to 30 Years – Home Loan / Up to 15 Years – Non-Home Loan*"
+        },
+        {
+          "label": "LTV",
+          "value": "Up to 75%; Commercial Property Purchase may be considered up to 80% depending on profile*"
+        },
+        {
+          "label": "Loan Seasoning",
+          "value": "Generally 12 Months; exceptions may apply to select eligible profiles*"
+        },
+        {
+          "label": "Top-Up",
+          "value": "Additional funding available subject to applicable eligibility and Top-Up norms*"
+        },
+        {
+          "label": "Facility Type",
+          "value": "Term Loan / Overdraft / Combination, including eligible 100% OD*"
+        },
+        {
+          "label": "Key Benefit",
+          "value": "Potential for Additional Funding / EMI Reduction / Interest Saving / Better Loan Structure*"
+        }
+      ],
+      "glanceNote": "*Eligibility, Top-Up amount, rate, tenure, charges and approval are subject to applicant profile, existing loan conduct, property assessment and respective Bank/NBFC policy."
     },
     "loan-against-property": {
       "title": "Loan Against Property",
@@ -284,7 +374,58 @@
           "label": "Minimum ticket size",
           "value": "₹20 Lakh"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Business or General Funding Requirement*"
+        },
+        {
+          "label": "Loan Amount",
+          "value": "Based on income, property value and eligibility*"
+        },
+        {
+          "label": "Tenure",
+          "value": "Up to 15 Years to 20 Years*"
+        },
+        {
+          "label": "LTV",
+          "value": "Up to 75% to 100% depending on borrower profile*"
+        },
+        {
+          "label": "Property Accepted",
+          "value": "Residential / Commercial Property*"
+        },
+        {
+          "label": "Eligible Applicants",
+          "value": "Salaried / Self-Employed*"
+        },
+        {
+          "label": "Residential Status",
+          "value": "Resident Indians / NRIs*"
+        },
+        {
+          "label": "Facility Type",
+          "value": "Term Loan / Overdraft / Combination of Both*"
+        },
+        {
+          "label": "Assessment",
+          "value": "Financials / Bank Statements / GST / ITR / Credit & Property Profile*"
+        },
+        {
+          "label": "Specialised Property",
+          "value": "Industrial / Warehouse / School / Hospital / Nursing Home / Hotel / Banquet Hall / Marriage Garden; tenure up to 15 Years, LTV generally 30%–50% by property type (higher LTV may be considered case-to-case)*"
+        },
+        {
+          "label": "Commercial Property Purchase",
+          "value": "Purchase of eligible commercial property for business/professional use; LTV up to 80%, tenure up to 15 Years, minimum property size 200 Sq. Ft.*"
+        },
+        {
+          "label": "Professionals",
+          "value": "Self-employed professionals (Doctors / CAs / Architects / CS / Lawyers) can be assessed on gross professional receipts; non-home loan LTV up to 65%*"
+        }
+      ],
+      "glanceNote": "*Eligibility, loan amount, tenure, LTV and other terms are subject to applicant profile, property assessment, credit evaluation and respective Bank/NBFC policy."
     },
     "micro-lap": {
       "title": "Micro Loan Against Property",
@@ -329,7 +470,30 @@
           "label": "For",
           "value": "Salaried and self-employed"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Business or personal use, not for buying a home"
+        },
+        {
+          "label": "Property accepted",
+          "value": "Self-occupied residential, commercial or mixed-use property"
+        },
+        {
+          "label": "Share of property value",
+          "value": "Up to 55% for a self-occupied home and 50% for other property, with insurance"
+        },
+        {
+          "label": "Property location",
+          "value": "Within about 35 km of the lender's main branch, or 25 km of a smaller branch"
+        },
+        {
+          "label": "Your EMIs",
+          "value": "All your EMIs together can take up to 65% of your income"
+        }
+      ],
+      "glanceNote": ""
     },
     "lease-rental-discounting": {
       "title": "Lease Rental Discounting",
@@ -367,7 +531,46 @@
           "label": "Tenure",
           "value": "10 to 15 years*"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Raise funds against rental income from an eligible leased property*"
+        },
+        {
+          "label": "Loan Amount",
+          "value": "Based on eligible rental cash flow, property value and assessment*"
+        },
+        {
+          "label": "Tenure",
+          "value": "10 to 15 Years*"
+        },
+        {
+          "label": "LTV",
+          "value": "Up to 70%*"
+        },
+        {
+          "label": "Property Accepted",
+          "value": "Commercial / Specialised Properties*"
+        },
+        {
+          "label": "Eligible Applicants",
+          "value": "Salaried / Self-Employed*"
+        },
+        {
+          "label": "Lease Requirement",
+          "value": "Minimum 3 Years outstanding lease tenure*"
+        },
+        {
+          "label": "Facility",
+          "value": "Term Loan / Overdraft facility may be available*"
+        },
+        {
+          "label": "Repayment",
+          "value": "Rental receipts routed through an Escrow Account for EMI servicing*"
+        }
+      ],
+      "glanceNote": "*Eligibility, loan amount, tenure, LTV and other terms are subject to applicant profile, property assessment, credit evaluation and respective Bank/NBFC policy."
     },
     "dlod": {
       "title": "Drop-Line Overdraft (Secured)",
@@ -404,7 +607,50 @@
           "label": "Interest rate",
           "value": "From 9%* p.a. on the drawn balance"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Flexible property-backed funding through an Overdraft facility*"
+        },
+        {
+          "label": "Facility",
+          "value": "Dropline OD with monthly or annual reducing limit*"
+        },
+        {
+          "label": "Facility Structure",
+          "value": "Up to 100% OD or Term Loan + OD combination*"
+        },
+        {
+          "label": "Interest",
+          "value": "Charged only on the amount actually utilised*"
+        },
+        {
+          "label": "Tenure",
+          "value": "As per the underlying loan product*"
+        },
+        {
+          "label": "LTV",
+          "value": "As per applicable property/product norms*"
+        },
+        {
+          "label": "Property Accepted",
+          "value": "Residential / Commercial / Specialised Property / Eligible Land*"
+        },
+        {
+          "label": "Eligible Applicants",
+          "value": "Salaried / Self-Employed Resident Indians*"
+        },
+        {
+          "label": "Repayment",
+          "value": "EMI on Term Loan portion + interest on utilised OD amount*"
+        },
+        {
+          "label": "Affluent Salaried",
+          "value": "Completed residential / commercial property, LTV up to 75%; constant limit up to age 50, then Dropline OD for the next 15 years; age 30–75, credit score 725 or above; for LAP / Top-Up / Balance Transfer + Top-Up cases*"
+        }
+      ],
+      "glanceNote": "*Eligibility, loan amount, tenure, LTV and other terms are subject to applicant profile, property assessment, credit evaluation and respective Bank/NBFC policy."
     },
     "project-funding": {
       "title": "Project Funding",
@@ -457,7 +703,30 @@
           "label": "Release",
           "value": "Stage by stage"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Construction and development projects, released stage by stage"
+        },
+        {
+          "label": "Funding",
+          "value": "Up to 75% of project cost"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 12%* p.a."
+        },
+        {
+          "label": "Projects",
+          "value": "Residential, commercial and industrial developments"
+        },
+        {
+          "label": "Who can apply",
+          "value": "Builders with 8 to 10 or more completed projects"
+        }
+      ],
+      "glanceNote": ""
     },
     "personal-loan": {
       "title": "Personal Loan",
@@ -501,7 +770,38 @@
           "label": "Minimum ticket size",
           "value": "₹2 Lakh"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "A wedding, a medical bill, travel or clearing a costlier debt, with no collateral"
+        },
+        {
+          "label": "Loan size",
+          "value": "Up to ₹1 Cr"
+        },
+        {
+          "label": "Tenor",
+          "value": "12 — 60 months"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 10.49%* p.a."
+        },
+        {
+          "label": "Disbursal",
+          "value": "As fast as 48 hours"
+        },
+        {
+          "label": "Minimum ticket size",
+          "value": "₹2 Lakh"
+        },
+        {
+          "label": "Who can apply",
+          "value": "Roughly 21 to 60 years; salaried or self-employed"
+        }
+      ],
+      "glanceNote": ""
     },
     "business-loan": {
       "title": "Business Loan",
@@ -546,7 +846,38 @@
           "label": "Minimum ticket size",
           "value": "₹2 Lakh"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Expansion, stock, hiring or new equipment, without collateral"
+        },
+        {
+          "label": "Loan size",
+          "value": "Up to ₹5 Cr"
+        },
+        {
+          "label": "Tenor",
+          "value": "12 — 60 months"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 14%* p.a."
+        },
+        {
+          "label": "Security",
+          "value": "Not required"
+        },
+        {
+          "label": "Minimum ticket size",
+          "value": "₹2 Lakh"
+        },
+        {
+          "label": "Who can apply",
+          "value": "At least 2 years in business, with turnover of roughly ₹40 lakh or above"
+        }
+      ],
+      "glanceNote": ""
     },
     "micro-business-loan": {
       "title": "Micro Business Loan",
@@ -588,7 +919,30 @@
           "label": "Security",
           "value": "No property collateral required*"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "General or business use (not housing)"
+        },
+        {
+          "label": "Who it is for",
+          "value": "Self-employed individuals, proprietorships, partnerships, LLPs and private limited companies"
+        },
+        {
+          "label": "Age",
+          "value": "25 to 65 years"
+        },
+        {
+          "label": "Property owner",
+          "value": "Not needed up to ₹2 Lakh; needed above that. No property is mortgaged"
+        },
+        {
+          "label": "Co-applicant",
+          "value": "A woman co-applicant is usually needed where the applicant is a man"
+        }
+      ],
+      "glanceNote": ""
     },
     "cgtmse": {
       "title": "CGTMSE Funding",
@@ -624,7 +978,46 @@
           "label": "Security",
           "value": "Government guarantee cover"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Business Expansion / Working Capital*"
+        },
+        {
+          "label": "Loan Amount",
+          "value": "Up to ₹5 Crore*"
+        },
+        {
+          "label": "Tenure",
+          "value": "Up to 10 Years*"
+        },
+        {
+          "label": "Target Segment",
+          "value": "Eligible Micro & Small Enterprises*"
+        },
+        {
+          "label": "Eligible Applicants",
+          "value": "Self-Employed Non-Professionals / Eligible Registered MSE Entities*"
+        },
+        {
+          "label": "Registration",
+          "value": "Udyam Registration / applicable MSME registration required*"
+        },
+        {
+          "label": "Facility Type",
+          "value": "Term Loan*"
+        },
+        {
+          "label": "Credit Profile",
+          "value": "Bureau score above 725 under the referenced program*"
+        },
+        {
+          "label": "Top-Up",
+          "value": "Eligible existing customers may also be considered for additional CGTMSE-backed funding*"
+        }
+      ],
+      "glanceNote": "*Eligibility, loan amount, tenure, LTV and other terms are subject to applicant profile, property assessment, credit evaluation and respective Bank/NBFC policy."
     },
     "machine-loan": {
       "title": "Machine Loan",
@@ -669,7 +1062,30 @@
           "label": "Also available",
           "value": "Medical equipment, genset and leasing"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "New machinery, medical equipment, gensets, leasing, or money against machinery you own"
+        },
+        {
+          "label": "Funding",
+          "value": "Up to 100%*"
+        },
+        {
+          "label": "Loan size",
+          "value": "Up to ₹10 Cr"
+        },
+        {
+          "label": "Tenor",
+          "value": "Up to 84 months"
+        },
+        {
+          "label": "Who can apply",
+          "value": "An established business, usually 2 years or more, with profitable accounts for the last 2 years"
+        }
+      ],
+      "glanceNote": ""
     },
     "working-capital-term-loan": {
       "title": "Working Capital Term Loan",
@@ -715,7 +1131,34 @@
           "label": "Tenure",
           "value": "12 — 60 months"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Fund a working-capital gap, or regularise a stretched cash credit or overdraft"
+        },
+        {
+          "label": "Structure",
+          "value": "Term loan with fixed EMIs"
+        },
+        {
+          "label": "Loan size",
+          "value": "Up to ₹5 Cr"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 9%* p.a."
+        },
+        {
+          "label": "Tenor",
+          "value": "12 — 60 months"
+        },
+        {
+          "label": "Who can apply",
+          "value": "A viable business with a working-capital gap and audited or CA-certified statements"
+        }
+      ],
+      "glanceNote": ""
     },
     "cash-credit": {
       "title": "Cash Credit",
@@ -751,7 +1194,30 @@
           "label": "Security",
           "value": "Hypothecation of current assets"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "A reusable limit backed by your stock and the money customers owe you"
+        },
+        {
+          "label": "Limit",
+          "value": "Linked to stock & debtors"
+        },
+        {
+          "label": "Security",
+          "value": "Hypothecation of current assets"
+        },
+        {
+          "label": "Interest",
+          "value": "Charged only on the part you use"
+        },
+        {
+          "label": "Who can apply",
+          "value": "A trading or manufacturing business with a regular stock cycle"
+        }
+      ],
+      "glanceNote": ""
     },
     "overdraft-limit": {
       "title": "Overdraft Limit",
@@ -786,7 +1252,30 @@
           "label": "Security",
           "value": "Secured or unsecured"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "A ready limit on your current account to cover gaps between paying suppliers and getting paid"
+        },
+        {
+          "label": "Interest",
+          "value": "Charged on usage only"
+        },
+        {
+          "label": "Security",
+          "value": "Secured (property, FDs, securities) or unsecured"
+        },
+        {
+          "label": "Repayment",
+          "value": "No EMI, just interest on the running balance"
+        },
+        {
+          "label": "Who can apply",
+          "value": "An active current account with regular credits"
+        }
+      ],
+      "glanceNote": ""
     },
     "bank-guarantee": {
       "title": "Bank Guarantee",
@@ -821,7 +1310,30 @@
           "label": "Margin",
           "value": "10% – 25% cash margin"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "A bank's written promise to the other party that you will pay or complete the work as agreed"
+        },
+        {
+          "label": "Type",
+          "value": "Financial / Performance"
+        },
+        {
+          "label": "Use",
+          "value": "Tenders, contracts, deposits"
+        },
+        {
+          "label": "Margin",
+          "value": "10% – 25% cash margin"
+        },
+        {
+          "label": "Who can apply",
+          "value": "A banking relationship, margin money or collateral, and tender or contract documents"
+        }
+      ],
+      "glanceNote": ""
     },
     "letter-of-credit": {
       "title": "Letter of Credit",
@@ -856,7 +1368,30 @@
           "label": "Usance",
           "value": "Sight or up to 180 days"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "A bank's payment promise to your supplier"
+        },
+        {
+          "label": "Type",
+          "value": "Inland / Import LC"
+        },
+        {
+          "label": "Use",
+          "value": "Supplier & trade payments"
+        },
+        {
+          "label": "Usance",
+          "value": "Sight or up to 180 days"
+        },
+        {
+          "label": "Who can apply",
+          "value": "An established trading or manufacturing business"
+        }
+      ],
+      "glanceNote": ""
     },
     "bill-discounting": {
       "title": "Bill Discounting",
@@ -891,7 +1426,30 @@
           "label": "Best for",
           "value": "Businesses that sell on credit"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Get money against unpaid invoices instead of waiting for your customer to pay"
+        },
+        {
+          "label": "Facility",
+          "value": "Funds against your invoices"
+        },
+        {
+          "label": "Repayment",
+          "value": "When your customer pays"
+        },
+        {
+          "label": "Best for",
+          "value": "Businesses that sell on credit"
+        },
+        {
+          "label": "Who can apply",
+          "value": "Businesses selling goods or services to other businesses on credit"
+        }
+      ],
+      "glanceNote": ""
     },
     "unsecured-dod": {
       "title": "Unsecured DOD",
@@ -926,7 +1484,30 @@
           "label": "Interest rate",
           "value": "From 13.50%* p.a. on the drawn balance"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "An overdraft without collateral; the limit reduces over the loan period"
+        },
+        {
+          "label": "Limit",
+          "value": "Up to ₹2 Cr"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 17.50%* p.a. on the drawn balance"
+        },
+        {
+          "label": "Security",
+          "value": "None"
+        },
+        {
+          "label": "Who can apply",
+          "value": "At least 3 years of business operations"
+        }
+      ],
+      "glanceNote": ""
     },
     "education-loan": {
       "title": "Education Loan",
@@ -972,7 +1553,38 @@
           "label": "Minimum ticket size",
           "value": "₹8 Lakh"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Studies in India or abroad: tuition, living costs, travel and equipment"
+        },
+        {
+          "label": "Loan size",
+          "value": "Up to ₹1.5 Cr"
+        },
+        {
+          "label": "Tenor",
+          "value": "Up to 15 years"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 8.15%* p.a."
+        },
+        {
+          "label": "Benefit",
+          "value": "Section 80E deduction"
+        },
+        {
+          "label": "Minimum ticket size",
+          "value": "₹8 Lakh"
+        },
+        {
+          "label": "Who can apply",
+          "value": "Confirmed admission and an earning co-applicant based in India"
+        }
+      ],
+      "glanceNote": ""
     },
     "education-infrastructure-loan": {
       "title": "Education Infrastructure Loan",
@@ -1020,7 +1632,42 @@
           "label": "Minimum ticket size",
           "value": "₹10 Lakh"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Funding for the infrastructure and growth of schools and education institutions"
+        },
+        {
+          "label": "Loan size",
+          "value": "₹10 Lakh to ₹10 Cr*, depending on the programme"
+        },
+        {
+          "label": "Tenor",
+          "value": "Up to 5 years without security, and up to 15 years with property as security*"
+        },
+        {
+          "label": "Assessment",
+          "value": "Assessed and reported income"
+        },
+        {
+          "label": "Student strength",
+          "value": "At least 200 to 400 students, depending on the programme"
+        },
+        {
+          "label": "Years running",
+          "value": "At least 3 to 5 years, depending on the programme"
+        },
+        {
+          "label": "Affiliation",
+          "value": "CBSE, ICSE, IB or a State Board for schools, and the relevant authorised body for higher education"
+        },
+        {
+          "label": "Interest rate",
+          "value": "Set by the lender after it assesses your institution"
+        }
+      ],
+      "glanceNote": "* These are the usual starting points. Each lender sets its own limits, and the final terms depend on the lender's policy and your institution's profile."
     },
     "new-car-loan": {
       "title": "New Car Loan",
@@ -1054,7 +1701,30 @@
           "label": "Interest rate",
           "value": "From 8.75%* p.a."
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "The on-road price of a new car"
+        },
+        {
+          "label": "Funding",
+          "value": "Up to 100% on-road"
+        },
+        {
+          "label": "Tenor",
+          "value": "12 — 84 months"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 8.75%* p.a."
+        },
+        {
+          "label": "Who can apply",
+          "value": "Typically 21–65 years old, with regular, documented income"
+        }
+      ],
+      "glanceNote": ""
     },
     "used-car-loan": {
       "title": "Used Car Loan",
@@ -1095,7 +1765,34 @@
           "label": "Tenure",
           "value": "12 — 60 months"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "A second-hand car from a dealer or a private seller"
+        },
+        {
+          "label": "Funding",
+          "value": "Up to 90% of valuation"
+        },
+        {
+          "label": "Vehicle age",
+          "value": "Up to 8 years at loan end"
+        },
+        {
+          "label": "Tenor",
+          "value": "12 — 60 months"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 10.25%* p.a."
+        },
+        {
+          "label": "Who can apply",
+          "value": "Around 21–65 years old, with income that can be documented"
+        }
+      ],
+      "glanceNote": ""
     },
     "car-refinance": {
       "title": "Car Refinance",
@@ -1135,7 +1832,30 @@
           "label": "Tenure",
           "value": "12 — 60 months"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Raise money against a car you already own and have paid for"
+        },
+        {
+          "label": "Funding",
+          "value": "Up to 150% of valuation for strong profiles"
+        },
+        {
+          "label": "Tenor",
+          "value": "12 — 60 months"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 12.50%* p.a."
+        },
+        {
+          "label": "Who can apply",
+          "value": "Car in your own name, with no loan on it or one that can be taken over"
+        }
+      ],
+      "glanceNote": ""
     },
     "commercial-vehicle": {
       "title": "Commercial Vehicle",
@@ -1171,7 +1891,30 @@
           "label": "Used vehicles",
           "value": "Up to 80% finance"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "New and used trucks, buses and light goods vehicles"
+        },
+        {
+          "label": "Funding",
+          "value": "Up to 100%* LTV"
+        },
+        {
+          "label": "Repayment",
+          "value": "Up to 7 years"
+        },
+        {
+          "label": "Used vehicles",
+          "value": "Up to 80% finance"
+        },
+        {
+          "label": "Who can apply",
+          "value": "An individual transporter, proprietorship, firm or company"
+        }
+      ],
+      "glanceNote": ""
     },
     "loan-against-securities": {
       "title": "Loan Against Securities",
@@ -1216,7 +1959,30 @@
           "label": "Up to ₹1 Cr",
           "value": "Fully digital process"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Borrow by pledging stocks, mutual funds or bonds, without selling them"
+        },
+        {
+          "label": "Pledge",
+          "value": "Stocks, ETFs and mutual funds"
+        },
+        {
+          "label": "Funding",
+          "value": "Up to 50% of market value (approved list applies)"
+        },
+        {
+          "label": "Facility",
+          "value": "Overdraft, interest only on what you use"
+        },
+        {
+          "label": "Who can apply",
+          "value": "Securities held in your own name and on the lender's approved list"
+        }
+      ],
+      "glanceNote": ""
     },
     "professional-loan": {
       "title": "Professional Loan",
@@ -1257,7 +2023,34 @@
           "label": "Collateral",
           "value": "Usually unsecured"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Start or grow a practice, buy equipment or meet working capital needs"
+        },
+        {
+          "label": "Loan size",
+          "value": "Up to ₹75 lakh"
+        },
+        {
+          "label": "Tenor",
+          "value": "12 — 84 months"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From 13.50%* p.a."
+        },
+        {
+          "label": "Security",
+          "value": "Usually unsecured"
+        },
+        {
+          "label": "Who can apply",
+          "value": "Registered professionals: doctors, CAs, CSs, architects, engineers"
+        }
+      ],
+      "glanceNote": ""
     },
     "private-funding": {
       "title": "Private Funding",
@@ -1311,7 +2104,34 @@
           "label": "Security",
           "value": "No collateral, post-dated cheques"
         }
-      ]
+      ],
+      "glance": [
+        {
+          "label": "Purpose",
+          "value": "Expansion, working capital or a short-term business opportunity"
+        },
+        {
+          "label": "Structure",
+          "value": "Unsecured funding, repaid through post-dated cheques"
+        },
+        {
+          "label": "Loan size",
+          "value": "₹1 Cr to ₹50 Cr"
+        },
+        {
+          "label": "Interest rate",
+          "value": "From ~2.70% per month"
+        },
+        {
+          "label": "Tenor",
+          "value": "4 – 8 months"
+        },
+        {
+          "label": "Who can apply",
+          "value": "Self-employed businesses with consistent turnover. Not for salaried individuals"
+        }
+      ],
+      "glanceNote": ""
     }
   },
   "caseStudies": [
