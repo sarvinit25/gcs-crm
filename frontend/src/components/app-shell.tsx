@@ -28,7 +28,7 @@ import {
   Users,
   UserSquare,
 } from "lucide-react";
-import { BellRing, MessageCircle, Plug, ScrollText } from "lucide-react";
+import { BellRing, MessageCircle, Phone, Plug, ScrollText } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
@@ -68,6 +68,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { to: "/notifications/templates", label: "Notification templates", icon: BellRing, roles: ["ADMIN"] },
       { to: "/notifications/logs", label: "Notification logs", icon: ScrollText, roles: ["ADMIN", "MANAGER"] },
       { to: "/whatsapp/setup", label: "WhatsApp setup", icon: Plug, roles: ["ADMIN"] },
+      { to: "/telephony", label: "Telecalling", icon: Phone, roles: ["ADMIN", "MANAGER"] },
     ],
   },
   {

@@ -210,6 +210,8 @@ export function ColumnChart({
   ariaLabel,
   color = BRAND_BAR,
   height = 220,
+  tickLabel = monthTick,
+  unit = ["record", "records"],
 }: {
   months: string[];
   labels: string[];
@@ -219,6 +221,10 @@ export function ColumnChart({
   ariaLabel: string;
   color?: string;
   height?: number;
+  /** Axis text for a column key; month names by default. */
+  tickLabel?: (key: string, index: number) => string;
+  /** What one column counts, singular and plural, for the tooltip. */
+  unit?: [string, string];
 }) {
   const [box, width] = useWidth<HTMLDivElement>();
   const [active, setActive] = useState<number | null>(null);
@@ -275,7 +281,7 @@ export function ColumnChart({
               )}
               {(values.length - 1 - i) % every === 0 && (
                 <text x={m.l + slot * i + slot / 2} y={height - 6} textAnchor="middle" fontSize={11} fill={MUTED}>
-                  {monthTick(months[i], i)}
+                  {tickLabel(months[i], i)}
                 </text>
               )}
             </g>
@@ -291,7 +297,7 @@ export function ColumnChart({
         >
           <p className="font-bold text-navy">{labels[active]}</p>
           <p className="text-ink">
-            <span className="font-semibold">{values[active]}</span> {values[active] === 1 ? "record" : "records"}
+            <span className="font-semibold">{values[active]}</span> {values[active] === 1 ? unit[0] : unit[1]}
           </p>
           {tips?.[active] && <p className="text-muted">{tips[active]}</p>}
         </div>
