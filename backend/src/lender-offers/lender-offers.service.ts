@@ -11,6 +11,8 @@ import { LenderPoliciesService } from "../lender-policies/lender-policies.servic
 import { OfferReaderService } from "./offer-reader.service";
 import { isDocx, isOldWord, readDocx } from "./docx-text";
 import { isXlsx, readXlsx } from "./xlsx-text";
+import { PolicySheetService } from "../lender-policies/policy-sheet.service";
+import { SHEET_FIELDS, type SheetData } from "../lender-policies/policy-sheet-schema";
 import { bestLender, cleanPhone, fillContact, mergeIntoPolicy, mergeOffers, normalizedForHash, normalizeExtraction, offerEnded, type ExistingPolicy, type Extraction, type PolicyDraft } from "./offer-extraction";
 
 const READABLE = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
@@ -45,6 +47,7 @@ export class LenderOffersService {
     private policies: LenderPoliciesService,
     private audit: AuditService,
     private settings: SettingsService,
+    private sheets: PolicySheetService,
   ) {}
 
   private products() {
@@ -134,7 +137,8 @@ export class LenderOffersService {
     try {
       const row = await this.prisma.lenderOffer.findUnique({ where: { id }, select: { extracted: true } });
       const x = row?.extracted as unknown as Extraction | undefined;
-      if (!x || x.kind !== "LENDER_OFFER" || !mergeOffers(x.offers).policies.length) return;
+      const hasSheet = Object.keys(x?.sheet ?? {}).length > 0;
+      if (!x || x.kind !== "LENDER_OFFER" || (!mergeOffers(x.offers).policies.length && !hasSheet)) return;
       // An offer that has already ended is for a person to look at, not to put into the matcher.
       if (offerEnded(x.validTill, TODAY())) return;
       const lenders = await this.prisma.lender.findMany({ select: { id: true, name: true, shortName: true } });
@@ -200,6 +204,8 @@ export class LenderOffersService {
       ...row,
       hasFile: Boolean(await this.prisma.lenderOffer.count({ where: { id, objectKey: { not: null } } })),
       lenderMatch: match ? { id: match.id, name: match.name } : null,
+      // the one-pager details the page states, named in words for the review screen
+      sheetFound: SHEET_FIELDS.filter((f) => (extracted.sheet ?? {})[f.key] !== undefined).map((f) => f.label),
       preview: policies.map((p) => {
         const have = held.find((h) => h.loanProduct.slug === p.productSlug);
         return { ...p, productName: name.get(p.productSlug) ?? p.productSlug, exists: Boolean(have), changes: have ? mergeIntoPolicy(existingOf(have), p, TODAY()).changes : [] };
@@ -255,7 +261,7 @@ export class LenderOffersService {
     const skipped = merged0.skipped + merged0.empty;
     // The date the flyer says the offer holds till goes into each policy's notes, so nobody takes it for open-ended.
     const policies = merged0.policies.map((p) => (x.validTill ? { ...p, notes: [p.notes, `offer valid till ${x.validTill}`].filter(Boolean).join("; ").slice(0, 900) } : p));
-    if (!policies.length) throw new BadRequestException("There is nothing here to add: no product has a loan type we offer together with figures or conditions to record. Pick a loan type for each product, or fill in what the page says.");
+    if (!policies.length && !Object.keys(x.sheet ?? {}).length) throw new BadRequestException("There is nothing here to add: no product has a loan type we offer together with figures or conditions to record. Pick a loan type for each product, or fill in what the page says.");
 
     const lender = await this.resolveLender(body, x);
     const products = await this.products();
@@ -286,8 +292,13 @@ export class LenderOffersService {
       }
     }
     const lenderFilled = lender.isNew ? [] : await this.fillLender(lender.id, x);
+    // the standard policy one-pager: only blanks are filled, so nothing a person entered is overwritten
+    // the first person named on the page is the one-pager's contact, unless the page's own one-pager details say otherwise
+    const c0 = x.contacts?.[0];
+    const fromContact: SheetData = { ...(c0?.name && { rmName: c0.name }), ...(c0?.designation && { rmDesignation: c0.designation }), ...(c0?.phone && { rmMobile: c0.phone }), ...(c0?.email && { rmEmail: c0.email }), ...(x.city && { rmLocation: x.city }) };
+    const sheet = await this.sheets.fillFrom(lender.id, { ...fromContact, ...(x.sheet ?? {}) }, source, actor, ip);
     const contacts = await this.saveContacts(lender.id, x, policies.map((p) => idOf.get(p.productSlug)!.name));
-    const summary = { lender: { id: lender.id, name: lender.name, isNew: lender.isNew }, created, updated, unchanged, changes, contactsAdded: contacts.added, contactsUpdated: contacts.updated, lenderFilled, skippedProducts: skipped };
+    const summary = { lender: { id: lender.id, name: lender.name, isNew: lender.isNew }, created, updated, unchanged, changes, contactsAdded: contacts.added, contactsUpdated: contacts.updated, lenderFilled, skippedProducts: skipped, sheetFilled: sheet.filled, sheetDiffers: sheet.differs };
     await this.prisma.lenderOffer.update({ where: { id }, data: { status: "APPLIED", appliedLenderId: lender.id, appliedSummary: json(summary) } });
     await this.audit.record({ actor, action: AuditAction.UPDATE, entity: "LenderOffer", entityId: id, entityLabel: `Added to ${lender.name}`, ip });
     return summary;

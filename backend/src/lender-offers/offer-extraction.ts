@@ -1,3 +1,5 @@
+import { cleanSheet, type SheetData } from "../lender-policies/policy-sheet-schema";
+
 // What a flyer, poster or forwarded message says about a lender, as plain data. The AI only reads; everything it returns
 // passes through `normalizeExtraction` here, so a bad or invented value is dropped before a person ever sees it.
 
@@ -44,6 +46,8 @@ export type Extraction = {
   offers: OfferTerms[];
   /** The last day the offer holds (YYYY-MM-DD), when the page prints one. */
   validTill: string | null;
+  /** The details of the standard policy one-pager that the page states (fees, ROI, LTV, tenure, charges and so on). Blank = not stated. */
+  sheet: SheetData;
 };
 
 const KINDS: OfferKind[] = ["LENDER_OFFER", "SERVICE_PROVIDER", "OTHER"];
@@ -170,6 +174,7 @@ export function normalizeExtraction(raw: unknown, slugs: ReadonlySet<string>): E
     contacts,
     offers,
     validTill: isoDate(r.validTill),
+    sheet: kind === "LENDER_OFFER" ? cleanSheet(r.sheet ?? r.policySheet) : {},
   };
 }
 

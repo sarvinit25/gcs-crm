@@ -5,7 +5,7 @@ const PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n");
 const actor = { id: "u1", name: "Mahesh", email: "m@x.in", role: "ADMIN" } as never;
 
 const manba: Extraction = {
-  kind: "LENDER_OFFER", summary: "Manba", lenderName: "Manba Finance", lenderType: "NBFC", website: null, address: null, city: null, contacts: [], validTill: null,
+  kind: "LENDER_OFFER", summary: "Manba", lenderName: "Manba Finance", lenderType: "NBFC", website: null, address: null, city: null, contacts: [], validTill: null, sheet: {},
   offers: [{ scheme: "Micro LAP", productSlug: "micro-lap", minAmount: 1_000_000, maxAmount: 2_000_000, minRate: 19, maxRate: 20, minTenureMonths: 12, maxTenureMonths: 120, rateType: null, processingFee: null, employmentTypes: [], gstRequired: false, minCreditScore: null, allIndia: null, cities: [], ltv: null, documents: [], charges: null, turnaround: null, notes: null }],
 };
 
@@ -23,7 +23,7 @@ function build(opts: { repeat?: string | null; autoAdd?: boolean; lenders?: { id
   const storage = { put: jest.fn() };
   const audit = { record: jest.fn() };
   const settings = { get: jest.fn().mockReturnValue(opts.autoAdd ?? true) };
-  const service = new LenderOffersService(prisma as never, reader as never, storage as never, {} as never, audit as never, settings as never);
+  const service = new LenderOffersService(prisma as never, reader as never, storage as never, {} as never, audit as never, settings as never, { fillFrom: jest.fn().mockResolvedValue({ filled: [], differs: [] }) } as never);
   jest.spyOn(service, "get").mockImplementation(async (id: string) => ({ id }) as never);
   const apply = jest.spyOn(service, "apply").mockResolvedValue({} as never);
   return { service, prisma, reader, apply };

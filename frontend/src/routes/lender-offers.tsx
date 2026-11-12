@@ -20,13 +20,14 @@ type Extraction = { kind: Kind; summary: string; lenderName: string | null; lend
 type Row = { id: string; source: string; fileName: string | null; kind: Kind; summary: string | null; status: string; createdAt: string; createdByName: string | null; lenderName: string | null; offerCount: number };
 type Detail = Row & {
   extracted: Extraction; hasFile: boolean; lenderMatch: { id: string; name: string } | null;
-  preview: { productSlug: string; productName: string; exists: boolean; schemes: number; changes: string[] }[]; skipped: number;
+  preview: { productSlug: string; productName: string; exists: boolean; schemes: number; changes: string[] }[]; skipped: number; sheetFound?: string[];
   lenders: { id: string; name: string }[]; products: { slug: string; name: string }[];
   appliedSummary: Applied | null; duplicate?: boolean;
 };
 type Applied = {
   lender: { name: string; isNew: boolean }; created: string[]; updated: string[]; unchanged: string[];
   changes: { product: string; items: string[] }[]; contactsAdded: number; contactsUpdated: number; lenderFilled: string[]; skippedProducts: number;
+  sheetFilled?: string[]; sheetDiffers?: { label: string; held: string; flyer: string }[];
 };
 
 const KIND_LABEL: Record<Kind, { text: string; tone: string }> = {
@@ -146,6 +147,8 @@ function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
             </p>
           )}
           {result.lenderFilled.length > 0 && <p>Added to the lender's details: <strong>{result.lenderFilled.join(", ")}</strong>.</p>}
+          {(result.sheetFilled?.length ?? 0) > 0 && <p>Policy one-pager: <strong>{result.sheetFilled!.length} detail{result.sheetFilled!.length === 1 ? "" : "s"} filled</strong> ({result.sheetFilled!.slice(0, 8).join(", ")}{result.sheetFilled!.length > 8 ? " and more" : ""}).</p>}
+          {(result.sheetDiffers?.length ?? 0) > 0 && <p className="text-amber-800">The flyer says something different for {result.sheetDiffers!.map((d) => `${d.label} (held: ${d.held}, flyer: ${d.flyer})`).join("; ")}. Nothing already held was changed.</p>}
           {(result.created.length > 0 || result.changes.length > 0) && (
             <p className="rounded-md bg-amber-50 px-3 py-2 text-amber-900">These are marked <strong>not yet verified</strong>. Lender match sends them to a person until you check them against the lender and press Verify on the policy.</p>
           )}
@@ -220,6 +223,7 @@ function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
                   ) : <>This will create the <strong className="text-navy">{p.productName}</strong> policy{p.schemes > 1 ? ` (${p.schemes} schemes combined)` : ""}.</>}
                 </p>
               ))}
+              {(data.sheetFound?.length ?? 0) > 0 ? <p>Policy one-pager details found: <strong>{data.sheetFound!.length}</strong> ({data.sheetFound!.slice(0, 8).join(", ")}{data.sheetFound!.length > 8 ? " and more" : ""}). They fill the lender's one-pager; anything already there is kept.</p> : null}
               {data.skipped > 0 ? <p>{data.skipped} product{data.skipped === 1 ? "" : "s"} without a loan type will be skipped.</p> : null}
             </div>
           )}

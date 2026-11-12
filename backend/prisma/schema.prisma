@@ -152,15 +152,16 @@ enum LenderType {
 }
 
 model Lender {
-  id        String     @id @default(cuid())
-  name      String     @unique
-  type      LenderType
-  logoUrl   String?
+  id          String             @id @default(cuid())
+  policySheet LenderPolicySheet?
+  name        String             @unique
+  type        LenderType
+  logoUrl     String?
   // Lenders flagged public feed the website's partner directory.
-  isPublic  Boolean    @default(true)
-  sortOrder Int        @default(0)
-  active    Boolean    @default(true)
-  createdAt DateTime   @default(now())
+  isPublic    Boolean            @default(true)
+  sortOrder   Int                @default(0)
+  active      Boolean            @default(true)
+  createdAt   DateTime           @default(now())
 
   // How the lender is addressed day to day, and the terms GCS works with it on.
   shortName         String?
@@ -1851,6 +1852,22 @@ model CamCase {
   customerSavedAt     DateTime?
   customerSubmittedAt DateTime?
 
+  updatedByName String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+/**
+ * The standard "policy one-pager" for a lender: the minimum Home Loan and LAP details GCS wants on every bank (fees, loan
+ * amounts, rates, tenure, LTV by property type, FOIR and programmes, charges, top-up rules, products open, contact).
+ * `data` holds only what is known; blank means not given. The fields are defined in lender-policies/policy-sheet-schema.ts.
+ */
+model LenderPolicySheet {
+  id            String   @id @default(cuid())
+  lenderId      String   @unique
+  lender        Lender   @relation(fields: [lenderId], references: [id], onDelete: Cascade)
+  data          Json     @default("{}")
+  source        String?
   updatedByName String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
