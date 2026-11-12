@@ -42,7 +42,6 @@ export class AlertsService {
       name: this.settings.get<string>("org.name"),
       address: this.settings.get<string>("org.address"),
       phone: this.settings.get<string>("org.phone"),
-      whatsapp: this.settings.get<string>("org.whatsapp"),
       email: this.settings.get<string>("org.email"),
       // The logo in each email is loaded from the website.
       websiteUrl: (this.config.get<string>("WEBSITE_URL") || "https://gcs-website.jonathannnn3009.workers.dev").replace(/\/+$/, ""),

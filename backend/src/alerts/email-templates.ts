@@ -8,8 +8,7 @@ const GOLD_DARK = "#9c7410";
 const PALE = "#fbf5e4";
 const MUTED = "#5b6478";
 
-/** `phone` is the number people call; `whatsapp` is the number the WhatsApp links open (falls back to `phone` if not set). */
-export type Org = { name: string; address: string; phone: string; whatsapp?: string; email: string; websiteUrl: string };
+export type Org = { name: string; address: string; phone: string; email: string; websiteUrl: string };
 
 export const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -61,7 +60,7 @@ export function customerThankYou(org: Org, firstName: string, message: string): 
     "We have received your enquiry. A loan expert will contact you.",
     `<h1 style="margin:0 0 12px 0;font-size:24px;line-height:1.3;color:${NAVY};">Thank you, ${esc(firstName)}.</h1>
 ${paragraphs}
-<p style="margin:6px 0 22px 0;">${button(whatsappHref(org.whatsapp || org.phone), "Message us on WhatsApp", true)}${button(telHref(org.phone), "Call us", false)}</p>
+<p style="margin:6px 0 22px 0;">${button(whatsappHref(org.phone), "Message us on WhatsApp", true)}${button(telHref(org.phone), "Call us", false)}</p>
 <p style="margin:0 0 8px 0;font-size:12px;line-height:1.6;color:${MUTED};">This is an enquiry, not a loan approval. A lender decides after its own checks. If you did not make this enquiry, you can ignore this email.</p>`,
   );
 }
