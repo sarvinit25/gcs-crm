@@ -1,5 +1,5 @@
 /**
- * Turns Plivo call records into the numbers on the Telecalling page. Pure: no network, no database, so it is easy to test.
+ * Turns Plivo call records into the numbers on the Telecaller page. Pure: no network, no database, so it is easy to test.
  * Days are India calendar days, like everywhere else in the CRM.
  */
 import { istParts, ymd } from "../common/date.util";
@@ -42,8 +42,8 @@ export type TelephonyStats = {
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DAY_MS = 86_400_000;
 
-/** Seconds of talk time. A call counts as answered when somebody was connected. */
-export const isAnswered = (c: CallRecord) => c.seconds > 0;
+/** A call counts as answered when somebody was connected for at least `min` seconds (1 by default: any connection). */
+export const isAnswered = (c: CallRecord, min = 1) => c.seconds >= Math.max(1, min);
 
 const dayKey = (d: Date) => ymd(istParts(d));
 
@@ -84,8 +84,16 @@ function keysBetween(first: string, last: string, grain: Grain): string[] {
   return keys;
 }
 
-export function summarise(calls: CallRecord[], opts: { topNumbers?: number } = {}): TelephonyStats {
-  const answered = calls.filter(isAnswered);
+export type SummaryOptions = {
+  /** How many numbers to list under "called most". */
+  topNumbers?: number;
+  /** Seconds of talk time before a call counts as answered; shorter ones are treated as missed (wrong number, hang-up). */
+  minSeconds?: number;
+};
+
+export function summarise(calls: CallRecord[], opts: SummaryOptions = {}): TelephonyStats {
+  const isAns = (c: CallRecord) => isAnswered(c, opts.minSeconds);
+  const answered = calls.filter(isAns);
   const totalSeconds = answered.reduce((s, c) => s + c.seconds, 0);
 
   const directions = (["outbound", "inbound"] as const).map((direction) => {
@@ -93,7 +101,7 @@ export function summarise(calls: CallRecord[], opts: { topNumbers?: number } = {
     return {
       direction,
       calls: mine.length,
-      answered: mine.filter(isAnswered).length,
+      answered: mine.filter(isAns).length,
       seconds: mine.reduce((s, c) => s + c.seconds, 0),
     };
   });
@@ -112,7 +120,7 @@ export function summarise(calls: CallRecord[], opts: { topNumbers?: number } = {
     for (const c of calls) {
       const row = tally.get(keyOf(c)) ?? { calls: 0, answered: 0 };
       row.calls++;
-      if (isAnswered(c)) row.answered++;
+      if (isAns(c)) row.answered++;
       tally.set(keyOf(c), row);
     }
     series = keysBetween(grain === "day" ? first : first.slice(0, 7), grain === "day" ? last : last.slice(0, 7), grain).map((key) => ({
@@ -133,7 +141,7 @@ export function summarise(calls: CallRecord[], opts: { topNumbers?: number } = {
   for (const c of calls) {
     const hour = new Date(c.at.getTime() + 330 * 60_000).getUTCHours();
     hours[hour].calls++;
-    if (isAnswered(c)) hours[hour].answered++;
+    if (isAns(c)) hours[hour].answered++;
   }
 
   const numbers = new Map<string, { calls: number; answered: number; seconds: number }>();
@@ -141,7 +149,7 @@ export function summarise(calls: CallRecord[], opts: { topNumbers?: number } = {
     if (!c.customerNumber) continue;
     const row = numbers.get(c.customerNumber) ?? { calls: 0, answered: 0, seconds: 0 };
     row.calls++;
-    if (isAnswered(c)) row.answered++;
+    if (isAns(c)) row.answered++;
     row.seconds += c.seconds;
     numbers.set(c.customerNumber, row);
   }

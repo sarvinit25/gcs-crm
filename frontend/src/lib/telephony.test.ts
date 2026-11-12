@@ -21,3 +21,38 @@ describe("telephony display", () => {
     expect(seriesTick("2027-01", 2)).toBe("Jan 27");
   });
 });
+
+import { DEFAULT_PREFS, buildCsv, sanitizePrefs, type TelephonyStats } from "./telephony";
+
+describe("page settings", () => {
+  it("falls back to the defaults for nothing, or for rubbish", () => {
+    expect(sanitizePrefs(null)).toEqual(DEFAULT_PREFS);
+    expect(sanitizePrefs("x")).toEqual(DEFAULT_PREFS);
+    expect(sanitizePrefs({ direction: "sideways", minSeconds: "abc", top: "lots", autoMinutes: 7, range: "all" })).toEqual(DEFAULT_PREFS);
+  });
+
+  it("keeps good values, clamps big ones and orders the working hours", () => {
+    const p = sanitizePrefs({ direction: "inbound", minSeconds: 30, top: 9999, hourFrom: 18, hourTo: 9, autoMinutes: 5, show: { cost: false } });
+    expect(p).toMatchObject({ direction: "inbound", minSeconds: 30, top: 50, hourFrom: 9, hourTo: 18, autoMinutes: 5 });
+    expect(p.show).toEqual({ cost: false, direction: true, hours: true, outcomes: true, numbers: true });
+  });
+
+  it("only accepts real dates for a custom range", () => {
+    expect(sanitizePrefs({ range: "custom", from: "2026-11-01", to: "tomorrow" })).toMatchObject({ range: "custom", from: "2026-11-01", to: "" });
+  });
+});
+
+describe("csv export", () => {
+  it("writes the summary, the series and the numbers, and quotes safely", () => {
+    const d = {
+      totals: { calls: 2, answered: 1, unanswered: 1, answerRate: 50, totalSeconds: 60, avgSeconds: 60, cost: 1.5 },
+      grain: "day",
+      series: [{ key: "2026-11-09", label: "09 Nov", calls: 2, answered: 1 }],
+      topNumbers: [{ number: '91"98', calls: 2, answered: 1, seconds: 60 }],
+    } as unknown as TelephonyStats;
+    const csv = buildCsv(d);
+    expect(csv).toContain('"Pick-up rate %","50"');
+    expect(csv).toContain('"2026-11-09","2","1"');
+    expect(csv).toContain('"91""98","2","1","60"');
+  });
+});
