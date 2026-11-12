@@ -4,6 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { matchAll, type Band, type PolicyRule, type Profile } from "./policy-matcher";
+import { cleanSheet, SHEET_FIELDS } from "./policy-sheet-schema";
 import type {
   BulkPolicyDto,
   CreatePolicyDto,
@@ -288,12 +289,31 @@ export class LenderPoliciesService {
       where: { policyId: { in: policies.map((p) => p.id) }, active: true },
       select: { policyId: true, scenario: true, requiredApproval: true, expertNote: true },
     });
-    const withNotes = results.map((r) => ({
-      ...r,
-      // The exact policy version considered, so a result can always be explained later.
-      policyVersion: policies.find((p) => p.id === r.policyId)?.version ?? null,
-      exceptions: exceptions.filter((e) => e.policyId === r.policyId),
-    }));
+    const lenderIds = [...new Set(policies.map((p) => p.lenderId))];
+    const [sheets, offers] = await Promise.all([
+      this.prisma.lenderPolicySheet.findMany({ where: { lenderId: { in: lenderIds } }, select: { lenderId: true, data: true } }),
+      this.prisma.lenderOffer.findMany({ where: { appliedLenderId: { in: lenderIds }, status: "APPLIED" }, orderBy: { createdAt: "desc" }, take: 300, select: { id: true, appliedLenderId: true, fileName: true, createdAt: true, objectKey: true } }),
+    ]);
+    const withNotes = results.map((r) => {
+      const p = policies.find((x) => x.id === r.policyId);
+      const sheet = cleanSheet(sheets.find((s) => s.lenderId === p?.lenderId)?.data);
+      const offer = offers.find((o) => o.appliedLenderId === p?.lenderId);
+      return {
+        ...r,
+        // The exact policy version considered, so a result can always be explained later.
+        policyVersion: p?.version ?? null,
+        exceptions: exceptions.filter((e) => e.policyId === r.policyId),
+        // What a person should read beside the score: the policy's own notes, its one-pager, and the flyer they came from.
+        // The matcher itself only weighs the numbers; none of this text is scored or read by an AI.
+        details: {
+          notes: p?.notes ?? null,
+          specialScheme: p?.specialScheme ?? null,
+          source: p?.source ?? null,
+          sheet: SHEET_FIELDS.filter((f) => sheet[f.key] !== undefined).map((f) => ({ label: f.label, value: Array.isArray(sheet[f.key]) ? (sheet[f.key] as string[]).join(", ") : String(sheet[f.key]) })),
+          flyer: offer ? { id: offer.id, name: offer.fileName ?? "Pasted message", date: offer.createdAt, hasFile: Boolean(offer.objectKey) } : null,
+        },
+      };
+    });
     const run = await this.prisma.matchRun.create({
       data: {
         leadId: dto.leadId ?? null,

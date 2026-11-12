@@ -173,16 +173,16 @@ export class LenderOffersService {
     return row.id;
   }
 
-  async list(status?: string) {
+  async list(status?: string, lenderId?: string) {
     const rows = await this.prisma.lenderOffer.findMany({
-      where: status ? { status } : { status: { not: "DISCARDED" } },
+      where: { ...(status ? { status } : { status: { not: "DISCARDED" } }), ...(lenderId ? { appliedLenderId: lenderId } : {}) },
       orderBy: { createdAt: "desc" },
       take: 100,
-      select: { id: true, source: true, fileName: true, kind: true, summary: true, status: true, createdAt: true, createdByName: true, extracted: true },
+      select: { id: true, source: true, fileName: true, kind: true, summary: true, status: true, createdAt: true, createdByName: true, extracted: true, objectKey: true, appliedLenderId: true },
     });
-    return rows.map(({ extracted, ...r }) => {
+    return rows.map(({ extracted, objectKey, ...r }) => {
       const x = extracted as unknown as Extraction;
-      return { ...r, lenderName: x.lenderName, offerCount: x.offers?.length ?? 0 };
+      return { ...r, hasFile: Boolean(objectKey), lenderName: x.lenderName, offerCount: x.offers?.length ?? 0, sheetCount: Object.keys(x.sheet ?? {}).length };
     });
   }
 
@@ -239,6 +239,13 @@ export class LenderOffersService {
     await this.prisma.lenderOffer.update({ where: { id }, data: { status: "DISCARDED" } });
     await this.audit.record({ actor, action: AuditAction.DELETE, entity: "LenderOffer", entityId: id, entityLabel: row.fileName ?? "Pasted message" });
     return { ok: true };
+  }
+
+  /** The original file's bytes, for showing it beside the reading. */
+  async fileContent(id: string) {
+    const row = await this.prisma.lenderOffer.findUnique({ where: { id }, select: { objectKey: true, fileName: true, mimeType: true } });
+    if (!row?.objectKey) throw new NotFoundException("The original file was not kept");
+    return { buffer: await this.storage.get(row.objectKey), mime: row.mimeType ?? "application/octet-stream", name: row.fileName ?? "flyer" };
   }
 
   async fileUrl(id: string) {

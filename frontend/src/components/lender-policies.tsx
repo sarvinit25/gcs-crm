@@ -662,7 +662,7 @@ export function LenderPoliciesPage() {
               {list.isLoading ? (
                 <TableSkeleton rows={5} cols={6} />
               ) : (
-                <table className="w-full text-[13px]">
+                <table className="data-table">
                   <thead>
                     <tr className="text-left text-[11px] tracking-wide text-muted uppercase">
                       {canEdit && <th className="w-8 py-3 pl-4"><input type="checkbox" aria-label="Select every policy shown" checked={allShownPicked} onChange={() => setPicked(allShownPicked ? new Set() : new Set(rows.map((r) => r.id)))} /></th>}

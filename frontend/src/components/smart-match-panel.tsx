@@ -6,6 +6,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
 import type { Lead } from "../lib/types";
+import { ReviewModal } from "../routes/lender-offers";
 
 type Reason = { code: string; ok: boolean; text: string };
 type Result = {
@@ -18,6 +19,12 @@ type Result = {
   policyNeedsReview: boolean;
   policyVersion: number | null;
   exceptions: { scenario: string; requiredApproval: string | null; expertNote: string | null }[];
+  /** What a person should read beside the score. Older saved runs do not have it. */
+  details?: {
+    notes: string | null; specialScheme: string | null; source: string | null;
+    sheet: { label: string; value: string }[];
+    flyer: { id: string; name: string; date: string; hasFile: boolean } | null;
+  };
 };
 type Run = { id: string; reviewStatus: string; noPolicies?: boolean; results: Result[] };
 type SavedRun = { id: string; reviewStatus: string; reviewedByName: string | null; reviewNote: string | null; reviewedAt: string | null; createdAt: string; createdByName: string | null };
@@ -103,6 +110,7 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
   const [form, setForm] = useState(() => prefill(lead));
   const [run, setRun] = useState<Run | null>(null);
   const [open, setOpen] = useState(false);
+  const [flyer, setFlyer] = useState<string | null>(null);
 
   const productId = lead.loanProduct?.id;
   const history = useQuery({
@@ -226,6 +234,32 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
                       ))}
                     </div>
                   )}
+                  {r.details && (r.details.notes || r.details.specialScheme || r.details.sheet.length > 0 || r.details.flyer) && (
+                    <details className="mt-2 rounded-md border border-line text-[12px]">
+                      <summary className="cursor-pointer px-3 py-2 font-semibold text-navy">
+                        Notes and policy details{r.details.sheet.length > 0 ? ` (${r.details.sheet.length} on the one-pager)` : ""}
+                      </summary>
+                      <div className="space-y-2.5 border-t border-line px-3 py-2.5 text-muted">
+                        {r.details.specialScheme && <p><strong className="text-navy">Schemes: </strong>{r.details.specialScheme}</p>}
+                        {r.details.notes && <p className="whitespace-pre-line"><strong className="text-navy">Notes from the flyer: </strong>{r.details.notes}</p>}
+                        {r.details.sheet.length > 0 && (
+                          <div className="overflow-x-auto rounded-md border border-line">
+                            <table className="data-table">
+                              <thead><tr><th>Detail</th><th>What the bank says</th></tr></thead>
+                              <tbody>{r.details.sheet.map((d) => <tr key={d.label}><td className="font-semibold whitespace-nowrap text-navy">{d.label}</td><td className="text-ink">{d.value}</td></tr>)}</tbody>
+                            </table>
+                          </div>
+                        )}
+                        {r.details.flyer && (
+                          <p>
+                            Taken from <strong className="text-navy">{r.details.flyer.name}</strong>.{" "}
+                            {canReview && <button type="button" className="font-semibold text-navy underline" onClick={() => setFlyer(r.details!.flyer!.id)}>See the flyer</button>}
+                          </p>
+                        )}
+                        <p className="text-[11px]">The match above weighs the numbers only. These notes are shown for a person to read; they are not scored.</p>
+                      </div>
+                    </details>
+                  )}
                   <p className="mt-2 text-[11px] text-muted">Based on policy version {r.policyVersion ?? "—"}.</p>
                 </article>
               ))}
@@ -258,6 +292,7 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
           )}
         </div>
       )}
+      {flyer && <ReviewModal id={flyer} onClose={() => setFlyer(null)} />}
     </section>
   );
 }
