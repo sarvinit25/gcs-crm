@@ -47,6 +47,7 @@ import { ChatAuthModule } from "./chat-auth/chat-auth.module";
 import { IdDirectoryModule } from "./id-directory/id-directory.module";
 import { EventsModule } from "./events/events.module";
 import { WhatsAppModule } from "./whatsapp/whatsapp.module";
+import { TelephonyModule } from "./telephony/telephony.module";
 import { LoanProfileModule } from "./loan-profile/loan-profile.module";
 
 @Module({
@@ -105,6 +106,7 @@ import { LoanProfileModule } from "./loan-profile/loan-profile.module";
     IdDirectoryModule,
     EventsModule,
     WhatsAppModule,
+    TelephonyModule,
     LoanProfileModule,
   ],
   providers: [
