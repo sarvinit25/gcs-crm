@@ -1,0 +1,80 @@
+# Every push to main is tested and, if the tests pass, goes live on the server.
+# Needs these repository secrets (Settings -> Secrets and variables -> Actions):
+#   DEPLOY_HOST         the server's address
+#   DEPLOY_USER         the login that deploy.sh runs as (see ops/DEPLOY.md, "Automatic deploys")
+#   DEPLOY_SSH_KEY      the PRIVATE key whose public half is in that user's authorized_keys
+#   DEPLOY_KNOWN_HOSTS  the server's host key line, from:  ssh-keyscan -t ed25519 <host>
+#   DEPLOY_PORT         optional, if SSH is not on 22
+name: Test and deploy
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Backend tests
+        working-directory: backend
+        run: |
+          npm ci --no-audit --no-fund
+          npx prisma generate
+          npx tsc --noEmit
+          npx jest
+      - name: Front end tests and build
+        working-directory: frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+          npm run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up SSH
+        env:
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN" > ~/.ssh/known_hosts
+      - name: Copy the code to the server
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+        run: |
+          rsync -az --delete \
+            --exclude '.git' --exclude '.github' --exclude 'node_modules' --exclude 'dist' --exclude 'dist.prev' \
+            --exclude '.env' --exclude '.env.*' \
+            -e "ssh -i ~/.ssh/deploy_key -p $PORT -o StrictHostKeyChecking=yes" \
+            --rsync-path="sudo -n -u gcs rsync" \
+            ./ "$USER@$HOST:/opt/gcs-crm/"
+      - name: Install, migrate, build, restart
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$PORT" -o StrictHostKeyChecking=yes "$USER@$HOST" 'bash /opt/gcs-crm/ops/deploy.sh'

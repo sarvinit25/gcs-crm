@@ -102,3 +102,30 @@ Take a backup first (`ops/backup.sh`). Run `npm test` and `npm run test:e2e` in 
 - Settings → **Archive**: hide finished files older than a year (nothing is deleted).
 - Renew anything that expires (domain, B2/Turnstile keys), and apply server updates: `sudo apt update && sudo apt upgrade`.
 - Restore-check a backup, and confirm the off-server copies are arriving.
+
+## 10. Automatic deploys (push to `main` goes live)
+`.github/workflows/deploy.yml` tests every push to `main` and, only if the tests pass, copies the code to the server over SSH and
+runs `ops/deploy.sh` (install, migrate, build, restart, health check, put the old build back if the API does not come up).
+Pushes to any other branch are not deployed.
+
+**One-time setup on the server** (as your sudo user; use a login separate from `gcs`, which has no shell):
+```bash
+sudo adduser --disabled-password --gecos "" deploy
+sudo install -d -m 700 -o deploy -g deploy /home/deploy/.ssh
+echo 'ssh-ed25519 AAAA... the PUBLIC key for this repo' | sudo -u deploy tee /home/deploy/.ssh/authorized_keys
+sudo chmod 600 /home/deploy/.ssh/authorized_keys
+sudo tee /etc/sudoers.d/gcs-deploy >/dev/null <<'SUDO'
+deploy ALL=(gcs) NOPASSWD: ALL
+deploy ALL=(root) NOPASSWD: /usr/bin/systemctl restart gcs-crm, /usr/bin/rsync -a --delete /opt/gcs-crm/frontend/dist/ /var/www/gcs-crm/
+SUDO
+sudo chmod 440 /etc/sudoers.d/gcs-deploy && sudo visudo -c
+```
+The server no longer needs a git checkout or any GitHub login: the workflow sends the files. Keep `backend/.env` on the server only; the
+workflow never touches it.
+
+**One-time setup on GitHub** (repo -> Settings -> Secrets and variables -> Actions): add `DEPLOY_HOST`, `DEPLOY_USER` (`deploy`),
+`DEPLOY_SSH_KEY` (the whole private key file, pasted into the secret box, never into chat or the repo), `DEPLOY_KNOWN_HOSTS`
+(output of `ssh-keyscan -t ed25519 <host>`; check the fingerprint matches the server's) and, if needed, `DEPLOY_PORT`.
+Optional: Settings -> Environments -> `production` -> add a required reviewer if you want a click to approve each deploy.
+
+Rollback covers code only. A database migration is never undone automatically, so write migrations that only add things.
