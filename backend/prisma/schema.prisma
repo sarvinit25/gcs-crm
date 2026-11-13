@@ -1855,3 +1855,27 @@ model CamCase {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+/// One end-of-call message from the voice agent (Sarvam), kept exactly as received so the field mapping can be checked against real calls.
+model VoiceCall {
+  id         String   @id @default(cuid())
+  receivedAt DateTime @default(now())
+
+  /// The provider's own id for the call, used to ignore a message delivered twice.
+  callId String? @unique
+  phone  String?
+  status String?
+  durationSec Int?
+  /// What the call produced: LEAD_CREATED, LEAD_UPDATED, NO_LEAD (not connected or no usable mobile number) or ERROR.
+  outcome String
+  leadId  String?
+  error   String?
+
+  summary    String?
+  transcript String?
+  payload    Json
+
+  @@index([receivedAt])
+  @@index([phone])
+  @@index([leadId])
+}
