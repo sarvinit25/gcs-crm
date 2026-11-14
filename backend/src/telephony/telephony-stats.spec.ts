@@ -25,6 +25,12 @@ describe("summarise", () => {
     expect(s.byOutcome[0]).toEqual({ cause: "Normal Hangup", calls: 2 });
   });
 
+  it("can treat very short connections as missed", () => {
+    const calls = [call({ seconds: 3 }), call({ seconds: 45 })];
+    expect(summarise(calls).totals.answered).toBe(2);
+    expect(summarise(calls, { minSeconds: 10 }).totals).toMatchObject({ answered: 1, unanswered: 1, answerRate: 50, avgSeconds: 45 });
+  });
+
   it("splits inbound from outbound", () => {
     const s = summarise([call({}), call({ direction: "inbound", seconds: 0 })]);
     expect(s.byDirection).toEqual([

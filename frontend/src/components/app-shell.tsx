@@ -70,7 +70,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { to: "/notifications/templates", label: "Notification templates", icon: BellRing, roles: ["ADMIN"] },
       { to: "/notifications/logs", label: "Notification logs", icon: ScrollText, roles: ["ADMIN", "MANAGER"] },
       { to: "/whatsapp/setup", label: "WhatsApp setup", icon: Plug, roles: ["ADMIN"] },
-      { to: "/telephony", label: "Telecalling", icon: Phone, roles: ["ADMIN", "MANAGER"] },
+      { to: "/telephony", label: "Telecaller", icon: Phone, roles: ["ADMIN", "MANAGER"] },
     ],
   },
   {
