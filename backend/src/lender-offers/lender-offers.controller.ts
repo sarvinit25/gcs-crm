@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Ip, Param, Patch, Post, Query, UploadedFiles, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Ip, Param, Patch, Post, Query, StreamableFile, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { Role } from "@prisma/client";
 import { CurrentUser, Roles, type AuthUser } from "../auth/auth.decorators";
@@ -11,8 +11,8 @@ export class LenderOffersController {
   constructor(private offers: LenderOffersService) {}
 
   @Get()
-  list(@Query("status") status?: string) {
-    return this.offers.list(status);
+  list(@Query("status") status?: string, @Query("lenderId") lenderId?: string) {
+    return this.offers.list(status, lenderId);
   }
 
   @Post()
@@ -29,6 +29,13 @@ export class LenderOffersController {
   @Get(":id/file")
   file(@Param("id") id: string) {
     return this.offers.fileUrl(id);
+  }
+
+  /** The original file itself, to be shown beside what was read from it. Shown inline, not downloaded. */
+  @Get(":id/file/content")
+  async fileContent(@Param("id") id: string) {
+    const f = await this.offers.fileContent(id);
+    return new StreamableFile(f.buffer, { type: f.mime, disposition: `inline; filename="${f.name.replace(/"/g, "")}"` });
   }
 
   @Patch(":id")

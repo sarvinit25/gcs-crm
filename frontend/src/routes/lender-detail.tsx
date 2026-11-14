@@ -13,6 +13,8 @@ import { LenderAvatar } from "../components/lender-avatar";
 import { LenderContactsModal, ContactLinks } from "../components/lender-contacts";
 import { LenderCodes, type LenderCodeRow } from "../components/lender-codes";
 import { LenderBranches } from "../components/lender-branches";
+import { LenderPolicySheet } from "../components/lender-policy-sheet";
+import { LenderFlyers } from "../components/lender-flyers";
 
 type Policy = {
   id: string;
@@ -195,6 +197,8 @@ export function LenderDetailPage() {
               </div>
             )}
           </section>
+          <LenderPolicySheet lenderId={l.id} canEdit={canPolicies} />
+          {canPolicies && <LenderFlyers lenderId={l.id} />}
           <LenderCodes lenderId={l.id} codes={l.codes} canEdit={canPolicies} showPayout={canPolicies} />
           <LenderBranches lenderId={l.id} count={l.branchCount} />
           </div>

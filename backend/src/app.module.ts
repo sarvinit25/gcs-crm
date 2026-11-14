@@ -48,6 +48,7 @@ import { IdDirectoryModule } from "./id-directory/id-directory.module";
 import { EventsModule } from "./events/events.module";
 import { VoiceModule } from "./voice/voice.module";
 import { WhatsAppModule } from "./whatsapp/whatsapp.module";
+import { TelephonyModule } from "./telephony/telephony.module";
 import { LoanProfileModule } from "./loan-profile/loan-profile.module";
 
 @Module({
@@ -107,6 +108,7 @@ import { LoanProfileModule } from "./loan-profile/loan-profile.module";
     EventsModule,
     WhatsAppModule,
     VoiceModule,
+    TelephonyModule,
     LoanProfileModule,
   ],
   providers: [

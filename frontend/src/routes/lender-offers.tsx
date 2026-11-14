@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ExternalLink, FileText, Loader2, Plus, ScanText, Trash2, Upload } from "lucide-react";
+import { Check, FileText, Loader2, Plus, ScanText, Trash2, Upload } from "lucide-react";
 import clsx from "clsx";
 import { api, tokenStore } from "../lib/api";
 import { formatDateTime } from "../lib/format";
 import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
+import { OfferOriginal } from "../components/offer-original";
 
 type Kind = "LENDER_OFFER" | "SERVICE_PROVIDER" | "OTHER";
 type Contact = { name: string | null; designation: string | null; phone: string | null; email: string | null };
@@ -19,14 +20,15 @@ type Terms = {
 type Extraction = { kind: Kind; summary: string; lenderName: string | null; lenderType: "BANK" | "NBFC" | null; website: string | null; contacts: Contact[]; offers: Terms[]; validTill?: string | null };
 type Row = { id: string; source: string; fileName: string | null; kind: Kind; summary: string | null; status: string; createdAt: string; createdByName: string | null; lenderName: string | null; offerCount: number };
 type Detail = Row & {
-  extracted: Extraction; hasFile: boolean; lenderMatch: { id: string; name: string } | null;
-  preview: { productSlug: string; productName: string; exists: boolean; schemes: number; changes: string[] }[]; skipped: number;
+  extracted: Extraction; hasFile: boolean; rawText: string | null; mimeType: string | null; lenderMatch: { id: string; name: string } | null;
+  preview: { productSlug: string; productName: string; exists: boolean; schemes: number; changes: string[] }[]; skipped: number; sheetFound?: string[];
   lenders: { id: string; name: string }[]; products: { slug: string; name: string }[];
   appliedSummary: Applied | null; duplicate?: boolean;
 };
 type Applied = {
   lender: { name: string; isNew: boolean }; created: string[]; updated: string[]; unchanged: string[];
   changes: { product: string; items: string[] }[]; contactsAdded: number; contactsUpdated: number; lenderFilled: string[]; skippedProducts: number;
+  sheetFilled?: string[]; sheetDiffers?: { label: string; held: string; flyer: string }[];
 };
 
 const KIND_LABEL: Record<Kind, { text: string; tone: string }> = {
@@ -94,7 +96,7 @@ function TermsEditor({ t, products, onChange, onRemove }: { t: Terms; products: 
   );
 }
 
-function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
+export function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
   const queryClient = useQueryClient();
   const q = useQuery({ queryKey: ["lender-offer", id], queryFn: () => api<Detail>(`/lender-offers/${id}`) });
   const [draft, setDraft] = useState<Extraction | null>(null);
@@ -122,13 +124,23 @@ function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
     onSuccess: (r) => { setDone(r); setDraft(null); refresh(); void queryClient.invalidateQueries({ queryKey: ["lender-policies"] }); },
   });
   const discard = useMutation({ mutationFn: () => api(`/lender-offers/${id}/discard`, { method: "POST" }), onSuccess: () => { refresh(); onClose(); } });
-  const openFile = async () => { const { url } = await api<{ url: string }>(`/lender-offers/${id}/file`); window.open(url, "_blank", "noopener"); };
+  // the original flyer sits beside the reading so every figure can be checked against it
+  const showOriginal = Boolean(data && (data.hasFile || data.rawText));
 
   return (
-    <Modal title={result ? "What was added" : "Review what was read"} subtitle={result ? "This is what this reading added to the lender. Nothing was copied twice." : "Check every figure against the flyer. This one waits: nothing is added to Lender match until you press the button."} onClose={onClose} maxWidth="max-w-3xl">
+    <Modal title={result ? "What was added" : "Review what was read"} subtitle={result ? "This is what this reading added to the lender. Nothing was copied twice." : "Check every figure against the flyer. This one waits: nothing is added to Lender match until you press the button."} onClose={onClose} maxWidth={showOriginal ? "max-w-7xl" : "max-w-3xl"}>
       {!data || !x ? (
         <div className="py-10 text-center text-muted"><Loader2 className="mx-auto h-5 w-5 animate-spin" /></div>
-      ) : result ? (
+      ) : (
+        <div className={clsx("grid gap-5", showOriginal && "lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]")}>
+          {showOriginal && (
+            <div className="min-w-0 lg:sticky lg:top-0 lg:self-start">
+              <p className="mb-1.5 text-[12px] font-bold tracking-wide text-muted uppercase">The original it was read from</p>
+              <OfferOriginal id={id} fileName={data.fileName} mimeType={data.mimeType} hasFile={data.hasFile} rawText={data.rawText} />
+            </div>
+          )}
+          <div className="min-w-0">
+      {result ? (
         <div className="grid gap-3 text-[13px]">
           <p className="flex items-center gap-2 text-base font-bold text-emerald-700"><Check className="h-5 w-5" /> Added to {result.lender.name}{result.lender.isNew ? " (new lender)" : ""}</p>
           {result.created.length > 0 && <p>New policies: <strong>{result.created.join(", ")}</strong></p>}
@@ -146,6 +158,8 @@ function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
             </p>
           )}
           {result.lenderFilled.length > 0 && <p>Added to the lender's details: <strong>{result.lenderFilled.join(", ")}</strong>.</p>}
+          {(result.sheetFilled?.length ?? 0) > 0 && <p>Policy one-pager: <strong>{result.sheetFilled!.length} detail{result.sheetFilled!.length === 1 ? "" : "s"} filled</strong> ({result.sheetFilled!.slice(0, 8).join(", ")}{result.sheetFilled!.length > 8 ? " and more" : ""}).</p>}
+          {(result.sheetDiffers?.length ?? 0) > 0 && <p className="text-amber-800">The flyer says something different for {result.sheetDiffers!.map((d) => `${d.label} (held: ${d.held}, flyer: ${d.flyer})`).join("; ")}. Nothing already held was changed.</p>}
           {(result.created.length > 0 || result.changes.length > 0) && (
             <p className="rounded-md bg-amber-50 px-3 py-2 text-amber-900">These are marked <strong>not yet verified</strong>. Lender match sends them to a person until you check them against the lender and press Verify on the policy.</p>
           )}
@@ -155,7 +169,6 @@ function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
         <div className="grid gap-4 text-[13px]">
           <div className="flex flex-wrap items-center gap-2">
             <span className={clsx("rounded-full px-2.5 py-1 text-[11px] font-bold", KIND_LABEL[x.kind].tone)}>{KIND_LABEL[x.kind].text}</span>
-            {data.hasFile && <button type="button" onClick={openFile} className="btn-ghost inline-flex items-center gap-1.5 text-[12px]"><ExternalLink size={13} /> See the original</button>}
             {editable && (
               <select className={clsx(FIELD, "ml-auto w-auto")} value={x.kind} onChange={(e) => touch({ kind: e.target.value as Kind })} aria-label="What kind of page is this">
                 <option value="LENDER_OFFER">Lender offer</option><option value="SERVICE_PROVIDER">Service provider</option><option value="OTHER">Not relevant</option>
@@ -212,14 +225,24 @@ function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
           )}
 
           {x.kind === "LENDER_OFFER" && data.preview.length > 0 && !draft && (
-            <div className="grid gap-1.5 rounded-md bg-bg-light px-3 py-2.5 text-muted">
-              {data.preview.map((p) => (
-                <p key={p.productSlug}>
-                  {p.exists ? (
-                    p.changes.length ? <>The <strong className="text-navy">{p.productName}</strong> policy already exists. This will add: {p.changes.join("; ")}.</> : <>The <strong className="text-navy">{p.productName}</strong> policy already has all of this, so nothing will change.</>
-                  ) : <>This will create the <strong className="text-navy">{p.productName}</strong> policy{p.schemes > 1 ? ` (${p.schemes} schemes combined)` : ""}.</>}
-                </p>
-              ))}
+            <div className="grid gap-2 text-muted">
+              <div className="overflow-x-auto rounded-lg border border-line">
+                <table className="data-table">
+                  <thead>
+                    <tr><th>Loan type</th><th>What happens</th><th>What changes</th></tr>
+                  </thead>
+                  <tbody>
+                    {data.preview.map((p) => (
+                      <tr key={p.productSlug}>
+                        <td className="font-semibold whitespace-nowrap text-navy">{p.productName}</td>
+                        <td className="whitespace-nowrap">{p.exists ? "Added to the existing policy" : "A new policy"}{p.schemes > 1 ? ` (${p.schemes} schemes combined)` : ""}</td>
+                        <td className="wrap">{p.exists ? (p.changes.length ? p.changes.join("; ") : "Nothing new: the lender already has all of this.") : "The figures from the flyer"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {(data.sheetFound?.length ?? 0) > 0 ? <p>Policy one-pager details found: <strong>{data.sheetFound!.length}</strong> ({data.sheetFound!.slice(0, 8).join(", ")}{data.sheetFound!.length > 8 ? " and more" : ""}). They fill the lender's one-pager; anything already there is kept.</p> : null}
               {data.skipped > 0 ? <p>{data.skipped} product{data.skipped === 1 ? "" : "s"} without a loan type will be skipped.</p> : null}
             </div>
           )}
@@ -238,6 +261,9 @@ function ReviewModal({ id, onClose }: { id: string; onClose: () => void }) {
           ) : (
             <p className="text-muted">This reading was {data.status === "APPLIED" ? "added to Lender match" : "discarded"}.</p>
           )}
+        </div>
+      )}
+          </div>
         </div>
       )}
     </Modal>
@@ -310,22 +336,29 @@ export function LenderOffersPage() {
           {!list.data?.length ? (
             <p className="px-5 py-8 text-center text-[13px] text-muted">Nothing read yet.</p>
           ) : (
-            <ul className="divide-y divide-line">
-              {list.data.map((r) => (
-                <li key={r.id}>
-                  <button type="button" onClick={() => setOpen(r.id)} className="flex w-full items-center gap-3 px-5 py-3 text-left transition hover:bg-bg-light">
-                    <FileText className="h-4 w-4 shrink-0 text-muted" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13px] font-semibold text-navy">{r.lenderName ?? r.fileName ?? "Pasted message"}{r.offerCount ? ` · ${r.offerCount} product${r.offerCount === 1 ? "" : "s"}` : ""}</span>
-                      <span className="block truncate text-[12px] text-muted">{r.summary ?? "—"}</span>
-                    </span>
-                    <span className={clsx("hidden shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold sm:inline", KIND_LABEL[r.kind].tone)}>{KIND_LABEL[r.kind].text}</span>
-                    <span className={clsx("shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold", r.status === "APPLIED" ? "bg-navy/10 text-navy" : "bg-gold-pale text-gold-dark")}>{r.status === "APPLIED" ? "Added" : "To review"}</span>
-                    <span className="hidden shrink-0 text-[11px] text-muted md:inline">{formatDateTime(r.createdAt)}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="overflow-x-auto">
+              <table className="data-table clickable">
+                <thead>
+                  <tr><th>Lender / file</th><th>What it says</th><th>Products</th><th>Kind</th><th>Status</th><th>Read</th><th>By</th></tr>
+                </thead>
+                <tbody>
+                  {list.data.map((r) => (
+                    <tr key={r.id} tabIndex={0} onClick={() => setOpen(r.id)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setOpen(r.id))}>
+                      <td className="min-w-48">
+                        <span className="flex items-center gap-2"><FileText className="h-4 w-4 shrink-0 text-muted" /><span className="font-semibold text-navy">{r.lenderName ?? "Lender not named"}</span></span>
+                        <span className="block max-w-64 truncate pl-6 text-[11px] text-muted" title={r.fileName ?? undefined}>{r.fileName ?? "Pasted message"}</span>
+                      </td>
+                      <td className="wrap max-w-md text-muted"><span className="line-clamp-2">{r.summary ?? "—"}</span></td>
+                      <td className="num whitespace-nowrap">{r.offerCount || "—"}</td>
+                      <td className="whitespace-nowrap"><span className={clsx("rounded-full px-2 py-0.5 text-[11px] font-bold", KIND_LABEL[r.kind].tone)}>{KIND_LABEL[r.kind].text}</span></td>
+                      <td className="whitespace-nowrap"><span className={clsx("rounded-full px-2 py-0.5 text-[11px] font-bold", r.status === "APPLIED" ? "bg-navy/10 text-navy" : "bg-gold-pale text-gold-dark")}>{r.status === "APPLIED" ? "Added" : "To review"}</span></td>
+                      <td className="whitespace-nowrap text-muted">{formatDateTime(r.createdAt)}</td>
+                      <td className="whitespace-nowrap text-muted">{r.createdByName ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </section>
       </div>

@@ -177,6 +177,7 @@ export class CamService {
       families: FAMILIES.map((f) => ({ value: f, label: FAMILY_LABEL[f] })),
       sections: sectionsFor(family),
       data,
+      analysis: analyse(family, data),
       progress: progress(family, data),
       missing: missingCore(family, data),
       link: {

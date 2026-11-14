@@ -1,6 +1,7 @@
 import { BadGatewayException, BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { normalizeExtraction, type Extraction } from "./offer-extraction";
+import { sheetPromptLines } from "../lender-policies/policy-sheet-schema";
 
 export type OfferInput = {
   text?: string;
@@ -34,6 +35,7 @@ JSON shape:
  "kind": "LENDER_OFFER" | "SERVICE_PROVIDER" | "OTHER",
  "summary": one plain sentence on what this is,
  "lenderName": the company's name as printed, or null. Read it from the logo, a watermark, the signature block or the email domain too (an email at godrejcapital.com means Godrej Capital; a logo reading CLIX means CLIX). null only when nothing on the page names the company,
+ "policySheet": an object holding ONLY the keys below that the page states (see "The policy one-pager" at the end); leave a key out when the page does not say it. Home Loan and LAP figures go under their own keys, never mixed.
  "validTill": the last day the offer holds as YYYY-MM-DD when the page prints one ("valid till 30th Sep'26" is 2026-09-30), else null,
  "lenderType": "BANK" | "NBFC" | null (null when unsure),
  "website": string | null,
@@ -74,6 +76,8 @@ Rules:
 - Several photos or screenshots can be pages of one document: read each page on its own and fill in what that page says.
 - Phone numbers and emails exactly as printed. Do not copy a fax number as a phone number.
 - "Login fees", "legal and valuation charges" and similar go in "charges". "4 days" or "24 to 48 hours" goes in "turnaround".
+- The policy one-pager: "policySheet" is for Home Loan and Loan Against Property policy details a lender states. Fill a key only from what is printed, as printed (amounts in rupees as numbers, percents as numbers, text as written). Do not copy a general statement into several keys, and do not turn a Home Loan figure into a LAP figure or the other way round. A rate quoted as "x% onwards" or as a range goes in the ROI text key as written. "productsOpen" lists only products the page says are open or available; a product the page says is NOT offered goes in none of the keys, and "productsOpenOther" is only for an extra product that IS open. Keys:
+${sheetPromptLines()}
 - Loan types we offer (slug: name):
 ${products.map((p) => `  ${p.slug}: ${p.name}`).join("\n")}`;
   }

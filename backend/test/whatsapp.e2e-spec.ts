@@ -269,6 +269,33 @@ describe("WhatsApp inbox and notifications", () => {
       expect(provider.texts()).toHaveLength(1); // the bot stays quiet once a person is asked for
     });
 
+    it("a message WhatsApp could not pass on is shown as such with Meta's reason, and the customer is asked to resend it", async () => {
+      const p = "9000077701";
+      provider.sent.length = 0;
+      await metaCall({
+        object: "whatsapp_business_account",
+        entry: [{ changes: [{ value: { metadata: { phone_number_id: "PNID" }, contacts: [{ wa_id: `91${p}`, profile: { name: "" } }], messages: [{ id: `wamid.in${++msgCounter}`, from: `91${p}`, timestamp: String(Math.floor(Date.now() / 1000)), type: "unsupported", errors: [{ code: 131051, title: "Message type is not currently supported" }] }] } }] }],
+      });
+      const conv = await prisma.whatsAppConversation.findUniqueOrThrow({ where: { phone: p }, include: { messages: true } });
+      const msg = conv.messages.find((m) => m.type === "unsupported")!;
+      expect(msg.body).toMatch(/did not pass on \(131051 Message type is not currently supported\)/);
+      expect(conv.needsHuman).toBe(true);
+      expect(provider.texts()).toHaveLength(1);
+      expect(provider.texts()[0]).toMatch(/send it as a normal photo or PDF/);
+    });
+
+    it("a voice note or a video shows what it is instead of a blank line", async () => {
+      const p = "9000077702";
+      for (const [type, label] of [["audio", "Voice message"], ["video", "Video"], ["location", "Location"]] as const) {
+        await metaCall({
+          object: "whatsapp_business_account",
+          entry: [{ changes: [{ value: { metadata: { phone_number_id: "PNID" }, contacts: [{ wa_id: `91${p}`, profile: { name: "" } }], messages: [{ id: `wamid.in${++msgCounter}`, from: `91${p}`, timestamp: String(Math.floor(Date.now() / 1000)), type }] } }] }],
+        });
+        const conv = await prisma.whatsAppConversation.findUniqueOrThrow({ where: { phone: p }, include: { messages: true } });
+        expect(conv.messages.find((m) => m.type === type)!.body).toContain(label);
+      }
+    });
+
     it("'agent' and documents both raise a hand", async () => {
       const a = "9000055513";
       await customerSays(`91${a}`, "agent please");
@@ -280,7 +307,7 @@ describe("WhatsApp inbox and notifications", () => {
       const conversation = await prisma.whatsAppConversation.findUniqueOrThrow({ where: { phone: d } });
       expect(conversation.needsHuman).toBe(true);
       const stored = await prisma.whatsAppMessage.findFirstOrThrow({ where: { conversationId: conversation.id, direction: "IN" } });
-      expect(stored).toMatchObject({ type: "document", body: null });
+      expect(stored).toMatchObject({ type: "document", body: "📎 File" });
       expect(provider.texts()[0]).toMatch(/received it/);
     });
 

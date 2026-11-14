@@ -29,6 +29,24 @@ type Incoming = {
 };
 
 const env = (key: string) => process.env[key]?.trim() || "";
+
+/** What the inbox shows for a message that carries no text, so staff see what arrived and not a blank line. */
+export function describeOther(type: string, problem?: string | null): string {
+  switch (type) {
+    case "image": return "📎 Photo";
+    case "document": return "📎 File";
+    case "audio": return "🎤 Voice message";
+    case "video": return "🎥 Video";
+    case "sticker": return "Sticker";
+    case "location": return "📍 Location";
+    case "contacts": return "👤 Contact card";
+    case "reaction": return "Reaction";
+    case "order": return "🛒 Order";
+    case "button": return "Button reply";
+    case "unsupported": return `⚠️ Message WhatsApp did not pass on${problem ? ` (${problem})` : ""}. Check it on the business phone.`;
+    default: return `Message of type "${type}"`;
+  }
+}
 const MAX_REPLY = 3500;
 const MAX_TURNS = 12;
 
@@ -117,17 +135,24 @@ export class InboundService {
       );
       type Tap = { id?: string; title?: string };
       type Media = { id?: string; filename?: string; caption?: string };
-      for (const m of (value.messages as { id?: string; from?: string; type?: string; timestamp?: string; text?: { body?: string }; interactive?: { button_reply?: Tap; list_reply?: Tap }; document?: Media; image?: Media }[] | undefined) ?? []) {
+      type Problem = { code?: number; title?: string; message?: string; error_data?: { details?: string } };
+      for (const m of (value.messages as { id?: string; from?: string; type?: string; timestamp?: string; text?: { body?: string }; interactive?: { button_reply?: Tap; list_reply?: Tap }; document?: Media; image?: Media; errors?: Problem[] }[] | undefined) ?? []) {
         if (!m.id || !m.from) continue;
         const tap = m.type === "interactive" ? (m.interactive?.button_reply ?? m.interactive?.list_reply) : undefined;
         const media = m.type === "document" ? m.document : m.type === "image" ? m.image : undefined;
+        const why = m.errors?.[0];
+        const problem = why ? [why.code, why.title ?? why.message].filter(Boolean).join(" ") : null;
+        if (m.type === "unsupported" || m.type === "unknown" || !m.type) {
+          // Meta passes no content for these, only a reason: keep the reason in the log so a pattern can be seen.
+          this.log.warn(`WhatsApp passed on a message it could not deliver (type ${m.type ?? "none"}): ${problem ?? "no reason given"}${why?.error_data?.details ? ` - ${why.error_data.details}` : ""}`);
+        }
         await this.handleMessage({
           id: m.id,
           from: m.from,
           type: m.type ?? "unknown",
           ...(tap?.id ? { replyId: tap.id } : {}),
           ...(media?.id ? { mediaId: media.id, fileName: media.filename, caption: media.caption } : {}),
-          body: m.type === "text" ? (m.text?.body ?? "") : tap ? (tap.title ?? "") : media ? (media.caption || `📎 ${media.filename ?? (m.type === "image" ? "Photo" : "File")}`) : null,
+          body: m.type === "text" ? (m.text?.body ?? "") : tap ? (tap.title ?? "") : media ? (media.caption || `📎 ${media.filename ?? (m.type === "image" ? "Photo" : "File")}`) : describeOther(m.type ?? "unknown", problem),
           name: names.get(m.from) || null,
           at: m.timestamp ? new Date(Number(m.timestamp) * 1000) : new Date(),
         });
@@ -309,6 +334,9 @@ export class InboundService {
       flag = true;
     } else if ((inProfile || wantsProfile) && conversation.leadId) {
       reply = await this.profileTurn(conversation.id, conversation.leadId, firstName, inProfile ? (m.body ?? "") : null);
+    } else if (m.type === "unsupported") {
+      reply = "Sorry, that kind of message does not reach us on WhatsApp (for example a poll, a one-time photo or a call). Please type your message, or send it as a normal photo or PDF, and a team member will reply here shortly.";
+      flag = true;
     } else if (m.type !== "text") {
       reply = "Thank you — we've received it. A team member will look at it and reply here shortly.";
       flag = true;

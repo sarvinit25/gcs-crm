@@ -15,6 +15,9 @@ type ProductText = {
   eligibility: string[];
   documents: string[];
   facts: Fact[];
+  /** The rows of the "At a glance" box on the loan page, and the small note under it. */
+  glance?: Fact[];
+  glanceNote?: string;
 };
 type CaseStudy = {
   slug: string;
@@ -1096,6 +1099,30 @@ function LinesField({
   );
 }
 
+/** A list of label / value rows that can be added to, edited and removed. */
+function FactRows({ title, hint, rows, onChange, addLabel }: { title: string; hint?: string; rows: Fact[]; onChange: (rows: Fact[]) => void; addLabel: string }) {
+  return (
+    <div>
+      <span className="text-[11px] font-bold tracking-wide text-muted uppercase">{title}</span>
+      {hint && <p className="text-[12px] text-muted">{hint}</p>}
+      <div className="mt-1 space-y-2">
+        {rows.map((f, i) => (
+          <div key={i} className="flex gap-2">
+            <input value={f.label} onChange={(e) => onChange(rows.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} placeholder="Label" className="field w-1/3" />
+            <input value={f.value} onChange={(e) => onChange(rows.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)))} placeholder="Value" className="field flex-1" />
+            <button onClick={() => onChange(rows.filter((_, j) => j !== i))} className="rounded p-2 text-muted hover:bg-red-50 hover:text-red-600" title="Remove">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+      <button onClick={() => onChange([...rows, { label: "", value: "" }])} className="btn-ghost mt-2">
+        <Plus className="h-4 w-4" /> {addLabel}
+      </button>
+    </div>
+  );
+}
+
 function ProductEditor({
   value,
   onChange,
@@ -1145,46 +1172,24 @@ function ProductEditor({
         value={p.documents}
         onChange={(documents) => patch({ documents })}
       />
-      <div>
-        <span className="text-[11px] font-bold tracking-wide text-muted uppercase">
-          Key facts (shown as small cards)
-        </span>
-        <div className="mt-1 space-y-2">
-          {p.facts.map((f, i) => (
-            <div key={i} className="flex gap-2">
-              <input
-                value={f.label}
-                onChange={(e) =>
-                  patch({ facts: p.facts.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)) })
-                }
-                placeholder="Label"
-                className="field w-1/3"
-              />
-              <input
-                value={f.value}
-                onChange={(e) =>
-                  patch({ facts: p.facts.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)) })
-                }
-                placeholder="Value"
-                className="field flex-1"
-              />
-              <button
-                onClick={() => patch({ facts: p.facts.filter((_, j) => j !== i) })}
-                className="rounded p-2 text-muted hover:bg-red-50 hover:text-red-600"
-                title="Remove"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={() => patch({ facts: [...p.facts, { label: "", value: "" }] })}
-          className="btn-ghost mt-2"
-        >
-          <Plus className="h-4 w-4" /> Add fact
-        </button>
-      </div>
+      <FactRows title="Key facts (shown as small cards)" rows={p.facts} onChange={(facts) => patch({ facts })} addLabel="Add fact" />
+      <FactRows
+        title="At a glance (the box beside the top of the loan page)"
+        hint="Label and value rows, for example Loan amount, Rate, Tenure. The first five show; the rest and the note open under “See all”. Leave it empty to keep the standard box."
+        rows={p.glance ?? []}
+        onChange={(glance) => patch({ glance })}
+        addLabel="Add a row"
+      />
+      <label className="block">
+        <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Note under At a glance</span>
+        <textarea
+          value={p.glanceNote ?? ""}
+          onChange={(e) => patch({ glanceNote: e.target.value })}
+          rows={2}
+          placeholder="For example: figures are indicative and subject to lender policy."
+          className="field mt-1 w-full"
+        />
+      </label>
     </div>
   );
 }
