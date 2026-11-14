@@ -43,6 +43,7 @@ export function parseMoney(v: unknown): number | null {
   let s = v.replace(/[₹\s]/g, "").replace(/^rs\.?/i, "");
   if (!s || s === "-" || s === "--") return null;
   let neg = false;
+  s = s.replace(/\(\s*(dr|cr)\.?\s*\)$/i, "$1"); // "5,000.00(Dr)"
   if (/dr\.?$/i.test(s)) { neg = true; s = s.replace(/dr\.?$/i, ""); }
   else if (/cr\.?$/i.test(s)) s = s.replace(/cr\.?$/i, "");
   if (/^\(.*\)$/.test(s)) { neg = true; s = s.slice(1, -1); }
@@ -111,11 +112,14 @@ function findHeader(rows: unknown[][]): { at: number; cols: Cols } | null {
     // short words must match exactly, so "dr" is not mistaken for the "dr/cr" column
     const find = (...needles: string[]) => cells.findIndex((c) => c && needles.some((n) => c === n || (n.length >= 5 && c.startsWith(n))));
     const date = find("txndate", "transactiondate", "trandate", "date", "postdate", "postingdate");
-    const balance = find("balance", "closingbalance", "runningbalance", "availablebalance");
+    const balance = find("balance", "closingbalance", "runningbalance", "availablebalance", "bal");
     const text = find("narration", "description", "particulars", "transactiondescription", "remarks", "details", "transactionremarks");
     const debit = find("debit", "withdrawal", "withdrawals", "withdrawalamt", "dr", "debitamount", "withdrawalamount");
     const credit = find("credit", "deposit", "deposits", "depositamt", "cr", "creditamount", "depositamount");
-    const amount = find("amount", "transactionamount", "txnamount");
+    const amount = (() => {
+      const plain = find("amount", "transactionamount", "txnamount");
+      return plain >= 0 ? plain : cells.findIndex((c) => c.includes("withdrawal") && c.includes("deposit")); // Kotak: one column for both
+    })();
     const drcr = find("drcr", "crdr", "type", "transactiontype", "debitcredit");
     if (date >= 0 && balance >= 0 && text >= 0 && ((debit >= 0 && credit >= 0) || (amount >= 0 && drcr >= 0) || amount >= 0)) {
       return { at: i, cols: { date, text, debit, credit, amount, drcr, balance } };
@@ -140,7 +144,9 @@ export function fromRows(rows: unknown[][]): Raw[] {
     } else {
       const amt = parseMoney(row[cols.amount]);
       if (amt === null) continue;
-      const kind = cols.drcr >= 0 ? norm(row[cols.drcr]) : "";
+      const raw = String(row[cols.amount] ?? "");
+      const suffix = /\(?\s*(dr|cr)\.?\s*\)?\s*$/i.exec(raw)?.[1]?.toLowerCase() ?? "";
+      const kind = cols.drcr >= 0 ? norm(row[cols.drcr]) : suffix;
       if (/^(cr|credit|c)/.test(kind)) out.push({ date, text, credit: Math.abs(amt), debit: 0, amounts: [], balance });
       else if (/^(dr|debit|d|w)/.test(kind)) out.push({ date, text, debit: Math.abs(amt), credit: 0, amounts: [], balance });
       else out.push({ date, text, amounts: [Math.abs(amt)], balance });

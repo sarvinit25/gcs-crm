@@ -173,3 +173,36 @@ describe("reading an uploaded file", () => {
     await expect(readStatement(Buffer.alloc(16 * 1024 * 1024), "big.csv")).rejects.toThrow(/too big/);
   });
 });
+
+// How the large Indian banks head their statements (from what their own downloads look like): the reader should find the
+// transaction table under any of them.
+describe("the headings banks use", () => {
+  const sample = statement().slice(0, 8);
+  const sheet = (head: string[], cell: (r: Row) => (string | number | Date)[]) => [["Account statement"], [], head, ...sample.map(cell)];
+  const check = (rows: unknown[][]) => {
+    const t = settle(fromRows(rows));
+    expect(t).toHaveLength(8);
+    expect(t[0]).toMatchObject({ credit: 60_000, balance: 110_000 });
+    expect(t[1]).toMatchObject({ debit: 12_000 });
+  };
+  it("HDFC", () => check(sheet(["Date", "Narration", "Chq./Ref.No.", "Value Dt", "Withdrawal Amt.", "Deposit Amt.", "Closing Balance"], (r) => [dmy(r.date), r.text, "0000", dmy(r.date), r.debit || "", r.credit || "", r.balance])));
+  it("ICICI", () => check(sheet(["S No.", "Value Date", "Transaction Date", "Cheque Number", "Transaction Remarks", "Withdrawal Amount (INR)", "Deposit Amount (INR)", "Balance (INR)"], (r) => [1, dmy(r.date), dmy(r.date), "", r.text, r.debit || "", r.credit || "", r.balance])));
+  it("SBI", () => check(sheet(["Txn Date", "Value Date", "Description", "Ref No./Cheque No.", "Debit", "Credit", "Balance"], (r) => [dmy(r.date), dmy(r.date), r.text, "", r.debit || "", r.credit || "", r.balance])));
+  it("Axis", () => check(sheet(["SRL NO", "TRAN DATE", "CHQNO", "PARTICULARS", "DR", "CR", "BAL", "SOL"], (r) => [1, dmy(r.date), "", r.text, r.debit || "", r.credit || "", r.balance, 12])));
+  it("Kotak, one column for both amounts with (Dr) and (Cr)", () => check(sheet(["Date", "Narration", "Chq/Ref No", "Withdrawal (Dr)/ Deposit (Cr)", "Balance"], (r) => [dmy(r.date), r.text, "", `${money(r.debit || r.credit)}(${r.debit ? "Dr" : "Cr"})`, `${money(r.balance)}(Cr)`])));
+  it("IDFC First, Yes Bank and Bandhan style", () => {
+    check(sheet(["Transaction Date", "Value Date", "Particulars", "Cheque No.", "Debit", "Credit", "Balance"], (r) => [dmy(r.date), dmy(r.date), r.text, "", r.debit || "", r.credit || "", r.balance]));
+    check(sheet(["Transaction Date", "Value Date", "Description", "Debit", "Credit", "Running Balance"], (r) => [dmy(r.date), dmy(r.date), r.text, r.debit || "", r.credit || "", r.balance]));
+  });
+  it("PDF rows with a reference number, a value date, Indian digit grouping and a two-digit year", () => {
+    const hdfc = sample.map((r) => `${dmy(r.date).replace(/\/20/, "/")} ${r.text} 0000${Math.round(r.balance)} ${dmy(r.date).replace(/\/20/, "/")} ${r.debit ? money(r.debit) : ""} ${r.credit ? money(r.credit) : ""} ${money(r.balance)}`.replace(/\s+/g, " "));
+    const t = settle(fromPdfText(hdfc.join("\n")));
+    expect(t).toHaveLength(8);
+    expect(t[0]).toMatchObject({ credit: 60_000, balance: 110_000 });
+    expect(t[1]).toMatchObject({ debit: 12_000 });
+    const sbi = sample.map((r) => { const d = `${r.date.getUTCDate()} Jan ${r.date.getUTCFullYear()}`; return `${d} ${d} ${r.text} ${money(r.debit || r.credit)} ${money(r.balance)}`; });
+    const u = settle(fromPdfText(sbi.join("\n")));
+    expect(u).toHaveLength(8);
+    expect(u[0]).toMatchObject({ credit: 60_000 });
+  });
+});
