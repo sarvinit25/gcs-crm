@@ -6,6 +6,7 @@ import { api, tokenStore } from "../lib/api";
 import { formatDateTime } from "../lib/format";
 import { CamForm } from "../components/cam-form";
 import { CamInsights, type CamAnalysis } from "../components/cam-insights";
+import { StatementReader } from "../components/statement-reader";
 import type { CamData, CamSection } from "../lib/cam";
 
 type LinkInfo = { state: "open" | "submitted" | "expired" | "revoked" | null; token: string | null; expiresAt: string | null; createdAt: string | null; openedAt: string | null; lastSavedAt: string | null; submittedAt: string | null };
@@ -139,6 +140,18 @@ export function LeadCamPage() {
         {(makeLink.isError || revoke.isError) && <p className="text-[13px] font-medium text-red-700">{((makeLink.error ?? revoke.error) as Error).message}</p>}
         <p className="text-[12px] text-muted">The customer fills in their own details from the link and you fill in the rest here. Nothing from "Staff assessment" is ever shown to them.</p>
       </section>
+
+      <StatementReader
+        leadId={leadId}
+        onApply={(fill) => {
+          setDraft((d) => ({
+            ...(d ?? {}),
+            bankingDetail: { ...((d ?? {}).bankingDetail ?? {}), ...fill.bankingDetail },
+            banking: { ...((d ?? {}).banking ?? {}), ...fill.banking },
+          }));
+          setDirty(true);
+        }}
+      />
 
       <CamInsights a={cam.analysis} />
 

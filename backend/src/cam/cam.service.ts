@@ -10,6 +10,8 @@ import { formatDateTimeIST } from "../common/date.util";
 import type { AuthUser } from "../auth/auth.decorators";
 import { analyse } from "./cam-analysis";
 import { buildCamWorkbook } from "./cam-workbook";
+import { readStatement } from "./statement-read";
+import { StatementError } from "./statement-parse";
 import {
   FAMILIES,
   FAMILY_LABEL,
@@ -237,6 +239,18 @@ export class CamService {
   }
 
   /** The Excel CAM: every sheet, with the numbers worked out and the lenders that may fit. */
+  /** Reads an uploaded bank statement for a lead the caller may see. The file and its rows are neither stored nor logged. */
+  async readStatement(leadId: string, file: { buffer: Buffer; originalname: string } | undefined, user: AuthUser) {
+    await this.leadFor(leadId, user);
+    if (!file?.buffer?.length) throw new BadRequestException("Choose a bank statement to read.");
+    try {
+      return await readStatement(file.buffer, file.originalname ?? "statement");
+    } catch (e) {
+      if (e instanceof StatementError) throw new BadRequestException(e.message);
+      throw new BadRequestException("That statement could not be read. Try the Excel or CSV version.");
+    }
+  }
+
   async exportXlsx(leadId: string, user: AuthUser) {
     const lead = await this.leadFor(leadId, user);
     const c = await this.peek(leadId);

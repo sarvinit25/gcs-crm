@@ -1,7 +1,9 @@
-import { Body, Controller, Delete, Get, Header, Ip, Param, Post, Put, Query, StreamableFile } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Header, Ip, Param, Post, Put, Query, StreamableFile, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { Throttle } from "@nestjs/throttler";
 import { CurrentUser, Public, type AuthUser } from "../auth/auth.decorators";
 import { CamService } from "./cam.service";
+import { MAX_STATEMENT_BYTES } from "./statement-read";
 
 /** Staff: every CAM in one list, for the CAM page. */
 @Controller("cams")
@@ -37,6 +39,14 @@ export class CamController {
   @Delete("link")
   revoke(@Param("leadId") id: string, @CurrentUser() user: AuthUser, @Ip() ip: string) {
     return this.cam.revokeLink(id, user, ip);
+  }
+
+  /** Reads an uploaded bank statement and returns its figures for the CAM. Nothing is saved: staff look at it, then apply it. */
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post("statement")
+  @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_STATEMENT_BYTES } }))
+  statement(@Param("leadId") id: string, @UploadedFile() file: Express.Multer.File | undefined, @CurrentUser() user: AuthUser) {
+    return this.cam.readStatement(id, file, user);
   }
 
   @Get("export")
