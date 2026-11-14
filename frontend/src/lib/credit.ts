@@ -72,3 +72,11 @@ export const KIND_LABEL: Record<CheckKind, string> = {
 export function missingForCheck(r: Pick<CreditRow, "hasPan" | "hasDob" | "phone">): string[] {
   return [!r.hasPan && "PAN", !r.hasDob && "date of birth", !r.phone && "mobile number"].filter(Boolean) as string[];
 }
+
+/** The four credit bureaus, each with its own official site. Staff open one to check a score there; nothing is pulled through our CRM. */
+export const BUREAU_SITES = [
+  { id: "cibil", name: "TransUnion CIBIL", blurb: "The score most banks and NBFCs check first.", url: "https://www.cibil.com/" },
+  { id: "experian", name: "Experian", blurb: "Widely used by lenders and card issuers.", url: "https://www.experian.in/" },
+  { id: "equifax", name: "Equifax", blurb: "Used by banks and housing-finance lenders.", url: "https://www.equifax.co.in/" },
+  { id: "crif", name: "CRIF High Mark", blurb: "Strong coverage of retail and microfinance borrowers.", url: "https://www.crifhighmark.com/" },
+] as const;

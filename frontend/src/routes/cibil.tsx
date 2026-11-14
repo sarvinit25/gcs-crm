@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, FlaskConical, History, Info, Loader2, Plus, Search, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ExternalLink, FlaskConical, History, Info, Loader2, Plus, Search, ShieldCheck } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { formatDate, formatDateTime } from "../lib/format";
 import { todayIST } from "../lib/date";
-import { BAND_STYLE, KIND_LABEL, missingForCheck, type CheckHistory, type CheckRecord, type CreditList, type CreditRow, type CreditStatus } from "../lib/credit";
+import { BAND_STYLE, BUREAU_SITES, KIND_LABEL, missingForCheck, type CheckHistory, type CheckRecord, type CreditList, type CreditRow, type CreditStatus } from "../lib/credit";
 import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
 import { DatePicker } from "../components/date-picker";
@@ -280,6 +280,19 @@ export function CibilPage() {
             <Tile label="Checks this month" value={String(s.checksThisMonth)} />
           </div>
         )}
+
+        <section className="card p-4">
+          <h2 className="text-sm font-bold text-navy">Check a credit report</h2>
+          <p className="mt-0.5 text-[12px] text-muted">Opens the bureau's own site in a new tab. Check the score there with the customer's consent, then record it against their file below.</p>
+          <div className="mt-3 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+            {BUREAU_SITES.map((b) => (
+              <a key={b.id} href={b.url} target="_blank" rel="noopener noreferrer" className="group flex flex-col rounded-lg border border-line p-3 transition hover:border-navy hover:bg-bg-light/60 focus-visible:outline-2 focus-visible:outline-navy">
+                <span className="flex items-center justify-between gap-2 text-[14px] font-bold text-navy">{b.name}<ExternalLink className="h-4 w-4 shrink-0 text-muted group-hover:text-navy" /></span>
+                <span className="mt-1 text-[12px] text-muted">{b.blurb}</span>
+              </a>
+            ))}
+          </div>
+        </section>
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
