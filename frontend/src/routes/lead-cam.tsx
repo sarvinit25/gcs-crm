@@ -5,6 +5,7 @@ import { ArrowLeft, Check, Copy, Download, FileSpreadsheet, Link2, Loader2, Mess
 import { api, tokenStore } from "../lib/api";
 import { formatDateTime } from "../lib/format";
 import { CamForm } from "../components/cam-form";
+import { CamInsights, type CamAnalysis } from "../components/cam-insights";
 import type { CamData, CamSection } from "../lib/cam";
 
 type LinkInfo = { state: "open" | "submitted" | "expired" | "revoked" | null; token: string | null; expiresAt: string | null; createdAt: string | null; openedAt: string | null; lastSavedAt: string | null; submittedAt: string | null };
@@ -15,6 +16,7 @@ type Cam = {
   families: { value: string; label: string }[];
   sections: CamSection[];
   data: CamData;
+  analysis: CamAnalysis;
   progress: number;
   missing: { section: string; label: string }[];
   link: LinkInfo;
@@ -137,6 +139,8 @@ export function LeadCamPage() {
         {(makeLink.isError || revoke.isError) && <p className="text-[13px] font-medium text-red-700">{((makeLink.error ?? revoke.error) as Error).message}</p>}
         <p className="text-[12px] text-muted">The customer fills in their own details from the link and you fill in the rest here. Nothing from "Staff assessment" is ever shown to them.</p>
       </section>
+
+      <CamInsights a={cam.analysis} />
 
       {cam.missing.length > 0 && (
         <details className="card px-4 py-3 text-[13px]">

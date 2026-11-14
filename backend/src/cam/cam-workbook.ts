@@ -140,6 +140,35 @@ function put2(ws: WS, row: number, col: number, value: unknown, fmt: Fmt = "text
 
 const colLetter = (n: number) => String.fromCharCode(64 + n);
 
+/** Any table of the form as a sheet table: headers from the question list, one row per answer. Returns the next free row. */
+function schemaTable(ws: WS, start: number, section: Section | undefined, key: string, data: CamData, empty: string): number {
+  const t = section?.tables.find((x) => x.key === key);
+  if (!t || !section) return start;
+  tableHeader(ws, start, t.columns.map((c) => c.label));
+  let r = start + 1;
+  const list = tableRows(data, section.id, key);
+  if (!list.length) { ws.getCell(r, 1).value = empty; return r + 1; }
+  for (const row of list) {
+    t.columns.forEach((c, i) => {
+      const v = row[c.key] ?? null;
+      const cell = put2(ws, r, i + 1, c.type === "date" && typeof v === "string" ? new Date(`${v}T00:00:00Z`) : v, formatOf(c.type));
+      if (cell.value instanceof Date) cell.numFmt = "dd mmm yyyy";
+    });
+    r += 1;
+  }
+  return r;
+}
+
+const note = (ws: WS, row: number, cols: number, text: string, height = 28) => {
+  ws.mergeCells(row, 1, row, cols);
+  const c = ws.getCell(row, 1);
+  c.value = text;
+  c.font = { italic: true, size: 9, color: { argb: "FF6B7280" } };
+  c.alignment = { wrapText: true, vertical: "top" };
+  ws.getRow(row).height = height;
+  return row + 1;
+};
+
 function flagFill(level: "risk" | "watch" | "good") { return solid(level === "risk" ? RED : level === "watch" ? AMBER : GREEN); }
 
 export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
@@ -181,6 +210,10 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
       ["CIBIL score", a.cibil, "number"],
       ["Average monthly bank credits (months given)", a.banking.avgCredits12, "money"],
       ["Net worth (assets less loans and card dues)", a.netWorth.net, "money"],
+      ["Our indicative score", a.scorecard.percent === null ? "Not enough answers yet" : `${a.scorecard.percent}%, grade ${a.scorecard.grade}`],
+      ["Co-applicants (count, and the income they add each month)", a.coApplicants.count ? `${a.coApplicants.count}, ${inr(a.coApplicants.income)}` : "None"],
+      ["Loan against cost of property / against market value", a.property.ltvOnCost !== null || a.property.ltvOnMarket !== null ? `${a.property.ltvOnCost ?? "n/a"}% / ${a.property.ltvOnMarket ?? "n/a"}%` : null],
+      ["Repayment ratio + loan-to-value (lenders often cap at 130%)", a.doubleWhammy ? `${a.doubleWhammy.total}%` : null],
     ]);
     r += 1;
     r = heading(ws, r, "What stands out", 4);
@@ -208,12 +241,15 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
 
   // ── 2. Applicant ──
   {
-    const ws = sheet(wb, "Applicant", "APPLICANT AND LOAN REQUEST", sub, [46, 60]);
+    const ws = sheet(wb, "Applicant", "APPLICANT AND LOAN REQUEST", sub, [46, 60, 16, 16, 20, 18, 18, 12]);
     let r = heading(ws, 4, "Applicant");
     r = sectionPairs(ws, r, sec("applicant")!, data);
     r += 1;
     r = heading(ws, r, "Loan requirement");
     r = sectionPairs(ws, r, sec("loanRequest")!, data);
+    r += 1;
+    r = heading(ws, r, "Co-applicants and guarantors", 8);
+    r = schemaTable(ws, r, sec("loanRequest"), "coApplicants", data, "None named.");
     const refs = tableRows(data, "references", "people");
     if (refs.length) {
       r += 1;
@@ -246,16 +282,114 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
       });
       r += 1;
       ws.mergeCells(r, 1, r, 8);
-      ws.getCell(r, 1).value = "Cash profit = net profit + depreciation + interest paid + partner / director remuneration. Monthly income for a business is taken from the latest year's cash profit spread over 12 months.";
+      ws.getCell(r, 1).value = "Cash profit = net profit + depreciation + interest paid + partner / director remuneration. The Income programs sheet shows this beside the other ways lenders take a business's income.";
       ws.getCell(r, 1).font = { italic: true, size: 9, color: { argb: "FF6B7280" } };
       ws.getCell(r, 1).alignment = { wrapText: true };
       ws.getRow(r).height = 28;
     }
   }
 
+  // ── 3b. Income programs ──
+  if (a.programs.length || a.coApplicants.count || a.bankingProgram || a.workingCapital) {
+    const ws = sheet(wb, "Income programs", "INCOME PROGRAMS AND ELIGIBILITY WORKINGS", `${sub}. Lenders take income in different ways: this shows each one. Yellow cells can be changed.`, [46, 20, 20, 70]);
+    let r = 4;
+    if (a.programs.length) {
+      r = heading(ws, r, "Ways the income can be taken", 4);
+      tableHeader(ws, r, ["Program", "Income in a year", "Income a month", "How it is worked out"]);
+      r += 1;
+      const top = a.program.highest;
+      for (const p of a.programs) {
+        put2(ws, r, 1, p.label + (p.label === a.program.chosen ? "  (used for the repayment capacity)" : ""), "text", p.label === a.program.chosen);
+        put2(ws, r, 2, p.annual === null ? null : Math.round(p.annual), "money");
+        put2(ws, r, 3, p.annual === null ? null : { formula: `B${r}/12`, result: p.annual / 12 } as never, "money", true);
+        put2(ws, r, 4, p.note);
+        if (p.label === top) for (let c = 1; c <= 4; c++) ws.getCell(r, c).fill = solid(GREEN);
+        r += 1;
+      }
+      r = note(ws, r, 4, `The green row is the highest. The repayment capacity uses "${a.program.chosen}" unless the staff assessment picks another program. Profit that jumps more than 35% on the year before is averaged with it, and the margin caps are 15% for trading and manufacturing, 30% for services: the rules in the lender-style sheets we compared against.`, 40);
+      r += 1;
+    }
+    r = heading(ws, r, "Co-applicants", 4);
+    r = pairs(ws, r, [
+      ["Number of co-applicants", a.coApplicants.count, "number"],
+      ["Income they add each month", a.coApplicants.income, "money"],
+      ["EMIs they pay each month", a.coApplicants.emi, "money"],
+      ["Lowest CIBIL score among them", a.coApplicants.lowestCibil, "number"],
+      ["Oldest person's age at the end of the loan", a.coApplicants.oldestAgeAtMaturity, "number"],
+    ]);
+    r += 1;
+    if (a.bankingProgram || a.doubleWhammy) {
+      r = heading(ws, r, "Banking program: what the average balance alone supports", 4);
+      const rowOf = (label: string, value: number | null, fmt: Fmt, input: boolean) => {
+        put2(ws, r, 1, label).fill = solid(PALE);
+        const c = put2(ws, r, 2, value, fmt, true);
+        if (input) c.fill = solid(INPUT);
+        r += 1;
+        return r - 1;
+      };
+      if (a.bankingProgram) {
+        const bp = a.bankingProgram;
+        const rAbb = rowOf("Average bank balance, a month", bp.abb, "money", true);
+        const rLtv = rowOf("Loan as % of the property value", bp.ltvPct, "percent", true);
+        const rCap = rowOf("Repayment and loan-to-value together may not pass, %", 130, "percent", true);
+        put2(ws, r, 1, "Highest repayment ratio allowed, %").fill = solid(PALE);
+        put2(ws, r, 2, { formula: `MAX(0,B${rCap}-B${rLtv})`, result: bp.maxFoirPct } as never, "percent", true); const rFoir = r; r += 1;
+        put2(ws, r, 1, "Highest EMI the balance supports").fill = solid(PALE);
+        put2(ws, r, 2, { formula: `B${rFoir}/100*B${rAbb}`, result: bp.maxEmi } as never, "money", true); const rMax = r; r += 1;
+        const rEx = rowOf("Running EMIs counted", a.existingEmi, "money", true);
+        const rRate = rowOf("Rate a year, %", a.rate, "percent", true);
+        const rN = rowOf("Tenure, months", a.tenureMonths, "number", true);
+        put2(ws, r, 1, "Loan this supports").fill = solid(PALE);
+        put2(ws, r, 2, { formula: `IFERROR(PV(B${rRate}/1200,B${rN},-MAX(0,B${rMax}-B${rEx})),0)`, result: bp.eligible ?? 0 } as never, "money", true); r += 1;
+      }
+      if (a.doubleWhammy) r = pairs(ws, r, [["Repayment ratio after the loan + loan-to-value", a.doubleWhammy.total, "percent"], ["Limit some lenders apply", a.doubleWhammy.limit, "percent"]]);
+      r += 1;
+    }
+    if (a.workingCapital) {
+      const w = a.workingCapital;
+      r = heading(ws, r, "Working-capital limit by the turnover method", 4);
+      put2(ws, r, 1, "Turnover, latest year").fill = solid(PALE); put2(ws, r, 2, w.turnover, "money", true); const rT = r; r += 1;
+      put2(ws, r, 1, "Share of turnover taken as the limit, %").fill = solid(PALE); put2(ws, r, 2, 30, "percent", true).fill = solid(INPUT); const rS = r; r += 1;
+      put2(ws, r, 1, "Limit").fill = solid(PALE); put2(ws, r, 2, { formula: `B${rT}*B${rS}/100`, result: w.limit } as never, "money", true); const rL = r; r += 1;
+      put2(ws, r, 1, "Share of the limit the bank funds, %").fill = solid(PALE); put2(ws, r, 2, 80, "percent", true).fill = solid(INPUT); const rB = r; r += 1;
+      put2(ws, r, 1, "Bank finance possible").fill = solid(PALE); put2(ws, r, 2, { formula: `B${rL}*B${rB}/100`, result: w.bankFinance } as never, "money", true); const rF = r; r += 1;
+      put2(ws, r, 1, "Already with a bank").fill = solid(PALE); put2(ws, r, 2, w.existing, "money", true).fill = solid(INPUT); const rE = r; r += 1;
+      put2(ws, r, 1, "Room left").fill = solid(PALE); put2(ws, r, 2, { formula: `MAX(0,B${rF}-B${rE})`, result: w.headroom } as never, "money", true); r += 1;
+      r = note(ws, r, 4, "30% of turnover with the bank funding four-fifths of it is the rule used in the credit sheet we compared against. Banks vary: change the yellow cells to the lender's own share.", 30);
+    }
+  }
+
+  // ── 3c. Financial analysis ──
+  if (a.financials.length || tableRows(data, "income", "balanceSheet").length) {
+    const ws = sheet(wb, "Financial analysis", "FINANCIAL ANALYSIS", `${sub}. Figures from the ITR / balance sheet as entered.`, [40, 18, 18, 18, 18, 18, 18, 18, 18, 18]);
+    let r = heading(ws, 4, "Profit and loss", 8);
+    r = schemaTable(ws, r, sec("income"), "financials", data, "No years given.");
+    r += 1;
+    r = heading(ws, r, "Balance sheet", 10);
+    r = schemaTable(ws, r, sec("income"), "balanceSheet", data, "No balance sheet figures given.");
+    r += 1;
+    r = heading(ws, r, "Ratios, latest year", 4);
+    const rt = a.ratios;
+    r = pairs(ws, r, [
+      ["Gross margin, %", rt.grossMarginPct, "percent"],
+      ["Operating profit before interest, tax and depreciation (PBDIT), % of turnover", rt.pbditPct, "percent"],
+      ["Return on net worth, %", rt.roePct, "percent"],
+      ["Debt to net worth, after this loan (times)", rt.debtEquityAfter, "number"],
+      ["Current ratio (times)", rt.currentRatio, "number"],
+      ["Debtor days", rt.debtorDays, "number"],
+      ["Stock days", rt.inventoryDays, "number"],
+      ["Creditor days", rt.creditorDays, "number"],
+      ["Working-capital gap, days (debtor + stock - creditor)", rt.workingCapitalGapDays, "number"],
+      ["Unsecured share of business borrowing, %", rt.highCostDebtPct, "percent"],
+      ["Debt service cover, latest year", a.dscr, "number"],
+      ["Debt service cover on the expected turnover", rt.projectedDscr, "number"],
+    ]);
+    note(ws, r + 1, 8, "A debt service cover below 1 means the year's cash did not cover the year's repayments. Debtor, stock and creditor days use turnover and the cost of goods (turnover less gross profit).", 30);
+  }
+
   // ── 4. Obligations ──
   {
-    const ws = sheet(wb, "Obligations", "EXISTING LOANS AND CREDIT HISTORY", sub, [26, 22, 18, 18, 16, 14, 16]);
+    const ws = sheet(wb, "Obligations", "EXISTING LOANS AND CREDIT HISTORY", sub, [26, 22, 18, 18, 16, 14, 16, 22, 12, 12, 14]);
     let r = heading(ws, 4, "Credit history", 7);
     r = pairs(ws, r, [
       ["CIBIL score", data.obligations?.cibilScore ?? null, "number"],
@@ -268,7 +402,7 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
     ]);
     r += 1;
     r = heading(ws, r, "Running loans", 7);
-    tableHeader(ws, r, ["Lender", "Type", "Original loan", "Outstanding", "Monthly EMI", "Months left", "Counted?"]);
+    tableHeader(ws, r, ["Lender", "Type", "Original loan", "Outstanding", "Monthly EMI", "Months left", "Counted?", "Status", "EMIs paid", "Bounces", "Times 30+ late"]);
     r += 1;
     const loans = tableRows(data, "obligations", "loans");
     const first = r;
@@ -276,6 +410,7 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
       put2(ws, r, 1, l.lender ?? null); put2(ws, r, 2, l.type ?? null);
       put2(ws, r, 3, l.sanctioned ?? null, "money"); put2(ws, r, 4, l.outstanding ?? null, "money");
       put2(ws, r, 5, l.emi ?? null, "money"); put2(ws, r, 6, l.monthsLeft ?? null, "number"); put2(ws, r, 7, l.foir ?? "Yes");
+      put2(ws, r, 8, l.status ?? "Live"); put2(ws, r, 9, l.paid ?? null, "number"); put2(ws, r, 10, l.bounces ?? null, "number"); put2(ws, r, 11, l.dpd30 ?? null, "number");
       r += 1;
     }
     if (!loans.length) { ws.getCell(r, 1).value = "No running loans given."; r += 1; }
@@ -287,6 +422,8 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
         put2(ws, r, col, { formula: `SUM(${l}${first}:${l}${r - 1})`, result: sum(loans.map((x) => (typeof x[keyOf[col]!] === "number" ? (x[keyOf[col]!] as number) : null))) } as never, "money", true);
       }
       r += 1;
+      r += 1;
+      r = pairs(ws, r, [["Bounces in the running loans' track", a.tracks.bounces, "number"], ["Times a running loan was 30+ days late", a.tracks.dpd30, "number"], ["EMIs from co-applicants counted too", a.coApplicants.emi, "money"]]);
     }
   }
 
@@ -353,7 +490,7 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
 
   // ── 6. Banking ──
   {
-    const ws = sheet(wb, "Banking", "BANK STATEMENT ANALYSIS", sub, [22, 20, 20, 20, 20, 16]);
+    const ws = sheet(wb, "Banking", "BANK STATEMENT ANALYSIS", sub, [26, 16, 16, 18, 16, 16, 14, 14, 14, 16, 14, 14]);
     let r = heading(ws, 4, "Accounts", 6);
     r = sectionPairs(ws, r, sec("banking")!, data);
     r += 1;
@@ -384,11 +521,46 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
       put2(ws, r, 6, { formula: `SUM(F${first}:F${last})`, result: sum(months.map((m) => (typeof m.returns === "number" ? m.returns : 0))) } as never, "number", true);
       r += 2;
     }
+    const detail = tableRows(data, "bankingDetail", "detail");
+    if (detail.length) {
+      r = heading(ws, r, `From the statement, in detail${data.bankingDetail?.bankName ? `: ${data.bankingDetail.bankName}` : ""}`, 12);
+      tableHeader(ws, r, ["Month", "Credits (no.)", "Debits (no.)", "Salary / regular credits", "EMIs seen", "Balance 5th", "Balance 10th", "Balance 15th", "Balance 25th", "Average balance", "Inward returns", "Outward returns"]);
+      r += 1;
+      const f0 = r;
+      const n = (v: unknown) => (typeof v === "number" ? v : null);
+      for (const m of detail) {
+        put2(ws, r, 1, m.month ?? null); put2(ws, r, 2, m.creditCount ?? null, "number"); put2(ws, r, 3, m.debitCount ?? null, "number");
+        put2(ws, r, 4, m.salary ?? null, "money"); put2(ws, r, 5, m.emisSeen ?? null, "money");
+        put2(ws, r, 6, m.bal5 ?? null, "money"); put2(ws, r, 7, m.bal10 ?? null, "money"); put2(ws, r, 8, m.bal15 ?? null, "money"); put2(ws, r, 9, m.bal25 ?? null, "money");
+        const bals = [m.bal5, m.bal10, m.bal15, m.bal25].map(n).filter((x): x is number => x !== null);
+        put2(ws, r, 10, { formula: `IFERROR(AVERAGE(F${r}:I${r}),0)`, result: bals.length ? bals.reduce((p, c) => p + c, 0) / bals.length : 0 } as never, "money", true);
+        put2(ws, r, 11, m.inward ?? null, "number"); put2(ws, r, 12, m.outward ?? null, "number");
+        r += 1;
+      }
+      const l0 = r - 1;
+      put2(ws, r, 1, "Average / total", "text", true).fill = solid(PALE);
+      const colSum = (k: string) => detail.reduce((p, c) => p + (typeof c[k] === "number" ? (c[k] as number) : 0), 0);
+      put2(ws, r, 2, { formula: `SUM(B${f0}:B${l0})`, result: colSum("creditCount") } as never, "number", true);
+      put2(ws, r, 3, { formula: `SUM(C${f0}:C${l0})`, result: colSum("debitCount") } as never, "number", true);
+      put2(ws, r, 5, { formula: `IFERROR(AVERAGE(E${f0}:E${l0}),0)`, result: a.bankingDetail.emisSeenAvg ?? 0 } as never, "money", true);
+      put2(ws, r, 10, { formula: `IFERROR(AVERAGE(J${f0}:J${l0}),0)`, result: a.bankingDetail.abb ?? 0 } as never, "money", true);
+      put2(ws, r, 11, { formula: `SUM(K${f0}:K${l0})`, result: colSum("inward") } as never, "number", true);
+      put2(ws, r, 12, { formula: `SUM(L${f0}:L${l0})`, result: colSum("outward") } as never, "number", true);
+      r += 1;
+      put2(ws, r, 1, "Inward returns, % of debits", "text", true).fill = solid(PALE);
+      put2(ws, r, 11, { formula: `IFERROR(K${r - 1}/C${r - 1}*100,0)`, result: a.bankingDetail.inwardPct ?? 0 } as never, "percent", true);
+      r += 1;
+      put2(ws, r, 1, "Outward returns, % of credits", "text", true).fill = solid(PALE);
+      put2(ws, r, 12, { formula: `IFERROR(L${r - 2}/B${r - 2}*100,0)`, result: a.bankingDetail.outwardPct ?? 0 } as never, "percent", true);
+      r += 2;
+    }
     r = heading(ws, r, "Read-across", 6);
     pairs(ws, r, [
       ["Average balance against the new EMI (times)", a.banking.abbToEmi, "number"],
       ["Cheque / EMI returns", a.banking.returns, "number"],
       ["Bank credits against GST sales (times)", a.gst.creditsToSales, "number"],
+      ["Bank credits, latest 6 months against the 6 before, %", a.banking.creditsTrendPct, "percent"],
+      ["EMIs seen in the statement a month, against the loans listed", a.bankingDetail.emisSeenAvg === null ? null : `${inr(a.bankingDetail.emisSeenAvg)} against ${inr(a.bankingDetail.declaredEmi)}`],
     ]);
   }
 
@@ -436,7 +608,16 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
     put2(ws, r, 1, "Loan asked for").fill = solid(PALE); put2(ws, r, 2, a.requested, "money", true); r += 1;
     put2(ws, r, 1, "Loan as % of property value").fill = solid(PALE);
     put2(ws, r, 2, { formula: `IFERROR(B${rows + 1}/B${rows}*100,0)`, result: a.property.ltv ?? 0 } as never, "percent", true); r += 1;
-    pairs(ws, r, [["Basis for the value", a.property.basis]]);
+    r = pairs(ws, r, [
+      ["Basis for the value", a.property.basis],
+      ["Loan against the cost of the property (agreement value), %", a.property.ltvOnCost, "percent"],
+      ["Loan against the market value (valuers), %", a.property.ltvOnMarket, "percent"],
+    ]);
+    if (sec("valuation")) {
+      r += 1;
+      r = heading(ws, r, "Valuation, from the lender's valuers");
+      sectionPairs(ws, r, sec("valuation")!, data);
+    }
   }
 
   // ── 9. Education ──
@@ -470,6 +651,56 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
     else { put2(ws, r, 1, "Total assets", "text", true); put2(ws, r, 3, { formula: `SUM(C${first}:C${r - 1})`, result: a.netWorth.assets } as never, "money", true); r += 1; }
     r += 1;
     pairs(ws, r, [["Loans and card dues outstanding", a.netWorth.liabilities, "money"], ["Net worth", a.netWorth.net, "money"]], 3);
+  }
+
+  // ── 10b. Scorecard ──
+  {
+    const ws = sheet(wb, "Scorecard", "INDICATIVE SCORECARD", `${sub}. Change nothing here: it works from the other sheets.`, [50, 28, 12, 14, 14]);
+    let r = 4;
+    const sc = a.scorecard;
+    if (!sc.items.length) {
+      ws.getCell(r, 1).value = "Not enough answers yet.";
+    } else {
+      tableHeader(ws, r, ["Test", "This case", "Points", "Lowest possible", "Highest possible"]);
+      r += 1;
+      const first = r;
+      for (const it of sc.items) {
+        put2(ws, r, 1, it.name); put2(ws, r, 2, it.value);
+        const p = put2(ws, r, 3, it.points, "number", true);
+        p.fill = flagFill(it.points < 0 ? "risk" : it.points === 0 ? "watch" : "good");
+        put2(ws, r, 4, it.min, "number"); put2(ws, r, 5, it.max, "number");
+        r += 1;
+      }
+      const last = r - 1;
+      put2(ws, r, 1, "Total", "text", true).fill = solid(PALE);
+      put2(ws, r, 3, { formula: `SUM(C${first}:C${last})`, result: sc.items.reduce((p, c) => p + c.points, 0) } as never, "number", true);
+      put2(ws, r, 4, { formula: `SUM(D${first}:D${last})`, result: sc.items.reduce((p, c) => p + c.min, 0) } as never, "number", true);
+      put2(ws, r, 5, { formula: `SUM(E${first}:E${last})`, result: sc.items.reduce((p, c) => p + c.max, 0) } as never, "number", true);
+      const tot = r; r += 1;
+      put2(ws, r, 1, "Score, % of the way from lowest to highest", "text", true).fill = solid(PALE);
+      put2(ws, r, 3, { formula: `IFERROR((C${tot}-D${tot})/(E${tot}-D${tot}),0)`, result: (sc.percent ?? 0) / 100 } as never, "number", true).numFmt = "0%";
+      const pr = r; r += 1;
+      put2(ws, r, 1, "Grade", "text", true).fill = solid(PALE);
+      put2(ws, r, 3, { formula: `IF(C${pr}>0.8,"A",IF(C${pr}>0.6,"B",IF(C${pr}>0.5,"C",IF(C${pr}>0.35,"D",IF(C${pr}>0.2,"E","F")))))`, result: sc.grade ?? "" } as never, "text", true);
+      r += 2;
+    }
+    note(ws, r, 5, sc.note, 52);
+  }
+
+  // ── 10c. Checks and documents ──
+  {
+    const ws = sheet(wb, "Checks & documents", "CHECKS, DISCUSSION, DOCUMENTS AND DEVIATIONS", sub, [48, 42, 18, 50]);
+    let r = heading(ws, 4, "Credit checks and verification", 4);
+    r = sectionPairs(ws, r, sec("checks")!, data);
+    r += 1;
+    r = heading(ws, r, "Personal discussion and visit", 4);
+    r = sectionPairs(ws, r, sec("discussion")!, data);
+    r += 1;
+    r = heading(ws, r, "Documents", 4);
+    r = schemaTable(ws, r, sec("documents"), "list", data, "No documents listed yet.");
+    r += 1;
+    r = heading(ws, r, "Deviations and what covers each", 4);
+    schemaTable(ws, r, sec("remarks"), "deviationList", data, "No deviations noted.");
   }
 
   // ── 11. Lender match ──
@@ -519,9 +750,16 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
       r += 1;
       for (const g of gaps) { put2(ws, r, 1, g.section); put2(ws, r, 2, g.label); r += 1; }
     }
+    const pending = tableRows(data, "documents", "list").filter((x) => x.status === "Pending");
+    if (pending.length) {
+      r += 2;
+      r = heading(ws, r, "Documents still pending", 2);
+      for (const x of pending) { put2(ws, r, 1, x.document ?? null); put2(ws, r, 2, [x.who, x.remark].filter(Boolean).join(" · ") || null); r += 1; }
+    }
   }
 
   return Buffer.from(await wb.xlsx.writeBuffer());
 }
 
 const sum = (xs: (number | null)[]) => xs.reduce<number>((p, c) => p + (c ?? 0), 0);
+const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
