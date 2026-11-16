@@ -146,6 +146,32 @@ export function readExtra(payload: unknown): CallExtra {
   };
 }
 
+/** The CRM loan product a spoken loan type means (the agent may say "home", "LAP", "loan against my shop"), or null. */
+export function loanSlug(...texts: (string | null | undefined)[]): string | null {
+  const t = texts.filter(Boolean).join(" ").toLowerCase();
+  if (!t.trim()) return null;
+  const rules: [RegExp, string][] = [
+    [/against\s+(?:\w+\s+)?(?:property|shop|house|flat|office|land)|\blap\b/, "loan-against-property"],
+    [/balance\s*transfer|top[-\s]?up/, "balance-transfer"],
+    [/home\s*loan|housing|house\s*loan|flat\s*loan/, "home-loan"],
+    [/education|study|abroad|student/, "education-loan"],
+    [/used\s*car|second[-\s]?hand\s*car/, "used-car-loan"],
+    [/car\s*refinance/, "car-refinance"],
+    [/car\s*loan|new\s*car|\bcar\b/, "new-car-loan"],
+    [/personal/, "personal-loan"],
+    [/working\s*capital|cash\s*credit|overdraft/, "working-capital-term-loan"],
+    [/business|msme|shop\s*loan|\bmudra\b/, "business-loan"],
+    [/\bhome\b/, "home-loan"],
+  ];
+  return rules.find(([re]) => re.test(t))?.[1] ?? null;
+}
+
+/** "40 lakhs" or "1.5 crore" said in running text, when the agent gave no structured amount. */
+export function amountIn(text: string | null | undefined): number | null {
+  const m = text?.match(/(\d+(?:\.\d+)?)\s*(crore|cr|lakhs?|lacs?)\b/i);
+  return m ? num(m[0]) : null;
+}
+
 export function readCall(payload: unknown): CallDetails {
   const callId = text(find(payload, ["interaction_id", "interactionId", "call_id", "callId", "call_uuid", "attempt_id", "id"]), 120);
   // Who rang us: prefer fields that name the caller; the number we own is never the answer.
@@ -163,7 +189,7 @@ export function readCall(payload: unknown): CallDetails {
     phone,
     name: text(find(payload, ["full_name", "name", "customer_name", "caller_name", "lead_name", "user_name"]), 120),
     city: text(find(payload, ["city", "location", "customer_city"]), 80),
-    amount: num(find(payload, ["loan_amount", "amount", "required_amount", "loan_requirement"])),
+    amount: num(find(payload, ["loan_amount_inr", "loan_amount", "amount", "required_amount", "loan_requirement"])) ?? amountIn(text(find(payload, ["call_summary", "summary", "conversation_summary"]), 1500)),
     extra: readExtra(payload),
     loanType: text(find(payload, ["loan_type", "loan_product", "product", "loan_purpose", "purpose"]), 120),
     summary: text(find(payload, ["summary", "call_summary", "conversation_summary", "notes"]), 1500),

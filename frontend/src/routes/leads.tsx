@@ -308,6 +308,7 @@ function NewLeadModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
 /** How a lead got into the CRM, in plain words. */
 const ENTRY_LABEL: Record<string, string> = {
   whatsapp: "WhatsApp chat",
+  "ai-telecaller": "AI phone call",
   "website-chat": "Website chat",
   "ai-advisor": "Website assistant",
   "manual-entry": "Added by hand",

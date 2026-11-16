@@ -168,3 +168,20 @@ describe("Sarvam's real end-of-call message", () => {
     expect(readCall({ ...real, output_agent_variables: { full_name: "Vineet Sarnaik" } }).name).toBe("Vineet Sarnaik");
   });
 });
+
+describe("loan type and amount when the agent only sends a summary", () => {
+  const { loanSlug, amountIn } = jest.requireActual("./voice-payload") as typeof import("./voice-payload");
+  it("maps what was said to our loan products", () => {
+    expect(loanSlug("home loan")).toBe("home-loan");
+    expect(loanSlug("LAP")).toBe("loan-against-property");
+    expect(loanSlug(null, "wants a loan against his shop")).toBe("loan-against-property");
+    expect(loanSlug("used car")).toBe("used-car-loan");
+    expect(loanSlug("something odd")).toBeNull();
+  });
+  it("finds the amount in the summary", () => {
+    expect(amountIn("requested a home loan of 40 lakhs")).toBe(4000000);
+    expect(amountIn("needs 1.5 crore")).toBe(15000000);
+    expect(amountIn("no figure")).toBeNull();
+    expect(readCall({ user_phone_number: "+918928218139", duration: 30, final_agent_variables: { call_summary: "Needs a home loan of 40 lakhs in Mumbai." } }).amount).toBe(4000000);
+  });
+});

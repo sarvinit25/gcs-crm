@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { LeadsService } from "../leads/leads.service";
-import { readCall, type CallDetails } from "./voice-payload";
+import { loanSlug, readCall, type CallDetails } from "./voice-payload";
 
 export const VOICE_SOURCE = "ai-telecaller";
 
@@ -78,6 +78,7 @@ export class VoiceService {
           phone: call.phone,
           city: call.city && call.city.length >= 2 ? call.city : undefined,
           amount: call.amount ?? undefined,
+          productSlug: loanSlug(call.loanType, call.summary) ?? undefined,
           source: VOICE_SOURCE,
           detail: callNote(call),
         } as never);
