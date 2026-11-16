@@ -26,6 +26,7 @@ import { LeadStatusBadge, SegmentBadge } from "../components/status-badge";
 import { NewApplicationWizard } from "../components/new-application-wizard";
 import { ChannelInput } from "../components/channel-field";
 import { Modal } from "../components/modal";
+import { DeleteConfirm } from "../components/delete-confirm";
 import { LeadSecondForm } from "../components/lead-second-form";
 import { LoanProfilePanel } from "../components/loan-profile-panel";
 import { LeadDocuments } from "../components/lead-documents";
@@ -262,14 +263,7 @@ export function LeadDetailPage() {
     void queryClient.invalidateQueries({ queryKey: ["leads"] });
   };
 
-  const remove = useMutation({
-    mutationFn: () => api(`/leads/${leadId}`, { method: "DELETE" }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["leads"] });
-      void navigate({ to: "/leads" });
-    },
-    onError: (e) => window.alert((e as Error).message),
-  });
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const [askingReason, setAskingReason] = useState(false);
   const setStatus = useMutation({
@@ -334,13 +328,10 @@ export function LeadDetailPage() {
             {user?.role === "ADMIN" && !lead.application && (
               <button
                 className="btn-ghost text-red-700"
-                disabled={remove.isPending}
                 title="Delete this lead for good (only for junk or test leads)"
-                onClick={() => {
-                  if (window.confirm(`Delete lead #${lead.leadNo} (${lead.name}) for good? This cannot be undone.`)) remove.mutate();
-                }}
+                onClick={() => setConfirmingDelete(true)}
               >
-                {remove.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />} Delete
+                <Trash2 className="h-4 w-4" /> Delete
               </button>
             )}
             <select
@@ -741,6 +732,24 @@ export function LeadDetailPage() {
         </section>
         </div>
       </div>
+      {confirmingDelete && (
+        <DeleteConfirm
+          title={`Delete lead #${lead.leadNo}?`}
+          onDelete={() => api(`/leads/${leadId}`, { method: "DELETE" })}
+          onDone={() => {
+            void queryClient.invalidateQueries({ queryKey: ["leads"] });
+            void navigate({ to: "/leads" });
+          }}
+          onClose={() => setConfirmingDelete(false)}
+        >
+          <p>
+            <span className="font-semibold text-navy">
+              #{lead.leadNo} {lead.name}
+            </span>{" "}
+            will be deleted for good, together with its follow-ups, answers and uploaded files.
+          </p>
+        </DeleteConfirm>
+      )}
     </>
   );
 }

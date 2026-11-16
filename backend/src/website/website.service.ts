@@ -1,13 +1,44 @@
-import { Injectable } from "@nestjs/common";
-import { Prisma, SubmissionOutcome } from "@prisma/client";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { AuditAction, Prisma, SubmissionOutcome } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { rangeFilter, resolveRange } from "../common/date.util";
 import { ListSubmissionsQuery } from "./dto/website.dto";
+import { AuditService } from "../audit/audit.service";
+import { LeadsService } from "../leads/leads.service";
+import type { AuthUser } from "../auth/auth.decorators";
 
 /** The inbox of everything that arrived through the public intake (website forms, WhatsApp, telecaller). */
 @Injectable()
 export class WebsiteService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private audit: AuditService,
+    private leads: LeadsService,
+  ) {}
+
+  /**
+   * Deletes a website entry for good. When the lead it created goes too, that happens first: a lead with a loan file is
+   * refused with its own message and the entry is left untouched, so nothing is half-deleted.
+   */
+  async remove(id: string, withLead: boolean, user: AuthUser, ip?: string) {
+    const entry = await this.prisma.websiteSubmission.findUnique({
+      where: { id },
+      select: { id: true, name: true, form: true, leadId: true },
+    });
+    if (!entry) throw new NotFoundException("Entry not found");
+
+    if (withLead && entry.leadId) await this.leads.remove(entry.leadId, user, ip);
+    await this.prisma.websiteSubmission.delete({ where: { id } });
+    await this.audit.record({
+      actor: user,
+      action: AuditAction.DELETE,
+      entity: "WebsiteSubmission",
+      entityId: id,
+      entityLabel: `${entry.name} (${entry.form})${withLead && entry.leadId ? ", with its lead" : ""}`,
+      ip,
+    });
+    return { ok: true };
+  }
 
   async list(q: ListSubmissionsQuery) {
     const page = q.page ?? 1;

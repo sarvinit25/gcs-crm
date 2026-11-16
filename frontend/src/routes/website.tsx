@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Copy, Globe, Loader2, Search, Users } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronDown, Copy, Globe, Loader2, Search, Trash2, Users } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
 import { formatAmount, formatDateTime } from "../lib/format";
@@ -13,6 +13,8 @@ import {
   type SubmissionOutcome,
 } from "../lib/website";
 import { PageHeader } from "../components/app-shell";
+import { useAuth } from "../lib/auth";
+import { DeleteConfirm } from "../components/delete-confirm";
 import { LeadStatusBadge } from "../components/status-badge";
 import { PeriodSelect } from "../components/period-select";
 import { TableSkeleton } from "../components/skeleton";
@@ -131,6 +133,11 @@ export function WebsitePage() {
   const [timeRange, setTimeRange] = useState("all");
   const [page, setPage] = useState(1);
   const [openId, setOpenId] = useState<string | null>(null); // the row whose duplicate entries are showing
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
+  const queryClient = useQueryClient();
+  const [toDelete, setToDelete] = useState<Submission | null>(null);
+  const [alsoLead, setAlsoLead] = useState(false);
   const reset = (fn: () => void) => {
     fn();
     setPage(1);
@@ -283,6 +290,7 @@ export function WebsitePage() {
                     <th className="px-4 py-2.5 font-bold">What they sent</th>
                     <th className="px-4 py-2.5 font-bold">Result</th>
                     <th className="px-4 py-2.5 font-bold">Lead</th>
+                    {isAdmin && <th className="w-10 px-2 py-2.5" aria-label="Delete" />}
                   </tr>
                 </thead>
                 <tbody>
@@ -375,10 +383,25 @@ export function WebsitePage() {
                               <span className="text-muted">Lead removed</span>
                             )}
                           </td>
+                          {isAdmin && (
+                            <td className="px-2 py-3 text-right">
+                              <button
+                                onClick={() => {
+                                  setAlsoLead(false);
+                                  setToDelete(s);
+                                }}
+                                title="Delete this entry permanently"
+                                aria-label={`Delete the entry from ${s.name}`}
+                                className="rounded p-1.5 text-muted transition hover:bg-red-50 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
+                          )}
                         </tr>
                         {openId === s.id && (
                           <tr className="border-b border-line/70 bg-bg-light/60">
-                            <td colSpan={6} className="px-4 py-3">
+                            <td colSpan={isAdmin ? 7 : 6} className="px-4 py-3">
                               <OtherEntries s={s} />
                             </td>
                           </tr>
@@ -390,6 +413,37 @@ export function WebsitePage() {
               </table>
             )}
           </div>
+
+          {toDelete && (
+            <DeleteConfirm
+              title="Delete this website entry?"
+              onDelete={() => api(`/website-submissions/${toDelete.id}${qs({ withLead: alsoLead && toDelete.lead ? "true" : undefined })}`, { method: "DELETE" })}
+              onDone={() => {
+                void queryClient.invalidateQueries({ queryKey: ["website-submissions"] });
+                void queryClient.invalidateQueries({ queryKey: ["leads"] });
+              }}
+              onClose={() => setToDelete(null)}
+            >
+              <p>
+                The entry from <span className="font-semibold text-navy">{toDelete.name}</span> ({toDelete.phone}) will be deleted for good.
+              </p>
+              {toDelete.lead ? (
+                <label className="flex items-start gap-2 rounded-lg border border-line p-3">
+                  <input type="checkbox" className="mt-0.5" checked={alsoLead} onChange={(e) => setAlsoLead(e.target.checked)} />
+                  <span>
+                    Also delete the lead{" "}
+                    <span className="font-semibold text-navy">
+                      #{toDelete.lead.leadNo} {toDelete.lead.name}
+                    </span>
+                    , with its follow-ups, answers and uploaded files.
+                    <span className="mt-0.5 block text-muted">Leave this off to keep the lead and only remove this entry. A lead with a loan file can’t be deleted.</span>
+                  </span>
+                </label>
+              ) : (
+                <p className="text-muted">Its lead has already been removed.</p>
+              )}
+            </DeleteConfirm>
+          )}
 
           {query.data && query.data.total > query.data.pageSize && (
             <div className="mt-3 flex items-center justify-between text-[13px] text-muted">
