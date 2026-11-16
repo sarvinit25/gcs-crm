@@ -14,6 +14,7 @@ import type { AuthUser } from "../auth/auth.decorators";
 import { istToday } from "../common/date.util";
 import { PROFILE_STAGE, answerKey, fieldsFor, parseAnswer, type Answers, type Field } from "../loan-profile/profile-schema";
 import { LoanProfileService } from "../loan-profile/loan-profile.service";
+import { DocumentReaderService } from "../document-reader/document-reader.service";
 import { checkFormSession, generateFormCode, generateFormToken, hashFormCode, hashFormToken, looksLikeFormToken, maskEmail, signFormSession } from "./form-token";
 import { completeReferences, formProblems, mergeForm, type FormData } from "./form-rules";
 import type { SaveFormDto } from "./dto/customer-form.dto";
@@ -83,6 +84,7 @@ export class CustomerFormService {
     private config: ConfigService,
     private alerts: AlertsService,
     private profile: LoanProfileService,
+    private reader: DocumentReaderService,
   ) {}
 
   private get secret() {
@@ -564,6 +566,8 @@ export class CustomerFormService {
       entityLabel: `${this.appNo(app)} · application form submitted by the customer`,
       changes,
     });
+    // Read what they uploaded in the background, so staff open the file to answers. The customer is not kept waiting.
+    void this.reader.readAfterSubmit(app.id);
     return { submitted: true, applicationNo: this.appNo(app) };
   }
 }

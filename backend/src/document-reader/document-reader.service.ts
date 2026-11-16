@@ -59,6 +59,32 @@ export class DocumentReaderService {
   async readOne(applicationId: string, documentId: string, user: AuthUser) {
     await this.applicationFor(applicationId, user);
     const doc = await this.documentFor(applicationId, documentId);
+    const saved = await this.readDocument(doc);
+    await this.audit.record({ actor: user, action: AuditAction.CREATE, entity: "Document", entityId: documentId, entityLabel: `${doc.fileName} · read (${saved.method === "local" ? "on our server" : "AI"})` });
+    return { documentId, docType: saved.docType, method: saved.method, summary: saved.summary, fields: saved.fields, canAddToCam: Boolean(saved.cam) };
+  }
+
+  /**
+   * Run when the customer sends their form in: reads what they uploaded so staff open the file to answers, not a pile of PDFs.
+   * It never throws and never touches the CAM; a file that cannot be read is simply left for staff to read by hand.
+   */
+  async readAfterSubmit(applicationId: string): Promise<void> {
+    try {
+      const docs = await this.prisma.document.findMany({ where: { applicationId, category: { notIn: NEVER_READ_CATEGORIES }, reading: null }, orderBy: { createdAt: "asc" }, take: MAX_AT_ONCE });
+      for (const d of docs) {
+        try {
+          await this.readDocument(d);
+        } catch (e) {
+          this.log.warn(`Could not read ${d.fileName} on its own: ${(e as Error).message}`);
+        }
+      }
+    } catch (e) {
+      this.log.warn(`Automatic reading of an application's documents stopped: ${(e as Error).message}`);
+    }
+  }
+
+  private async readDocument(doc: { id: string; category: string; fileName: string; objectKey: string; mimeType: string }) {
+    const documentId = doc.id;
     if (NEVER_READ_CATEGORIES.includes(doc.category)) throw new BadRequestException("Identity papers (KYC) are not read by the AI. The customer types those numbers themselves.");
     const buffer = await this.storage.get(doc.objectKey);
 
@@ -81,9 +107,7 @@ export class DocumentReaderService {
     }
 
     const data = { docType: reading.docType, method, summary: reading.summary, fields: reading.fields as unknown as Prisma.InputJsonValue, cam: (cam ?? Prisma.JsonNull) as Prisma.InputJsonValue, model, appliedToCamAt: null };
-    const saved = await this.prisma.documentReading.upsert({ where: { documentId }, create: { documentId, ...data }, update: data });
-    await this.audit.record({ actor: user, action: AuditAction.CREATE, entity: "Document", entityId: documentId, entityLabel: `${doc.fileName} · read (${method === "local" ? "on our server" : "AI"})` });
-    return { documentId, docType: saved.docType, method: saved.method, summary: saved.summary, fields: saved.fields, canAddToCam: Boolean(saved.cam) };
+    return this.prisma.documentReading.upsert({ where: { documentId }, create: { documentId, ...data }, update: data });
   }
 
   /** Reads every document not yet read, a few at a time, skipping identity papers. One failing file does not stop the rest. */

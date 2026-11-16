@@ -8,5 +8,6 @@ import { DocumentReaderService } from "./document-reader.service";
   imports: [DocumentsModule, CamModule],
   controllers: [DocumentReaderController],
   providers: [DocumentReaderService],
+  exports: [DocumentReaderService],
 })
 export class DocumentReaderModule {}
