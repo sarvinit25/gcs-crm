@@ -19,6 +19,7 @@ import { DisbursementsModule } from "./disbursements/disbursements.module";
 import { CommissionsModule } from "./commissions/commissions.module";
 import { ChecklistModule } from "./checklist/checklist.module";
 import { SiteContentModule } from "./site-content/site-content.module";
+import { TestimonialsModule } from "./testimonials/testimonials.module";
 import { AlertsModule } from "./alerts/alerts.module";
 import { EducationLoanDetailModule } from "./education-loan-detail/education-loan-detail.module";
 import { PartnersModule } from "./partners/partners.module";
@@ -87,6 +88,7 @@ import { LoanProfileModule } from "./loan-profile/loan-profile.module";
     CommissionsModule,
     ChecklistModule,
     SiteContentModule,
+    TestimonialsModule,
     AlertsModule,
     EducationLoanDetailModule,
     PartnersModule,

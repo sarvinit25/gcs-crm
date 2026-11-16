@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { AlertTriangle, CheckCircle2, Download, Eye, EyeOff, Loader2, Pencil, Plus, Trash2, Upload } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, CheckCircle2, Copy, Download, Eye, EyeOff, Inbox, Link2, Loader2, MessageCircle, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import clsx from "clsx";
-import { tokenStore } from "../lib/api";
+import { api, tokenStore } from "../lib/api";
 import { Modal } from "./modal";
 
 export type Consent = { given?: boolean; photoOk?: boolean; how?: string; date?: string; note?: string };
@@ -166,13 +167,107 @@ function EditModal({ initial, onDone, onClose }: { initial: Testimonial; onDone:
   );
 }
 
+type Submission = {
+  id: string; name: string; city: string | null; product: string | null; role: string | null; contact: string | null;
+  rating: number; quote: string; consentPhoto: boolean; signedName: string; status: string; hasPhoto: boolean;
+  createdAt: string; reviewedByName: string | null;
+};
+
+/** A photo a client sent, fetched with the staff login (it is private until the story is approved). */
+function SubPhoto({ id, name }: { id: string; name: string }) {
+  const [src, setSrc] = useState("");
+  useEffect(() => {
+    let url = "";
+    let gone = false;
+    void fetch(`/crm/api/testimonial-submissions/${id}/photo`, { headers: { Authorization: `Bearer ${tokenStore.get() ?? ""}` } })
+      .then((r) => (r.ok ? r.blob() : null))
+      .then((b) => { if (b && !gone) { url = URL.createObjectURL(b); setSrc(url); } })
+      .catch(() => undefined);
+    return () => { gone = true; if (url) URL.revokeObjectURL(url); };
+  }, [id]);
+  return src ? <img src={src} alt="" className="h-14 w-14 shrink-0 rounded-full object-cover ring-1 ring-line" /> : <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-navy text-sm font-bold text-gold-light">{initials(name)}</span>;
+}
+
+const FORM_PAGE = () => `${window.location.origin}/crm/testimonial`;
+
+/** The link to send clients, and what they have sent back, waiting for you to use it or not. */
+function ClientForm({ locked }: { locked: boolean }) {
+  const queryClient = useQueryClient();
+  const [copied, setCopied] = useState(false);
+  const q = useQuery({ queryKey: ["testimonial-submissions"], queryFn: () => api<{ pendingCount: number; items: Submission[] }>("/testimonial-submissions"), refetchInterval: 60_000 });
+  const done = () => {
+    void queryClient.invalidateQueries({ queryKey: ["testimonial-submissions"] });
+    // The stories list reloads, so the approved one appears in the gallery below.
+    void queryClient.invalidateQueries({ queryKey: ["site-content"] });
+  };
+  const approve = useMutation({ mutationFn: (id: string) => api(`/testimonial-submissions/${id}/approve`, { method: "POST" }), onSuccess: done });
+  const reject = useMutation({ mutationFn: (id: string) => api(`/testimonial-submissions/${id}/reject`, { method: "POST" }), onSuccess: done });
+  const pending = (q.data?.items ?? []).filter((s) => s.status === "PENDING");
+  const link = FORM_PAGE();
+  const message = `Hello, thank you for choosing Growth Capital Services. If you have a few minutes, we would love to hear how your experience was. You can share it here, and add your photo if you like: ${link}`;
+  const error = (approve.error ?? reject.error) as Error | null;
+
+  return (
+    <div className="space-y-3 rounded-xl border border-line bg-white p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Link2 className="h-4 w-4 text-gold-dark" />
+        <p className="text-[13px] font-semibold text-navy">Send clients the online form</p>
+        <span className="text-[12px] text-muted">They fill it on their phone, add a photo and sign by typing their name. Nothing goes on the website until you approve it.</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="min-w-0 flex-1 truncate rounded-md border border-line bg-bg-light px-2.5 py-1.5 font-mono text-[12px]" title={link}>{link}</p>
+        <button type="button" className="btn-ghost" onClick={() => { void navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>
+          {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />} {copied ? "Copied" : "Copy link"}
+        </button>
+        <a className="btn-primary" href={`https://wa.me/?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer"><MessageCircle className="h-4 w-4" /> Share on WhatsApp</a>
+      </div>
+
+      <div>
+        <p className="flex items-center gap-1.5 text-[12px] font-bold tracking-wide text-navy uppercase"><Inbox className="h-4 w-4" /> New from clients {pending.length > 0 && <span className="rounded-full bg-gold px-2 py-0.5 text-[11px] text-navy">{pending.length}</span>}</p>
+        {q.isPending ? <Loader2 className="mt-2 h-4 w-4 animate-spin text-muted" /> : pending.length === 0 ? <p className="mt-1 text-[12px] text-muted">Nothing waiting. What clients send will appear here.</p> : (
+          <ul className="mt-2 space-y-3">
+            {pending.map((s) => (
+              <li key={s.id} className="rounded-lg border border-line p-3">
+                <div className="flex items-start gap-3">
+                  {s.hasPhoto ? <SubPhoto id={s.id} name={s.name} /> : <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-navy text-sm font-bold text-gold-light">{initials(s.name)}</span>}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-navy">{s.name} <span className="font-normal text-gold-dark">{s.rating}/5</span></p>
+                    <p className="text-[12px] text-muted">{[s.role, s.city, s.product].filter(Boolean).join(" · ") || "No details given"}</p>
+                    <p className="mt-1.5 text-[13px] text-ink italic">"{s.quote}"</p>
+                    <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+                      <span className="inline-flex items-center gap-1 font-semibold text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" /> Agreed to words, name and city</span>
+                      <span className={s.consentPhoto ? "font-semibold text-emerald-700" : "text-muted"}>{s.consentPhoto ? "Agreed to photo" : "No photo shared"}</span>
+                      <span className="text-muted">Signed as "{s.signedName}"</span>
+                      {s.contact && <span className="text-muted">Contact (private): {s.contact}</span>}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+                  <button type="button" className="btn-primary" disabled={locked || approve.isPending || reject.isPending} onClick={() => approve.mutate(s.id)} title={locked ? "Save your other changes below first" : undefined}>
+                    {approve.isPending && approve.variables === s.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Add as a story
+                  </button>
+                  <button type="button" className="btn-ghost text-red-600" disabled={approve.isPending || reject.isPending} onClick={() => { if (window.confirm(`Not use the message from ${s.name}? Their photo will be deleted.`)) reject.mutate(s.id); }}><X className="h-4 w-4" /> Not used</button>
+                  {locked && <span className="text-[11px] text-amber-700">Save your other changes below first.</span>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {error && <p className="mt-2 text-[12px] font-medium text-red-600">{error.message}</p>}
+        {approve.isSuccess && <p className="mt-2 text-[12px] font-medium text-emerald-700">Added below as a hidden story, with the client's permission already recorded. Open it, check it, and choose Show when you are happy.</p>}
+      </div>
+    </div>
+  );
+}
+
 /** Client stories: a gallery of cards with photo, words and consent. Edit opens a window; Save below the list publishes. */
-export function TestimonialsEditor({ value, onChange }: { value: Testimonial[]; onChange: (v: unknown) => void }) {
+export function TestimonialsEditor({ value, onChange, dirty = false }: { value: Testimonial[]; onChange: (v: unknown) => void; dirty?: boolean }) {
   const [editing, setEditing] = useState<{ index: number; story: Testimonial } | null>(null);
   const list = value ?? [];
   const noConsent = list.filter((t) => t.visible !== false && !canShow(t)).length;
   return (
     <div className="space-y-3">
+      <ClientForm locked={dirty} />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-[13px] text-muted">{list.length} {list.length === 1 ? "story" : "stories"}. Only stories marked Shown appear on the website.</p>
         <div className="flex flex-wrap gap-2">

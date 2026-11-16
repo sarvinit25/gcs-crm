@@ -48,6 +48,7 @@ import { SettingsPage } from "./routes/settings";
 import { SearchPage } from "./routes/search";
 import { AccountPage, ForcePasswordChange } from "./routes/account";
 import { ApplyPage } from "./routes/apply";
+import { TestimonialPage } from "./routes/testimonial";
 import { CamPublicPage } from "./routes/cam-public";
 import { LeadCamPage } from "./routes/lead-cam";
 import { CamsPage } from "./routes/cams";
@@ -77,6 +78,13 @@ const applyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/apply/$token",
   component: ApplyPage,
+});
+
+/** The page a client opens from a link to share their experience: no login, and nothing it receives is published. */
+const testimonialRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/testimonial",
+  component: TestimonialPage,
 });
 
 /** The customer's CAM information form: no login, the link's token is the credential. */
@@ -182,6 +190,7 @@ const routeTree = rootRoute.addChildren([
   partnerLoginRoute,
   trackLoginRoute,
   applyRoute,
+  testimonialRoute,
   camPublicRoute,
   partnerProtectedRoute.addChildren([
     createRoute({

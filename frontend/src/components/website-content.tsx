@@ -870,7 +870,7 @@ function Editor({ section, seoPages, listSpecs, homeSpec, faqPages, initial, bui
         <PagesEditor value={draft as CustomPage[]} onChange={setDraft} />
       )}
       {section === "testimonials" && (
-        <TestimonialsEditor value={draft as Testimonial[]} onChange={setDraft} />
+        <TestimonialsEditor value={draft as Testimonial[]} onChange={setDraft} dirty={dirty} />
       )}
       {section === "trustNumbers" && <FiguresEditor value={draft as Figures} onChange={setDraft} />}
       {section === "lists" && (

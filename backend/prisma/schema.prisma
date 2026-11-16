@@ -1481,6 +1481,34 @@ model SiteContentVersion {
 /**
  * A picture staff uploaded to replace one on the public website. Small, so kept in the database.
  */
+/// A testimonial a client sent from the public form. It waits, private, until staff approve it or not.
+/// Only a photo the client agreed to share is kept, and it is dropped once the story is approved (it moves to the story) or turned down.
+model TestimonialSubmission {
+  id             String    @id @default(cuid())
+  name           String
+  city           String?
+  product        String?
+  role           String?
+  /// Phone or email, only so staff can check with the client. Never published.
+  contact        String?
+  rating         Int
+  quote          String
+  consentWords   Boolean
+  consentPhoto   Boolean   @default(false)
+  /// The full name the client typed as their signature.
+  signedName     String
+  photoMime      String?
+  photoData      Bytes?
+  ip             String?
+  /// PENDING, APPROVED or REJECTED.
+  status         String    @default("PENDING")
+  reviewedByName String?
+  reviewedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([status, createdAt])
+}
+
 model SiteImage {
   id            String   @id @default(cuid())
   name          String
