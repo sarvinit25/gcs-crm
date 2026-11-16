@@ -7,9 +7,10 @@ import { ChatAuthService } from "./chat-auth.service";
 import { IdRecoveryController } from "./id-recovery.controller";
 import { IdRecoveryService } from "./id-recovery.service";
 import { OtpSenderService } from "./otp-sender.service";
+import { WhatsAppModule } from "../whatsapp/whatsapp.module";
 
 @Module({
-  imports: [LeadsModule, AlertsModule, LoanProfileModule],
+  imports: [LeadsModule, AlertsModule, LoanProfileModule, WhatsAppModule],
   controllers: [ChatAuthController, IdRecoveryController],
   providers: [ChatAuthService, IdRecoveryService, OtpSenderService],
 })

@@ -110,15 +110,13 @@ export class ChatAuthService {
       select: { id: true },
     });
 
-    // The code goes by SMS and, when the visitor gave an address, by email too. Either one getting through is enough.
-    let viaSms = isTest;
-    let viaEmail = false;
+    // The code goes to the visitor's email when they gave one (it costs nothing), and on WhatsApp only when they did not.
+    let viaWhatsapp = false;
+    let viaEmail = isTest;
     if (!isTest) {
-      [viaSms, viaEmail] = await Promise.all([
-        this.sender.send(dto.phone, code, OTP_VALID_MINUTES),
-        dto.email ? this.emailCode(dto.email, dto.name.trim(), code) : Promise.resolve(false),
-      ]);
-      if (!viaSms && !viaEmail) {
+      if (dto.email) viaEmail = await this.emailCode(dto.email, dto.name.trim(), code);
+      else viaWhatsapp = await this.sender.send(dto.phone, code, OTP_VALID_MINUTES);
+      if (!viaWhatsapp && !viaEmail) {
         await this.prisma.chatOtp.update({ where: { id: row.id }, data: { usedAt: new Date() } });
         throw new ServiceUnavailableException("We couldn't send the code just now. Please try again, or call us.");
       }
@@ -128,7 +126,7 @@ export class ChatAuthService {
     void this.prisma.chatOtp.deleteMany({ where: { expiresAt: { lt: new Date(now - DAY) } } }).catch(() => undefined);
     void this.prisma.chatSession.deleteMany({ where: { expiresAt: { lt: new Date(now) } } }).catch(() => undefined);
 
-    return { sent: true, resendAfterSeconds: OTP_RESEND_SECONDS, validMinutes: OTP_VALID_MINUTES, viaSms, viaEmail };
+    return { sent: true, resendAfterSeconds: OTP_RESEND_SECONDS, validMinutes: OTP_VALID_MINUTES, viaSms: false, viaWhatsapp, viaEmail };
   }
 
   private emailCode(to: string, name: string, code: string) {

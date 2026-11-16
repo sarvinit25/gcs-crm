@@ -14,8 +14,6 @@ export function classifyCall(rawUrl: string, method = "GET"): CallKind | null {
   switch (u.hostname.toLowerCase()) {
     case "api.openai.com":
       return { service: "OpenAI", operation: path.includes("/responses") ? "reading documents" : path.includes("/chat/completions") ? "chat" : "other" };
-    case "control.msg91.com":
-      return { service: "MSG91", operation: path.includes("/otp") ? "OTP" : path.includes("/flow") ? "message" : "other" };
     case "api.plivo.com":
       return { service: "Plivo", operation: /\/call\/?$/.test(path) ? (method === "POST" ? "call placed" : "call records") : "account" };
     case "graph.facebook.com":

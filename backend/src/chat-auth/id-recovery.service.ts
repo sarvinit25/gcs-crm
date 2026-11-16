@@ -141,15 +141,17 @@ export class IdRecoveryService {
     });
 
     if (known && !isTest) {
+      // The code goes to the email on file (it costs nothing). With no email on file it goes on WhatsApp, if that is set up;
+      // with neither nothing is sent, and the answer below is the same, so nobody can use this to find out who is a client.
       let delivered = false;
-      if (this.sender.smsReady) {
+      const email = await this.emailFor(dto.kind, dto.phone);
+      if (email) {
+        delivered = await this.alerts.idRecoveryCodeEmail(email, code, OTP_VALID_MINUTES, dto.kind);
+      } else if (this.sender.whatsappReady) {
         delivered = await this.sender.send(dto.phone, code, OTP_VALID_MINUTES);
       } else {
-        // No SMS number yet: the code goes to the email on file. With none on file nothing is sent, and the answer below
-        // is the same, so nobody can use this to find out who is a client.
-        const email = await this.emailFor(dto.kind, dto.phone);
-        if (!email) this.log.warn(`An ID was asked for but no email is on file for ${dto.kind} ${dto.phone}`);
-        delivered = email ? await this.alerts.idRecoveryCodeEmail(email, code, OTP_VALID_MINUTES, dto.kind) : true;
+        this.log.warn(`An ID was asked for but no email is on file for ${dto.kind} ${dto.phone}`);
+        delivered = true;
       }
       if (!delivered) {
         await this.prisma.idRecoveryOtp.update({ where: { id: row.id }, data: { usedAt: new Date() } });
@@ -162,7 +164,7 @@ export class IdRecoveryService {
       .catch(() => undefined);
 
     // `via` says how codes are sent in general, never how this number's code went, so it gives nothing away.
-    return { sent: true, resendAfterSeconds: OTP_RESEND_SECONDS, validMinutes: OTP_VALID_MINUTES, via: this.sender.smsReady ? "sms" : "email" };
+    return { sent: true, resendAfterSeconds: OTP_RESEND_SECONDS, validMinutes: OTP_VALID_MINUTES, via: "email" };
   }
 
   async verify(dto: VerifyIdCodeDto) {
@@ -197,9 +199,15 @@ export class IdRecoveryService {
     if (used.count === 0) throw new BadRequestException("That code has already been used. Please ask for a new one.");
 
     const ids = await this.idsFor(dto.kind, dto.phone);
-    if (ids.length === 0) return { sent: false, via: this.sender.smsIdReady ? "sms" : "email" };
+    if (ids.length === 0) return { sent: false, via: "email" };
     const trouble = new ServiceUnavailableException("Your number is confirmed, but we couldn't send the message just now. Please try again, or call us.");
-    if (this.sender.smsIdReady) {
+    // The ID goes to the email on file; with none on file, to WhatsApp if that is set up.
+    const email = await this.emailFor(dto.kind, dto.phone);
+    if (email) {
+      if (!(await this.alerts.gcsIdEmail(email, dto.kind, ids))) throw trouble;
+      return { sent: true, via: "email" };
+    }
+    if (this.sender.whatsappIdReady) {
       // Oldest first, so the newest file's message is the one that lands last on the phone.
       for (const id of [...ids].reverse()) {
         if (!(await this.sender.sendGcsId(dto.phone, id))) {
@@ -207,15 +215,9 @@ export class IdRecoveryService {
           throw trouble;
         }
       }
-      return { sent: true, via: "sms" };
+      return { sent: true, via: "whatsapp" };
     }
-    // No SMS number yet: the ID goes to the email on file, and only there.
-    const email = await this.emailFor(dto.kind, dto.phone);
-    if (!email) {
-      this.log.error(`No email on file to send a GCS ID to for ${dto.kind} ${dto.phone}`);
-      return { sent: false, via: "email", noEmail: true };
-    }
-    if (!(await this.alerts.gcsIdEmail(email, dto.kind, ids))) throw trouble;
-    return { sent: true, via: "email" };
+    this.log.error(`No email on file to send a GCS ID to for ${dto.kind} ${dto.phone}`);
+    return { sent: false, via: "email", noEmail: true };
   }
 }

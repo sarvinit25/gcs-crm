@@ -1,109 +1,81 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger, Optional } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { WHATSAPP_PROVIDER, type WhatsAppProvider } from "../whatsapp/whatsapp.provider";
 
 /**
- * Delivers the one-time code as an SMS. The provider is chosen in the environment:
+ * Sends a one-time code, or a GCS ID, to a mobile number on WhatsApp. This is only the fallback for a person we hold no
+ * email for: whoever has an email gets the code there, which costs nothing. There is no SMS provider.
  *
- *   SMS_PROVIDER=msg91  MSG91_AUTH_KEY=…  MSG91_TEMPLATE_ID=…   (an OTP template approved on DLT)
+ *   WHATSAPP_OTP_TEMPLATE=…   a Meta-approved "authentication" template whose one variable is the code
+ *   WHATSAPP_ID_TEMPLATE=…    a Meta-approved template with one variable, the GCS ID (optional)
+ *   WHATSAPP_OTP_LANG=en      the templates' language code (default en)
+ *   WHATSAPP_OTP_BUTTON=false only if the code template has no copy-code button (authentication templates do)
  *
- * A second approved template (MSG91_ID_TEMPLATE_ID, one variable, var1) carries the GCS ID message a client or
- * partner asks for after proving their number with a code.
- *
- * With no provider, development prints the code in the server log so the flow can be tried
- * without paying for an SMS. Production never does that: it reports the code as undelivered.
+ * With no template set, development prints the code in the server log so the flow can be tried. Production never does
+ * that: it reports the code as undelivered.
  */
 @Injectable()
 export class OtpSenderService {
   private readonly log = new Logger(OtpSenderService.name);
-  private readonly provider: string;
-  private readonly authKey: string;
-  private readonly templateId: string;
-  private readonly idTemplateId: string;
+  private readonly otpTemplate: string;
+  private readonly idTemplate: string;
+  private readonly language: string;
+  private readonly button: boolean;
   private readonly production: boolean;
 
-  constructor(config: ConfigService) {
-    this.provider = (config.get<string>("SMS_PROVIDER") ?? "").trim().toLowerCase();
-    this.authKey = config.get<string>("MSG91_AUTH_KEY") ?? "";
-    this.templateId = config.get<string>("MSG91_TEMPLATE_ID") ?? "";
-    this.idTemplateId = config.get<string>("MSG91_ID_TEMPLATE_ID") ?? "";
+  constructor(
+    config: ConfigService,
+    @Optional() @Inject(WHATSAPP_PROVIDER) private wa?: WhatsAppProvider,
+  ) {
+    this.otpTemplate = (config.get<string>("WHATSAPP_OTP_TEMPLATE") ?? "").trim();
+    this.idTemplate = (config.get<string>("WHATSAPP_ID_TEMPLATE") ?? "").trim();
+    this.language = (config.get<string>("WHATSAPP_OTP_LANG") ?? "").trim() || "en";
+    this.button = (config.get<string>("WHATSAPP_OTP_BUTTON") ?? "").trim().toLowerCase() !== "false";
     this.production = config.get<string>("NODE_ENV") === "production";
-    if (this.production && !this.configured) {
-      this.log.warn("No SMS provider is set (SMS_PROVIDER, MSG91_AUTH_KEY, MSG91_TEMPLATE_ID): the website chat cannot send codes");
+  }
+
+  /** Can a code go to a phone on WhatsApp? When not, a person with no email on file gets no code. */
+  get whatsappReady() {
+    return Boolean(this.wa && this.otpTemplate);
+  }
+
+  /** Can a GCS ID go to a phone on WhatsApp? */
+  get whatsappIdReady() {
+    return Boolean(this.wa && this.idTemplate);
+  }
+
+  /** True when the code reached WhatsApp (or, in development, the log). Never throws. */
+  async send(phone: string, code: string, _validMinutes: number): Promise<boolean> {
+    if (this.whatsappReady) {
+      try {
+        await this.wa!.sendTemplate(`91${phone}`, this.otpTemplate, this.language, [code], this.button ? code : undefined);
+        return true;
+      } catch (err) {
+        this.log.error(`WhatsApp could not send the code: ${String((err as Error)?.message ?? err).slice(0, 160)}`);
+        return false;
+      }
     }
-  }
-
-  private get configured() {
-    return this.provider === "msg91" && Boolean(this.authKey && this.templateId);
-  }
-
-  /** Can codes go by SMS? When not, they go by email instead. */
-  get smsReady() {
-    return this.configured;
-  }
-
-  /** Can a GCS ID go by SMS? When not, it goes by email instead. */
-  get smsIdReady() {
-    return this.provider === "msg91" && Boolean(this.authKey && this.idTemplateId);
-  }
-
-  /** True when the code reached the provider (or, in development, the log). Never throws. */
-  async send(phone: string, code: string, validMinutes: number): Promise<boolean> {
-    if (this.configured) return this.sendMsg91(phone, code, validMinutes);
     if (!this.production) {
-      this.log.warn(`[dev] Chat sign-in code for ${phone}: ${code}`);
+      this.log.warn(`[dev] Sign-in code for ${phone}: ${code}`);
       return true;
     }
     return false;
   }
 
-  private async sendMsg91(phone: string, code: string, validMinutes: number) {
-    const url = new URL("https://control.msg91.com/api/v5/otp");
-    url.searchParams.set("template_id", this.templateId);
-    url.searchParams.set("mobile", `91${phone}`);
-    url.searchParams.set("otp", code);
-    url.searchParams.set("otp_expiry", String(validMinutes));
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { authkey: this.authKey, "content-type": "application/json", accept: "application/json" },
-        body: "{}",
-        signal: AbortSignal.timeout(8000),
-      });
-      const json = (await res.json().catch(() => ({}))) as { type?: string; message?: string };
-      if (res.ok && json.type === "success") return true;
-      this.log.error(`MSG91 refused the code (${res.status}): ${String(json.message ?? json.type ?? "").slice(0, 160)}`);
-    } catch (err) {
-      this.log.error(`MSG91 could not be reached: ${String(err).slice(0, 160)}`);
-    }
-    return false;
-  }
-
-  /**
-   * Sends a GCS ID to a number. Same rules as send(): true when it reached the provider or, in development,
-   * the log; false when it could not go. Never throws.
-   */
+  /** Sends a GCS ID to a number on WhatsApp. Same rules as send(). */
   async sendGcsId(phone: string, gcsId: string): Promise<boolean> {
-    if (this.provider === "msg91" && this.authKey && this.idTemplateId) return this.sendMsg91GcsId(phone, gcsId);
+    if (this.whatsappIdReady) {
+      try {
+        await this.wa!.sendTemplate(`91${phone}`, this.idTemplate, this.language, [gcsId]);
+        return true;
+      } catch (err) {
+        this.log.error(`WhatsApp could not send the GCS ID: ${String((err as Error)?.message ?? err).slice(0, 160)}`);
+        return false;
+      }
+    }
     if (!this.production) {
       this.log.warn(`[dev] GCS ID for ${phone}: ${gcsId}`);
       return true;
-    }
-    return false;
-  }
-
-  private async sendMsg91GcsId(phone: string, gcsId: string) {
-    try {
-      const res = await fetch("https://control.msg91.com/api/v5/flow", {
-        method: "POST",
-        headers: { authkey: this.authKey, "content-type": "application/json", accept: "application/json" },
-        body: JSON.stringify({ template_id: this.idTemplateId, recipients: [{ mobiles: `91${phone}`, var1: gcsId }] }),
-        signal: AbortSignal.timeout(8000),
-      });
-      const json = (await res.json().catch(() => ({}))) as { type?: string; message?: string };
-      if (res.ok && json.type === "success") return true;
-      this.log.error(`MSG91 refused the message (${res.status}): ${String(json.message ?? json.type ?? "").slice(0, 160)}`);
-    } catch (err) {
-      this.log.error(`MSG91 could not be reached: ${String(err).slice(0, 160)}`);
     }
     return false;
   }

@@ -46,6 +46,9 @@ describe("GCS ID recovery", () => {
     http = request(app.getHttpServer()) as never;
     prisma = app.get(PrismaService);
     const sender = app.get(OtpSenderService);
+    // WhatsApp is the way to reach someone with no email on file; these tests have none.
+    jest.spyOn(sender, "whatsappReady", "get").mockReturnValue(true);
+    jest.spyOn(sender, "whatsappIdReady", "get").mockReturnValue(true);
     jest.spyOn(sender, "send").mockImplementation(async (p, code) => {
       codes.push({ phone: p, code });
       return true;

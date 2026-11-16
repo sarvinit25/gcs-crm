@@ -4,7 +4,6 @@ describe("classifyCall", () => {
   it("names the outside service and what the request was for", () => {
     expect(classifyCall("https://api.openai.com/v1/chat/completions", "POST")).toEqual({ service: "OpenAI", operation: "chat" });
     expect(classifyCall("https://api.openai.com/v1/responses", "POST")).toEqual({ service: "OpenAI", operation: "reading documents" });
-    expect(classifyCall("https://control.msg91.com/api/v5/otp?mobile=1", "POST")).toEqual({ service: "MSG91", operation: "OTP" });
     expect(classifyCall("https://api.plivo.com/v1/Account/X/Call/", "POST")).toEqual({ service: "Plivo", operation: "call placed" });
     expect(classifyCall("https://api.plivo.com/v1/Account/X/Call/", "GET")).toEqual({ service: "Plivo", operation: "call records" });
     expect(classifyCall("https://graph.facebook.com/v23.0/123/messages", "POST")).toEqual({ service: "WhatsApp (Meta)", operation: "message sent" });

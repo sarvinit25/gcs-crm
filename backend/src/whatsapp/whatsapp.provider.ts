@@ -55,7 +55,8 @@ export interface WhatsAppProvider {
   downloadMedia(mediaId: string): Promise<{ data: Buffer; mimeType: string }>;
   /** Marks the customer's message as read (blue ticks) and shows "typing..." to them until we reply (up to about 25 seconds). Never throws. */
   showTyping(messageId: string): Promise<void>;
-  sendTemplate(to: string, name: string, language: string, params: string[]): Promise<SendResult>;
+  /** `codeButton` is the one-time code for an authentication template's copy-code button (Meta requires it there). */
+  sendTemplate(to: string, name: string, language: string, params: string[], codeButton?: string): Promise<SendResult>;
   submitTemplate(template: TemplateSubmission): Promise<{ status: MetaTemplateStatus; reason?: string }>;
   listTemplates(): Promise<{ name: string; status: MetaTemplateStatus; reason?: string }[]>;
   connection(): Promise<ConnectionInfo>;
@@ -177,7 +178,10 @@ export class MetaCloudProvider implements WhatsAppProvider {
     return { waMessageId: res.messages?.[0]?.id ?? "" };
   }
 
-  async sendTemplate(to: string, name: string, language: string, params: string[]) {
+  async sendTemplate(to: string, name: string, language: string, params: string[], codeButton?: string) {
+    const components: Record<string, unknown>[] = [];
+    if (params.length) components.push({ type: "body", parameters: params.map((text) => ({ type: "text", text })) });
+    if (codeButton) components.push({ type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: codeButton }] });
     const res = await this.call<{ messages?: { id: string }[] }>(`/${env("WHATSAPP_PHONE_NUMBER_ID")}/messages`, {
       method: "POST",
       body: {
@@ -187,9 +191,7 @@ export class MetaCloudProvider implements WhatsAppProvider {
         template: {
           name,
           language: { code: language },
-          ...(params.length && {
-            components: [{ type: "body", parameters: params.map((text) => ({ type: "text", text })) }],
-          }),
+          ...(components.length && { components }),
         },
       },
     });

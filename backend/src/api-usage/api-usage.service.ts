@@ -126,7 +126,7 @@ export class ApiUsageService implements OnModuleInit {
     const end = new Date(now.getTime() + 1000);
     const [voiceThis, voiceLast, waThis, waLast] = await Promise.all([voice(thisStart, end), voice(lastStart, thisStart), whatsapp(thisStart, end), whatsapp(lastStart, thisStart)]);
 
-    const names = [...new Set([...thisMonth.keys(), ...lastMonth.keys(), "OpenAI", "MSG91", "Plivo", "WhatsApp (Meta)"])];
+    const names = [...new Set([...thisMonth.keys(), ...lastMonth.keys(), "OpenAI", "Plivo", "WhatsApp (Meta)"])];
     const empty: Period = { calls: 0, failed: 0, tokensIn: 0, tokensOut: 0, estUsd: null, operations: {} };
     const services = names.map((name) => ({ name, thisMonth: thisMonth.get(name) ?? empty, lastMonth: lastMonth.get(name) ?? empty }));
 
@@ -137,8 +137,22 @@ export class ApiUsageService implements OnModuleInit {
       if (s.lastMonth.calls >= 20 && s.thisMonth.calls > s.lastMonth.calls * 2) alerts.push(`${s.name}: this month's use is already more than double last month's.`);
     }
 
+    // What we pay per unit is not something the services tell us, so the rates are set on the server (₹ per minute, ₹ per message).
+    const rate = (k: string) => {
+      const v = Number(process.env[k]);
+      return Number.isFinite(v) && v > 0 ? v : null;
+    };
+    const sarvamRate = rate("RATE_SARVAM_INR_PER_MIN");
+    const waRate = rate("RATE_WHATSAPP_INR_PER_MESSAGE");
+    const spend = (mins: number, msgs: number) => ({
+      sarvamInr: sarvamRate === null ? null : Math.round(mins * sarvamRate),
+      whatsappInr: waRate === null ? null : Math.round(msgs * waRate),
+    });
+
     return {
       generatedAt: now.toISOString(),
+      rates: { sarvamInrPerMin: sarvamRate, whatsappInrPerMessage: waRate },
+      spend: { thisMonth: spend(voiceThis.minutes, waThis), lastMonth: spend(voiceLast.minutes, waLast) },
       trackingSince: first?.at.toISOString() ?? null,
       months: { thisMonth: thisStart.toISOString(), lastMonth: lastStart.toISOString() },
       services,

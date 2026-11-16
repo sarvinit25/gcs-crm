@@ -14,16 +14,18 @@ type Summary = {
   voice: { thisMonth: { calls: number; minutes: number }; lastMonth: { calls: number; minutes: number } };
   whatsapp: { thisMonth: number; lastMonth: number };
   alerts: string[];
+  rates: { sarvamInrPerMin: number | null; whatsappInrPerMessage: number | null };
+  spend: { thisMonth: { sarvamInr: number | null; whatsappInr: number | null }; lastMonth: { sarvamInr: number | null; whatsappInr: number | null } };
 };
 
 const WHAT: Record<string, string> = {
   OpenAI: "Website assistant, WhatsApp intake, lender-offer reading, loan profile",
-  MSG91: "OTP and text messages",
   Plivo: "Calling and phone numbers",
-  "WhatsApp (Meta)": "Messages the CRM sends on WhatsApp",
+  "WhatsApp (Meta)": "Messages the CRM sends on WhatsApp, including sign-in codes for people with no email"
 };
 const n = (v: number) => v.toLocaleString("en-IN");
 const monthName = (iso: string) => new Date(iso).toLocaleString("en-IN", { month: "long", year: "numeric", timeZone: "Asia/Kolkata" });
+const inr = (v: number | null) => (v === null ? "—" : `₹${v.toLocaleString("en-IN")}`);
 const usd = (v: number | null) => (v === null ? "—" : `$${v < 1 ? v.toFixed(3) : v.toFixed(2)}`);
 
 function Block({ title, a, b, aLabel, bLabel }: { title: string; a: React.ReactNode; b: React.ReactNode; aLabel: string; bLabel: string }) {
@@ -63,6 +65,26 @@ export function ApiUsagePage() {
                 <h3 className="text-[12px] font-bold tracking-wide text-muted uppercase">Plivo balance</h3>
                 <p className="mt-2 text-lg font-bold text-navy">{d!.plivo.configured ? usd(d!.plivo.balanceUsd) : "Not connected"}</p>
                 <p className="text-[11px] text-muted">{d!.plivo.configured ? "Live from Plivo, checked every few minutes" : "Add the Plivo login to the server settings"}</p>
+              </div>
+            </div>
+
+            <div className="card p-4">
+              <h3 className="text-[12px] font-bold tracking-wide text-muted uppercase">Estimated spending</h3>
+              <div className="mt-2 grid gap-3 sm:grid-cols-3">
+                <div>
+                  <p className="text-lg font-bold text-navy">{inr(d!.spend.thisMonth.sarvamInr)}</p>
+                  <p className="text-[11px] text-muted">Sarvam voice calls, {cur}{d!.spend.lastMonth.sarvamInr !== null ? ` (last month ${inr(d!.spend.lastMonth.sarvamInr)})` : ""}</p>
+                  {d!.rates.sarvamInrPerMin === null && <p className="text-[11px] text-amber-700">Rate not set: add RATE_SARVAM_INR_PER_MIN on the server.</p>}
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-navy">{inr(d!.spend.thisMonth.whatsappInr)}</p>
+                  <p className="text-[11px] text-muted">WhatsApp messages, {cur}{d!.spend.lastMonth.whatsappInr !== null ? ` (last month ${inr(d!.spend.lastMonth.whatsappInr)})` : ""}</p>
+                  {d!.rates.whatsappInrPerMessage === null && <p className="text-[11px] text-amber-700">Rate not set: add RATE_WHATSAPP_INR_PER_MESSAGE on the server.</p>}
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-navy">{usd(d!.services.find((s) => s.name === "OpenAI")?.thisMonth.estUsd ?? null)}</p>
+                  <p className="text-[11px] text-muted">OpenAI, {cur} (estimate from tokens)</p>
+                </div>
               </div>
             </div>
 

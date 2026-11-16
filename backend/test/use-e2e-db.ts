@@ -10,7 +10,7 @@ process.env.NODE_ENV = "test";
 // override a variable that is already set, even to an empty string.
 for (const key of [
   "ZOHO_CLIENT_ID", "ZOHO_CLIENT_SECRET", "ZOHO_REFRESH_TOKEN", "ZOHO_ACCOUNT_ID", "ZOHO_FROM_ADDRESS",
-  "SMS_PROVIDER", "MSG91_AUTH_KEY", "MSG91_TEMPLATE_ID", "MSG91_ID_TEMPLATE_ID",
+  "WHATSAPP_OTP_TEMPLATE", "WHATSAPP_ID_TEMPLATE",
   "OPENAI_API_KEY", "WHATSAPP_ACCESS_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_WABA_ID", "WHATSAPP_PROVIDER",
 ]) {
   process.env[key] = "";
