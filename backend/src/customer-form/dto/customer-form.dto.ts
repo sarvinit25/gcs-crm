@@ -59,3 +59,16 @@ export class SubmitFormDto {
   /** The customer's own confirmation that the details are true and may be shared with lenders. */
   @IsBoolean() @Equals(true, { message: "Please tick the declaration to continue" }) declaration: boolean;
 }
+
+export class FormCodeRequestDto {
+  @IsEmail() @Length(3, 160) email: string;
+}
+
+export class FormCodeVerifyDto {
+  @IsEmail() @Length(3, 160) email: string;
+  @Matches(/^\d{6}$/, { message: "The code is 6 digits" }) code: string;
+}
+
+export class EmailLinkDto {
+  @IsString() @Length(20, 400) url: string;
+}

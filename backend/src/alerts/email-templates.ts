@@ -104,6 +104,30 @@ export function recoveryCode(org: Org, code: string, validMinutes: number, idNam
   );
 }
 
+/** The link to the customer's own application form, with a note about the code they will be asked for. */
+export function applicationFormLink(org: Org, name: string, url: string, product: string, validUntil: string, needsCode: boolean): string {
+  return frame(
+    org,
+    `Please fill in your ${product} application`,
+    `<h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:${NAVY};">Your ${esc(product)} application</h1>
+<p style="margin:0 0 14px 0;font-size:15px;line-height:1.6;">Hello ${esc(name)}, please fill in your application and upload your documents using the button below. It saves as you go, so you can come back to it.</p>
+<p style="margin:0 0 18px 0;"><a href="${esc(url)}" style="display:inline-block;background:${NAVY};color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:13px 26px;border-radius:10px;">Open my application</a></p>
+<p style="margin:0 0 8px 0;font-size:13px;line-height:1.6;color:${MUTED};">${needsCode ? "For your safety we will email you a one-time code when you open it, so keep this email address handy. " : ""}The link works until ${esc(validUntil)}. Please do not forward it. Keep your PAN and ID and income documents ready.</p>`,
+  );
+}
+
+/** The code that opens the customer's application form link. */
+export function formCode(org: Org, code: string, validMinutes: number): string {
+  return frame(
+    org,
+    `Your ${org.name} code is ${code}`,
+    `<h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:${NAVY};">Your code to open the application form</h1>
+<p style="margin:0 0 18px 0;font-size:15px;line-height:1.6;">Type this code on the form page to open your application.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px 0;"><tr><td style="background:${PALE};border:1px solid ${GOLD};border-radius:12px;padding:16px 28px;font-size:34px;font-weight:700;letter-spacing:10px;color:${NAVY};">${esc(code)}</td></tr></table>
+<p style="margin:0 0 8px 0;font-size:13px;line-height:1.6;color:${MUTED};">It works for ${validMinutes} minutes. Please do not share it with anyone. If you did not ask for it, you can ignore this email.</p>`,
+  );
+}
+
 /** The GCS ID(s) a client or partner asked for, sent only to the email address held on their file. */
 export function gcsIdMessage(org: Org, idName: string, ids: string[]): string {
   const rows = ids

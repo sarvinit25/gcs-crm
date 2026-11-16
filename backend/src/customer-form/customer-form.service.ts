@@ -1,4 +1,7 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { timingSafeEqual } from "node:crypto";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, ServiceUnavailableException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { AlertsService } from "../alerts/alerts.service";
 import { ApplicationStatus, AuditAction, AuditActorType, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
@@ -9,12 +12,16 @@ import { ChecklistService, resolveChecklistBucket } from "../checklist/checklist
 import { decryptSecret, encryptSecret } from "../security/secret-box";
 import type { AuthUser } from "../auth/auth.decorators";
 import { istToday } from "../common/date.util";
-import { generateFormToken, hashFormToken, looksLikeFormToken } from "./form-token";
+import { checkFormSession, generateFormCode, generateFormToken, hashFormCode, hashFormToken, looksLikeFormToken, maskEmail, signFormSession } from "./form-token";
 import { completeReferences, formProblems, mergeForm, type FormData } from "./form-rules";
 import type { SaveFormDto } from "./dto/customer-form.dto";
 
 const PHONE = /^[6-9]\d{9}$/;
 const DAY_MS = 86_400_000;
+const CODE_VALID_MINUTES = 10;
+const CODE_MAX_TRIES = 5;
+const CODE_RESEND_SECONDS = 60;
+const SESSION_HOURS = 3;
 
 type InviteState = "open" | "submitted" | "expired" | "closed";
 
@@ -70,7 +77,13 @@ export class CustomerFormService {
     private documents: DocumentsService,
     private storage: StorageService,
     private checklist: ChecklistService,
+    private config: ConfigService,
+    private alerts: AlertsService,
   ) {}
+
+  private get secret() {
+    return this.config.getOrThrow<string>("JWT_SECRET");
+  }
 
   private appNo(a: { seq: number; createdAt: Date }) {
     return this.settings.applicationNo(a.seq, a.createdAt);
@@ -126,6 +139,8 @@ export class CustomerFormService {
       lastSavedAt: invite.lastSavedAt,
       submittedAt: invite.submittedAt,
       documentsReceived: invite._count.documents,
+      // With an email on file the customer must enter an emailed code before the form opens.
+      codeRequired: Boolean(app.applicants[0]?.email),
     };
   }
 
@@ -165,6 +180,29 @@ export class CustomerFormService {
       ip,
     });
     return this.status(applicationId, user);
+  }
+
+  /** Emails the live link to the applicant's address on file. The link is checked against the current one, so only that can be sent. */
+  async emailLink(applicationId: string, url: string, user: AuthUser, ip?: string) {
+    const app = await this.applicationFor(applicationId, user);
+    const invite = await this.prisma.applicationInvite.findFirst({ where: { applicationId, revokedAt: null, submittedAt: null }, orderBy: { createdAt: "desc" } });
+    if (!invite || this.stateOf(invite, app) !== "open") throw new BadRequestException("There is no live link to send. Create one first.");
+    const to = this.emailOn(app);
+    if (!to) throw new BadRequestException("Add the applicant's email address first.");
+    const token = decryptSecret(invite.tokenEnc);
+    let ok = false;
+    try {
+      const u = new URL(url);
+      ok = (u.protocol === "https:" || u.protocol === "http:") && u.pathname.endsWith(`/apply/${token}`) && !u.search && !u.hash;
+    } catch {
+      ok = false;
+    }
+    if (!ok) throw new BadRequestException("That is not this application's link.");
+    const name = app.applicants[0]?.name?.split(" ")[0] ?? "there";
+    const sent = await this.alerts.applicationFormLinkEmail(to, name, url, app.loanProduct.name, invite.expiresAt.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" }), true);
+    if (!sent) throw new ServiceUnavailableException("The email could not be sent. Check the mail settings.");
+    await this.audit.record({ actor: user, action: AuditAction.UPDATE, entity: "Application", entityId: applicationId, entityLabel: `${this.appNo(app)} · form link emailed`, ip });
+    return { sent: true, to: maskEmail(to) };
   }
 
   async revoke(applicationId: string, user: AuthUser, ip?: string) {
@@ -213,7 +251,58 @@ export class CustomerFormService {
     return mergeForm(formFromRecords(invite.application), (invite.draft ?? {}) as FormData);
   }
 
-  async view(token: string) {
+  /** The email the code goes to: the applicant's, on file. None on file means the link opens without a code. */
+  private emailOn(app: FormApplication): string | null {
+    return app.applicants[0]?.email?.trim().toLowerCase() || null;
+  }
+
+  private hasSession(invite: { id: string; application: FormApplication }, session: string | undefined) {
+    return !this.emailOn(invite.application) || checkFormSession(this.secret, invite.id, session);
+  }
+
+  private requireSession(invite: { id: string; application: FormApplication }, session: string | undefined) {
+    if (!this.hasSession(invite, session)) throw new ForbiddenException({ message: "Please confirm your email to continue.", code: "SESSION" });
+  }
+
+  /** Emails a one-time code to the address on file. The answer is the same whether or not the address matched. */
+  async sendCode(token: string, email: string) {
+    const invite = await this.openInvite(token);
+    const on = this.emailOn(invite.application);
+    if (!on) return { sent: false as const, codeRequired: false as const };
+    if (invite.otpSentAt && Date.now() - invite.otpSentAt.getTime() < CODE_RESEND_SECONDS * 1000) {
+      throw new BadRequestException("A code was sent a moment ago. Please check your email, or wait a minute for another.");
+    }
+    if (email.trim().toLowerCase() === on) {
+      const code = generateFormCode();
+      await this.prisma.applicationInvite.update({
+        where: { id: invite.id },
+        data: { otpHash: hashFormCode(this.secret, invite.id, code), otpExpiresAt: new Date(Date.now() + CODE_VALID_MINUTES * 60_000), otpAttempts: 0, otpSentAt: new Date() },
+      });
+      if (!(await this.alerts.formCodeEmail(on, code, CODE_VALID_MINUTES))) throw new ServiceUnavailableException("We could not send the email just now. Please try again in a few minutes.");
+    }
+    return { sent: true as const, validMinutes: CODE_VALID_MINUTES };
+  }
+
+  /** Checks the emailed code and, if right, hands back a pass that opens this form for a few hours. */
+  async verifyCode(token: string, email: string, code: string) {
+    const invite = await this.openInvite(token);
+    const on = this.emailOn(invite.application);
+    const bad = new BadRequestException("That code is not right, or it has expired. Please ask for a new one.");
+    if (!on) return { session: signFormSession(this.secret, invite.id, Date.now() + SESSION_HOURS * 3_600_000) };
+    if (!invite.otpHash || !invite.otpExpiresAt || invite.otpExpiresAt <= new Date() || invite.otpAttempts >= CODE_MAX_TRIES || email.trim().toLowerCase() !== on) {
+      throw bad;
+    }
+    const given = Buffer.from(hashFormCode(this.secret, invite.id, code));
+    const stored = Buffer.from(invite.otpHash);
+    if (given.length !== stored.length || !timingSafeEqual(given, stored)) {
+      await this.prisma.applicationInvite.update({ where: { id: invite.id }, data: { otpAttempts: { increment: 1 } } });
+      throw bad;
+    }
+    await this.prisma.applicationInvite.update({ where: { id: invite.id }, data: { otpHash: null, otpExpiresAt: null, otpAttempts: 0 } });
+    return { session: signFormSession(this.secret, invite.id, Date.now() + SESSION_HOURS * 3_600_000) };
+  }
+
+  async view(token: string, session?: string) {
     const invite = await this.load(token);
     const app = invite.application;
     const state = this.stateOf(invite, app);
@@ -221,6 +310,11 @@ export class CustomerFormService {
 
     if (state !== "open") {
       return { ...base, state: state === "revoked" ? ("closed" as const) : state, submittedAt: invite.submittedAt };
+    }
+
+    // With an email on file the form stays shut until the emailed code has been entered.
+    if (!this.hasSession(invite, session)) {
+      return { ...base, state: "code" as const, emailHint: maskEmail(this.emailOn(app)!), validMinutes: CODE_VALID_MINUTES };
     }
 
     if (!invite.openedAt) {
@@ -259,8 +353,9 @@ export class CustomerFormService {
     };
   }
 
-  async save(token: string, dto: SaveFormDto) {
+  async save(token: string, dto: SaveFormDto, session?: string) {
     const invite = await this.openInvite(token);
+    this.requireSession(invite, session);
     const patch: FormData = { ...dto };
     const merged = mergeForm((invite.draft ?? {}) as FormData, patch);
     await this.prisma.applicationInvite.update({
@@ -270,8 +365,9 @@ export class CustomerFormService {
     return { saved: true };
   }
 
-  async upload(token: string, file: { originalname: string; size: number; buffer: Buffer } | undefined, category: string | undefined) {
+  async upload(token: string, file: { originalname: string; size: number; buffer: Buffer } | undefined, category: string | undefined, session?: string) {
     const invite = await this.openInvite(token);
+    this.requireSession(invite, session);
     if (!file) throw new BadRequestException("Choose a file to upload");
 
     const maxFiles = this.settings.get<number>("forms.maxFilesPerLink");
@@ -306,8 +402,9 @@ export class CustomerFormService {
     return { id: doc.id, category: doc.category, fileName: doc.fileName, sizeBytes: doc.sizeBytes };
   }
 
-  async removeDocument(token: string, documentId: string) {
+  async removeDocument(token: string, documentId: string, session?: string) {
     const invite = await this.openInvite(token);
+    this.requireSession(invite, session);
     // Only what this customer uploaded through this link — never anything staff filed.
     const doc = invite.documents.find((d) => d.id === documentId);
     if (!doc) throw new NotFoundException("Document not found");
@@ -324,8 +421,9 @@ export class CustomerFormService {
     return { ok: true };
   }
 
-  async submit(token: string) {
+  async submit(token: string, session?: string) {
     const invite = await this.openInvite(token);
+    this.requireSession(invite, session);
     const app = invite.application;
     const form = this.currentForm(invite);
 

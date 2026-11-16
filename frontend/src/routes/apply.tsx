@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, CheckCircle2, ChevronLeft, ChevronRight, FileText, Loader2, Lock, Phone, Plus, ShieldCheck, Trash2, Upload } from "lucide-react";
 import clsx from "clsx";
 import { DatePicker } from "../components/date-picker";
-import { FormApiError, formApi } from "../lib/public-form-api";
+import { FormApiError, formApi, formPass } from "../lib/public-form-api";
 import { todayIST } from "../lib/date";
 import { formatDate, formatIndianNumber } from "../lib/format";
 import {
@@ -29,7 +29,8 @@ type Open = {
   documents: { id: string; category: string; fileName: string; sizeBytes: number }[];
   limits: { maxFileMb: number; maxFiles: number; referencesRequired: number };
 };
-type View = Open | Closed;
+type CodeGate = { state: "code"; company: Company; applicationNo: string; emailHint: string; validMinutes: number };
+type View = Open | Closed | CodeGate;
 
 /** Shell shared by every state of the page: branded header, narrow centred column, nothing from the staff app. */
 function Frame({ company, children }: { company?: Company; children: React.ReactNode }) {
@@ -121,6 +122,9 @@ export function ApplyPage() {
       </Message>
     );
   }
+  if (view.state === "code") {
+    return <CodeStep token={token} view={view} onOpened={() => void query.refetch()} />;
+  }
   if (view.state !== "open") {
     return (
       <Message company={view.company} icon={<Lock className="h-5 w-5" />} title={view.state === "expired" ? "This link has expired" : "This link is no longer active"}>
@@ -129,6 +133,61 @@ export function ApplyPage() {
     );
   }
   return <Wizard token={token} view={view} />;
+}
+
+/** Before the form opens: the applicant types their email, gets a six-digit code, and enters it. */
+function CodeStep({ token, view, onOpened }: { token: string; view: CodeGate; onOpened: () => void }) {
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [sent, setSent] = useState(false);
+  const send = useMutation({
+    mutationFn: () => formApi<{ sent: boolean }>(token, "/code", { method: "POST", body: JSON.stringify({ email: email.trim() }) }),
+    onSuccess: () => setSent(true),
+  });
+  const verify = useMutation({
+    mutationFn: () => formApi<{ session: string }>(token, "/verify", { method: "POST", body: JSON.stringify({ email: email.trim(), code: code.trim() }) }),
+    onSuccess: (r) => {
+      formPass.set(token, r.session);
+      onOpened();
+    },
+  });
+  const error = (send.error ?? verify.error) as Error | null;
+  return (
+    <Frame company={view.company}>
+      <div className="card dialog-enter p-6">
+        <span className="grid h-12 w-12 place-items-center rounded-full bg-gold-pale text-gold-dark"><ShieldCheck className="h-5 w-5" /></span>
+        <h1 className="mt-4 text-base font-bold text-navy">Confirm it's you</h1>
+        <p className="mt-1 text-[13px] text-muted">
+          To keep your details safe, we send a code to the email address we have for you ({view.emailHint}). Type that email below to get it.
+        </p>
+        <div className="mt-4 space-y-3">
+          <Field label="Your email address">
+            <input type="email" autoComplete="email" inputMode="email" className="field" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" disabled={verify.isPending} />
+          </Field>
+          {!sent ? (
+            <button className="btn-primary w-full justify-center" disabled={!email.includes("@") || send.isPending} onClick={() => send.mutate()}>
+              {send.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Send me a code
+            </button>
+          ) : (
+            <>
+              <p className="rounded-md bg-emerald-50 px-3 py-2 text-[13px] text-emerald-800">If that is the address we have, a code is on its way. It works for {view.validMinutes} minutes.</p>
+              <Field label="6-digit code">
+                <input className="field text-center font-mono text-lg tracking-[0.4em]" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} />
+              </Field>
+              <button className="btn-primary w-full justify-center" disabled={code.length !== 6 || verify.isPending} onClick={() => verify.mutate()}>
+                {verify.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Open my form
+              </button>
+              <button className="w-full text-center text-[13px] font-semibold text-navy underline" disabled={send.isPending} onClick={() => { setSent(false); setCode(""); send.reset(); verify.reset(); }}>
+                Send the code again
+              </button>
+            </>
+          )}
+          {error && <p className="text-[13px] font-medium text-red-600">{error.message}</p>}
+        </div>
+        <Contact company={view.company} />
+      </div>
+    </Frame>
+  );
 }
 
 function Wizard({ token, view }: { token: string; view: Open }) {

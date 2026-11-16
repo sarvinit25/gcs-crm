@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, CheckCircle2, Copy, ExternalLink, Link2, Loader2, MessageCircle, RefreshCw, XCircle } from "lucide-react";
+import { Check, CheckCircle2, Copy, ExternalLink, Link2, Loader2, Mail, MessageCircle, RefreshCw, XCircle } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
 import { formLink, whatsappLink } from "../lib/customer-form";
@@ -21,6 +21,7 @@ type FormStatus =
       lastSavedAt: string | null;
       submittedAt: string | null;
       documentsReceived: number;
+      codeRequired?: boolean;
     };
 
 const STATE_LABEL = { open: "Waiting for the customer", submitted: "Submitted", expired: "Link expired", closed: "Link closed", revoked: "Link withdrawn" } as const;
@@ -59,6 +60,9 @@ export function CustomerFormPanel({ applicationId }: { applicationId: string }) 
     mutationFn: () => api<FormStatus>(`/applications/${applicationId}/customer-form`, { method: "POST" }),
     onSuccess: () => void done(),
   });
+  const emailIt = useMutation({
+    mutationFn: (link: string) => api<{ sent: boolean; to: string }>(`/applications/${applicationId}/customer-form/email`, { method: "POST", body: JSON.stringify({ url: link }) }),
+  });
   const revoke = useMutation({
     mutationFn: () => api<FormStatus>(`/applications/${applicationId}/customer-form`, { method: "DELETE" }),
     onSuccess: () => void done(),
@@ -80,7 +84,7 @@ export function CustomerFormPanel({ applicationId }: { applicationId: string }) 
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
-  const error = (create.error ?? revoke.error) as Error | null;
+  const error = (create.error ?? revoke.error ?? emailIt.error) as Error | null;
   const live = s.sent && (s.state === "open" || s.state === "submitted");
 
   return (
@@ -138,8 +142,21 @@ export function CustomerFormPanel({ applicationId }: { applicationId: string }) 
                   <a className="btn-primary" href={whatsappLink(primary?.phone, message)} target="_blank" rel="noreferrer">
                     <MessageCircle className="h-4 w-4" /> Send on WhatsApp
                   </a>
+                  {primary?.email ? (
+                    <button className="btn-primary" disabled={emailIt.isPending} onClick={() => emailIt.mutate(url)}>
+                      {emailIt.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />} Email the link
+                    </button>
+                  ) : (
+                    <span className="text-[12px] text-amber-700">Add the applicant's email to send it by email.</span>
+                  )}
                   <span className="text-[12px] text-muted">Valid till {formatDate(s.expiresAt)}</span>
                 </div>
+              )}
+              {emailIt.isSuccess && <p className="text-[12px] font-medium text-emerald-700">Emailed to {emailIt.data.to}.</p>}
+              {s.state === "open" && (
+                <p className="text-[12px] text-muted">
+                  {s.codeRequired ? "The customer is asked for a one-time code emailed to the address on file before the form opens." : "No email is on file, so this link opens without a code. Add the applicant's email to turn the code on."}
+                </p>
               )}
             </div>
           )}

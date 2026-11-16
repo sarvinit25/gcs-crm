@@ -1252,6 +1252,11 @@ model ApplicationInvite {
   openedAt    DateTime?
   lastSavedAt DateTime?
   submittedAt DateTime?
+  // The emailed one-time code that opens the form (only its hash is kept), and how it is being used.
+  otpHash      String?
+  otpExpiresAt DateTime?
+  otpAttempts  Int       @default(0)
+  otpSentAt    DateTime?
   // What the customer has typed so far; applied to the real records only when they submit.
   draft       Json?
   createdAt   DateTime  @default(now())

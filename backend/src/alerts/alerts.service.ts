@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
 import { SettingsService } from "../settings/settings.service";
 import { MailService } from "./mail.service";
-import { customerThankYou, gcsIdMessage, recoveryCode, signInCode, teamAlert, type Org } from "./email-templates";
+import { applicationFormLink, customerThankYou, formCode, gcsIdMessage, recoveryCode, signInCode, teamAlert, type Org } from "./email-templates";
 
 type NewLead = {
   leadNo: number;
@@ -66,6 +66,16 @@ export class AlertsService {
       subject: `Your confirmation code: ${code}`,
       html: recoveryCode(this.org(), code, validMinutes, idName),
     });
+  }
+
+  /** The customer's own application form link, emailed by staff. */
+  applicationFormLinkEmail(to: string, name: string, url: string, product: string, validUntil: string, needsCode: boolean) {
+    return this.mail.send({ to, subject: `Please fill in your ${product} application - ${this.settings.get<string>("org.name")}`, html: applicationFormLink(this.org(), name, url, product, validUntil, needsCode) });
+  }
+
+  /** The code that opens a customer's application form link. */
+  formCodeEmail(to: string, code: string, validMinutes: number) {
+    return this.mail.send({ to, subject: `Your code to open your application form: ${code}`, html: formCode(this.org(), code, validMinutes) });
   }
 
   /** The GCS ID(s) for a client or partner, emailed to the address on their file. */
