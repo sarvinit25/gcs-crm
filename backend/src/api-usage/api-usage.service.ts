@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { PlivoClient } from "../telephony/plivo.client";
 import { classifyCall, estimateUsd, istMonthStart, tokensFrom } from "./usage-tracker";
 
 const PLIVO_LOW_USD = 3;
@@ -16,7 +17,12 @@ export class ApiUsageService implements OnModuleInit {
   private readonly log = new Logger("ApiUsage");
   private balance: { at: number; usd: number | null } | null = null;
 
-  constructor(private prisma: PrismaService) {}
+  private plivoSpend: { at: number; thisMonth: number | null; lastMonth: number | null } | null = null;
+
+  constructor(
+    private prisma: PrismaService,
+    private plivo: PlivoClient,
+  ) {}
 
   onModuleInit() {
     const g = globalThis as typeof globalThis & { __usageWatching?: boolean };
@@ -81,6 +87,23 @@ export class ApiUsageService implements OnModuleInit {
     return usd;
   }
 
+  /** What Plivo charged for calls this month and last, in US dollars, from its own call records. Null when it cannot be read. Looked up at most every 10 minutes. */
+  private async plivoSpent(now: Date): Promise<{ thisMonth: number | null; lastMonth: number | null }> {
+    if (this.plivoSpend && Date.now() - this.plivoSpend.at < 10 * 60_000) return this.plivoSpend;
+    const sum = async (from: Date, to: Date) => {
+      try {
+        const { calls } = await this.plivo.calls(from, to);
+        return Math.round(calls.reduce((s, c) => s + c.cost, 0) * 100) / 100;
+      } catch {
+        return null;
+      }
+    };
+    const thisStart = istMonthStart(now);
+    const [thisMonth, lastMonth] = this.plivo.configured ? await Promise.all([sum(thisStart, now), sum(istMonthStart(now, 1), thisStart)]) : [null, null];
+    this.plivoSpend = { at: Date.now(), thisMonth, lastMonth };
+    return this.plivoSpend;
+  }
+
   private async period(from: Date, to: Date) {
     const rows = await this.prisma.apiUsage.groupBy({ by: ["service", "operation", "ok", "model"], where: { at: { gte: from, lt: to } }, _count: { _all: true }, _sum: { tokensIn: true, tokensOut: true } });
     const by = new Map<string, Period>();
@@ -106,11 +129,12 @@ export class ApiUsageService implements OnModuleInit {
   async summary(now = new Date()) {
     const thisStart = istMonthStart(now);
     const lastStart = istMonthStart(now, 1);
-    const [thisMonth, lastMonth, first, plivoUsd] = await Promise.all([
+    const [thisMonth, lastMonth, first, plivoUsd, plivoSpent] = await Promise.all([
       this.period(thisStart, new Date(now.getTime() + 1000)),
       this.period(lastStart, thisStart),
       this.prisma.apiUsage.findFirst({ orderBy: { at: "asc" }, select: { at: true } }),
       this.plivoBalance(),
+      this.plivoSpent(now),
     ]);
 
     // Counts we can read from our own records, which reach back further than the call counter
@@ -149,8 +173,17 @@ export class ApiUsageService implements OnModuleInit {
       whatsappInr: waRate === null ? null : Math.round(msgs * waRate),
     });
 
+    const openai = services.find((s) => s.name === "OpenAI");
+    const balances = [
+      { service: "Plivo", balance: plivoUsd === null ? null : `$${plivoUsd.toFixed(2)}`, usedThisMonth: plivoSpent.thisMonth === null ? null : `$${plivoSpent.thisMonth.toFixed(2)}`, usedLastMonth: plivoSpent.lastMonth === null ? null : `$${plivoSpent.lastMonth.toFixed(2)}`, note: plivoUsd === null ? "Plivo could not be reached." : "Live from Plivo. Used = what Plivo charged for calls." },
+      { service: "OpenAI", balance: null, usedThisMonth: openai?.thisMonth.estUsd == null ? null : `about $${openai.thisMonth.estUsd.toFixed(2)}`, usedLastMonth: openai?.lastMonth.estUsd == null ? null : `about $${openai.lastMonth.estUsd.toFixed(2)}`, note: "OpenAI gives the balance only on its billing page (platform.openai.com, Settings, Billing). Used = our own estimate from tokens." },
+      { service: "WhatsApp (Meta)", balance: null, usedThisMonth: `${waThis} messages${waRate === null ? "" : `, about ₹${Math.round(waThis * waRate)}`}`, usedLastMonth: `${waLast} messages${waRate === null ? "" : `, about ₹${Math.round(waLast * waRate)}`}`, note: "Meta shows the balance in Business settings, Payments. It is not available through the API." },
+      { service: "Sarvam (voice)", balance: null, usedThisMonth: `${voiceThis.minutes} min${sarvamRate === null ? "" : `, about ₹${Math.round(voiceThis.minutes * sarvamRate)}`}`, usedLastMonth: `${voiceLast.minutes} min${sarvamRate === null ? "" : `, about ₹${Math.round(voiceLast.minutes * sarvamRate)}`}`, note: "The balance is in Sarvam's dashboard. Used = minutes of the calls we received." },
+    ];
+
     return {
       generatedAt: now.toISOString(),
+      balances,
       rates: { sarvamInrPerMin: sarvamRate, whatsappInrPerMessage: waRate },
       spend: { thisMonth: spend(voiceThis.minutes, waThis), lastMonth: spend(voiceLast.minutes, waLast) },
       trackingSince: first?.at.toISOString() ?? null,

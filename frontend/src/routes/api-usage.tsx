@@ -14,6 +14,7 @@ type Summary = {
   voice: { thisMonth: { calls: number; minutes: number }; lastMonth: { calls: number; minutes: number } };
   whatsapp: { thisMonth: number; lastMonth: number };
   alerts: string[];
+  balances: { service: string; balance: string | null; usedThisMonth: string | null; usedLastMonth: string | null; note: string }[];
   rates: { sarvamInrPerMin: number | null; whatsappInrPerMessage: number | null };
   spend: { thisMonth: { sarvamInr: number | null; whatsappInr: number | null }; lastMonth: { sarvamInr: number | null; whatsappInr: number | null } };
 };
@@ -57,6 +58,31 @@ export function ApiUsagePage() {
                 {d!.alerts.map((a, i) => <li key={i} className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{a}</li>)}
               </ul>
             )}
+
+            <div className="card overflow-x-auto">
+              <table className="w-full text-left text-[13px]">
+                <thead className="border-b border-line bg-bg-light/60 text-[11px] tracking-wide text-muted uppercase">
+                  <tr>
+                    <th className="px-4 py-2.5 font-bold">Service</th>
+                    <th className="px-4 py-2.5 font-bold">Balance left</th>
+                    <th className="px-4 py-2.5 font-bold">Used in {cur}</th>
+                    <th className="px-4 py-2.5 font-bold">Used in {prev}</th>
+                    <th className="px-4 py-2.5 font-bold">Note</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {d!.balances.map((b) => (
+                    <tr key={b.service} className="border-b border-line/70 align-top last:border-0">
+                      <td className="px-4 py-3 font-semibold text-navy">{b.service}</td>
+                      <td className="px-4 py-3 font-bold">{b.balance ?? <span className="font-normal text-muted">Check the provider</span>}</td>
+                      <td className="px-4 py-3">{b.usedThisMonth ?? "—"}</td>
+                      <td className="px-4 py-3 text-muted">{b.usedLastMonth ?? "—"}</td>
+                      <td className="max-w-sm px-4 py-3 text-[12px] text-muted">{b.note}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             <div className="grid gap-3 md:grid-cols-3">
               <Block title="Voice agent calls (Sarvam)" a={`${n(d!.voice.thisMonth.calls)} calls · ${d!.voice.thisMonth.minutes} min`} b={`${n(d!.voice.lastMonth.calls)} calls · ${d!.voice.lastMonth.minutes} min`} aLabel={cur} bLabel={prev} />
