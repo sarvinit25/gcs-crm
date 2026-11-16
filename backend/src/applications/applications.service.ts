@@ -123,20 +123,18 @@ export class ApplicationsService {
     return this.decorate(created);
   }
 
-  async findAll(query: ListApplicationsQuery, user: AuthUser) {
-    const page = query.page ?? 1;
-    const pageSize = Math.min(query.pageSize ?? 25, 100);
-
+  /** The list's filters as a database condition. `skipProduct` leaves the loan-type filter out, for the per-type counts. */
+  private listWhere(query: ListApplicationsQuery, user: AuthUser, skipProduct = false): Prisma.ApplicationWhereInput {
     // "GCS-2026-0042" and a bare "42" both resolve to the sequence number.
     const seqFromSearch = query.search ? Number(query.search.replace(/^.*-/, "")) : NaN;
 
-    const where: Prisma.ApplicationWhereInput = {
+    return {
       ...this.scopeFor(user),
       archivedAt: query.archived === "true" ? { not: null } : null,
       ...(query.status && { status: query.status }),
       ...(query.lenderId && { lenderId: query.lenderId }),
       ...(query.ownerId && { ownerId: query.ownerId }),
-      ...(query.loanProductId && { loanProductId: query.loanProductId }),
+      ...(!skipProduct && query.loanProductId && { loanProductId: query.loanProductId }),
       ...(query.loggedIn === "true" && { bankLoginAt: { not: null } }),
       ...(rangeFilter(resolveRange(query)) && { createdAt: rangeFilter(resolveRange(query)) }),
       ...(query.search && {
@@ -147,6 +145,30 @@ export class ApplicationsService {
         ],
       }),
     };
+  }
+
+  /** How many files each loan type has under the list's other filters, for the tabs above the list. Biggest first. */
+  async countsByProduct(query: ListApplicationsQuery, user: AuthUser) {
+    const rows = await this.prisma.application.groupBy({
+      by: ["loanProductId"],
+      where: this.listWhere(query, user, true),
+      _count: { _all: true },
+    });
+    const names = await this.prisma.loanProduct.findMany({
+      where: { id: { in: rows.map((r) => r.loanProductId) } },
+      select: { id: true, name: true },
+    });
+    const nameOf = new Map(names.map((n) => [n.id, n.name]));
+    const items = rows
+      .map((r) => ({ id: r.loanProductId, name: nameOf.get(r.loanProductId) ?? "Other", count: r._count._all }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    return { total: items.reduce((n, i) => n + i.count, 0), items };
+  }
+
+  async findAll(query: ListApplicationsQuery, user: AuthUser) {
+    const page = query.page ?? 1;
+    const pageSize = Math.min(query.pageSize ?? 25, 100);
+    const where = this.listWhere(query, user);
 
     const [items, total] = await this.prisma.$transaction([
       this.prisma.application.findMany({
