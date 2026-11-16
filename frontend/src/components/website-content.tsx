@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, History, Loader2, Plus, RotateCcw, Save, Trash2 } f
 import clsx from "clsx";
 import { api, tokenStore } from "../lib/api";
 import { SITE_ICONS } from "./site-icons";
+import { TestimonialsEditor, type Testimonial } from "./testimonials-editor";
 
 type Faq = { q: string; a: string };
 type Fact = { label: string; value: string };
@@ -140,14 +141,6 @@ type BankRates = { asOf: string; disclaimer: string; defaultEmiRate: number; row
 type SeoEntry = { title?: string; description?: string };
 type SeoMap = Record<string, SeoEntry>;
 type SeoPage = { path: string; label: string; title: string; description: string };
-type Testimonial = {
-  name: string;
-  city: string;
-  product: string;
-  rating: number;
-  quote: string;
-  visible: boolean;
-};
 type Figures = Record<string, string>;
 type CustomPage = {
   slug: string;
@@ -1758,84 +1751,6 @@ function FiguresEditor({ value, onChange }: { value: Figures; onChange: (v: unkn
           <span className="mt-0.5 block text-[11px] text-muted">Currently shown as {f.token} on the site</span>
         </label>
       ))}
-    </div>
-  );
-}
-
-function TestimonialsEditor({ value, onChange }: { value: Testimonial[]; onChange: (v: unknown) => void }) {
-  const [index, setIndex] = useState(0);
-  const t = value[index];
-  const patch = (next: Partial<Testimonial>) =>
-    onChange(value.map((x, i) => (i === index ? { ...x, ...next } : x)));
-  return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <select value={index} onChange={(e) => setIndex(Number(e.target.value))} className="field max-w-md">
-          {value.map((s, i) => (
-            <option key={i} value={i}>
-              {s.visible === false ? "(hidden) " : ""}
-              {s.name || "New story"} — {s.product}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={() => {
-            onChange([...value, { name: "", city: "", product: "", rating: 5, quote: "", visible: true }]);
-            setIndex(value.length);
-          }}
-          className="btn-ghost"
-        >
-          <Plus className="h-4 w-4" /> Add story
-        </button>
-        {t && (
-          <button
-            onClick={() => {
-              if (window.confirm("Delete this story?")) {
-                onChange(value.filter((_, i) => i !== index));
-                setIndex(0);
-              }
-            }}
-            className="btn-ghost text-red-600"
-          >
-            <Trash2 className="h-4 w-4" /> Delete
-          </button>
-        )}
-      </div>
-      {t && (
-        <>
-          <label className="flex items-center gap-2 text-[13px] font-semibold text-navy">
-            <input type="checkbox" checked={t.visible !== false} onChange={(e) => patch({ visible: e.target.checked })} />
-            Show on the website
-          </label>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block">
-              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Name</span>
-              <input value={t.name} onChange={(e) => patch({ name: e.target.value })} className="field mt-1 w-full" />
-            </label>
-            <label className="block">
-              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">City</span>
-              <input value={t.city} onChange={(e) => patch({ city: e.target.value })} className="field mt-1 w-full" />
-            </label>
-            <label className="block">
-              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Loan</span>
-              <input value={t.product} onChange={(e) => patch({ product: e.target.value })} className="field mt-1 w-full" />
-            </label>
-            <label className="block">
-              <span className="text-[11px] font-bold tracking-wide text-muted uppercase">Rating (1 to 5)</span>
-              <input
-                inputMode="decimal"
-                value={String(t.rating)}
-                onChange={(e) => patch({ rating: Math.min(5, Math.max(1, Number(e.target.value.replace(/[^\d.]/g, "")) || 5)) })}
-                className="field mt-1 w-full"
-              />
-            </label>
-          </div>
-          <label className="block">
-            <span className="text-[11px] font-bold tracking-wide text-muted uppercase">What they said</span>
-            <textarea value={t.quote} onChange={(e) => patch({ quote: e.target.value })} rows={3} className="field mt-1 w-full" />
-          </label>
-        </>
-      )}
     </div>
   );
 }

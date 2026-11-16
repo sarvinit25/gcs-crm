@@ -152,6 +152,48 @@ function assertImages(value: unknown) {
   }
 }
 
+const PHOTO_PATH = /^\/public\/site-images\/[A-Za-z0-9]+$/;
+const short = (v: unknown, max: number) => v === undefined || v === null || (typeof v === "string" && v.length <= max);
+
+/**
+ * Client stories. Each can carry a photo (a picture uploaded through the CRM) and a record of the client's consent.
+ * A story that shows a photo must have photo consent on record: nothing the client did not agree to goes on the site.
+ */
+export function assertTestimonials(value: unknown) {
+  if (!Array.isArray(value) || value.length > 80) throw new BadRequestException("Client stories must be a list of at most 80");
+  for (const raw of value) {
+    const t = (raw && typeof raw === "object" ? raw : null) as Record<string, unknown> | null;
+    if (!t) throw new BadRequestException("Each client story must be an object");
+    if (!short(t.name, 120) || !short(t.city, 80) || !short(t.product, 120) || !short(t.role, 120) || !short(t.quote, 1200)) {
+      throw new BadRequestException("A client story has text that is too long");
+    }
+    if (t.photo !== undefined && t.photo !== "" && (typeof t.photo !== "string" || !PHOTO_PATH.test(t.photo))) {
+      throw new BadRequestException("A story's photo must be one uploaded through the CRM");
+    }
+    const consent = (t.consent && typeof t.consent === "object" ? t.consent : {}) as Record<string, unknown>;
+    if (!short(consent.how, 40) || !short(consent.date, 20) || !short(consent.note, 300)) throw new BadRequestException("A consent note is too long");
+    if (t.photo && t.visible !== false && consent.photoOk !== true) {
+      throw new BadRequestException(`${typeof t.name === "string" && t.name ? t.name : "A story"} has a photo but no photo consent on record. Record the consent, or remove the photo, or hide the story.`);
+    }
+  }
+}
+
+/** What the public website may see of the client stories: only shown ones, no consent notes, and a photo only with its consent. */
+export function publicTestimonials(value: unknown): unknown {
+  if (!Array.isArray(value)) return value;
+  return value
+    .filter((t) => t && typeof t === "object" && (t as { visible?: unknown }).visible !== false)
+    .map((raw) => {
+      const t = raw as Record<string, unknown>;
+      const consent = (t.consent && typeof t.consent === "object" ? t.consent : {}) as Record<string, unknown>;
+      return {
+        name: t.name, city: t.city, product: t.product, rating: t.rating, quote: t.quote, visible: true,
+        ...(typeof t.role === "string" && t.role ? { role: t.role } : {}),
+        ...(typeof t.photo === "string" && PHOTO_PATH.test(t.photo) && consent.photoOk === true ? { photo: t.photo } : {}),
+      };
+    });
+}
+
 function validate(key: string, value: unknown) {
   if (value === null || typeof value !== "object") {
     throw new BadRequestException("Content must be a list or an object");
@@ -167,6 +209,7 @@ function validate(key: string, value: unknown) {
   if (key === "seo") assertSeo(value);
   if (key === "trustNumbers") assertFigures(value);
   if (key === "customPages") assertPages(value);
+  if (key === "testimonials") assertTestimonials(value);
   if (key === "lists") assertLists(value);
   if (key === "homeText" || key === "aboutText" || key === "contactText" || key === "servicesText" || key === "cibilText" || key === "whyusText" ||
     key === "calegalText" || key === "partnerText" || key === "trackText" ||
@@ -195,7 +238,7 @@ export class PublicSiteContentController {
   @Get()
   async all() {
     const rows = await this.prisma.siteContent.findMany();
-    return Object.fromEntries(rows.map((r) => [r.key, r.value]));
+    return Object.fromEntries(rows.map((r) => [r.key, r.key === "testimonials" ? publicTestimonials(r.value) : r.value]));
   }
 }
 
