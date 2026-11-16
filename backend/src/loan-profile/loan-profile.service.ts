@@ -13,6 +13,7 @@ import {
   renderQuestion,
   summarise,
   totalEmi,
+  seedAnswers,
   type Answers,
   type Field,
 } from "./profile-schema";
@@ -41,7 +42,29 @@ export class LoanProfileService {
     private ai: ProfileAiService,
   ) {}
 
+  /**
+   * A new lead already carries some of the answers (the loan type it came in for, the amount, a salaried income). They are
+   * entered into the profile once, so every channel starts part-way and never asks what is already known. Only blanks are
+   * filled: an answer someone gave is never replaced.
+   */
+  private async seed(leadId: string) {
+    const lead = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { amount: true, employmentType: true, monthlyIncome: true, loanProduct: { select: { slug: true } } } });
+    if (!lead) return;
+    const known = seedAnswers({ productSlug: lead.loanProduct?.slug ?? null, amount: lead.amount === null ? null : Number(lead.amount), salaried: lead.employmentType === EmploymentType.SALARIED, monthlyIncome: lead.monthlyIncome === null ? null : Number(lead.monthlyIncome) });
+    const ids = Object.keys(known);
+    if (!ids.length) return;
+    const all = fieldsFor({ "lp-profile": "Salaried" });
+    await this.prisma.leadAnswer.createMany({
+      data: ids.flatMap((id) => {
+        const field = all.find((f) => f.id === id);
+        return field ? [{ leadId, stage: PROFILE_STAGE, key: answerKey(id), label: label(field), value: known[id]! }] : [];
+      }),
+      skipDuplicates: true,
+    });
+  }
+
   async answers(leadId: string): Promise<Answers> {
+    await this.seed(leadId);
     const rows = await this.prisma.leadAnswer.findMany({ where: { leadId, key: { startsWith: "lp-" } }, select: { key: true, value: true } });
     return Object.fromEntries(rows.map((r) => [r.key, r.value]));
   }

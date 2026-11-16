@@ -156,6 +156,8 @@ export function fieldsFor(a: Answers): Field[] {
       push(
         f("3.11", s, "biz-turnover", "Latest annual turnover", "What was the latest annual turnover?", "money"),
         f("3.12", s, "biz-profit", "Latest net profit", "And the latest net profit?", "money"),
+        f("3.13", s, "biz-turnover-prev", "Previous year annual turnover", "And the annual turnover of the year before that?", "money", { optional: true }),
+        f("3.14", s, "biz-profit-prev", "Previous year net profit", "And the net profit of that year?", "money", { optional: true }),
       );
     }
   }
@@ -295,6 +297,21 @@ export function fieldsFor(a: Answers): Field[] {
 }
 
 export const answerKey = (id: string) => `lp-${id}`;
+
+const PRODUCT_OPTION: Record<string, string> = { "home-loan": "Home Loan (HL)", "loan-against-property": "Loan Against Property (LAP)", "business-loan": "Business Loan (BL)" };
+
+/** Profile answers a lead already implies, by question id: the loan type, the amount, and a salaried person's income and profile. */
+export function seedAnswers(lead: { productSlug: string | null; amount: number | null; salaried: boolean; monthlyIncome: number | null }): Record<string, string> {
+  const out: Record<string, string> = {};
+  const option = lead.productSlug ? PRODUCT_OPTION[lead.productSlug] : undefined;
+  if (option) out["loan-product"] = option;
+  if (lead.amount && lead.amount > 0) out["loan-amount"] = String(Math.round(lead.amount));
+  if (lead.salaried) {
+    out["profile"] = "Salaried";
+    if (lead.monthlyIncome && lead.monthlyIncome > 0) out["sal-net"] = String(Math.round(lead.monthlyIncome));
+  }
+  return out;
+}
 
 /** The next question still unanswered, or null when the profile is complete. */
 export function nextField(a: Answers): Field | null {

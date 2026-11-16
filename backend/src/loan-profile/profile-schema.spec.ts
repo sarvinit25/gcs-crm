@@ -1,4 +1,4 @@
-import { answerKey, fieldsFor, nextField, parseAnswer, parseMoney, progress, renderQuestion, totalEmi, type Answers } from "./profile-schema";
+import { seedAnswers, answerKey, fieldsFor, nextField, parseAnswer, parseMoney, progress, renderQuestion, totalEmi, type Answers } from "./profile-schema";
 
 const ask = (a: Answers, reply: string) => {
   const f = nextField(a)!;
@@ -92,5 +92,18 @@ describe("loan profile answers", () => {
 
   it("lists the options by number when asking", () => {
     expect(renderQuestion(get("loan-product"))).toContain("1. Home Loan (HL)");
+  });
+});
+
+describe("seedAnswers", () => {
+  it("carries over what the lead already says", () => {
+    expect(seedAnswers({ productSlug: "home-loan", amount: 5000000, salaried: true, monthlyIncome: 85000 })).toEqual({ "loan-product": "Home Loan (HL)", "loan-amount": "5000000", profile: "Salaried", "sal-net": "85000" });
+  });
+  it("leaves out what it cannot tell", () => {
+    expect(seedAnswers({ productSlug: "personal-loan", amount: null, salaried: false, monthlyIncome: 50000 })).toEqual({});
+  });
+  it("asks the previous year's business figures only for a business", () => {
+    expect(fieldsFor({ "lp-profile": "Business Owner" }).map((f) => f.id)).toEqual(expect.arrayContaining(["biz-turnover-prev", "biz-profit-prev"]));
+    expect(fieldsFor({ "lp-profile": "Salaried" }).map((f) => f.id)).not.toContain("biz-turnover-prev");
   });
 });
