@@ -43,6 +43,13 @@ export class LenderOffersController {
     return this.offers.update(id, body, user);
   }
 
+  /** Fills every lender's policy one-pager from the policies and flyers already held (blanks only). Admin only. */
+  @Post("rebuild-one-pagers")
+  @Roles(Role.ADMIN)
+  rebuild(@CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.offers.rebuildOnePagers(user, ip);
+  }
+
   @Post(":id/apply")
   apply(@Param("id") id: string, @Body() body: { lenderId?: string; newLenderName?: string }, @CurrentUser() user: AuthUser, @Ip() ip: string) {
     return this.offers.apply(id, body ?? {}, user, ip);

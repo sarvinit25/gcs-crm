@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ClipboardList, Loader2, Save } from "lucide-react";
+import { ChevronDown, ClipboardList, Loader2, Pencil, Save } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
 import { formatDateTime } from "../lib/format";
+import { PolicyOnePager } from "./policy-one-pager";
 
 type Field = { key: string; label: string; type: "text" | "longtext" | "money" | "percent" | "number" | "select" | "yesno" | "multi" | "date" | "phone" | "email"; options?: string[]; hint?: string };
 type Section = { id: string; title: string; fields: Field[] };
@@ -65,6 +66,7 @@ export function LenderPolicySheet({ lenderId, canEdit }: { lenderId: string; can
   const [draft, setDraft] = useState<Record<string, Value> | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [editing, setEditing] = useState(false);
   const loadedFor = useRef<string | null>(null);
 
   useEffect(() => {
@@ -89,6 +91,24 @@ export function LenderPolicySheet({ lenderId, canEdit }: { lenderId: string; can
   const s = q.data;
   const filledIn = (sec: Section) => sec.fields.filter((f) => { const v = draft[f.key]; return v !== undefined && v !== null && v !== "" && !(Array.isArray(v) && !v.length); }).length;
 
+  // The default is the read-only page in the same layout as the form sent to banks; editing is one click away.
+  if (!editing) {
+    return (
+      <section className="card p-5">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="flex items-center gap-2 text-sm font-bold text-navy"><ClipboardList className="h-4 w-4" /> Policy one-pager</h2>
+            <p className="text-[12px] text-muted">
+              {s.progress.percent}% filled. {s.updatedAt ? `Last updated ${formatDateTime(s.updatedAt)}${s.updatedByName ? ` by ${s.updatedByName}` : ""}${s.source && s.source !== "Entered by hand" ? ` (${s.source})` : ""}.` : "Nothing recorded yet."}
+            </p>
+          </div>
+          {canEdit && <button className="btn-ghost" onClick={() => setEditing(true)}><Pencil className="h-4 w-4" /> Edit details</button>}
+        </div>
+        <PolicyOnePager lenderName={s.lender.name} data={s.data} />
+      </section>
+    );
+  }
+
   return (
     <section className="card overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 p-5">
@@ -103,6 +123,7 @@ export function LenderPolicySheet({ lenderId, canEdit }: { lenderId: string; can
             <div className="text-[12px] font-semibold text-navy">{s.progress.percent}% filled</div>
             <div className="mt-1 h-1.5 w-28 overflow-hidden rounded-full bg-bg-light"><div className="h-full rounded-full bg-gold" style={{ width: `${s.progress.percent}%` }} /></div>
           </div>
+          <button className="btn-ghost" disabled={dirty} title={dirty ? "Save your changes first" : "Back to the one-pager"} onClick={() => setEditing(false)}>Done</button>
           {canEdit && dirty && (
             <button className="btn-primary" disabled={save.isPending} onClick={() => save.mutate()}>
               {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save

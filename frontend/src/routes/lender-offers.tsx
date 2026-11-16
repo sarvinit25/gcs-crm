@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, FileText, Loader2, Plus, ScanText, Trash2, Upload } from "lucide-react";
 import clsx from "clsx";
 import { api, tokenStore } from "../lib/api";
+import { PolicyOnePager } from "../components/policy-one-pager";
 import { formatDateTime } from "../lib/format";
 import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
@@ -21,7 +22,7 @@ type Extraction = { kind: Kind; summary: string; lenderName: string | null; lend
 type Row = { id: string; source: string; fileName: string | null; kind: Kind; summary: string | null; status: string; createdAt: string; createdByName: string | null; lenderName: string | null; offerCount: number };
 type Detail = Row & {
   extracted: Extraction; hasFile: boolean; rawText: string | null; mimeType: string | null; lenderMatch: { id: string; name: string } | null;
-  preview: { productSlug: string; productName: string; exists: boolean; schemes: number; changes: string[] }[]; skipped: number; sheetFound?: string[];
+  preview: { productSlug: string; productName: string; exists: boolean; schemes: number; changes: string[] }[]; skipped: number; sheetFound?: string[]; sheetPreview?: Record<string, string | number | string[] | null>;
   lenders: { id: string; name: string }[]; products: { slug: string; name: string }[];
   appliedSummary: Applied | null; duplicate?: boolean;
 };
@@ -242,6 +243,12 @@ export function ReviewModal({ id, onClose }: { id: string; onClose: () => void }
                   </tbody>
                 </table>
               </div>
+              {data.sheetPreview && Object.keys(data.sheetPreview).length > 0 && (
+                <details className="rounded-lg border border-line p-3" open>
+                  <summary className="cursor-pointer text-[13px] font-semibold text-navy">What this page puts on the lender's one-pager</summary>
+                  <div className="mt-3"><PolicyOnePager lenderName={data.extracted.lenderName ?? data.lenderMatch?.name} data={data.sheetPreview} compact /></div>
+                </details>
+              )}
               {(data.sheetFound?.length ?? 0) > 0 ? <p>Policy one-pager details found: <strong>{data.sheetFound!.length}</strong> ({data.sheetFound!.slice(0, 8).join(", ")}{data.sheetFound!.length > 8 ? " and more" : ""}). They fill the lender's one-pager; anything already there is kept.</p> : null}
               {data.skipped > 0 ? <p>{data.skipped} product{data.skipped === 1 ? "" : "s"} without a loan type will be skipped.</p> : null}
             </div>

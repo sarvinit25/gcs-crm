@@ -12,7 +12,8 @@ import { OfferReaderService } from "./offer-reader.service";
 import { isDocx, isOldWord, readDocx } from "./docx-text";
 import { isXlsx, readXlsx } from "./xlsx-text";
 import { PolicySheetService } from "../lender-policies/policy-sheet.service";
-import { SHEET_FIELDS, type SheetData } from "../lender-policies/policy-sheet-schema";
+import { cleanSheet, SHEET_FIELDS, type SheetData } from "../lender-policies/policy-sheet-schema";
+import { sheetFromTerms } from "../lender-policies/policy-sheet-from-terms";
 import { bestLender, cleanPhone, fillContact, mergeIntoPolicy, mergeOffers, normalizedForHash, normalizeExtraction, offerEnded, type ExistingPolicy, type Extraction, type PolicyDraft } from "./offer-extraction";
 
 const READABLE = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
@@ -206,6 +207,8 @@ export class LenderOffersService {
       lenderMatch: match ? { id: match.id, name: match.name } : null,
       // the one-pager details the page states, named in words for the review screen
       sheetFound: SHEET_FIELDS.filter((f) => (extracted.sheet ?? {})[f.key] !== undefined).map((f) => f.label),
+      // everything this flyer would put on the lender's one-pager, so the review screen can show it in that format
+      sheetPreview: this.sheetOf(extracted),
       preview: policies.map((p) => {
         const have = held.find((h) => h.loanProduct.slug === p.productSlug);
         return { ...p, productName: name.get(p.productSlug) ?? p.productSlug, exists: Boolean(have), changes: have ? mergeIntoPolicy(existingOf(have), p, TODAY()).changes : [] };
@@ -300,10 +303,7 @@ export class LenderOffersService {
     }
     const lenderFilled = lender.isNew ? [] : await this.fillLender(lender.id, x);
     // the standard policy one-pager: only blanks are filled, so nothing a person entered is overwritten
-    // the first person named on the page is the one-pager's contact, unless the page's own one-pager details say otherwise
-    const c0 = x.contacts?.[0];
-    const fromContact: SheetData = { ...(c0?.name && { rmName: c0.name }), ...(c0?.designation && { rmDesignation: c0.designation }), ...(c0?.phone && { rmMobile: c0.phone }), ...(c0?.email && { rmEmail: c0.email }), ...(x.city && { rmLocation: x.city }) };
-    const sheet = await this.sheets.fillFrom(lender.id, { ...fromContact, ...(x.sheet ?? {}) }, source, actor, ip);
+    const sheet = await this.sheets.fillFrom(lender.id, this.sheetOf(x), source, actor, ip);
     const contacts = await this.saveContacts(lender.id, x, policies.map((p) => idOf.get(p.productSlug)!.name));
     const summary = { lender: { id: lender.id, name: lender.name, isNew: lender.isNew }, created, updated, unchanged, changes, contactsAdded: contacts.added, contactsUpdated: contacts.updated, lenderFilled, skippedProducts: skipped, sheetFilled: sheet.filled, sheetDiffers: sheet.differs };
     await this.prisma.lenderOffer.update({ where: { id }, data: { status: "APPLIED", appliedLenderId: lender.id, appliedSummary: json(summary) } });
@@ -325,6 +325,37 @@ export class LenderOffersService {
   }
 
   /** The values for a brand-new policy: only what the flyer actually gave. */
+  /**
+   * Puts what the CRM already holds into every lender's policy one-pager: the saved Home Loan / LAP policies and the flyers
+   * already added. Blanks only, so nothing a person entered is touched. Safe to run again.
+   */
+  async rebuildOnePagers(actor: AuthUser, ip?: string) {
+    const lenders = await this.prisma.lender.findMany({ select: { id: true, name: true } });
+    let lendersFilled = 0;
+    let detailsFilled = 0;
+    for (const l of lenders) {
+      const [policies, offers] = await Promise.all([
+        this.prisma.lenderPolicy.findMany({ where: { lenderId: l.id }, include: { loanProduct: { select: { slug: true } } } }),
+        this.prisma.lenderOffer.findMany({ where: { appliedLenderId: l.id, status: "APPLIED" }, orderBy: { createdAt: "desc" }, select: { extracted: true } }),
+      ]);
+      // The newest flyer's own one-pager details win, then older flyers, then the saved policies' figures.
+      const fromOffers = offers.map((o) => this.sheetOf(o.extracted as unknown as Extraction));
+      const fromPolicies = sheetFromTerms(policies.map((p) => ({ productSlug: p.loanProduct.slug, specialScheme: p.specialScheme, minAmount: p.minAmount?.toString(), maxAmount: p.maxAmount?.toString(), minRate: p.minRate?.toString(), maxRate: p.maxRate?.toString(), maxTenureMonths: p.maxTenureMonths, processingFee: p.processingFee, employmentTypes: p.employmentTypes, minCreditScore: p.minCreditScore })));
+      const found = cleanSheet(Object.assign({}, fromPolicies, ...fromOffers.reverse()));
+      if (!Object.keys(found).length) continue;
+      const r = await this.sheets.fillFrom(l.id, found, "Rebuilt from policies and flyers already held", actor, ip);
+      if (r.filled.length) { lendersFilled += 1; detailsFilled += r.filled.length; }
+    }
+    return { lenders: lenders.length, lendersFilled, detailsFilled };
+  }
+
+  /** What a flyer puts on the lender's policy one-pager: its contact, the figures of each Home Loan / LAP product, then the one-pager details it states itself (those win). */
+  private sheetOf(x: Extraction): SheetData {
+    const c0 = x.contacts?.[0];
+    const fromContact: SheetData = { ...(c0?.name && { rmName: c0.name }), ...(c0?.designation && { rmDesignation: c0.designation }), ...(c0?.phone && { rmMobile: c0.phone }), ...(c0?.email && { rmEmail: c0.email }), ...(x.city && { rmLocation: x.city }), ...(x.validTill && { validity: `Till ${new Date(`${x.validTill}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}` }) };
+    return cleanSheet({ ...fromContact, ...sheetFromTerms(mergeOffers(x.offers).policies), ...(x.sheet ?? {}) });
+  }
+
   private fields(p: PolicyDraft) {
     const out: Record<string, unknown> = { gstRequired: p.gstRequired, allIndia: p.allIndia };
     const set = (k: string, v: unknown) => { if (v !== null && v !== undefined && !(Array.isArray(v) && !v.length)) out[k] = v; };
