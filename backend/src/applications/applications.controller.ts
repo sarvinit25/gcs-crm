@@ -20,6 +20,12 @@ export class ApplicationsController {
     return this.applications.findAll(query, user);
   }
 
+  /** Files per loan type under the list's filters, for the tabs on the Applications page. Must stay above ":id". */
+  @Get("counts-by-product")
+  countsByProduct(@Query() query: ListApplicationsQuery, @CurrentUser() user: AuthUser) {
+    return this.applications.countsByProduct(query, user);
+  }
+
   @Get(":id")
   findOne(@Param("id") id: string, @CurrentUser() user: AuthUser) {
     return this.applications.findOne(id, user);

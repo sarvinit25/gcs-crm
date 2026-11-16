@@ -32,9 +32,14 @@ export function ApplicationsPage() {
   const [timeRange, setTimeRange] = useState("all");
   const loggedIn = tab === "login" ? "true" : undefined;
 
-  const products = useQuery({
-    queryKey: ["loan-products"],
-    queryFn: () => api<{ id: string; name: string }[]>("/loan-products"),
+  // Files per loan type under every other filter, so each chip's number matches what the list would show.
+  const counts = useQuery({
+    queryKey: ["applications-counts", { search, status, timeRange, tab, archived }],
+    queryFn: () =>
+      api<{ total: number; items: { id: string; name: string; count: number }[] }>(
+        `/applications/counts-by-product${qs({ search, status, range: timeRange, loggedIn, archived: archived ? "true" : undefined })}`,
+      ),
+    placeholderData: (prev) => prev,
   });
 
   const query = useQuery({
@@ -98,6 +103,25 @@ export function ApplicationsPage() {
             </button>
           ))}
         </div>
+        {counts.data && (counts.data.items.length > 0 || loanProductId) && (
+          <div className="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="Loan type">
+            {[{ id: "", name: "All", count: counts.data.total }, ...counts.data.items].map((c) => (
+              <button
+                key={c.id || "all"}
+                role="tab"
+                aria-selected={loanProductId === c.id}
+                onClick={() => reset(() => setLoanProductId(c.id))}
+                className={clsx(
+                  "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-[13px] font-semibold transition",
+                  loanProductId === c.id ? "border-navy bg-navy text-white" : "border-line bg-white text-navy hover:border-navy/30",
+                )}
+              >
+                {c.name}
+                <span className={clsx("rounded-full px-1.5 text-[11px]", loanProductId === c.id ? "bg-white/20" : "bg-bg-light text-muted")}>{c.count}</span>
+              </button>
+            ))}
+          </div>
+        )}
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted/60" />
@@ -123,18 +147,6 @@ export function ApplicationsPage() {
             {APPLICATION_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {APPLICATION_STATUS_LABEL[s]}
-              </option>
-            ))}
-          </select>
-          <select
-            value={loanProductId}
-            onChange={(e) => reset(() => setLoanProductId(e.target.value))}
-            className="field w-44"
-          >
-            <option value="">All loan types</option>
-            {products.data?.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
               </option>
             ))}
           </select>
