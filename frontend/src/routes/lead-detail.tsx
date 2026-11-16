@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, FileText, Loader2, Pencil, Plus } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
+import { useAuth } from "../lib/auth";
 import { SmartMatchPanel } from "../components/smart-match-panel";
 import { formatAmount, formatCompact, formatDate, formatDateTime, humanize } from "../lib/format";
 import {
@@ -235,6 +236,7 @@ export function LeadDetailPage() {
   const { leadId } = useParams({ strict: false }) as { leadId: string };
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [note, setNote] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [showWizard, setShowWizard] = useState(false);
@@ -259,6 +261,15 @@ export function LeadDetailPage() {
     void queryClient.invalidateQueries({ queryKey: ["lead", leadId] });
     void queryClient.invalidateQueries({ queryKey: ["leads"] });
   };
+
+  const remove = useMutation({
+    mutationFn: () => api(`/leads/${leadId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["leads"] });
+      void navigate({ to: "/leads" });
+    },
+    onError: (e) => window.alert((e as Error).message),
+  });
 
   const [askingReason, setAskingReason] = useState(false);
   const setStatus = useMutation({
@@ -320,6 +331,18 @@ export function LeadDetailPage() {
               closed={lead.status === "CONVERTED" || lead.status === "LOST"}
               refresh={[["lead", leadId], ["leads"]]}
             />
+            {user?.role === "ADMIN" && !lead.application && (
+              <button
+                className="btn-ghost text-red-700"
+                disabled={remove.isPending}
+                title="Delete this lead for good (only for junk or test leads)"
+                onClick={() => {
+                  if (window.confirm(`Delete lead #${lead.leadNo} (${lead.name}) for good? This cannot be undone.`)) remove.mutate();
+                }}
+              >
+                {remove.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />} Delete
+              </button>
+            )}
             <select
               value={lead.status}
               disabled={setStatus.isPending}

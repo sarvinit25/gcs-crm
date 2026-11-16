@@ -585,6 +585,26 @@ export class LeadsService implements OnApplicationBootstrap {
     return created;
   }
 
+  /**
+   * Deletes a lead for good, for junk and test leads. A lead that already became a loan file is refused: that file's
+   * history must stay, so such a lead is archived instead. The phone-agent call that made it is kept, just unlinked.
+   */
+  async remove(id: string, user: AuthUser, ip?: string) {
+    const lead = await this.findOne(id, user);
+    if (lead.application) {
+      throw new BadRequestException("This lead has a loan file, so it cannot be deleted. Archive it instead.");
+    }
+    const files = await this.prisma.leadFile.findMany({ where: { leadId: id }, select: { objectKey: true } });
+    await this.prisma.$transaction([
+      this.prisma.voiceCall.updateMany({ where: { leadId: id }, data: { leadId: null } }),
+      this.prisma.lead.delete({ where: { id } }),
+    ]);
+    // Rows first, then the stored files: a leftover file costs pennies, a row pointing at a missing file breaks downloads.
+    for (const f of files) await this.storage.remove(f.objectKey).catch(() => undefined);
+    await this.audit.record({ actor: user, action: AuditAction.DELETE, entity: "Lead", entityId: id, entityLabel: `#${lead.leadNo} ${lead.name}`, ip });
+    return { ok: true };
+  }
+
   async removeFile(leadId: string, fileId: string, user: AuthUser) {
     const file = await this.prisma.leadFile.findFirst({ where: { id: fileId, leadId, lead: this.scopeFor(user) }, include: { lead: { select: { name: true } } } });
     if (!file) throw new NotFoundException("File not found");

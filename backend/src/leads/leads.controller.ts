@@ -161,6 +161,12 @@ export class LeadsController {
     return this.leads.update(id, dto, user, ip);
   }
 
+  @Delete(":id")
+  @Roles(Role.ADMIN)
+  remove(@Param("id") id: string, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.leads.remove(id, user, ip);
+  }
+
   @Post(":id/archive")
   @Roles(Role.ADMIN, Role.MANAGER)
   archive(@Param("id") id: string, @CurrentUser() user: AuthUser, @Ip() ip: string) {
