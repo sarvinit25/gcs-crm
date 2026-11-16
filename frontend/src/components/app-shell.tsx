@@ -72,6 +72,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { to: "/whatsapp/setup", label: "WhatsApp setup", icon: Plug, roles: ["ADMIN"] },
       { to: "/telephony", label: "Telecaller", icon: Phone, roles: ["ADMIN", "MANAGER"] },
       { to: "/voice-calls", label: "Voice calls", icon: Headphones, roles: ["ADMIN", "MANAGER"] },
+      { to: "/api-usage", label: "API usage", icon: Gauge, roles: ["ADMIN"] },
     ],
   },
   {

@@ -1896,3 +1896,20 @@ model LenderPolicySheet {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+/// One request the CRM made to an outside service (OpenAI, MSG91, Plivo, WhatsApp). Only what it was for, whether it
+/// worked and the tokens used are kept, never what was sent or answered. Read by the API usage page.
+model ApiUsage {
+  id        String   @id @default(cuid())
+  at        DateTime @default(now())
+  service   String
+  operation String
+  ok        Boolean
+  status    Int?
+  model     String?
+  tokensIn  Int?
+  tokensOut Int?
+
+  @@index([at])
+  @@index([service, at])
+}
