@@ -185,3 +185,17 @@ describe("loan type and amount when the agent only sends a summary", () => {
     expect(readCall({ user_phone_number: "+918928218139", duration: 30, final_agent_variables: { call_summary: "Needs a home loan of 40 lakhs in Mumbai." } }).amount).toBe(4000000);
   });
 });
+
+describe("the name the caller said", () => {
+  it("takes it from the caller's own lines, ahead of the name the call was dialled with", () => {
+    const base = { user_phone_number: "+918928218139", duration: 50, final_agent_variables: { user_name: "Manan" } };
+    const said = [{ role: "agent", en_text: "Hello, I am Jiya" }, { role: "user", en_text: "My name is Vineet. I need a loan of 40 lakhs." }];
+    expect(readCall({ ...base, interaction_transcript: said }).name).toBe("Vineet");
+    expect(readCall({ ...base }).name).toBe("Manan");
+    expect(readCall({ ...base, interaction_transcript: said, output_agent_variables: { full_name: "Vineet Sarnaik" } }).name).toBe("Vineet Sarnaik");
+  });
+  it("does not take the agent's own name or a job as the caller's name", () => {
+    const c = readCall({ user_phone_number: "+918928218139", duration: 20, interaction_transcript: [{ role: "agent", en_text: "I am Jiya" }, { role: "user", en_text: "I am self-employed" }] });
+    expect(c.name).toBeNull();
+  });
+});

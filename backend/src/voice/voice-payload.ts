@@ -172,6 +172,20 @@ export function amountIn(text: string | null | undefined): number | null {
   return m ? num(m[0]) : null;
 }
 
+/** The name the caller said out loud ("my name is Vineet", "this is Asha speaking", "मेरा नाम विनीत है"), from the caller's own lines. */
+export function nameFromTranscript(transcript: string | null): string | null {
+  if (!transcript) return null;
+  for (const line of transcript.split("\n")) {
+    if (!/^(user|customer|caller)\s*:/i.test(line)) continue;
+    const said = line.replace(/^[^:]*:\s*/, "");
+    const m = said.match(/\b(?:my name is|my name's|this is|i am|i'm|name is)\s+([A-Za-z]{2,}(?:\s+[A-Za-z]{2,})?)/i) ?? said.match(/मेरा नाम\s+(\S+(?:\s+\S+)?)/);
+    if (!m) continue;
+    const words = m[1]!.split(/\s+/).filter((w) => !/^(and|from|calling|speaking|looking|interested|here|self|salaried|in|a|the|needing|want|wanting|ji|sir|fine|good|ok|okay|not|working|ready|busy|sorry|also|already|just|very|really|thinking|trying|asking|employed|business|professional|nri|an|on|at|to)$/i.test(w));
+    if (words.length) return words.slice(0, 2).map((w) => w[0]!.toUpperCase() + w.slice(1)).join(" ");
+  }
+  return null;
+}
+
 export function readCall(payload: unknown): CallDetails {
   const callId = text(find(payload, ["interaction_id", "interactionId", "call_id", "callId", "call_uuid", "attempt_id", "id"]), 120);
   // Who rang us: prefer fields that name the caller; the number we own is never the answer.
@@ -187,7 +201,7 @@ export function readCall(payload: unknown): CallDetails {
   return {
     callId,
     phone,
-    name: text(find(payload, ["full_name", "name", "customer_name", "caller_name", "lead_name", "user_name"]), 120),
+    name: text(find(payload, ["full_name"]), 120) ?? nameFromTranscript(transcript) ?? text(find(payload, ["name", "customer_name", "caller_name", "lead_name", "user_name"]), 120),
     city: text(find(payload, ["city", "location", "customer_city"]), 80),
     amount: num(find(payload, ["loan_amount_inr", "loan_amount", "amount", "required_amount", "loan_requirement"])) ?? amountIn(text(find(payload, ["call_summary", "summary", "conversation_summary"]), 1500)),
     extra: readExtra(payload),

@@ -61,6 +61,7 @@ import { WhatsAppSetupPage } from "./routes/whatsapp-setup";
 import { TelephonyPage } from "./routes/telephony";
 import { NotificationTemplatesPage } from "./routes/notification-templates";
 import { NotificationLogsPage } from "./routes/notification-logs";
+import { VoiceCallsPage } from "./routes/voice-calls";
 
 const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -269,6 +270,7 @@ const routeTree = rootRoute.addChildren([
     createRoute({ getParentRoute: () => protectedRoute, path: "/telephony", component: TelephonyPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/notifications/templates", component: NotificationTemplatesPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/notifications/logs", component: NotificationLogsPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/voice-calls", component: VoiceCallsPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/reports", component: ReportsHubPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/reports/analysis", component: ReportsPage }),
     createRoute({ getParentRoute: () => protectedRoute, path: "/reports/$kind", component: ReportDetailPage }),
