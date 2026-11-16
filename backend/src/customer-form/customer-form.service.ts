@@ -12,6 +12,8 @@ import { ChecklistService, resolveChecklistBucket } from "../checklist/checklist
 import { decryptSecret, encryptSecret } from "../security/secret-box";
 import type { AuthUser } from "../auth/auth.decorators";
 import { istToday } from "../common/date.util";
+import { PROFILE_STAGE, answerKey, fieldsFor, parseAnswer, type Answers, type Field } from "../loan-profile/profile-schema";
+import { LoanProfileService } from "../loan-profile/loan-profile.service";
 import { checkFormSession, generateFormCode, generateFormToken, hashFormCode, hashFormToken, looksLikeFormToken, maskEmail, signFormSession } from "./form-token";
 import { completeReferences, formProblems, mergeForm, type FormData } from "./form-rules";
 import type { SaveFormDto } from "./dto/customer-form.dto";
@@ -31,6 +33,7 @@ const APPLICATION_FOR_FORM = {
   createdAt: true,
   status: true,
   archivedAt: true,
+  leadId: true,
   loanProductId: true,
   requestedAmount: true,
   tenureMonths: true,
@@ -79,6 +82,7 @@ export class CustomerFormService {
     private checklist: ChecklistService,
     private config: ConfigService,
     private alerts: AlertsService,
+    private profile: LoanProfileService,
   ) {}
 
   private get secret() {
@@ -302,6 +306,71 @@ export class CustomerFormService {
     return { session: signFormSession(this.secret, invite.id, Date.now() + SESSION_HOURS * 3_600_000) };
   }
 
+  // ── the extra loan-profile questions (all optional, mostly pick-lists) ──
+
+  /** What is already known (from the lead) with what the customer has answered on the form on top. */
+  private async profileAnswers(invite: { profileDraft: Prisma.JsonValue | null; application: FormApplication }): Promise<Answers> {
+    const held = invite.application.leadId ? await this.profile.answers(invite.application.leadId) : {};
+    const draft = (invite.profileDraft && typeof invite.profileDraft === "object" ? invite.profileDraft : {}) as Answers;
+    return { ...held, ...draft };
+  }
+
+  private profileShape(answers: Answers) {
+    const pick = (f: Field) => ({ id: f.id, num: f.num, section: f.section, label: f.label, ask: f.ask, kind: f.kind, options: f.options ?? null, hint: f.hint ?? null, optional: Boolean(f.optional), min: f.min ?? null, max: f.max ?? null });
+    return { fields: fieldsFor(answers).map(pick), answers: Object.fromEntries(Object.entries(answers).filter(([k]) => k.startsWith("lp-")).map(([k, v]) => [k.slice(3), v])) };
+  }
+
+  async profileView(token: string, session?: string) {
+    const invite = await this.openInvite(token);
+    this.requireSession(invite, session);
+    return this.profileShape(await this.profileAnswers(invite));
+  }
+
+  /** Saves some answers. Each is read by the same rules as on WhatsApp; a blank clears that answer. */
+  async saveProfile(token: string, values: Record<string, string>, session?: string) {
+    const invite = await this.openInvite(token);
+    this.requireSession(invite, session);
+    let answers = await this.profileAnswers(invite);
+    const draft = { ...((invite.profileDraft && typeof invite.profileDraft === "object" ? invite.profileDraft : {}) as Answers) };
+    const problems: Record<string, string> = {};
+    for (const [id, raw] of Object.entries(values ?? {}).slice(0, 80)) {
+      const field = fieldsFor(answers).find((f) => f.id === id);
+      if (!field) continue;
+      const key = answerKey(id);
+      if (!String(raw ?? "").trim()) {
+        delete draft[key];
+        answers = { ...answers };
+        delete answers[key];
+        continue;
+      }
+      const parsed = parseAnswer(field, String(raw));
+      if (!parsed.ok) { problems[id] = parsed.reason; continue; }
+      draft[key] = parsed.value;
+      answers = { ...answers, [key]: parsed.value };
+    }
+    if (Object.keys(problems).length) throw new BadRequestException({ message: "Some answers need another look", fields: problems });
+    await this.prisma.applicationInvite.update({ where: { id: invite.id }, data: { profileDraft: draft as Prisma.InputJsonValue, lastSavedAt: new Date() } });
+    return this.profileShape(answers);
+  }
+
+  /** On submit, what the customer answered becomes part of the lead's loan profile (never replacing what staff entered). */
+  private async keepProfile(invite: { profileDraft: Prisma.JsonValue | null; application: FormApplication }) {
+    const leadId = invite.application.leadId;
+    const draft = (invite.profileDraft && typeof invite.profileDraft === "object" ? invite.profileDraft : {}) as Answers;
+    if (!leadId || !Object.keys(draft).length) return;
+    const all = fieldsFor(draft);
+    const known = new Map([...all, ...fieldsFor({ ...draft, "lp-profile": "Salaried" }), ...fieldsFor({ ...draft, "lp-profile": "Business Owner" })].map((f) => [f.id, f]));
+    for (const [key, value] of Object.entries(draft)) {
+      const f = known.get(key.slice(3));
+      if (!f) continue;
+      await this.prisma.leadAnswer.upsert({
+        where: { leadId_key: { leadId, key } },
+        create: { leadId, stage: PROFILE_STAGE, key, label: `Loan profile ${f.num} · ${f.label}`, value },
+        update: { stage: PROFILE_STAGE, label: `Loan profile ${f.num} · ${f.label}`, value },
+      });
+    }
+  }
+
   async view(token: string, session?: string) {
     const invite = await this.load(token);
     const app = invite.application;
@@ -477,6 +546,8 @@ export class CustomerFormService {
         data: { submittedAt: new Date(), draft: Prisma.DbNull },
       });
     });
+
+    await this.keepProfile(invite).catch((e) => console.error(`Could not keep the loan-profile answers for ${this.appNo(app)}: ${(e as Error).message}`));
 
     const changes: Record<string, { from: unknown; to: unknown }> = {};
     for (const [key, value] of Object.entries(form)) {

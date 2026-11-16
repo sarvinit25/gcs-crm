@@ -237,7 +237,7 @@ function Wizard({ token, view }: { token: string; view: Open }) {
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["apply", token] });
   useEffect(() => {
     // The documents list depends on what the customer does for work, so refresh it when they get to that step.
-    if (step === 4) void flush().then(refresh);
+    if (step === 5) void flush().then(refresh);
     top.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
@@ -438,9 +438,11 @@ function Wizard({ token, view }: { token: string; view: Open }) {
           </>
         )}
 
-        {step === 4 && <DocumentsStep token={token} view={view} onChanged={refresh} />}
+        {step === 4 && <ProfileStep token={token} />}
 
-        {step === 5 && (
+        {step === 5 && <DocumentsStep token={token} view={view} onChanged={refresh} />}
+
+        {step === 6 && (
           <>
             <Summary values={values} view={view} errors={errors} onEdit={(s) => setStep(s)} />
             {Object.keys(serverFields).some((k) => serverFields[k]) && (
@@ -494,7 +496,7 @@ function Summary({ values, view, errors, onEdit }: { values: FormValues; view: O
   return (
     <dl className="divide-y divide-line/70">
       {rows.map((r) => {
-        const step = r.field ? STEP_OF[r.field] : 4;
+        const step = r.field ? STEP_OF[r.field] : 5;
         const bad = r.field ? errors[r.field] : undefined;
         return (
           <div key={r.label} className="flex items-start justify-between gap-3 py-2.5 text-[13px]">
@@ -509,6 +511,92 @@ function Summary({ values, view, errors, onEdit }: { values: FormValues; view: O
         );
       })}
     </dl>
+  );
+}
+
+type ProfileField = { id: string; num: string; section: string; label: string; ask: string; kind: "choice" | "multi" | "yesno" | "money" | "int" | "percent" | "text"; options: string[] | null; hint: string | null; optional: boolean };
+type Profile = { fields: ProfileField[]; answers: Record<string, string> };
+
+/** The extra questions a lender will ask, as pick-lists wherever the answer is one of a few. All optional. */
+function ProfileStep({ token }: { token: string }) {
+  const queryClient = useQueryClient();
+  const key = ["apply-profile", token];
+  const q = useQuery({ queryKey: key, queryFn: () => formApi<Profile>(token, "/profile"), staleTime: Infinity, refetchOnWindowFocus: false });
+  const [typed, setTyped] = useState<Record<string, string>>({});
+  const [problems, setProblems] = useState<Record<string, string>>({});
+  const save = useMutation({
+    mutationFn: (values: Record<string, string>) => formApi<Profile>(token, "/profile", { method: "PUT", body: JSON.stringify({ values }) }),
+    onSuccess: (data, values) => {
+      queryClient.setQueryData(key, data);
+      setProblems({});
+      setTyped((t) => Object.fromEntries(Object.entries(t).filter(([k]) => !(k in values))));
+    },
+    onError: (e, values) => {
+      if (e instanceof FormApiError && e.fields) setProblems(e.fields);
+      else setProblems(Object.fromEntries(Object.keys(values).map((k) => [k, "Could not save this answer. Please try again."])));
+    },
+  });
+
+  if (q.isPending) return <p className="flex items-center gap-2 text-[13px] text-muted"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</p>;
+  if (q.isError || !q.data) return <p className="text-[13px] text-red-600">We couldn't load these questions. You can skip this step and carry on.</p>;
+
+  const answers = q.data.answers;
+  const value = (f: ProfileField) => typed[f.id] ?? answers[f.id] ?? "";
+  const send = (f: ProfileField, v: string) => save.mutate({ [f.id]: v });
+  const sections = [...new Set(q.data.fields.map((f) => f.section))];
+  const done = q.data.fields.filter((f) => answers[f.id] !== undefined).length;
+
+  const input = (f: ProfileField) => {
+    const v = value(f);
+    if (f.kind === "choice" || f.kind === "yesno") {
+      const options = f.kind === "yesno" ? ["Yes", "No"] : (f.options ?? []);
+      return (
+        <select className="field" value={v} onChange={(e) => send(f, e.target.value)} aria-label={f.ask}>
+          <option value="">Select…</option>
+          {options.map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
+      );
+    }
+    if (f.kind === "multi") {
+      const picked = v ? v.split(",").map((x) => x.trim()) : [];
+      return (
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label={f.ask}>
+          {(f.options ?? []).map((o) => {
+            const on = picked.includes(o);
+            return (
+              <button key={o} type="button" aria-pressed={on} onClick={() => send(f, (on ? picked.filter((x) => x !== o) : [...picked, o]).join(", "))}
+                className={clsx("rounded-full border px-3 py-1.5 text-[13px] font-semibold", on ? "border-navy bg-navy text-white" : "border-line bg-white text-navy")}>
+                {o}
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+    const numeric = f.kind === "money" || f.kind === "int" || f.kind === "percent";
+    return (
+      <input className="field" value={v} inputMode={numeric ? "decimal" : undefined} aria-label={f.ask}
+        placeholder={f.kind === "money" ? "Amount in rupees, e.g. 450000" : f.kind === "percent" ? "e.g. 9.5" : ""}
+        onChange={(e) => setTyped((t) => ({ ...t, [f.id]: numeric ? e.target.value.replace(/[^0-9.,]/g, "") : e.target.value }))}
+        onBlur={() => { if (f.id in typed && typed[f.id] !== (answers[f.id] ?? "")) send(f, typed[f.id] ?? ""); }} />
+    );
+  };
+
+  return (
+    <>
+      <p className="text-[13px] text-muted">
+        These are optional, but the more you tell us, the faster we can find the right bank for you. Pick from the lists where you can. {done > 0 ? `${done} answered.` : ""}
+      </p>
+      {sections.map((s) => (
+        <div key={s} className="space-y-3 rounded-lg border border-line p-3">
+          <p className="text-[12px] font-bold tracking-wide text-muted uppercase">{s}</p>
+          {q.data.fields.filter((f) => f.section === s).map((f) => (
+            <Field key={f.id} label={f.ask} error={problems[f.id]} hint={f.hint ?? undefined}>{input(f)}</Field>
+          ))}
+        </div>
+      ))}
+      {save.isPending && <p className="text-[12px] text-muted">Saving…</p>}
+    </>
   );
 }
 
@@ -576,7 +664,12 @@ function DocumentsStep({ token, view, onChanged }: { token: string; view: Open; 
 
   const listed = new Set(view.checklist.map((i) => i.category));
   const extras = view.documents.filter((d) => !listed.has(d.category));
-  // Several checklist rows can share a category; show each category's files once.
+  // One tab per kind of document; a tick shows when everything on that tab has arrived.
+  const kinds = [...listed];
+  const tabs = [...kinds, "Anything else"];
+  const [tab, setTab] = useState<string>(() => view.checklist.find((i) => !i.received)?.category ?? kinds[0] ?? "Anything else");
+  const active = tabs.includes(tab) ? tab : tabs[0]!;
+  const complete = (category: string) => view.checklist.filter((i) => i.category === category).every((i) => i.received);
   const seen = new Set<string>();
 
   return (
@@ -585,9 +678,17 @@ function DocumentsStep({ token, view, onChanged }: { token: string; view: Open; 
         Upload a clear photo or PDF of each document (up to {view.limits.maxFileMb} MB each). You can come back to this link and add more any time before you send the form.
       </p>
       {error && <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-[13px] font-medium text-red-700">{error}</p>}
-      {view.checklist.length > 0 && (
+      <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Kinds of document">
+        {tabs.map((t) => (
+          <button key={t} type="button" role="tab" aria-selected={active === t} onClick={() => setTab(t)}
+            className={clsx("inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-[13px] font-semibold", active === t ? "border-navy bg-navy text-white" : "border-line bg-white text-navy hover:bg-bg-light")}>
+            {t !== "Anything else" && complete(t) && <Check className={clsx("h-3.5 w-3.5", active === t ? "text-white" : "text-emerald-600")} />} {t}
+          </button>
+        ))}
+      </div>
+      {active !== "Anything else" && view.checklist.some((i) => i.category === active) && (
         <ul className="space-y-3">
-          {view.checklist.map((item, i) => {
+          {view.checklist.filter((i) => i.category === active).map((item, i) => {
             const mine = seen.has(item.category) ? [] : view.documents.filter((d) => d.category === item.category);
             seen.add(item.category);
             return (
@@ -606,6 +707,7 @@ function DocumentsStep({ token, view, onChanged }: { token: string; view: Open; 
           })}
         </ul>
       )}
+      {active === "Anything else" && (
       <div className="rounded-lg border border-dashed border-line p-3">
         <p className="text-[13px] font-semibold text-navy">Anything else you'd like to add</p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -616,6 +718,7 @@ function DocumentsStep({ token, view, onChanged }: { token: string; view: Open; 
         </div>
         {extras.length > 0 && <ul className="mt-2 space-y-1.5">{extras.map(fileRow)}</ul>}
       </div>
+      )}
       {full && <p className="text-[12px] text-muted">You've reached the limit of {view.limits.maxFiles} files for this link.</p>}
       <p className="flex items-center gap-1.5 text-[12px] text-muted"><Phone className="h-3 w-3" /> Trouble uploading? Send the files to your advisor on WhatsApp instead.</p>
     </>

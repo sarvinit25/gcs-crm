@@ -1276,6 +1276,8 @@ model ApplicationInvite {
   otpExpiresAt DateTime?
   otpAttempts  Int       @default(0)
   otpSentAt    DateTime?
+  // Answers to the extra loan-profile questions, kept as { "lp-<id>": value } until the form is sent in.
+  profileDraft Json?
   // What the customer has typed so far; applied to the real records only when they submit.
   draft       Json?
   createdAt   DateTime  @default(now())

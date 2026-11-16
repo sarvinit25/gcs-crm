@@ -48,8 +48,8 @@ export type ServerForm = {
   references?: { name: string; phone: string; relation?: string | null; address?: string | null }[] | null;
 };
 
-export const STEPS = ["About you", "Work & income", "Your loan", "References", "Documents", "Review"] as const;
-export type StepIndex = 0 | 1 | 2 | 3 | 4 | 5;
+export const STEPS = ["About you", "Work & income", "Your loan", "References", "More details", "Documents", "Review"] as const;
+export type StepIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 const text = (v: string | null | undefined) => v ?? "";
 const num = (v: number | null | undefined) => (v === null || v === undefined ? "" : String(v));

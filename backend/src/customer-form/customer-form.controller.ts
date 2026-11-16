@@ -49,6 +49,18 @@ export class CustomerFormPublicController {
     return this.forms.view(token, session);
   }
 
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @Get("profile")
+  profile(@Param("token") token: string, @Headers("x-form-session") session?: string) {
+    return this.forms.profileView(token, session);
+  }
+
+  @Throttle({ default: { limit: 90, ttl: 60_000 } })
+  @Put("profile")
+  saveProfile(@Param("token") token: string, @Body() body: { values?: Record<string, string> }, @Headers("x-form-session") session?: string) {
+    return this.forms.saveProfile(token, body?.values ?? {}, session);
+  }
+
   /** Emails the one-time code to the address we hold for this application. */
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post("code")
