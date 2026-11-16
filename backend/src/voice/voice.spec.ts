@@ -113,3 +113,58 @@ describe("VoiceService", () => {
     expect(prisma.voiceCall.create.mock.calls[0][0].data).toMatchObject({ outcome: "ERROR", error: "db down" });
   });
 });
+
+describe("readExtra (the second-form details)", () => {
+  const { readExtra } = jest.requireActual("./voice-payload") as typeof import("./voice-payload");
+
+  it("reads income, work, EMIs and the callback request from the agent's structured fields", () => {
+    const x = readExtra({ data: { employment_type: "salaried", monthly_income_inr: "85,000", employer_or_company: "Acme", years_in_current_job: 4, existing_emi_total_inr: 12000, cibil_score: 745, email: "A@B.com", outcome: "human_callback_requested", callback_time_preference: "evening" } });
+    expect(x).toMatchObject({ employmentType: "SALARIED", monthlyIncome: 85000, employer: "Acme", yearsInJob: 4, existingEmi: 12000, cibil: 745, email: "a@b.com", humanCallback: true, doNotCall: false, callbackTime: "evening" });
+  });
+
+  it("drops a CIBIL score that cannot be real and a bad email, and spots do-not-call", () => {
+    const x = readExtra({ cibil_score: 12, email: "nope", do_not_call: true });
+    expect(x.cibil).toBeNull();
+    expect(x.email).toBeNull();
+    expect(x.doNotCall).toBe(true);
+  });
+
+  it("calls a self-employed person self-employed, not a business owner", () => {
+    expect(readExtra({ employment_type: "self_employed" }).employmentType).toBe("SELF_EMPLOYED");
+    expect(readExtra({ employment_type: "business_owner" }).employmentType).toBe("BUSINESS");
+  });
+});
+
+describe("callNote with the extra details", () => {
+  it("puts a do-not-call and the figures the person gave into the note", () => {
+    const { readCall } = jest.requireActual("./voice-payload") as typeof import("./voice-payload");
+    const note = callNote(readCall({ name: "Asha", phone: "9876543210", transcript: "hello", do_not_call: true, monthly_income_inr: 60000, cibil_score: 710 }));
+    expect(note).toContain("DO NOT CALL");
+    expect(note).toContain("Monthly income: 60000");
+    expect(note).toContain("CIBIL (as told): 710");
+  });
+});
+
+describe("Sarvam's real end-of-call message", () => {
+  const real = {
+    agent_phone_number: "+912269870988",
+    user_phone_number: "+918928218139",
+    duration: 51.4,
+    interaction_id: "20261115/bf50ecd0-15:40:05-aw15154e",
+    final_agent_variables: { call_summary: "Vineet from Mumbai requested a home loan of 40 lakhs.", user_name: "Manan" },
+    interaction_transcript: [{ role: "agent", en_text: "Hello, I am Jia", indic_text: "नमस्ते" }, { role: "user", en_text: "I need a home loan", indic_text: "होम लोन" }],
+  };
+
+  it("takes the caller from user_phone_number (not our own agent number), the transcript from en_text, and the summary", () => {
+    const c = readCall(real);
+    expect(c.phone).toBe("8928218139");
+    expect(c.connected).toBe(true);
+    expect(c.transcript).toContain("user: I need a home loan");
+    expect(c.summary).toContain("home loan of 40 lakhs");
+    expect(c.name).toBe("Manan");
+  });
+
+  it("prefers the name the agent collected over the name the call was dialled with", () => {
+    expect(readCall({ ...real, output_agent_variables: { full_name: "Vineet Sarnaik" } }).name).toBe("Vineet Sarnaik");
+  });
+});

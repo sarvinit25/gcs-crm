@@ -14,6 +14,18 @@ export function callNote(c: CallDetails, when = new Date()): string {
   if (c.summary) lines.push(c.summary);
   if (c.loanType) lines.push(`Loan type: ${c.loanType}`);
   if (c.amount) lines.push(`Amount: ${c.amount}`);
+  const x = c.extra;
+  if (x.doNotCall) lines.push("DO NOT CALL: the person asked not to be called again.");
+  if (x.humanCallback) lines.push("CALL BACK: the person asked for a team member to call.");
+  if (x.callbackTime) lines.push(`Best time to call: ${x.callbackTime}`);
+  const more: [string, unknown][] = [
+    ["Works as", x.employmentType?.replace("_", "-").toLowerCase()], ["Monthly income", x.monthlyIncome], ["Employer", x.employer], ["Years in job", x.yearsInJob],
+    ["Business", x.businessType], ["Years in business", x.businessYears], ["Yearly turnover", x.annualTurnover],
+    ["EMIs now (per month)", x.existingEmi], ["CIBIL (as told)", x.cibil], ["Age / birth year", x.ageOrBirthYear],
+    ["Property", x.propertyType], ["Property value", x.propertyValue], ["Loan on property", x.propertyHasLoan], ["Co-applicant", x.coApplicant],
+  ];
+  const told = more.filter(([, v]) => v !== null && v !== undefined && v !== "").map(([k, v]) => `${k}: ${v}`);
+  if (told.length) lines.push(told.join("; "));
   return lines.join("\n").slice(0, 2000);
 }
 
@@ -29,6 +41,24 @@ export class VoiceService {
     private prisma: PrismaService,
     private leads: LeadsService,
   ) {}
+
+  /** Puts what the agent learnt into the lead's own fields, but only where the lead has nothing yet: staff's entries stay. */
+  private async fillBlanks(leadId: string, c: CallDetails) {
+    try {
+      const x = c.extra;
+      const now = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { email: true, employmentType: true, monthlyIncome: true, employerName: true, experienceYears: true } });
+      if (!now) return;
+      const data: Prisma.LeadUpdateInput = {};
+      if (!now.email && x.email) data.email = x.email;
+      if (!now.employmentType && x.employmentType) data.employmentType = x.employmentType;
+      if (!now.monthlyIncome && x.monthlyIncome && x.monthlyIncome < 1e8) data.monthlyIncome = x.monthlyIncome;
+      if (!now.employerName && x.employer) data.employerName = x.employer;
+      if (!now.experienceYears && x.yearsInJob && x.yearsInJob < 80) data.experienceYears = x.yearsInJob;
+      if (Object.keys(data).length) await this.prisma.lead.update({ where: { id: leadId }, data });
+    } catch (err) {
+      this.log.warn(`Could not fill lead fields from a call: ${(err as Error).message.slice(0, 200)}`);
+    }
+  }
 
   async accept(payload: unknown): Promise<{ outcome: VoiceOutcome; leadId?: string }> {
     const call = readCall(payload);
@@ -52,6 +82,7 @@ export class VoiceService {
           detail: callNote(call),
         } as never);
         leadId = lead.id;
+        await this.fillBlanks(lead.id, call);
         outcome = "isNew" in lead && lead.isNew ? "LEAD_CREATED" : "LEAD_UPDATED";
       } catch (err) {
         outcome = "ERROR";

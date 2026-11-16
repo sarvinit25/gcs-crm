@@ -12,11 +12,35 @@ export type CallDetails = {
   city: string | null;
   amount: number | null;
   loanType: string | null;
+  /** The rest of what the agent collects after the first form: kept on the lead's notes, and some fill the lead's own fields. */
+  extra: CallExtra;
   summary: string | null;
   transcript: string | null;
   durationSec: number | null;
   status: string | null;
   connected: boolean;
+};
+
+export type CallExtra = {
+  email: string | null;
+  employmentType: "SALARIED" | "SELF_EMPLOYED" | "BUSINESS" | "PROFESSIONAL" | "OTHER" | null;
+  monthlyIncome: number | null;
+  employer: string | null;
+  yearsInJob: number | null;
+  businessType: string | null;
+  businessYears: number | null;
+  annualTurnover: number | null;
+  existingEmi: number | null;
+  cibil: number | null;
+  ageOrBirthYear: string | null;
+  propertyType: string | null;
+  propertyValue: number | null;
+  propertyHasLoan: string | null;
+  coApplicant: string | null;
+  callbackTime: string | null;
+  outcome: string | null;
+  humanCallback: boolean;
+  doNotCall: boolean;
 };
 
 const MAX_DEPTH = 4;
@@ -73,7 +97,7 @@ function transcriptText(v: unknown): string | null {
     .map((turn) => {
       if (!turn || typeof turn !== "object") return null;
       const t = turn as Record<string, unknown>;
-      const said = text(t.text ?? t.content ?? t.message ?? t.transcript, 2000);
+      const said = text(t.en_text ?? t.text ?? t.content ?? t.message ?? t.transcript ?? t.indic_text, 2000);
       if (!said) return null;
       const who = text(t.role ?? t.speaker, 20);
       return who ? `${who}: ${said}` : said;
@@ -82,24 +106,65 @@ function transcriptText(v: unknown): string | null {
   return lines.length ? lines.join("\n").slice(0, 20000) : null;
 }
 
+const yes = (v: unknown) => v === true || (typeof v === "string" && /^(true|yes|y)$/i.test(v.trim()));
+
+function employment(v: unknown): CallExtra["employmentType"] {
+  const t = text(v, 40)?.toLowerCase() ?? "";
+  if (!t) return null;
+  if (/self/.test(t)) return "SELF_EMPLOYED";
+  if (/business|owner|proprietor/.test(t)) return "BUSINESS";
+  if (/profession|doctor|\bca\b|lawyer|architect/.test(t)) return "PROFESSIONAL";
+  if (/salar/.test(t)) return "SALARIED";
+  return "OTHER";
+}
+
+/** The second-form details. Only numbers that are plausible are kept, so a mis-heard figure does not land on a lead. */
+export function readExtra(payload: unknown): CallExtra {
+  const email = text(find(payload, ["email", "email_id", "customer_email"]), 120);
+  const cibil = num(find(payload, ["cibil_score", "cibil", "credit_score"]));
+  const outcome = text(find(payload, ["outcome", "call_outcome"]), 40);
+  return {
+    email: email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email.toLowerCase() : null,
+    employmentType: employment(find(payload, ["employment_type", "employment", "occupation"])),
+    monthlyIncome: num(find(payload, ["monthly_income_inr", "monthly_income", "monthly_salary", "salary"])),
+    employer: text(find(payload, ["employer_or_company", "employer", "company"]), 120),
+    yearsInJob: num(find(payload, ["years_in_current_job", "years_in_job", "job_experience_years"])),
+    businessType: text(find(payload, ["business_type", "profession"]), 120),
+    businessYears: num(find(payload, ["business_vintage_years", "years_in_business"])),
+    annualTurnover: num(find(payload, ["annual_turnover_inr", "annual_turnover", "turnover"])),
+    existingEmi: num(find(payload, ["existing_emi_total_inr", "existing_emi", "total_emi"])),
+    cibil: cibil !== null && cibil >= 300 && cibil <= 900 ? cibil : null,
+    ageOrBirthYear: text(find(payload, ["age_or_birth_year", "age", "birth_year"]), 20),
+    propertyType: text(find(payload, ["property_type"]), 40),
+    propertyValue: num(find(payload, ["property_value_inr", "property_value"])),
+    propertyHasLoan: text(find(payload, ["property_has_existing_loan"]), 10),
+    coApplicant: text(find(payload, ["co_applicant", "coapplicant"]), 120),
+    callbackTime: text(find(payload, ["callback_time_preference", "callback_time", "preferred_time"]), 80),
+    outcome,
+    humanCallback: yes(find(payload, ["human_callback_requested"])) || outcome === "human_callback_requested",
+    doNotCall: yes(find(payload, ["do_not_call"])) || outcome === "do_not_call",
+  };
+}
+
 export function readCall(payload: unknown): CallDetails {
   const callId = text(find(payload, ["interaction_id", "interactionId", "call_id", "callId", "call_uuid", "attempt_id", "id"]), 120);
   // Who rang us: prefer fields that name the caller; the number we own is never the answer.
   const phone = indianMobile(
-    find(payload, ["from", "from_number", "caller", "caller_number", "caller_id", "customer_number", "customer_phone", "phone_number", "phone", "mobile"]),
+    find(payload, ["user_phone_number", "from", "from_number", "caller", "caller_number", "caller_id", "customer_number", "customer_phone", "phone_number", "phone", "mobile"]),
   );
   const durationRaw = num(find(payload, ["duration", "duration_sec", "duration_seconds", "call_duration", "billsec"]));
   const status = text(find(payload, ["status", "call_status", "completion_status", "hangup_cause"]), 60);
-  const transcript = transcriptText(find(payload, ["transcript", "transcripts", "conversation", "messages"]));
+  const transcript = transcriptText(find(payload, ["interaction_transcript", "transcript", "transcripts", "conversation", "messages"]));
   const failed = status ? /fail|error|busy|no[-_ ]?answer|not[-_ ]?connected|cancel/i.test(status) : false;
   const connectedFlag = find(payload, ["connected", "is_connected"]);
 
   return {
     callId,
     phone,
-    name: text(find(payload, ["name", "customer_name", "caller_name", "full_name", "lead_name"]), 120),
+    name: text(find(payload, ["full_name", "name", "customer_name", "caller_name", "lead_name", "user_name"]), 120),
     city: text(find(payload, ["city", "location", "customer_city"]), 80),
     amount: num(find(payload, ["loan_amount", "amount", "required_amount", "loan_requirement"])),
+    extra: readExtra(payload),
     loanType: text(find(payload, ["loan_type", "loan_product", "product", "loan_purpose", "purpose"]), 120),
     summary: text(find(payload, ["summary", "call_summary", "conversation_summary", "notes"]), 1500),
     transcript,
