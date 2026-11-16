@@ -34,6 +34,7 @@ import { MaintenanceModule } from "./maintenance/maintenance.module";
 import { HealthModule } from "./health/health.module";
 import { CustomerFormModule } from "./customer-form/customer-form.module";
 import { CamModule } from "./cam/cam.module";
+import { DocumentReaderModule } from "./document-reader/document-reader.module";
 import { MarketingModule } from "./marketing/marketing.module";
 import { LeadSourcesModule } from "./lead-sources/lead-sources.module";
 import { CreditEvaluationModule } from "./credit-evaluation/credit-evaluation.module";
@@ -96,6 +97,7 @@ import { LoanProfileModule } from "./loan-profile/loan-profile.module";
     BorrowerPortalModule,
     CustomerFormModule,
     CamModule,
+    DocumentReaderModule,
     MarketingModule,
     LeadSourcesModule,
     LoanTypesModule,

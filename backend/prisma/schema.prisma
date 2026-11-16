@@ -827,9 +827,28 @@ model Document {
   inviteId     String?
   invite       ApplicationInvite? @relation(fields: [inviteId], references: [id], onDelete: SetNull)
   createdAt    DateTime           @default(now())
+  reading      DocumentReading?
 
   @@index([applicationId])
   @@index([inviteId])
+}
+
+/// What was found on one document by our statement reader or the AI. Staff check it; only a button puts it in the CAM.
+model DocumentReading {
+  id             String    @id @default(cuid())
+  documentId     String    @unique
+  document       Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  docType        String
+  // "local" (read on our own server) or "ai".
+  method         String
+  summary        String?
+  fields         Json
+  // What could go into the CAM, if anything.
+  cam            Json?
+  model          String?
+  appliedToCamAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 // ─── Sanctions ──────────────────────────────────────────────

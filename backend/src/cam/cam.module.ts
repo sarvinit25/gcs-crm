@@ -7,5 +7,6 @@ import { CamService } from "./cam.service";
   imports: [LenderPoliciesModule],
   controllers: [CamController, CamListController, CamPublicController],
   providers: [CamService],
+  exports: [CamService],
 })
 export class CamModule {}
