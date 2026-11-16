@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, ChevronDown, Loader2, Plus, Search, Upload } from "lucide-react";
+import { AlertCircle, ChevronDown, Loader2, Plus, Search, Trash2, Upload } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
 import { ExportMenu } from "../components/export-menu";
@@ -24,6 +24,7 @@ import { PageHeader } from "../components/app-shell";
 import { LeadStatusBadge, SEGMENT_TONE, SegmentBadge } from "../components/status-badge";
 import { ChannelInput, useChannels } from "../components/channel-field";
 import { Modal } from "../components/modal";
+import { DeleteConfirm } from "../components/delete-confirm";
 import { LeadImportModal } from "../components/lead-import-modal";
 import { PeriodSelect } from "../components/period-select";
 import { DatePicker } from "../components/date-picker";
@@ -328,6 +329,7 @@ function ago(iso: string) {
 
 export function LeadsPage() {
   const queryClient = useQueryClient();
+  const [toDelete, setToDelete] = useState<Lead | null>(null);
   const { user } = useAuth();
   // Advisors only ever see their own leads, so choosing an owner would mean nothing to them.
   const canFilterOwner = user?.role !== "ADVISOR";
@@ -639,6 +641,7 @@ export function LeadsPage() {
                   <th className="px-4 py-2.5 font-bold">Last contact</th>
                   <th className="px-4 py-2.5 font-bold">Follow-up</th>
                   <th className="px-4 py-2.5 font-bold">Status</th>
+                  {user?.role === "ADMIN" && <th className="w-10 px-2 py-2.5" aria-label="Delete" />}
                 </tr>
               </thead>
               <tbody>
@@ -720,12 +723,41 @@ export function LeadsPage() {
                     <td className="px-4 py-3">
                       <LeadStatusBadge status={lead.status} />
                     </td>
+                    {user?.role === "ADMIN" && (
+                      <td className="px-2 py-3 text-right">
+                        <button
+                          onClick={() => setToDelete(lead)}
+                          title={`Delete lead #${lead.leadNo} permanently`}
+                          aria-label={`Delete lead #${lead.leadNo} ${lead.name}`}
+                          className="rounded p-1.5 text-muted transition hover:bg-red-50 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
         </div>
+
+        {toDelete && (
+          <DeleteConfirm
+            title={`Delete lead #${toDelete.leadNo}?`}
+            onDelete={() => api(`/leads/${toDelete.id}`, { method: "DELETE" })}
+            onDone={() => void queryClient.invalidateQueries({ queryKey: ["leads"] })}
+            onClose={() => setToDelete(null)}
+          >
+            <p>
+              <span className="font-semibold text-navy">
+                #{toDelete.leadNo} {toDelete.name}
+              </span>{" "}
+              will be deleted for good, together with its follow-ups, answers and uploaded files.
+            </p>
+            <p className="text-muted">A lead that already has a loan file can’t be deleted. Archive it instead.</p>
+          </DeleteConfirm>
+        )}
 
         {query.data && query.data.total > query.data.pageSize && (
           <div className="mt-3 flex items-center justify-between text-[13px] text-muted">
