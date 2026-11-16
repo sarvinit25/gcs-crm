@@ -159,18 +159,25 @@ export class DocumentReaderService {
       mime === "application/pdf" ? { type: "input_file", filename: fileName.slice(0, 100), file_data: uri } : { type: "input_image", image_url: uri },
     ];
     const model = this.config.get<string>("DOC_READER_MODEL")?.trim() || this.config.get<string>("OFFER_READER_MODEL")?.trim() || "gpt-4.1-mini";
-    let res: Response;
-    try {
-      res = await fetch("https://api.openai.com/v1/responses", {
-        method: "POST",
-        headers: { authorization: `Bearer ${this.config.get<string>("OPENAI_API_KEY")}`, "content-type": "application/json" },
-        body: JSON.stringify({ model, input: [{ role: "user", content }], text: { format: { type: "json_object" } }, temperature: 0, max_output_tokens: 4000 }),
-        signal: AbortSignal.timeout(180_000),
-      });
-    } catch (err) {
-      this.log.error(`Reading a document failed: ${(err as Error).message}`);
-      throw new BadGatewayException("The reader did not answer in time. Try again.");
+    const body = JSON.stringify({ model, input: [{ role: "user", content }], text: { format: { type: "json_object" } }, temperature: 0, max_output_tokens: 4000 });
+    let res: Response | undefined;
+    // A connection that was open for a while is sometimes cut as it is reused ("fetch failed"). That is not an answer, so try again.
+    for (let attempt = 1; attempt <= 3 && !res; attempt++) {
+      try {
+        res = await fetch("https://api.openai.com/v1/responses", {
+          method: "POST",
+          headers: { authorization: `Bearer ${this.config.get<string>("OPENAI_API_KEY")}`, "content-type": "application/json" },
+          body,
+          signal: AbortSignal.timeout(180_000),
+        });
+      } catch (err) {
+        const timedOut = (err as Error).name === "TimeoutError" || (err as Error).name === "AbortError";
+        this.log.warn(`Reading a document failed (try ${attempt}): ${(err as Error).message}${(err as { cause?: { code?: string } }).cause?.code ? ` [${(err as { cause: { code: string } }).cause.code}]` : ""}`);
+        if (timedOut || attempt === 3) throw new BadGatewayException("The reader did not answer in time. Try again.");
+        await new Promise((r) => setTimeout(r, 800 * attempt));
+      }
     }
+    if (!res) throw new BadGatewayException("The reader did not answer. Try again.");
     if (!res.ok) {
       this.log.error(`The AI refused a document (${res.status}): ${(await res.text().catch(() => "")).slice(0, 200)}`);
       throw new BadGatewayException("The reader could not read that file. Try a clearer picture or PDF.");
