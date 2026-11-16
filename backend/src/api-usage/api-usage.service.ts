@@ -104,6 +104,42 @@ export class ApiUsageService implements OnModuleInit {
     return this.plivoSpend;
   }
 
+  private openaiSpend: { at: number; thisMonth: number | null; lastMonth: number | null } | null = null;
+
+  /** What OpenAI itself says we were charged this month and last, in US dollars. It needs a key allowed to read usage (the "api.usage.read" permission); with an ordinary key this is null and our own estimate is shown instead. Looked up at most every 10 minutes. */
+  private async openaiBilled(now: Date): Promise<{ thisMonth: number | null; lastMonth: number | null }> {
+    if (this.openaiSpend && Date.now() - this.openaiSpend.at < 10 * 60_000) return this.openaiSpend;
+    const key = process.env.OPENAI_API_KEY?.trim();
+    const sum = async (from: Date, to: Date) => {
+      if (!key) return null;
+      try {
+        let total = 0;
+        let page: string | null = null;
+        for (let i = 0; i < 5; i++) {
+          const url = new URL("https://api.openai.com/v1/organization/costs");
+          url.searchParams.set("start_time", String(Math.floor(from.getTime() / 1000)));
+          url.searchParams.set("end_time", String(Math.floor(to.getTime() / 1000)));
+          url.searchParams.set("bucket_width", "1d");
+          url.searchParams.set("limit", "31");
+          if (page) url.searchParams.set("page", page);
+          const r = await fetch(url, { headers: { authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(10_000) });
+          if (!r.ok) return null;
+          const j = (await r.json()) as { data?: { results?: { amount?: { value?: number } }[] }[]; has_more?: boolean; next_page?: string };
+          for (const b of j.data ?? []) for (const x of b.results ?? []) total += Number(x.amount?.value ?? 0);
+          if (!j.has_more || !j.next_page) break;
+          page = j.next_page;
+        }
+        return Math.round(total * 100) / 100;
+      } catch {
+        return null;
+      }
+    };
+    const thisStart = istMonthStart(now);
+    const [thisMonth, lastMonth] = key ? await Promise.all([sum(thisStart, now), sum(istMonthStart(now, 1), thisStart)]) : [null, null];
+    this.openaiSpend = { at: Date.now(), thisMonth, lastMonth };
+    return this.openaiSpend;
+  }
+
   private async period(from: Date, to: Date) {
     const rows = await this.prisma.apiUsage.groupBy({ by: ["service", "operation", "ok", "model"], where: { at: { gte: from, lt: to } }, _count: { _all: true }, _sum: { tokensIn: true, tokensOut: true } });
     const by = new Map<string, Period>();
@@ -129,12 +165,13 @@ export class ApiUsageService implements OnModuleInit {
   async summary(now = new Date()) {
     const thisStart = istMonthStart(now);
     const lastStart = istMonthStart(now, 1);
-    const [thisMonth, lastMonth, first, plivoUsd, plivoSpent] = await Promise.all([
+    const [thisMonth, lastMonth, first, plivoUsd, plivoSpent, openaiBilled] = await Promise.all([
       this.period(thisStart, new Date(now.getTime() + 1000)),
       this.period(lastStart, thisStart),
       this.prisma.apiUsage.findFirst({ orderBy: { at: "asc" }, select: { at: true } }),
       this.plivoBalance(),
       this.plivoSpent(now),
+      this.openaiBilled(now),
     ]);
 
     // Counts we can read from our own records, which reach back further than the call counter
@@ -176,7 +213,7 @@ export class ApiUsageService implements OnModuleInit {
     const openai = services.find((s) => s.name === "OpenAI");
     const balances = [
       { service: "Plivo", balance: plivoUsd === null ? null : `$${plivoUsd.toFixed(2)}`, usedThisMonth: plivoSpent.thisMonth === null ? null : `$${plivoSpent.thisMonth.toFixed(2)}`, usedLastMonth: plivoSpent.lastMonth === null ? null : `$${plivoSpent.lastMonth.toFixed(2)}`, note: plivoUsd === null ? "Plivo could not be reached." : "Live from Plivo. Used = what Plivo charged for calls." },
-      { service: "OpenAI", balance: null, usedThisMonth: openai?.thisMonth.estUsd == null ? null : `about $${openai.thisMonth.estUsd.toFixed(2)}`, usedLastMonth: openai?.lastMonth.estUsd == null ? null : `about $${openai.lastMonth.estUsd.toFixed(2)}`, note: "OpenAI gives the balance only on its billing page (platform.openai.com, Settings, Billing). Used = our own estimate from tokens." },
+      { service: "OpenAI", balance: null, usedThisMonth: openaiBilled.thisMonth !== null ? `$${openaiBilled.thisMonth.toFixed(2)} (from OpenAI)` : openai?.thisMonth.estUsd == null ? null : `about $${openai.thisMonth.estUsd.toFixed(2)}`, usedLastMonth: openaiBilled.lastMonth !== null ? `$${openaiBilled.lastMonth.toFixed(2)} (from OpenAI)` : openai?.lastMonth.estUsd == null ? null : `about $${openai.lastMonth.estUsd.toFixed(2)}`, note: openaiBilled.thisMonth !== null ? "Used = what OpenAI says we were charged. The balance is only on its billing page (Settings, Billing)." : "The balance is only on OpenAI's billing page (Settings, Billing). Used = our own estimate from tokens; give the key the Usage read permission to show OpenAI's real figure." },
       { service: "WhatsApp (Meta)", balance: null, usedThisMonth: `${waThis} messages${waRate === null ? "" : `, about ₹${Math.round(waThis * waRate)}`}`, usedLastMonth: `${waLast} messages${waRate === null ? "" : `, about ₹${Math.round(waLast * waRate)}`}`, note: "Meta shows the balance in Business settings, Payments. It is not available through the API." },
       { service: "Sarvam (voice)", balance: null, usedThisMonth: `${voiceThis.minutes} min${sarvamRate === null ? "" : `, about ₹${Math.round(voiceThis.minutes * sarvamRate)}`}`, usedLastMonth: `${voiceLast.minutes} min${sarvamRate === null ? "" : `, about ₹${Math.round(voiceLast.minutes * sarvamRate)}`}`, note: "The balance is in Sarvam's dashboard. Used = minutes of the calls we received." },
     ];
