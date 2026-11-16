@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Search, X } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 import clsx from "clsx";
-import { api, qs } from "../lib/api";
+import { api, qs, tokenStore } from "../lib/api";
 import { formatDateTime } from "../lib/format";
 import { formatPhone } from "../lib/whatsapp";
 import { PageHeader } from "../components/app-shell";
@@ -11,7 +11,40 @@ import { TableSkeleton } from "../components/skeleton";
 
 type Row = { id: string; receivedAt: string; phone: string | null; status: string | null; durationSec: number | null; outcome: string; leadId: string | null; summary: string | null; hasRecording: boolean; lead: { id: string; leadNo: number; name: string } | null };
 type Result = { items: Row[]; total: number; page: number; pageSize: number; counts: Record<string, number> };
-type Detail = Row & { transcript: string | null; error: string | null; recordingUrl: string | null };
+type Detail = Row & { transcript: string | null; error: string | null; recordingUrl: string | null; recordingAvailable: boolean };
+
+/** Loads the audio with the staff login (a plain audio tag cannot send it), then plays it. */
+function RecordingPlayer({ callId }: { callId: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+  const [message, setMessage] = useState("");
+  useEffect(() => () => { if (src) URL.revokeObjectURL(src); }, [src]);
+  const load = async () => {
+    setState("loading");
+    try {
+      const token = tokenStore.get();
+      const res = await fetch(`/crm/api/voice-calls/${callId}/recording`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message ?? "Could not load the recording");
+      }
+      setSrc(URL.createObjectURL(await res.blob()));
+      setState("idle");
+    } catch (e) {
+      setMessage((e as Error).message);
+      setState("error");
+    }
+  };
+  if (src) return <audio controls autoPlay src={src} className="w-full" />;
+  return (
+    <div className="space-y-1">
+      <button className="btn-ghost" onClick={() => void load()} disabled={state === "loading"}>
+        {state === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Load recording
+      </button>
+      {state === "error" && <p className="text-[12px] text-red-700">{message}</p>}
+    </div>
+  );
+}
 
 const OUTCOME: Record<string, { label: string; tone: string }> = {
   LEAD_CREATED: { label: "New lead", tone: "bg-emerald-50 text-emerald-700" },
@@ -127,8 +160,10 @@ export function VoiceCallsPage() {
                       <audio controls src={detail.data.recordingUrl} className="w-full" />
                       <a href={detail.data.recordingUrl} target="_blank" rel="noreferrer" className="text-[12px] text-navy underline">Open the recording</a>
                     </div>
+                  ) : detail.data.recordingAvailable ? (
+                    <RecordingPlayer callId={detail.data.id} />
                   ) : (
-                    <p className="text-muted">No recording came with this call. Turn on call recording in the voice agent's settings and later calls will carry one.</p>
+                    <p className="text-muted">Recordings are not connected yet. Once the Sarvam key is set on the server, calls can be played here.</p>
                   )}
                 </section>
                 <section>
