@@ -159,7 +159,7 @@ export class DocumentReaderService {
       mime === "application/pdf" ? { type: "input_file", filename: fileName.slice(0, 100), file_data: uri } : { type: "input_image", image_url: uri },
     ];
     const model = this.config.get<string>("DOC_READER_MODEL")?.trim() || this.config.get<string>("OFFER_READER_MODEL")?.trim() || "gpt-4.1-mini";
-    const body = JSON.stringify({ model, input: [{ role: "user", content }], text: { format: { type: "json_object" } }, temperature: 0, max_output_tokens: 4000 });
+    const payload = JSON.stringify({ model, input: [{ role: "user", content }], text: { format: { type: "json_object" } }, temperature: 0, max_output_tokens: 4000 });
     let res: Response | undefined;
     // A connection that was open for a while is sometimes cut as it is reused ("fetch failed"). That is not an answer, so try again.
     for (let attempt = 1; attempt <= 3 && !res; attempt++) {
@@ -167,7 +167,7 @@ export class DocumentReaderService {
         res = await fetch("https://api.openai.com/v1/responses", {
           method: "POST",
           headers: { authorization: `Bearer ${this.config.get<string>("OPENAI_API_KEY")}`, "content-type": "application/json" },
-          body,
+          body: payload,
           signal: AbortSignal.timeout(180_000),
         });
       } catch (err) {
