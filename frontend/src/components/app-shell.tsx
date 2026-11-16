@@ -49,7 +49,6 @@ const NAV: { section: string; items: NavItem[] }[] = [
     items: [
       { to: "/", label: "Dashboard", icon: LayoutDashboard },
       { to: "/leads", label: "Leads", icon: Users },
-      { to: "/website", label: "Website", icon: Globe, roles: ["ADMIN", "MANAGER"] },
       { to: "/applications", label: "Applications", icon: FileText },
       { to: "/cibil", label: "CIBIL", icon: Gauge },
       { to: "/cams", label: "CAM", icon: FileSpreadsheet },
@@ -101,6 +100,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       },
       { to: "/reports", label: "Reports", icon: BarChart3 },
       { to: "/audit", label: "Audit log", icon: History, roles: ["ADMIN"] },
+      { to: "/website", label: "Website", icon: Globe, roles: ["ADMIN", "MANAGER"] },
       { to: "/settings", label: "Settings", icon: Settings, roles: ["ADMIN"] },
     ],
   },
