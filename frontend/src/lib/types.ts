@@ -98,6 +98,7 @@ export type Lead = {
   employerName?: string | null;
   designation?: string | null;
   experienceYears?: string | null;
+  currentExperienceYears?: string | null;
   workLocation?: string | null;
   officialEmail?: string | null;
   /** The newest call or note logged on the lead, and how many there are. Only the list carries these. */

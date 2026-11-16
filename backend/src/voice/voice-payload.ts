@@ -27,6 +27,8 @@ export type CallExtra = {
   monthlyIncome: number | null;
   employer: string | null;
   yearsInJob: number | null;
+  /** Total work experience in years, when the caller gave it. */
+  totalExperience: number | null;
   businessType: string | null;
   businessYears: number | null;
   annualTurnover: number | null;
@@ -129,6 +131,7 @@ export function readExtra(payload: unknown): CallExtra {
     monthlyIncome: num(find(payload, ["monthly_income_inr", "monthly_income", "monthly_salary", "salary"])),
     employer: text(find(payload, ["employer_or_company", "employer", "company"]), 120),
     yearsInJob: num(find(payload, ["years_in_current_job", "years_in_job", "job_experience_years"])),
+    totalExperience: num(find(payload, ["total_experience_years", "total_work_experience_years", "total_experience"])),
     businessType: text(find(payload, ["business_type", "profession"]), 120),
     businessYears: num(find(payload, ["business_vintage_years", "years_in_business"])),
     annualTurnover: num(find(payload, ["annual_turnover_inr", "annual_turnover", "turnover"])),

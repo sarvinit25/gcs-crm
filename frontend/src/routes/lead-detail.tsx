@@ -60,6 +60,23 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+const EXPERIENCE_STEPS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, ...Array.from({ length: 35 }, (_, i) => i + 6)];
+const experienceLabel = (v: number) => (v === 0.5 ? "Less than 1 year" : v === 1 ? "1 year" : `${v} years`);
+const DESIGNATIONS = ["Manager", "Senior Manager", "Assistant Manager", "Executive", "Senior Executive", "Officer", "Clerk", "Accountant", "Engineer", "Software Engineer", "Teacher", "Doctor", "Sales Executive", "Director", "Partner", "Proprietor", "Owner", "Consultant", "Government Employee"];
+const CITIES = ["Mumbai", "Thane", "Navi Mumbai", "Pune", "Kalyan", "Vasai-Virar", "Panvel", "Nashik", "Nagpur", "Delhi", "Bengaluru", "Hyderabad", "Chennai", "Kolkata", "Ahmedabad"];
+
+/** Years of experience as a pick-list for quick entry. A value already held that is not on the list is kept as an option. */
+function ExperienceSelect({ name, value }: { name: string; value: string | null | undefined }) {
+  const held = value ? Number(value) : null;
+  const steps = held !== null && !EXPERIENCE_STEPS.includes(held) ? [...EXPERIENCE_STEPS, held].sort((a, b) => a - b) : EXPERIENCE_STEPS;
+  return (
+    <select name={name} defaultValue={held === null ? "" : String(held)} className="field font-normal">
+      <option value="">Not known</option>
+      {steps.map((v) => <option key={v} value={v}>{experienceLabel(v)}</option>)}
+    </select>
+  );
+}
+
 /** Everything a lender asks before a meeting: the loan, the person, their work and where they live. */
 function DetailsModal({ lead, onClose, onSaved }: { lead: LeadDetail; onClose: () => void; onSaved: () => void }) {
   const products = useQuery({ queryKey: ["loan-products"], queryFn: () => api<ProductOption[]>("/loan-products") });
@@ -89,6 +106,7 @@ function DetailsModal({ lead, onClose, onSaved }: { lead: LeadDetail; onClose: (
             employmentType: text("employmentType") || null,
             employerName: text("employerName") || null,
             designation: text("designation") || null,
+            currentExperienceYears: num("currentExperienceYears"),
             experienceYears: num("experienceYears"),
             monthlyIncome: num("monthlyIncome"),
             workLocation: text("workLocation") || null,
@@ -176,11 +194,16 @@ function DetailsModal({ lead, onClose, onSaved }: { lead: LeadDetail; onClose: (
           </label>
           <label className={`${BLOCK} sm:col-span-2`}>
             Designation
-            <input name="designation" maxLength={120} defaultValue={lead.designation ?? ""} placeholder="Job title" className="field font-normal" />
+            <input name="designation" list="designation-options" maxLength={120} defaultValue={lead.designation ?? ""} placeholder="Pick or type a job title" className="field font-normal" />
+            <datalist id="designation-options">{DESIGNATIONS.map((d) => <option key={d} value={d} />)}</datalist>
           </label>
           <label className={`${BLOCK} sm:col-span-2`}>
-            Experience (years)
-            <input name="experienceYears" type="number" min={0} max={60} step="0.5" defaultValue={lead.experienceYears ? Number(lead.experienceYears) : ""} placeholder="Years" className="field font-normal" />
+            Experience in current job / business
+            <ExperienceSelect name="currentExperienceYears" value={lead.currentExperienceYears} />
+          </label>
+          <label className={`${BLOCK} sm:col-span-2`}>
+            Total work experience
+            <ExperienceSelect name="experienceYears" value={lead.experienceYears} />
           </label>
           <label className={`${BLOCK} sm:col-span-2`}>
             Monthly income (₹)
@@ -188,7 +211,7 @@ function DetailsModal({ lead, onClose, onSaved }: { lead: LeadDetail; onClose: (
           </label>
           <label className={`${BLOCK} sm:col-span-2`}>
             Work location
-            <input name="workLocation" maxLength={120} defaultValue={lead.workLocation ?? ""} placeholder="Office city" className="field font-normal" />
+            <input name="workLocation" list="city-options" maxLength={120} defaultValue={lead.workLocation ?? ""} placeholder="Pick or type the office city" className="field font-normal" />
           </label>
           <label className={`${BLOCK} sm:col-span-6`}>
             Official email
@@ -203,7 +226,8 @@ function DetailsModal({ lead, onClose, onSaved }: { lead: LeadDetail; onClose: (
           </label>
           <label className={`${BLOCK} sm:col-span-3`}>
             City
-            <input name="city" maxLength={80} defaultValue={lead.city ?? ""} className="field font-normal" />
+            <input name="city" list="city-options" maxLength={80} defaultValue={lead.city ?? ""} placeholder="Pick or type a city" className="field font-normal" />
+            <datalist id="city-options">{CITIES.map((c) => <option key={c} value={c} />)}</datalist>
           </label>
           <label className={`${BLOCK} sm:col-span-3`}>
             Pincode
@@ -499,7 +523,8 @@ export function LeadDetailPage() {
               {lead.pan && <Field label="PAN" value={<span className="font-mono">{lead.pan}</span>} />}
               {lead.employerName && <Field label="Company" value={lead.employerName} />}
               {lead.designation && <Field label="Designation" value={lead.designation} />}
-              {lead.experienceYears && <Field label="Experience" value={`${Number(lead.experienceYears)} years`} />}
+              {lead.currentExperienceYears && <Field label="Current experience" value={`${Number(lead.currentExperienceYears)} years`} />}
+              {lead.experienceYears && <Field label="Total experience" value={`${Number(lead.experienceYears)} years`} />}
               {lead.workLocation && <Field label="Work location" value={lead.workLocation} />}
               {lead.officialEmail && <Field label="Official email" value={lead.officialEmail} />}
               {(lead.address || lead.pincode) && (

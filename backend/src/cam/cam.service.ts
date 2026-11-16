@@ -47,6 +47,7 @@ const LEAD_SELECT = {
   employerName: true,
   designation: true,
   experienceYears: true,
+  currentExperienceYears: true,
   assignedOfficerId: true,
   loanProductId: true,
   loanProduct: { select: { id: true, slug: true, name: true } },
@@ -67,6 +68,7 @@ export function prefillFromLead(l: LeadRow): CamData {
       employer: profile === "Salaried" ? l.employerName : null,
       designation: profile === "Salaried" ? l.designation : null,
       netMonthly: profile === "Salaried" && l.monthlyIncome ? Number(l.monthlyIncome) : null,
+      yearsInJob: profile === "Salaried" && l.currentExperienceYears ? Number(l.currentExperienceYears) : null,
       totalExperience: l.experienceYears ? Number(l.experienceYears) : null,
     },
   };

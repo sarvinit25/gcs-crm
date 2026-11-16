@@ -441,7 +441,9 @@ model Lead {
   pincode         String?
   employerName    String?
   designation     String?
+  // Total work experience, and the part of it in the current job or business.
   experienceYears Decimal?        @db.Decimal(4, 1)
+  currentExperienceYears Decimal? @db.Decimal(4, 1)
   workLocation    String?
   officialEmail   String?
   meetingMode     String?

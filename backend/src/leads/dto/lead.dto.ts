@@ -160,6 +160,7 @@ export class UpdateLeadDto {
   @IsOptional() @IsString() @Length(0, 160) employerName?: string | null;
   @IsOptional() @IsString() @Length(0, 120) designation?: string | null;
   @IsOptional() @IsNumber() @Min(0) @Max(60) experienceYears?: number | null;
+  @IsOptional() @IsNumber() @Min(0) @Max(60) currentExperienceYears?: number | null;
   @IsOptional() @IsString() @Length(0, 120) workLocation?: string | null;
   @IsOptional() @IsEmail() officialEmail?: string | null;
 

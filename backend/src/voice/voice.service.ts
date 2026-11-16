@@ -19,7 +19,7 @@ export function callNote(c: CallDetails, when = new Date()): string {
   if (x.humanCallback) lines.push("CALL BACK: the person asked for a team member to call.");
   if (x.callbackTime) lines.push(`Best time to call: ${x.callbackTime}`);
   const more: [string, unknown][] = [
-    ["Works as", x.employmentType?.replace("_", "-").toLowerCase()], ["Monthly income", x.monthlyIncome], ["Employer", x.employer], ["Years in job", x.yearsInJob],
+    ["Works as", x.employmentType?.replace("_", "-").toLowerCase()], ["Monthly income", x.monthlyIncome], ["Employer", x.employer], ["Years in job", x.yearsInJob], ["Total experience", x.totalExperience],
     ["Business", x.businessType], ["Years in business", x.businessYears], ["Yearly turnover", x.annualTurnover],
     ["EMIs now (per month)", x.existingEmi], ["CIBIL (as told)", x.cibil], ["Age / birth year", x.ageOrBirthYear],
     ["Property", x.propertyType], ["Property value", x.propertyValue], ["Loan on property", x.propertyHasLoan], ["Co-applicant", x.coApplicant],
@@ -46,14 +46,16 @@ export class VoiceService {
   private async fillBlanks(leadId: string, c: CallDetails) {
     try {
       const x = c.extra;
-      const now = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { email: true, employmentType: true, monthlyIncome: true, employerName: true, experienceYears: true } });
+      const now = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { email: true, employmentType: true, monthlyIncome: true, employerName: true, experienceYears: true, currentExperienceYears: true } });
       if (!now) return;
       const data: Prisma.LeadUpdateInput = {};
       if (!now.email && x.email) data.email = x.email;
       if (!now.employmentType && x.employmentType) data.employmentType = x.employmentType;
       if (!now.monthlyIncome && x.monthlyIncome && x.monthlyIncome < 1e8) data.monthlyIncome = x.monthlyIncome;
       if (!now.employerName && x.employer) data.employerName = x.employer;
-      if (!now.experienceYears && x.yearsInJob && x.yearsInJob < 80) data.experienceYears = x.yearsInJob;
+      // Years in the current job are the current experience; total experience is only set when the caller gave it.
+      if (!now.currentExperienceYears && x.yearsInJob && x.yearsInJob < 80) data.currentExperienceYears = x.yearsInJob;
+      if (!now.experienceYears && x.totalExperience && x.totalExperience < 80) data.experienceYears = x.totalExperience;
       if (Object.keys(data).length) await this.prisma.lead.update({ where: { id: leadId }, data });
     } catch (err) {
       this.log.warn(`Could not fill lead fields from a call: ${(err as Error).message.slice(0, 200)}`);
