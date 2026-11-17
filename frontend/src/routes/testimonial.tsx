@@ -98,8 +98,9 @@ export function TestimonialPage() {
       if (photo) body.append("photo", photo, "photo.jpg");
       const res = await fetch("/crm/api/public/testimonials", { method: "POST", body });
       if (!res.ok) {
+        if (res.status === 429) throw new Error("You have tried a few times. Please wait a few minutes and try again.");
         const j = await res.json().catch(() => null);
-        throw new Error(Array.isArray(j?.message) ? j.message.join(", ") : (j?.message ?? (res.status === 429 ? "You have tried a few times. Please wait a few minutes and try again." : "Something went wrong. Please try again.")));
+        throw new Error(Array.isArray(j?.message) ? j.message.join(", ") : (j?.message ?? "Something went wrong. Please try again."));
       }
       setDone(true);
       window.scrollTo({ top: 0 });
