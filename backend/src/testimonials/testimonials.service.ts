@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException, PayloadTooLargeExce
 import { AuditAction, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { AlertsService } from "../alerts/alerts.service";
 import { detectFile, safeFileName } from "../documents/file-sniff";
 import { istToday } from "../common/date.util";
 import type { AuthUser } from "../auth/auth.decorators";
@@ -21,6 +22,7 @@ export class TestimonialsService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private alerts: AlertsService,
   ) {}
 
   /** The public form. Returns the same quiet "ok" for a bot as for a person, so a bot learns nothing. */
@@ -48,7 +50,14 @@ export class TestimonialsService {
         ip: ip?.slice(0, 64) ?? null,
       },
     });
+    // The team is told, but the client never waits for the email and a mail problem never fails their submission.
+    void this.alerts.newTestimonial({ name: v.name, rating: v.rating, city: v.city, product: v.product, role: v.role, quote: v.quote, hasPhoto: photoMime !== null, photoOk: v.consentPhoto, contact: v.contact });
     return { ok: true };
+  }
+
+  /** How many are waiting, for the badge on the Website menu item. */
+  async pendingCount() {
+    return { pending: await this.prisma.testimonialSubmission.count({ where: { status: "PENDING" } }) };
   }
 
   async list() {

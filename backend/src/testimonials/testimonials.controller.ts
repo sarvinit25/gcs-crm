@@ -26,6 +26,11 @@ export class PublicTestimonialsController {
 export class TestimonialSubmissionsController {
   constructor(private testimonials: TestimonialsService) {}
 
+  @Get("count")
+  count() {
+    return this.testimonials.pendingCount();
+  }
+
   @Get()
   list() {
     return this.testimonials.list();

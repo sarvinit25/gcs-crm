@@ -41,7 +41,7 @@ import { NotificationsBell } from "./notifications-bell";
 import { AskAi } from "./ask-ai";
 import { useScrollToHash } from "../lib/use-scroll-to-hash";
 
-type NavItem = { to: string; label: string; icon: LucideIcon; roles?: Role[]; exact?: boolean; badge?: "whatsapp" };
+type NavItem = { to: string; label: string; icon: LucideIcon; roles?: Role[]; exact?: boolean; badge?: "whatsapp" | "testimonials" };
 
 const NAV: { section: string; items: NavItem[] }[] = [
   {
@@ -100,7 +100,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       },
       { to: "/reports", label: "Reports", icon: BarChart3 },
       { to: "/audit", label: "Audit log", icon: History, roles: ["ADMIN"] },
-      { to: "/website", label: "Website", icon: Globe, roles: ["ADMIN", "MANAGER"] },
+      { to: "/website", label: "Website", icon: Globe, roles: ["ADMIN", "MANAGER"], badge: "testimonials" },
       { to: "/settings", label: "Settings", icon: Settings, roles: ["ADMIN"] },
     ],
   },
@@ -125,6 +125,18 @@ function UnreadBadge() {
   const n = q.data?.unread ?? 0;
   if (!n) return null;
   return <span className="grid h-5 min-w-5 place-items-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-white">{n > 99 ? "99+" : n}</span>;
+}
+
+/** How many client testimonials are waiting for review; it quietly checks again every minute. */
+function TestimonialBadge() {
+  const q = useQuery({
+    queryKey: ["testimonials-pending"],
+    queryFn: () => api<{ pending: number }>("/testimonial-submissions/count"),
+    refetchInterval: 60_000,
+  });
+  const n = q.data?.pending ?? 0;
+  if (!n) return null;
+  return <span title="Client testimonials waiting for review" className="grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-navy">{n > 99 ? "99+" : n}</span>;
 }
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -170,6 +182,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                       <item.icon className={clsx("h-4 w-4", !active && "text-white/45")} />
                       <span className="flex-1">{item.label}</span>
                       {item.badge === "whatsapp" && <UnreadBadge />}
+                      {item.badge === "testimonials" && <TestimonialBadge />}
                     </Link>
                   );
                 })}

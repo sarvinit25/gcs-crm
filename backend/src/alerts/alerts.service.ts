@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
 import { SettingsService } from "../settings/settings.service";
 import { MailService } from "./mail.service";
-import { applicationFormLink, customerThankYou, formCode, gcsIdMessage, recoveryCode, signInCode, teamAlert, type Org } from "./email-templates";
+import { applicationFormLink, customerThankYou, formCode, gcsIdMessage, recoveryCode, signInCode, teamAlert, testimonialAlert, type Org } from "./email-templates";
 
 type NewLead = {
   leadNo: number;
@@ -118,6 +118,40 @@ export class AlertsService {
   }
 
   /** Fire and forget: call without awaiting. */
+  /**
+   * Tells the team a client has sent a testimonial. It goes to the addresses under Settings -> Alerts -> "Email me when a client sends a testimonial".
+   * Never throws: a mail problem must not make the client's submission fail.
+   */
+  async newTestimonial(t: { name: string; rating: number; city: string | null; product: string | null; role: string | null; quote: string; hasPhoto: boolean; photoOk: boolean; contact: string | null }) {
+    try {
+      if (!this.mail.enabled) return;
+      const staff = this.settings.get<string[]>("alerts.testimonialEmails").filter(Boolean);
+      if (!staff.length) return;
+      const base = (process.env.CRM_PUBLIC_URL?.trim() || "https://crm.growthcapitalservices.in/crm").replace(/\/$/, "");
+      await this.mail.send({
+        to: staff,
+        subject: `New testimonial: ${t.name} (${t.rating}/5)`,
+        html: testimonialAlert(
+          this.org(),
+          [
+            ["Name", t.name],
+            ["Rating", `${t.rating} out of 5`],
+            ["Work", t.role ?? ""],
+            ["City", t.city ?? ""],
+            ["Loan", t.product ?? ""],
+            ["Photo", t.hasPhoto ? (t.photoOk ? "Yes, and they agreed to its use" : "Sent, but not agreed to its use") : "No photo"],
+            ["Contact", t.contact ?? ""],
+            ["Received", `${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} (India time)`],
+          ],
+          t.quote,
+          `${base}/website`,
+        ),
+      });
+    } catch (err) {
+      console.error(`Could not email the team about a testimonial: ${(err as Error).message}`);
+    }
+  }
+
   async newLead(lead: NewLead) {
     if (!this.mail.enabled) return;
 

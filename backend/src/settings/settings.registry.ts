@@ -131,6 +131,14 @@ export const SETTINGS: SettingDef[] = [
     default: [],
   },
   {
+    key: "alerts.testimonialEmails",
+    group: "Alerts",
+    label: "Email me when a client sends a testimonial",
+    help: "One email address per line. Each testimonial a client sends through the online form emails them the client's words and a link to review it. Nothing is published until someone approves it. It starts with the shared company mailbox; change it here.",
+    type: "list",
+    default: ["connect.gcs@growthcapitalservices.in"],
+  },
+  {
     key: "alerts.customerAutoReply",
     group: "Alerts",
     label: "Thank the customer by email",

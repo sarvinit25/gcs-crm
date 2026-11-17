@@ -197,6 +197,7 @@ function ClientForm({ locked }: { locked: boolean }) {
   const q = useQuery({ queryKey: ["testimonial-submissions"], queryFn: () => api<{ pendingCount: number; items: Submission[] }>("/testimonial-submissions"), refetchInterval: 60_000 });
   const done = () => {
     void queryClient.invalidateQueries({ queryKey: ["testimonial-submissions"] });
+    void queryClient.invalidateQueries({ queryKey: ["testimonials-pending"] });
     // The stories list reloads, so the approved one appears in the gallery below.
     void queryClient.invalidateQueries({ queryKey: ["site-content"] });
   };

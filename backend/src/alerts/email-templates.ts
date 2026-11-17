@@ -92,6 +92,25 @@ ${
   );
 }
 
+/** The team's note that a client sent a testimonial, with their words and a button to the review screen. Nothing is published by it. */
+export function testimonialAlert(org: Org, rows: Row[], quote: string, reviewUrl: string): string {
+  const table = rows
+    .filter(([, v]) => v)
+    .map(([k, v]) => `<tr><td style="padding:9px 0;width:120px;font-size:13px;color:${MUTED};border-bottom:1px solid #eef0f6;">${esc(k)}</td><td style="padding:9px 0;font-size:14px;font-weight:600;border-bottom:1px solid #eef0f6;">${esc(v)}</td></tr>`)
+    .join("");
+  return frame(
+    org,
+    "New client testimonial",
+    `<p style="margin:0 0 6px 0;font-size:12px;font-weight:700;letter-spacing:1.5px;color:${GOLD_DARK};text-transform:uppercase;">New client testimonial</p>
+<h1 style="margin:0 0 18px 0;font-size:22px;line-height:1.3;color:${NAVY};">${esc(rows[0]?.[1] ?? "A client")} sent their experience</h1>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 18px 0;">${table}</table>
+<p style="margin:0 0 6px 0;font-size:12px;font-weight:700;letter-spacing:1.5px;color:${GOLD_DARK};text-transform:uppercase;">What they said</p>
+<div style="background:${PALE};border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.6;white-space:pre-wrap;margin:0 0 20px 0;">${esc(quote)}</div>
+<p style="margin:0 0 14px 0;font-size:13px;line-height:1.6;color:${MUTED};">Nothing is on the website yet. Open the review screen to add it as a story, or turn it down.</p>
+<p style="margin:0 0 20px 0;">${button(reviewUrl, "Review in the CRM", true)}</p>`,
+  );
+}
+
 /** The code that proves a mobile number is theirs, before a GCS ID is sent. */
 export function recoveryCode(org: Org, code: string, validMinutes: number, idName: string): string {
   return frame(
