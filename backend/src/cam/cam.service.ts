@@ -1,3 +1,4 @@
+import { EventsService } from "../events/events.service";
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { AuditAction, AuditActorType, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
@@ -96,6 +97,7 @@ export class CamService {
     private audit: AuditService,
     private settings: SettingsService,
     private policies: LenderPoliciesService,
+    private events?: EventsService,
   ) {}
 
   private company() {
@@ -371,6 +373,7 @@ export class CamService {
     const now = new Date();
     await this.prisma.camCase.update({ where: { id: c.id }, data: { data: next as Prisma.InputJsonValue, customerSavedAt: now, customerSubmittedAt: now } });
     await this.audit.record({ actor: { id: c.lead.id, name: c.lead.name }, actorType: AuditActorType.CLIENT, action: AuditAction.UPDATE, entity: "Lead", entityId: c.lead.id, entityLabel: `${c.lead.name} · CAM form submitted` });
+    this.events?.emit("CAM_SUBMITTED", { leadId: c.lead.id });
     return { ok: true };
   }
 }

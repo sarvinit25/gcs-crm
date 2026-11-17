@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
 import { SettingsService } from "../settings/settings.service";
 import { MailService } from "./mail.service";
-import { applicationFormLink, customerThankYou, formCode, gcsIdMessage, recoveryCode, signInCode, teamAlert, testimonialAlert, type Org } from "./email-templates";
+import { applicationFormLink, customerThankYou, formCode, gcsIdMessage, recoveryCode, signInCode, stepAlert, teamAlert, testimonialAlert, type Org } from "./email-templates";
 
 type NewLead = {
   leadNo: number;
@@ -23,6 +23,19 @@ const PARTNER_FORMS: Record<string, string> = {
   "partner-builder": "Builder",
   "partner-freelancer": "Freelancer",
 };
+
+export const STEP_NAMES = {
+  converted: "Application started",
+  stage: "Application stage changed",
+  rejected: "File rejected",
+  cam: "CAM filled in by the customer",
+  cibil: "CIBIL checked",
+  sanction: "Sanction approved",
+  disbursal: "Disbursement recorded",
+  commission: "Commission created",
+  commissionPaid: "Commission claimed or received",
+} as const;
+export type StepKey = keyof typeof STEP_NAMES;
 
 const rupees = (n: string | number) => `Rs. ${Number(n).toLocaleString("en-IN")}`;
 
@@ -149,6 +162,27 @@ export class AlertsService {
       });
     } catch (err) {
       console.error(`Could not email the team about a testimonial: ${(err as Error).message}`);
+    }
+  }
+
+  /**
+   * Tells the team a file has moved one step. Each step has its own switch under Settings -> Alerts.
+   * `alsoTo` adds the file's owner. Never throws.
+   */
+  async stepChanged(step: StepKey, headline: string, rows: [string, string][], path: string, opts: { alsoTo?: string[]; button?: string } = {}) {
+    try {
+      if (!this.mail.enabled || this.settings.get<boolean>(`alerts.step.${step}`) === false) return;
+      const staff = this.settings.get<string[]>("alerts.stageEmails").filter(Boolean);
+      const to = [...new Set([...staff, ...(opts.alsoTo ?? [])].map((e) => e.trim().toLowerCase()).filter(Boolean))];
+      if (!to.length) return;
+      const base = (process.env.CRM_PUBLIC_URL?.trim() || "https://crm.growthcapitalservices.in/crm").replace(/\/$/, "");
+      await this.mail.send({
+        to,
+        subject: headline,
+        html: stepAlert(this.org(), STEP_NAMES[step], headline, [...rows, ["When", `${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} (India time)`]], `${base}${path}`, opts.button ?? "Open in the CRM"),
+      });
+    } catch (err) {
+      console.error(`Could not email the team about a step (${step}): ${(err as Error).message}`);
     }
   }
 

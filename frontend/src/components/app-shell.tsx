@@ -49,9 +49,9 @@ const NAV: { section: string; items: NavItem[] }[] = [
     items: [
       { to: "/", label: "Dashboard", icon: LayoutDashboard },
       { to: "/leads", label: "Leads", icon: Users },
+      { to: "/cams", label: "CAM", icon: FileSpreadsheet },
       { to: "/applications", label: "Applications", icon: FileText },
       { to: "/cibil", label: "CIBIL", icon: Gauge },
-      { to: "/cams", label: "CAM", icon: FileSpreadsheet },
       { to: "/sanctions", label: "Sanctions", icon: ShieldCheck },
       { to: "/disbursements", label: "Disbursements", icon: Banknote },
       {

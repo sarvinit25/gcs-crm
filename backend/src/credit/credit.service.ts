@@ -1,3 +1,4 @@
+import { EventsService } from "../events/events.service";
 import { BadGatewayException, BadRequestException, ConflictException, Injectable, NotFoundException, ServiceUnavailableException } from "@nestjs/common";
 import { AuditAction, CreditCheckKind, CreditCheckStatus, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
@@ -20,6 +21,7 @@ export class CreditService {
     private prisma: PrismaService,
     private audit: AuditService,
     private settings: SettingsService,
+    private events?: EventsService,
   ) {}
 
   /** Which provider is switched on. Anything other than a name we know means "off". */
@@ -244,6 +246,7 @@ export class CreditService {
       changes: applied ? { cibilScore: { from: applicant.cibilScore, to: result.score } } : undefined,
       ip,
     });
+    this.events?.emit("CIBIL_CHECKED", { applicantId, how: check.kind, score: check.score });
     return { ...check, band: bandOf(check.score), applied };
   }
 
@@ -277,6 +280,7 @@ export class CreditService {
       changes: applied ? { cibilScore: { from: applicant.cibilScore, to: dto.score } } : undefined,
       ip,
     });
+    this.events?.emit("CIBIL_CHECKED", { applicantId, how: "MANUAL", score: check.score });
     return { ...check, band: bandOf(check.score), applied };
   }
 }

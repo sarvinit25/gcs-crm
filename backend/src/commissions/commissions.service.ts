@@ -1,3 +1,4 @@
+import { EventsService } from "../events/events.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { AuditAction, PayoutStatus, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
@@ -43,6 +44,7 @@ export class CommissionsService {
     private prisma: PrismaService,
     private audit: AuditService,
     private settings: SettingsService,
+    private events?: EventsService,
   ) {}
 
   private scopeFor(user: AuthUser): Prisma.ApplicationWhereInput {
@@ -163,6 +165,7 @@ export class CommissionsService {
       ip,
     });
 
+    this.events?.emit("COMMISSION_CREATED", { commissionId: commission.id });
     return commission;
   }
 
@@ -194,6 +197,7 @@ export class CommissionsService {
       ip,
     });
 
+    if (dto.status && dto.status !== commission.status) this.events?.emit("COMMISSION_STATUS", { commissionId: id });
     return updated;
   }
 
@@ -235,6 +239,7 @@ export class CommissionsService {
       changes: { status: { from: commission.status, to: PayoutStatus.CLAIMED } },
       ip,
     });
+    this.events?.emit("COMMISSION_STATUS", { commissionId: id });
     return updated;
   }
 
@@ -284,6 +289,7 @@ export class CommissionsService {
       },
       ip,
     });
+    this.events?.emit("COMMISSION_STATUS", { commissionId: id });
     return updated;
   }
 

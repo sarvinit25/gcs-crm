@@ -120,6 +120,7 @@ export class ApplicationsService {
       changes: diff({}, { requestedAmount: dto.requestedAmount, leadId: dto.leadId }),
     });
 
+    this.events.emit("APPLICATION_CREATED", { applicationId: created.id });
     return this.decorate(created);
   }
 
