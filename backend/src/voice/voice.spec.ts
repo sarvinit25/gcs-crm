@@ -1,4 +1,4 @@
-import { callNote, VoiceService } from "./voice.service";
+import { callNote, caLegalOf, VoiceService } from "./voice.service";
 import { readCall } from "./voice-payload";
 
 const campaignStyle = {
@@ -197,5 +197,29 @@ describe("the name the caller said", () => {
   it("does not take the agent's own name or a job as the caller's name", () => {
     const c = readCall({ user_phone_number: "+918928218139", duration: 20, interaction_transcript: [{ role: "agent", en_text: "I am Jiya" }, { role: "user", en_text: "I am self-employed" }] });
     expect(c.name).toBeNull();
+  });
+});
+
+
+describe("CA and legal enquiries on a call", () => {
+  const call = (extra: Record<string, unknown>, summary = "") => readCall({ user_phone_number: "9820012345", duration: 60, interaction_transcript: [], call_summary: summary, ...extra });
+  it("is read when the agent reports it", () => {
+    const c = call({ service_interest: "CA and legal", ca_legal_service: "GST registration", ca_legal_need: "GST registration for a shop in Thane", callback_time_preference: "evening" });
+    expect(c.extra).toMatchObject({ serviceInterest: "ca_legal", caLegalService: "GST registration", caLegalNeed: "GST registration for a shop in Thane" });
+    expect(caLegalOf(c)).toEqual({ services: ["GST & Compliance"], need: "GST registration for a shop in Thane" });
+  });
+  it("is spotted from the summary when the agent forgot to say so", () => {
+    expect(caLegalOf(call({}, "The caller wants an ITR filed for last year and asked about charges."))?.services).toEqual(["Tax & Income Tax"]);
+  });
+  it("is not invented for an ordinary loan call", () => {
+    expect(caLegalOf(call({ service_interest: "loan" }, "Wants a home loan of 40 lakh in Pune."))).toBeNull();
+    expect(call({ service_interest: "loan" }).extra.serviceInterest).toBe("loan");
+    expect(call({ service_interest: "both" }).extra.serviceInterest).toBe("both");
+    expect(call({ service_interest: "something else" }).extra.serviceInterest).toBeNull();
+    expect(call({ service_interest: "loan and GST filing" }).extra.serviceInterest).toBe("both");
+  });
+  it("is written on the lead's note for the CA and legal team", () => {
+    const note = callNote(call({ service_interest: "ca_legal", ca_legal_need: "rent agreement for a flat" }, "Needs a rent agreement."));
+    expect(note).toMatch(/CA & LEGAL: the caller asked about Legal Drafting \(rent agreement for a flat\)/);
   });
 });

@@ -26,8 +26,14 @@ describe("MediaService", () => {
     expect(storage.put).not.toHaveBeenCalled();
   });
 
-  it("refuses files over 15 MB", async () => {
-    const { service } = build(Buffer.concat([PDF, Buffer.alloc(15 * 1024 * 1024)]));
+  it("keeps a video and a Word file, which it used to refuse", async () => {
+    const mp4 = Buffer.concat([Buffer.alloc(4), Buffer.from("ftypisom"), Buffer.alloc(64)]);
+    expect(await build(mp4).service.save({ leadId: "L1", mediaId: "m1" })).toMatchObject({ saved: true });
+    const docx = Buffer.concat([Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.alloc(26), Buffer.from("word/document.xml"), Buffer.alloc(64)]);
+    expect(await build(docx).service.save({ leadId: "L1", mediaId: "m2", fileName: "rent-agreement.docx" })).toMatchObject({ saved: true, fileName: "rent-agreement.docx" });
+  });
+  it("refuses files over 16 MB", async () => {
+    const { service } = build(Buffer.concat([PDF, Buffer.alloc(16 * 1024 * 1024)]));
     expect(await service.save({ leadId: "L1", mediaId: "m1" })).toEqual({ saved: false, reason: "too_large" });
   });
 

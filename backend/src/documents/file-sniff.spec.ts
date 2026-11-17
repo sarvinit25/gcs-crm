@@ -1,4 +1,4 @@
-import { detectFile, safeFileName } from "./file-sniff";
+import { detectFile, detectMedia, safeFileName } from "./file-sniff";
 
 const pad = (head: Buffer) => Buffer.concat([head, Buffer.alloc(32)]);
 
@@ -50,5 +50,37 @@ describe("safeFileName", () => {
   it("falls back to a generic name when nothing is left", () => {
     expect(safeFileName("///", ".pdf")).toBe("document.pdf");
     expect(safeFileName("...", ".png")).toBe("document.png");
+  });
+});
+
+
+describe("detectMedia (what a customer sends on WhatsApp)", () => {
+  const box = (brand: string) => pad(Buffer.concat([Buffer.alloc(4), Buffer.from("ftyp"), Buffer.from(brand)]));
+  it("still accepts everything detectFile does", () => {
+    expect(detectMedia(pad(Buffer.from("%PDF-1.7\n")))?.mime).toBe("application/pdf");
+    expect(detectMedia(pad(Buffer.from([0xff, 0xd8, 0xff, 0xe0])))?.mime).toBe("image/jpeg");
+  });
+  it("recognises videos and voice notes by their first bytes", () => {
+    expect(detectMedia(box("isom"))).toEqual({ mime: "video/mp4", extension: ".mp4" });
+    expect(detectMedia(box("mp42"))?.mime).toBe("video/mp4");
+    expect(detectMedia(box("qt  "))?.mime).toBe("video/quicktime");
+    expect(detectMedia(box("3gp4"))?.mime).toBe("video/3gpp");
+    expect(detectMedia(box("M4A "))?.mime).toBe("audio/mp4");
+    expect(detectMedia(pad(Buffer.from("OggS")))?.mime).toBe("audio/ogg");
+    expect(detectMedia(pad(Buffer.from("#!AMR\n")))?.mime).toBe("audio/amr");
+    expect(detectMedia(pad(Buffer.from("ID3")))?.mime).toBe("audio/mpeg");
+  });
+  it("recognises Word, Excel and PowerPoint, but not just any zip", () => {
+    const zip = (name: string) => pad(Buffer.concat([Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.alloc(26), Buffer.from(name)]));
+    expect(detectMedia(zip("word/document.xml"))?.extension).toBe(".docx");
+    expect(detectMedia(zip("xl/workbook.xml"))?.extension).toBe(".xlsx");
+    expect(detectMedia(zip("ppt/presentation.xml"))?.extension).toBe(".pptx");
+    expect(detectMedia(zip("malware/payload.exe"))).toBeNull();
+    expect(detectMedia(pad(Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1])))?.extension).toBe(".doc");
+  });
+  it("still refuses programs, scripts and web pages, whatever they are named", () => {
+    for (const body of ["<html><script>alert(1)</script></html>", "MZ\u0090\u0000\u0003 windows executable", "#!/bin/sh\nrm -rf /", "<svg onload='alert(1)'/>"]) {
+      expect(detectMedia(pad(Buffer.from(body)))).toBeNull();
+    }
   });
 });

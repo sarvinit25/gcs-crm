@@ -8,6 +8,7 @@ import { ConversationsService } from "./conversations.service";
 import { InboundService } from "./inbound.service";
 import { IntakeService } from "./intake/intake.service";
 import { MediaService } from "./media.service";
+import { CaLegalDesk } from "./ca-legal.service";
 import { NotificationEngine } from "./notification-engine.service";
 import { TemplatesService } from "./templates.service";
 import {
@@ -34,6 +35,7 @@ import { WHATSAPP_PROVIDER, createWhatsAppProvider } from "./whatsapp.provider";
     InboundService,
     IntakeService,
     MediaService,
+    CaLegalDesk,
     NotificationEngine,
     TemplatesService,
     BriefsService,

@@ -40,6 +40,11 @@ export type CallExtra = {
   propertyHasLoan: string | null;
   coApplicant: string | null;
   callbackTime: string | null;
+  /** What the caller wants help with: a loan, CA and legal services, or both. */
+  serviceInterest: "loan" | "ca_legal" | "both" | null;
+  /** The CA or legal service they asked about, and what they need, in the agent's words. */
+  caLegalService: string | null;
+  caLegalNeed: string | null;
   outcome: string | null;
   humanCallback: boolean;
   doNotCall: boolean;
@@ -121,6 +126,17 @@ function employment(v: unknown): CallExtra["employmentType"] {
 }
 
 /** The second-form details. Only numbers that are plausible are kept, so a mis-heard figure does not land on a lead. */
+function serviceInterest(v: unknown): CallExtra["serviceInterest"] {
+  const t = String(v ?? "").toLowerCase().replace(/[^a-z]+/g, " ").trim();
+  if (!t) return null;
+  if (t === "both") return "both";
+  const legal = /\b(ca|legal|gst|tax|itr|accounting|registration)\b/.test(t);
+  const loan = /\bloan\b/.test(t);
+  if (legal && loan) return "both";
+  if (legal) return "ca_legal";
+  return loan ? "loan" : null;
+}
+
 export function readExtra(payload: unknown): CallExtra {
   const email = text(find(payload, ["email", "email_id", "customer_email"]), 120);
   const cibil = num(find(payload, ["cibil_score", "cibil", "credit_score"]));
@@ -143,6 +159,9 @@ export function readExtra(payload: unknown): CallExtra {
     propertyHasLoan: text(find(payload, ["property_has_existing_loan"]), 10),
     coApplicant: text(find(payload, ["co_applicant", "coapplicant"]), 120),
     callbackTime: text(find(payload, ["callback_time_preference", "callback_time", "preferred_time"]), 80),
+    serviceInterest: serviceInterest(find(payload, ["service_interest", "service_needed", "service_type"])),
+    caLegalService: text(find(payload, ["ca_legal_service", "ca_service", "legal_service"]), 120),
+    caLegalNeed: text(find(payload, ["ca_legal_need", "ca_legal_requirement", "service_details"]), 400),
     outcome,
     humanCallback: yes(find(payload, ["human_callback_requested"])) || outcome === "human_callback_requested",
     doNotCall: yes(find(payload, ["do_not_call"])) || outcome === "do_not_call",

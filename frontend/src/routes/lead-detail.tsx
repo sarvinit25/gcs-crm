@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, FileText, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, MessageCircle, Pencil, Plus, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { SmartMatchPanel } from "../components/smart-match-panel";
@@ -342,6 +342,11 @@ export function LeadDetailPage() {
         subtitle={`Lead #${lead.leadNo} · added ${formatDate(lead.createdAt)}`}
         actions={
           <div className="flex items-center gap-2">
+            {lead.phone && (
+              <a className="btn-ghost" href={`/crm/whatsapp?search=${encodeURIComponent(lead.phone)}`} title="Open this customer's WhatsApp chat">
+                <MessageCircle className="h-4 w-4" /> WhatsApp chat
+              </a>
+            )}
             <ArchiveButton
               kind="leads"
               id={lead.id}

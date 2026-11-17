@@ -1,11 +1,12 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { randomUUID } from "crypto";
 import { PrismaService } from "../prisma/prisma.service";
-import { detectFile, safeFileName } from "../documents/file-sniff";
+import { detectMedia, safeFileName } from "../documents/file-sniff";
 import { StorageService } from "../documents/storage.service";
 import { WHATSAPP_PROVIDER, type WhatsAppProvider } from "./whatsapp.provider";
 
-const MAX_BYTES = 15 * 1024 * 1024;
+// WhatsApp itself stops at about 16 MB for a video, so that is the most that can arrive.
+const MAX_BYTES = 16 * 1024 * 1024;
 
 export type SavedFile = { saved: true; fileName: string } | { saved: false; reason: "unsupported" | "too_large" | "failed" };
 
@@ -27,7 +28,7 @@ export class MediaService {
     try {
       const { data } = await this.provider.downloadMedia(input.mediaId);
       if (data.length > MAX_BYTES) return { saved: false, reason: "too_large" };
-      const detected = detectFile(data);
+      const detected = detectMedia(data);
       if (!detected) return { saved: false, reason: "unsupported" };
 
       const fileName = safeFileName(input.fileName || `whatsapp-${new Date().toISOString().slice(0, 10)}${detected.extension}`, detected.extension);

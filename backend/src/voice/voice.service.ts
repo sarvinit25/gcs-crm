@@ -3,6 +3,18 @@ import { Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { LeadsService } from "../leads/leads.service";
 import { loanSlug, readCall, type CallDetails } from "./voice-payload";
+import { caLegalIntent } from "../whatsapp/ca-legal";
+
+/** The CA or legal services a call was about: what the agent reported, or else what its own words say. */
+export function caLegalOf(c: CallDetails): { services: string[]; need: string | null } | null {
+  const x = c.extra;
+  const wanted = x.serviceInterest === "ca_legal" || x.serviceInterest === "both";
+  const said = [x.caLegalService, x.caLegalNeed, c.summary].filter(Boolean).join(". ");
+  const found = caLegalIntent(said)?.categories ?? [];
+  if (!wanted && !found.length) return null;
+  const services = found.length ? found : x.caLegalService ? [x.caLegalService] : ["CA & Legal"];
+  return { services, need: x.caLegalNeed ?? x.caLegalService ?? null };
+}
 
 export const VOICE_SOURCE = "ai-telecaller";
 
@@ -18,6 +30,8 @@ export function callNote(c: CallDetails, when = new Date()): string {
   if (x.doNotCall) lines.push("DO NOT CALL: the person asked not to be called again.");
   if (x.humanCallback) lines.push("CALL BACK: the person asked for a team member to call.");
   if (x.callbackTime) lines.push(`Best time to call: ${x.callbackTime}`);
+  const legal = caLegalOf(c);
+  if (legal) lines.push(`CA & LEGAL: the caller asked about ${legal.services.join(", ")}${legal.need ? ` (${legal.need})` : ""}. For the CA and legal team to call back.`);
   const more: [string, unknown][] = [
     ["Works as", x.employmentType?.replace("_", "-").toLowerCase()], ["Monthly income", x.monthlyIncome], ["Employer", x.employer], ["Years in job", x.yearsInJob], ["Total experience", x.totalExperience],
     ["Business", x.businessType], ["Years in business", x.businessYears], ["Yearly turnover", x.annualTurnover],
@@ -62,6 +76,25 @@ export class VoiceService {
     }
   }
 
+  /** A CA or legal enquiry on a call is kept on the lead the same way as one on WhatsApp, so staff see it in one place. */
+  private async saveCaLegal(leadId: string, c: CallDetails) {
+    const legal = caLegalOf(c);
+    if (!legal) return;
+    try {
+      const put = (key: string, label: string, value: string) =>
+        this.prisma.leadAnswer.upsert({
+          where: { leadId_key: { leadId, key } },
+          create: { leadId, stage: "ai-telecaller-ca-legal", key, label, value: value.slice(0, 500) },
+          update: { stage: "ai-telecaller-ca-legal", label, value: value.slice(0, 500) },
+        });
+      await put("ca-legal-service", "CA & Legal service asked about", legal.services.join(", "));
+      if (legal.need) await put("ca-legal-need", "What they need (CA & Legal)", legal.need);
+      await put("ca-legal-request", "CA & Legal request", "Asked on a phone call: for the CA and legal team to call");
+    } catch (err) {
+      this.log.warn(`Could not keep the CA & Legal details from a call: ${(err as Error).message.slice(0, 200)}`);
+    }
+  }
+
   async accept(payload: unknown): Promise<{ outcome: VoiceOutcome; leadId?: string }> {
     const call = readCall(payload);
 
@@ -86,6 +119,7 @@ export class VoiceService {
         } as never);
         leadId = lead.id;
         await this.fillBlanks(lead.id, call);
+        await this.saveCaLegal(lead.id, call);
         outcome = "isNew" in lead && lead.isNew ? "LEAD_CREATED" : "LEAD_UPDATED";
       } catch (err) {
         outcome = "ERROR";

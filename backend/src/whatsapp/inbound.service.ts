@@ -7,7 +7,8 @@ import { LeadsService } from "../leads/leads.service";
 import { AssistantService, type ChatMessage as ChatTurn } from "../assistant/assistant.service";
 import { ConversationsService } from "./conversations.service";
 import { IntakeService } from "./intake/intake.service";
-import { MediaService } from "./media.service";
+import { MediaService, type SavedFile } from "./media.service";
+import { CaLegalDesk } from "./ca-legal.service";
 import { WHATSAPP_PROVIDER, type Interactive, type WhatsAppProvider } from "./whatsapp.provider";
 import { contactKey, toWaId } from "./phone";
 import { STAGE_LABEL } from "./templates.util";
@@ -78,6 +79,7 @@ export class InboundService {
     private assistant: AssistantService,
     private intake: IntakeService,
     private media: MediaService,
+    private caLegal: CaLegalDesk,
     private profile: LoanProfileService,
     @Inject(WHATSAPP_PROVIDER) private provider: WhatsAppProvider,
   ) {}
@@ -136,10 +138,10 @@ export class InboundService {
       type Tap = { id?: string; title?: string };
       type Media = { id?: string; filename?: string; caption?: string };
       type Problem = { code?: number; title?: string; message?: string; error_data?: { details?: string } };
-      for (const m of (value.messages as { id?: string; from?: string; type?: string; timestamp?: string; text?: { body?: string }; interactive?: { button_reply?: Tap; list_reply?: Tap }; document?: Media; image?: Media; errors?: Problem[] }[] | undefined) ?? []) {
+      for (const m of (value.messages as { id?: string; from?: string; type?: string; timestamp?: string; text?: { body?: string }; interactive?: { button_reply?: Tap; list_reply?: Tap }; document?: Media; image?: Media; video?: Media; audio?: Media; errors?: Problem[] }[] | undefined) ?? []) {
         if (!m.id || !m.from) continue;
         const tap = m.type === "interactive" ? (m.interactive?.button_reply ?? m.interactive?.list_reply) : undefined;
-        const media = m.type === "document" ? m.document : m.type === "image" ? m.image : undefined;
+        const media = m.type === "document" ? m.document : m.type === "image" ? m.image : m.type === "video" ? m.video : m.type === "audio" ? m.audio : undefined;
         const why = m.errors?.[0];
         const problem = why ? [why.code, why.title ?? why.message].filter(Boolean).join(" ") : null;
         if (m.type === "unsupported" || m.type === "unknown" || !m.type) {
@@ -152,7 +154,7 @@ export class InboundService {
           type: m.type ?? "unknown",
           ...(tap?.id ? { replyId: tap.id } : {}),
           ...(media?.id ? { mediaId: media.id, fileName: media.filename, caption: media.caption } : {}),
-          body: m.type === "text" ? (m.text?.body ?? "") : tap ? (tap.title ?? "") : media ? (media.caption || `📎 ${media.filename ?? (m.type === "image" ? "Photo" : "File")}`) : describeOther(m.type ?? "unknown", problem),
+          body: m.type === "text" ? (m.text?.body ?? "") : tap ? (tap.title ?? "") : media ? (media.caption || (m.type === "video" || m.type === "audio" ? describeOther(m.type, null) : `📎 ${media.filename ?? (m.type === "image" ? "Photo" : "File")}`)) : describeOther(m.type ?? "unknown", problem),
           name: names.get(m.from) || null,
           at: m.timestamp ? new Date(Number(m.timestamp) * 1000) : new Date(),
         });
@@ -273,6 +275,13 @@ export class InboundService {
       });
     }
 
+    // Every photo, video, voice note and file is kept on the lead the moment it arrives, whoever is answering: a chat that
+    // is waiting for a person, or a bot that is switched off, must not lose what the customer sent.
+    let kept: SavedFile | null = null;
+    if (m.mediaId && conversation.leadId) {
+      kept = await this.media.save({ leadId: conversation.leadId, mediaId: m.mediaId, fileName: m.fileName, caption: m.caption });
+    }
+
     if (!this.settings.get<boolean>("whatsapp.chatbotEnabled") || conversation.needsHuman) return;
 
     const text = (m.body ?? "").trim().toLowerCase();
@@ -287,15 +296,24 @@ export class InboundService {
     // "status" and a request for a person still work as before. If she cannot answer, the lines below take over.
     const wantsPerson = /^(agent|human|person|callback|call me|talk to)\b/.test(text);
     const typedOrTapped = m.type === "text" || (m.type === "interactive" && Boolean(m.replyId));
+    // Someone asking about GST, ITR, an agreement or a title check is not asking about a loan. The CA & Legal desk answers,
+    // takes down what they need, and hands the chat to the team.
+    if (m.type === "text" && conversation.leadId && !wantsPerson && !inProfile && !wantsProfile) {
+      const desk = await this.caLegal.handle(conversation.leadId, m.body ?? "");
+      if (desk) {
+        void this.provider.showTyping(m.id);
+        if (desk.handoff) await this.prisma.whatsAppConversation.update({ where: { id: conversation.id }, data: { needsHuman: true } });
+        const sent = await this.say(phone, desk.reply);
+        if (sent) await this.conversations.recordOutbound({ conversationId: conversation.id, sender: WhatsAppSender.BOT, type: "text", body: desk.reply, waMessageId: sent.waMessageId });
+        return;
+      }
+    }
     // A file, photo or voice note: Gia says kindly she cannot open it and carries on, instead of going quiet.
     if (["document", "image", "video", "audio", "sticker"].includes(m.type) && !wantsPerson && !inProfile && !wantsProfile && this.intake.enabled()) {
       void this.provider.showTyping(m.id);
-      // Documents and photos are kept on the lead; voice notes and videos still cannot be opened.
+      // Everything they send is kept on the lead (above). Nothing is read out of it here.
       let kind = m.type;
-      if (m.mediaId && conversation.leadId) {
-        const result = await this.media.save({ leadId: conversation.leadId, mediaId: m.mediaId, fileName: m.fileName, caption: m.caption });
-        kind = result.saved ? `saved_${m.type}` : `not_saved_${result.reason}`;
-      }
+      if (kept) kind = kept.saved ? `saved_${m.type}` : `not_saved_${kept.reason}`;
       const ai = await this.intake.reply({ id: conversation.id, leadId: conversation.leadId, name: conversation.name }, undefined, kind);
       if (ai.text) {
         const sent = ai.options ? await this.sayOptions(phone, ai.options) : await this.say(phone, ai.text);

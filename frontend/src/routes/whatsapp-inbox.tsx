@@ -71,7 +71,14 @@ function Bubble({ m }: { m: WhatsAppMessage }) {
 
 export function WhatsAppInboxPage() {
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState("");
+  // A lead's "WhatsApp chat" button opens the inbox already searching for that customer.
+  const [search, setSearch] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get("search") ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [needsOnly, setNeedsOnly] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
