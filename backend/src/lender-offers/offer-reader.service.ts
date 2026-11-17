@@ -1,3 +1,4 @@
+import { verifyReadings, type Checks } from "./offer-verify";
 import { BadGatewayException, BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { normalizeExtraction, type Extraction } from "./offer-extraction";
@@ -11,6 +12,8 @@ export type OfferInput = {
 };
 
 /** Reads a lender's flyer, poster or forwarded message and says what it offers. It reads; it never decides. */
+const BOX_PASS = `HOW TO READ THIS TIME: go through the page ONE BOX OR SECTION AT A TIME, in order. A program's figures come ONLY from inside its own box; never take a figure from a neighbouring box or from a heading above it. If a box does not print a figure, leave it null.`;
+
 @Injectable()
 export class OfferReaderService {
   private readonly log = new Logger("OfferReader");
@@ -58,7 +61,8 @@ JSON shape:
     "minAge": years or null, "maxAge": years or null,
     "minTurnover": the amount exactly as printed with its unit, for example "50 Cr" or "75 Cr", or null, "minVintageMonths": number or null, "foirPct": percent or null,
     "who": one short sentence on who the scheme is for and how income is judged, or null,
-    "conditions": an object with ONLY these keys, each only when printed: "rating" (text), "dscr" (number), "guarantee" (text), "security" (text), "collateralMarginPct" (number), "chargeOnAssets" (text), "drawingPower" (text), "payableDays" (number), "moratoriumMonths" (number), "fundingPct" (number), "endUse" (text), "sectors" (text), "profiles" (text), "cibilPolicy" (text), "specialFeatures" (text), "payoutNote" (text)}
+    "conditions": an object with ONLY these keys, each only when printed: "rating" (text), "dscr" (number), "guarantee" (text), "security" (text), "collateralMarginPct" (number), "chargeOnAssets" (text), "drawingPower" (text), "payableDays" (number), "moratoriumMonths" (number), "fundingPct" (number), "endUse" (text), "sectors" (text), "profiles" (text), "cibilPolicy" (text), "specialFeatures" (text), "payoutNote" (text)},
+    "evidence": an object giving, for every figure you filled in (use the same field names: minAmount, maxAmount, minRate, maxRate, minTenureMonths, maxTenureMonths, ltv, minAge, maxAge, minTurnover, minVintageMonths, foirPct, minCreditScore, processingFee), the EXACT words printed on the page that the figure came from, copied letter for letter (for example "maxAmount": "Loan up to ₹1 Crore"). Never invent a quote.
  ]
 }
 
@@ -103,6 +107,20 @@ ${products.map((p) => `  ${p.slug}: ${p.name}`).join("\n")}`;
     }
     if (content.length < 2) throw new BadRequestException("Send a picture, a PDF or some text to read.");
 
+    const kind: Checks["input"] = input.text?.trim() ? "text" : input.file?.mime === "application/pdf" ? "pdf" : "image";
+    const slugs = new Set(products.map((p) => p.slug));
+    // Two independent readings: the second goes through the page one box at a time. Where they differ, nothing is trusted.
+    const second = content.map((c, n) => (n === 0 ? { ...c, text: `${c.text as string}
+
+${BOX_PASS}` } : c));
+    const [a, b] = await Promise.allSettled([this.call(content), this.call(second)]);
+    if (a.status === "rejected" && b.status === "rejected") throw a.reason;
+    const first = a.status === "fulfilled" ? a.value : (b as PromiseFulfilledResult<unknown>).value;
+    const other = a.status === "fulfilled" && b.status === "fulfilled" ? b.value : null;
+    return verifyReadings(normalizeExtraction(first, slugs), other ? normalizeExtraction(other, slugs) : null, kind);
+  }
+
+  private async call(content: Record<string, unknown>[]): Promise<unknown> {
     const model = this.config.get<string>("OFFER_READER_MODEL")?.trim() || "gpt-4.1-mini";
     let res: Response;
     try {
@@ -129,6 +147,6 @@ ${products.map((p) => `  ${p.slug}: ${p.name}`).join("\n")}`;
       this.log.error("The reader's answer was not valid JSON");
       throw new BadGatewayException("The reader gave an answer that could not be used. Try again.");
     }
-    return normalizeExtraction(parsed, new Set(products.map((p) => p.slug)));
+    return parsed;
   }
 }

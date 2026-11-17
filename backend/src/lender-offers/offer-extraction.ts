@@ -8,6 +8,8 @@ export type OfferKind = "LENDER_OFFER" | "SERVICE_PROVIDER" | "OTHER";
 
 export type OfferContact = { name: string | null; designation: string | null; phone: string | null; email: string | null };
 
+import type { Checks, Flag } from "./offer-verify";
+
 export type OfferTerms = {
   /** The product's own name on the flyer (for example "Quasi" or "Property Power"). */
   scheme: string | null;
@@ -43,6 +45,8 @@ export type OfferTerms = {
   who: string | null;
   /** Rating, DSCR, guarantee, security, moratorium, end use and the like. */
   conditions: Conditions;
+  /** The exact words printed on the flyer that each figure was taken from (field name → quote). Proof for a person to compare. */
+  evidence?: Record<string, string>;
 };
 
 export type Extraction = {
@@ -60,6 +64,8 @@ export type Extraction = {
   validTill: string | null;
   /** The details of the standard policy one-pager that the page states (fees, ROI, LTV, tenure, charges and so on). Blank = not stated. */
   sheet: SheetData;
+  /** How far this reading can be trusted: how many times it was read, what was read, and the figures to check. */
+  checks?: Checks;
 };
 
 const KINDS: OfferKind[] = ["LENDER_OFFER", "SERVICE_PROVIDER", "OTHER"];
@@ -111,7 +117,7 @@ const email = (v: unknown): string | null => {
 const ordered = (lo: number | null, hi: number | null): [number | null, number | null] => (lo !== null && hi !== null && lo > hi ? [hi, lo] : [lo, hi]);
 
 /** The newer fields of a scheme: ages, turnover, vintage, FOIR, who it is for, and its conditions. */
-function ageAndMore(raw: Record<string, unknown>): Pick<OfferTerms, "minAge" | "maxAge" | "minTurnover" | "minVintageMonths" | "foirPct" | "who" | "conditions"> {
+function ageAndMore(raw: Record<string, unknown>): Pick<OfferTerms, "minAge" | "maxAge" | "minTurnover" | "minVintageMonths" | "foirPct" | "who" | "conditions" | "evidence"> {
   const [minAge, maxAge] = ordered(whole(raw.minAge, 18, 100), whole(raw.maxAge, 18, 100));
   const turnover = toRupees(raw.minTurnover);
   const foir = percent(raw.foirPct);
@@ -123,6 +129,7 @@ function ageAndMore(raw: Record<string, unknown>): Pick<OfferTerms, "minAge" | "
     foirPct: foir !== null && foir > 0 ? foir : null,
     who: text(raw.who, 300),
     conditions: cleanConditions(raw.conditions),
+    evidence: cleanEvidence(raw.evidence),
   };
 }
 
@@ -134,6 +141,12 @@ export function tenureFromText(v: unknown): number | null {
   const n = Number(m[1]);
   const months = /^y/i.test(m[2]!) ? Math.round(n * 12) : Math.round(n);
   return months >= 1 && months <= 600 ? months : null;
+}
+
+function cleanEvidence(v: unknown): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (v && typeof v === "object" && !Array.isArray(v)) for (const [k, q] of Object.entries(v as Record<string, unknown>)) { const t = text(q, 200); if (t && k.length <= 40) out[k] = t; }
+  return out;
 }
 
 function terms(raw: Record<string, unknown>, slugs: ReadonlySet<string>): OfferTerms {
@@ -190,6 +203,16 @@ const isoDate = (v: unknown): string | null => {
 export const offerEnded = (validTill: string | null | undefined, today: string) => Boolean(validTill && validTill < today);
 
 /** Turns whatever the model returned into a safe Extraction. `slugs` are the loan types this CRM knows. */
+function cleanChecks(raw: unknown): Checks {
+  const c = raw as Partial<Checks>;
+  const flags = (Array.isArray(c.flags) ? c.flags : []).slice(0, 80).filter((f) => f && typeof f === "object").map((f) => ({
+    scheme: text(f.scheme, 80) ?? "", field: text(f.field, 60) ?? "", label: text(f.label, 80) ?? "",
+    reason: (["readings-differ", "out-of-range", "proof-mismatch", "scheme-in-one-reading"].includes(f.reason) ? f.reason : "readings-differ") as Flag["reason"],
+    readingA: text(f.readingA, 200), readingB: text(f.readingB, 200), evidence: text(f.evidence, 200),
+  }));
+  return { readings: c.readings === 2 ? 2 : 1, input: c.input === "pdf" || c.input === "image" ? c.input : "text", flags };
+}
+
 export function normalizeExtraction(raw: unknown, slugs: ReadonlySet<string>): Extraction {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const kind = KINDS.includes(r.kind as OfferKind) ? (r.kind as OfferKind) : "OTHER";
@@ -214,6 +237,7 @@ export function normalizeExtraction(raw: unknown, slugs: ReadonlySet<string>): E
     offers,
     validTill: isoDate(r.validTill),
     sheet: kind === "LENDER_OFFER" ? cleanSheet(r.sheet ?? r.policySheet) : {},
+    ...(r.checks && typeof r.checks === "object" ? { checks: cleanChecks(r.checks) } : {}),
   };
 }
 

@@ -17,8 +17,12 @@ type Terms = {
   minTenureMonths: number | null; maxTenureMonths: number | null; rateType: "FLOATING" | "FIXED" | null;
   processingFee: string | null; employmentTypes: string[]; gstRequired: boolean | null; minCreditScore: number | null;
   allIndia: boolean | null; cities: string[]; ltv: string | null; documents: string[]; charges: string | null; turnaround: string | null; notes: string | null;
+  evidence?: Record<string, string>;
 };
-type Extraction = { kind: Kind; summary: string; lenderName: string | null; lenderType: "BANK" | "NBFC" | null; website: string | null; contacts: Contact[]; offers: Terms[]; validTill?: string | null };
+type Flag = { scheme: string; field: string; label: string; reason: string; readingA?: string | null; readingB?: string | null; evidence?: string | null };
+type Checks = { readings: 1 | 2; input: "text" | "pdf" | "image"; flags: Flag[] };
+const WHY: Record<string, string> = { "readings-differ": "The two readings disagreed", "out-of-range": "Looks wrong (outside a sensible range)", "proof-mismatch": "The quoted line on the flyer does not show this figure", "scheme-in-one-reading": "Only one reading found this scheme" };
+type Extraction = { kind: Kind; summary: string; lenderName: string | null; lenderType: "BANK" | "NBFC" | null; website: string | null; contacts: Contact[]; offers: Terms[]; validTill?: string | null; checks?: Checks };
 type Row = { id: string; source: string; fileName: string | null; kind: Kind; summary: string | null; status: string; createdAt: string; createdByName: string | null; lenderName: string | null; offerCount: number };
 type Detail = Row & {
   extracted: Extraction; hasFile: boolean; rawText: string | null; mimeType: string | null; lenderMatch: { id: string; name: string } | null;
@@ -48,6 +52,42 @@ const LABEL = "grid gap-1 text-[12px] font-semibold text-navy";
 const numOrNull = (v: string) => (v.trim() === "" ? null : Number(v));
 const csv = (v: string) => v.split(",").map((s) => s.trim()).filter(Boolean);
 
+function ChecksPanel({ x }: { x: Extraction }) {
+  const c = x.checks;
+  if (x.kind !== "LENDER_OFFER") return null;
+  if (!c) return <p className="rounded-lg bg-amber-50 p-2 text-[12.5px] text-amber-900">This reading was made before the double-check existed. Compare it with the flyer before adding.</p>;
+  const why = c.flags.length > 0 ? `${c.flags.length} figure${c.flags.length > 1 ? "s were" : " was"} left blank because the readings did not agree or looked wrong.` : c.readings < 2 ? "Only one reading could be made." : c.input === "image" ? "Picture flyers are always checked by a person." : null;
+  return (
+    <div className="space-y-2 text-[12.5px]">
+      {why && <p className="rounded-lg bg-amber-50 p-2 text-amber-900"><b>Not added automatically.</b> {why} Look at the flyer, fill what is blank, then add it.</p>}
+      {c.flags.length > 0 && (
+        <div className="rounded-lg border border-amber-300 p-2">
+          <p className="mb-1 font-bold text-amber-900">Check these against the flyer</p>
+          <ul className="space-y-1">
+            {c.flags.map((f, i) => (
+              <li key={i}><b>{f.scheme}: {f.label}</b> — {WHY[f.reason] ?? f.reason}
+                {f.readingA != null || f.readingB != null ? <> (first reading: {f.readingA ?? "blank"}; second reading: {f.readingB ?? "blank"})</> : null}
+                {f.evidence ? <> — flyer line: “{f.evidence}”</> : null}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {c.flags.length === 0 && c.readings === 2 && <p className="text-muted">Read twice and both readings agree.</p>}
+    </div>
+  );
+}
+
+function ProofList({ t }: { t: Terms }) {
+  const e = Object.entries(t.evidence ?? {});
+  if (e.length === 0) return null;
+  return (
+    <details className="mt-2 text-[12px] text-muted">
+      <summary className="cursor-pointer font-semibold">Where each figure came from on the flyer</summary>
+      <ul className="mt-1 space-y-0.5">{e.map(([k, q]) => <li key={k}><b>{k}</b>: “{q}”</li>)}</ul>
+    </details>
+  );
+}
+
 function TermsEditor({ t, products, onChange, onRemove }: { t: Terms; products: Detail["products"]; onChange: (t: Terms) => void; onRemove: () => void }) {
   const set = <K extends keyof Terms>(k: K, v: Terms[K]) => onChange({ ...t, [k]: v });
   return (
@@ -57,6 +97,7 @@ function TermsEditor({ t, products, onChange, onRemove }: { t: Terms; products: 
         <button type="button" onClick={onRemove} className="btn-ghost text-red-600" aria-label="Remove this product"><Trash2 size={14} /></button>
       </div>
       <div className="grid gap-2.5 sm:grid-cols-3">
+        <ProofList t={t} />
         <label className={LABEL}>Name on the flyer<input className={FIELD} value={t.scheme ?? ""} onChange={(e) => set("scheme", e.target.value || null)} /></label>
         <label className={clsx(LABEL, "sm:col-span-2")}>Our loan type
           <select className={FIELD} value={t.productSlug ?? ""} onChange={(e) => set("productSlug", e.target.value || null)}>
@@ -177,6 +218,7 @@ export function ReviewModal({ id, onClose }: { id: string; onClose: () => void }
             )}
           </div>
           <p className="text-muted">{x.summary || "No summary."}</p>
+          <ChecksPanel x={x} />
           {x.validTill && (
             <p className={x.validTill < new Date().toISOString().slice(0, 10) ? "font-semibold text-amber-700" : "text-muted"}>
               {x.validTill < new Date().toISOString().slice(0, 10) ? `This offer ended on ${x.validTill}, so it was not added automatically. Check with the lender before using it.` : `Valid till ${x.validTill}.`}

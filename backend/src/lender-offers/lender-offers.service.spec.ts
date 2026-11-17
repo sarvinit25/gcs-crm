@@ -5,6 +5,7 @@ const PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n");
 const actor = { id: "u1", name: "Mahesh", email: "m@x.in", role: "ADMIN" } as never;
 
 const manba: Extraction = {
+  checks: { readings: 2, input: "text", flags: [] },
   kind: "LENDER_OFFER", summary: "Manba", lenderName: "Manba Finance", lenderType: "NBFC", website: null, address: null, city: null, contacts: [], validTill: null, sheet: {},
   offers: [{ scheme: "Micro LAP", productSlug: "micro-lap", minAmount: 1_000_000, maxAmount: 2_000_000, minRate: 19, maxRate: 20, minTenureMonths: 12, maxTenureMonths: 120, rateType: null, processingFee: null, employmentTypes: [], gstRequired: false, minCreditScore: null, allIndia: null, cities: [], ltv: null, documents: [], charges: null, turnaround: null, notes: null, minAge: null, maxAge: null, minTurnover: null, minVintageMonths: null, foirPct: null, who: null, conditions: {} }],
 };
@@ -66,6 +67,15 @@ describe("adding a reading to the lender automatically", () => {
     const { service, apply } = build({ lenders: [{ id: "L2", name: "HDFC Bank" }] });
     await service.create([], "Manba micro LAP flyer text", actor);
     expect(apply).not.toHaveBeenCalled();
+  });
+
+  it("waits for review when the reading was a picture, was made once, or has figures to check", async () => {
+    for (const checks of [{ readings: 2, input: "image", flags: [] }, { readings: 1, input: "text", flags: [] }, { readings: 2, input: "text", flags: [{ scheme: "A", field: "minRate", label: "Lowest interest rate", reason: "readings-differ" }] }]) {
+      const { service, apply, prisma } = build({ lenders: [{ id: "L1", name: "Manba Finance" }] });
+      prisma.lenderOffer.findUnique.mockResolvedValue({ extracted: { ...manba, checks } });
+      await service.create([], `Manba flyer ${checks.input}${checks.readings}${checks.flags.length}`, actor);
+      expect(apply).not.toHaveBeenCalled();
+    }
   });
 
   it("waits for review when the switch in Settings is off", async () => {

@@ -1,3 +1,4 @@
+import { fullyVerified } from "./offer-verify";
 import { createHash, randomUUID } from "crypto";
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { AuditAction, LenderType, Prisma } from "@prisma/client";
@@ -147,6 +148,8 @@ export class LenderOffersService {
       // An offer that has already ended is for a person to look at, not to put into the matcher.
       if (offerEnded(x.validTill, TODAY())) return;
       const lenders = await this.prisma.lender.findMany({ select: { id: true, name: true, shortName: true } });
+      // Only a reading that was made twice, agreed with itself, and was not a picture is added without a person looking.
+      if (!fullyVerified(x)) return;
       const match = bestLender(x.lenderName, lenders);
       if (match) await this.apply(id, { lenderId: match.id }, actor);
     } catch (err) {
