@@ -6,6 +6,8 @@ import { LogoMark } from "../components/logo";
 const LOANS = ["Home Loan", "Home Loan Balance Transfer", "Loan Against Property", "Business Loan", "Personal Loan", "Education Loan", "Car Loan", "Other"];
 const CITIES = ["Mumbai", "Thane", "Navi Mumbai", "Pune", "Kalyan", "Panvel", "Nashik"];
 const MAX_QUOTE = 1200;
+/** The rating scale: a face with its number, 1 to 5. */
+const FACES = ["😞", "🙁", "😐", "😊", "😃"];
 
 /** Phone photos are often several MB. Shrink them in the browser so they upload quickly and never hit the size limit. */
 async function shrink(file: File): Promise<Blob> {
@@ -147,12 +149,16 @@ export function TestimonialPage() {
         <div>
           <p className="text-[13px] font-semibold text-navy">Rate us out of 5</p>
           <div className="mt-1.5 grid grid-cols-5 gap-2" role="radiogroup" aria-label="Rating out of 5">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button key={n} type="button" role="radio" aria-checked={rating === n} onClick={() => setRating(n)}
-                className={clsx("h-12 rounded-lg border text-lg font-bold transition", rating === n ? "border-navy bg-navy text-white" : "border-line bg-white text-navy hover:bg-bg-light")}>
-                {n}
-              </button>
-            ))}
+            {FACES.map((face, i) => {
+              const n = i + 1;
+              return (
+                <button key={n} type="button" role="radio" aria-checked={rating === n} aria-label={`${n} out of 5`} onClick={() => setRating(n)}
+                  className={clsx("flex h-16 flex-col items-center justify-center rounded-lg border transition", rating === n ? "border-navy bg-navy text-white" : "border-line bg-white text-navy hover:bg-bg-light")}>
+                  <span className="text-2xl leading-none" aria-hidden="true">{face}</span>
+                  <span className="mt-1 text-sm font-bold">{n}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
