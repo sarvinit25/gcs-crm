@@ -321,7 +321,13 @@ export function mergeOffers(offers: OfferTerms[]): { policies: PolicyDraft[]; sk
       .slice(0, 1000);
     // Several schemes can disagree (one says "1 crore", another "up to 60 lakh"): a minimum above the maximum is dropped.
     const amountLow = group.reduce<number | null>((a, g) => lo(a, g.minAmount), null);
-    const amountHigh = group.reduce<number | null>((a, g) => hi(a, g.maxAmount), null);
+    // A scheme that says "from 10 Cr" or "5 Cr and above" has no upper limit. Another scheme's cap ("up to 5 Cr") must not
+    // become the ceiling for the whole loan type, so the ceiling is left unrecorded; each program keeps its own figures.
+    // (Only when the schemes agree: a minimum above another scheme's maximum is a contradiction, handled just below.)
+    const cap = group.reduce<number | null>((a, g) => hi(a, g.maxAmount), null);
+    const openEnded = group.some((g) => g.minAmount !== null && g.maxAmount === null);
+    const contradiction = amountLow !== null && cap !== null && amountLow > cap;
+    const amountHigh = openEnded && !contradiction ? null : cap;
     return {
       productSlug,
       minAmount: amountLow !== null && amountHigh !== null && amountLow > amountHigh ? null : amountLow,

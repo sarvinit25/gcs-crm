@@ -328,3 +328,28 @@ describe("figures the reader tends to leave in the notes or get wrong", () => {
     expect(x.offers[0]!.minTurnover).toBe(500_000_000);
   });
 });
+
+
+describe("a loan type with one open-ended scheme and one capped scheme", () => {
+  const SL = new Set(["bill-discounting"]);
+  const x = normalizeExtraction({ kind: "LENDER_OFFER", offers: [
+    { scheme: "Sales Invoice Discounting", productSlug: "bill-discounting", minAmount: 100000000 },
+    { scheme: "Unsecured PID", productSlug: "bill-discounting", maxAmount: 50000000 },
+    { scheme: "Secured PID", productSlug: "bill-discounting", minAmount: 50000000 },
+  ] }, SL);
+  it("does not turn the capped scheme's limit into a ceiling for all of them", () => {
+    const [policy] = mergeOffers(x.offers).policies;
+    expect(policy!.maxAmount).toBeNull();
+    expect(policy!.minAmount).toBe(50_000_000);
+    // each program still holds its own figures
+    expect(policy!.programs.find((p) => p.name === "Unsecured PID")!.maxAmount).toBe(50_000_000);
+    expect(policy!.programs.find((p) => p.name === "Sales Invoice Discounting")!.minAmount).toBe(100_000_000);
+  });
+  it("still widens a ceiling when every scheme is capped", () => {
+    const y = normalizeExtraction({ kind: "LENDER_OFFER", offers: [
+      { scheme: "A", productSlug: "bill-discounting", maxAmount: 3000000 },
+      { scheme: "B", productSlug: "bill-discounting", maxAmount: 10000000 },
+    ] }, SL);
+    expect(mergeOffers(y.offers).policies[0]!.maxAmount).toBe(10_000_000);
+  });
+});
