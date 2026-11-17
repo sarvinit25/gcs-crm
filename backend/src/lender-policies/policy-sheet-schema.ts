@@ -11,6 +11,8 @@ export type SheetField = {
   options?: string[];
   /** A hint for the form, and the wording the reader is given to find it. */
   hint?: string;
+  /** For money fields: anything below this is not a plausible rupee amount (for example a percentage read into a rupee box) and is dropped. */
+  min?: number;
 };
 export type SheetSection = { id: string; title: string; fields: SheetField[] };
 export type SheetData = Record<string, string | number | string[] | null>;
@@ -62,8 +64,8 @@ export const SHEET_SECTIONS: SheetSection[] = [
       f("pfSepHL", "Self-employed Home Loan (% + GST)", "percent"),
       f("pfSalLAP", "Salaried LAP (% + GST)", "percent"),
       f("pfSepLAP", "Self-employed LAP (% + GST)", "percent"),
-      f("pfMin", "Minimum processing fee, if any (₹)", "money"),
-      f("pfMax", "Maximum processing fee / capping, if any (₹)", "money"),
+      f("pfMin", "Minimum processing fee, if any (₹)", "money", { min: 100, hint: "A rupee amount. A percentage such as 1% goes in the fee-percent fields, never here" }),
+      f("pfMax", "Maximum processing fee / capping, if any (₹)", "money", { min: 100, hint: "A rupee amount. A percentage such as 1.5% goes in the fee-percent fields, never here" }),
     ],
   },
   {
@@ -199,7 +201,7 @@ export function cleanSheetValue(field: SheetField, raw: unknown): string | numbe
   switch (field.type) {
     case "text": return str.slice(0, 200);
     case "longtext": return str.slice(0, 1500);
-    case "money": { const n = Number(str.replace(/[₹,]/g, "")); return Number.isFinite(n) && n >= 0 && n <= 1e12 ? Math.round(n) : null; }
+    case "money": { const n = Number(str.replace(/[₹,]/g, "")); return Number.isFinite(n) && n >= (field.min ?? 0) && n <= 1e12 ? Math.round(n) : null; }
     case "percent": { const n = Number(str.replace(/%/g, "")); return Number.isFinite(n) && n >= 0 && n <= 100 ? Math.round(n * 100) / 100 : null; }
     case "number": { const n = Number(str.replace(/,/g, "")); return Number.isFinite(n) && n >= 0 && n <= 100000 ? n : null; }
     case "select": return field.options?.find((o) => o.toLowerCase() === str.toLowerCase()) ?? null;

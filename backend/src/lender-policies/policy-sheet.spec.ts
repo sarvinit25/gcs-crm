@@ -41,3 +41,14 @@ describe("the policy one-pager", () => {
     expect(normalizeExtraction({ kind: "OTHER", policySheet: { lapRoi: "9%" } }, new Set()).sheet).toEqual({});
   });
 });
+
+describe("rupee boxes on the one-pager", () => {
+  it("do not take a percentage read into them", () => {
+    // a flyer saying "Processing fees 1% - 1.50%" must not become a minimum of Rs 1 and a maximum of Rs 2
+    expect(cleanSheet({ pfMin: 1, pfMax: 2, hlRoi: "10.5%" })).toEqual({ hlRoi: "10.5%" });
+    expect(cleanSheet({ pfMin: "99" })).toEqual({});
+  });
+  it("still keep a real rupee amount", () => {
+    expect(cleanSheet({ pfMin: 5000, pfMax: "25,000" })).toEqual({ pfMin: 5000, pfMax: 25000 });
+  });
+});
