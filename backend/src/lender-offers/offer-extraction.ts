@@ -126,6 +126,16 @@ function ageAndMore(raw: Record<string, unknown>): Pick<OfferTerms, "minAge" | "
   };
 }
 
+/** "Max Tenure 5 yrs" or "tenure: 20 years" written in a scheme's notes, as months. Used only when no tenure was given as a figure. */
+export function tenureFromText(v: unknown): number | null {
+  if (typeof v !== "string") return null;
+  const m = v.match(/tenure[^0-9]{0,15}(\d{1,3}(?:\.\d+)?)\s*(years?|yrs?|months?|mos?)\b/i);
+  if (!m) return null;
+  const n = Number(m[1]);
+  const months = /^y/i.test(m[2]!) ? Math.round(n * 12) : Math.round(n);
+  return months >= 1 && months <= 600 ? months : null;
+}
+
 function terms(raw: Record<string, unknown>, slugs: ReadonlySet<string>): OfferTerms {
   // A monthly rate (2.7% a month) is stored as the yearly figure, since that is what the matcher compares.
   const perMonth = String(raw.ratePeriod ?? "").toUpperCase() === "MONTH";
@@ -135,7 +145,7 @@ function terms(raw: Record<string, unknown>, slugs: ReadonlySet<string>): OfferT
   const rupeesOrNull = (v: unknown) => { const n = toRupees(v); return n ? n : null; };
   const [minAmount, maxAmount] = ordered(rupeesOrNull(raw.minAmount), rupeesOrNull(raw.maxAmount));
   const [minRate, maxRate] = ordered(rate(raw.minRate), rate(raw.maxRate ?? raw.minRate));
-  const [minTenureMonths, maxTenureMonths] = ordered(whole(raw.minTenureMonths, 1, 600), whole(raw.maxTenureMonths, 1, 600));
+  const [minTenureMonths, maxTenureMonths] = ordered(whole(raw.minTenureMonths, 1, 600), whole(raw.maxTenureMonths, 1, 600) ?? tenureFromText(raw.notes) ?? tenureFromText(raw.who));
   const slug = text(raw.productSlug, 60);
   const employment = list(raw.employmentTypes, 6, 40)
     .map((e) => EMPLOYMENT.find((x) => x.toLowerCase().replace(/[^a-z]/g, "") === e.toLowerCase().replace(/[^a-z]/g, "")) ?? null)

@@ -1,4 +1,4 @@
-import { bestLender, cleanPhone, mergeOffers, offerEnded, normalizeExtraction, toRupees } from "./offer-extraction";
+import { bestLender, cleanPhone, mergeOffers, offerEnded, normalizeExtraction, tenureFromText, toRupees } from "./offer-extraction";
 
 const SLUGS = new Set(["micro-lap", "micro-business-loan", "private-funding", "business-loan"]);
 
@@ -300,5 +300,31 @@ describe("programs and conditions read off a flyer", () => {
     expect(fields.minAge).toBeUndefined(); // 25 would make the rule stricter than the 21 already held
     expect(fields.foirBands).toBeUndefined(); // FOIR already recorded
     expect(changes.join(" ")).toMatch(/programs added/);
+  });
+});
+
+
+describe("figures the reader tends to leave in the notes or get wrong", () => {
+  const SL = new Set(["working-capital-term-loan", "home-loan"]);
+  it("reads a tenure written in the notes when no figure was given", () => {
+    expect(tenureFromText("Max Tenure 5 yrs; DSCR 1.2x")).toBe(60);
+    expect(tenureFromText("Banking program; tenure 20 years; max age 70")).toBe(240);
+    expect(tenureFromText("Tenure: 15 Years")).toBe(180);
+    expect(tenureFromText("tenure up to 18 months")).toBe(18);
+    expect(tenureFromText("max age 70 years")).toBeNull();
+    expect(tenureFromText("tenure 900 years")).toBeNull();
+    expect(tenureFromText(null)).toBeNull();
+  });
+  it("uses that tenure for the scheme, but never over a figure the reader did give", () => {
+    const x = normalizeExtraction({ kind: "LENDER_OFFER", offers: [
+      { scheme: "TL", productSlug: "working-capital-term-loan", minAmount: 100000000, notes: "Max Tenure 5 yrs" },
+      { scheme: "HL", productSlug: "home-loan", maxAmount: 3000000, maxTenureMonths: 240, notes: "tenure 15 years" },
+    ] }, SL);
+    expect(x.offers[0]!.maxTenureMonths).toBe(60);
+    expect(x.offers[1]!.maxTenureMonths).toBe(240);
+  });
+  it("reads a turnover given with its unit exactly, so 50 Cr is 50 crore and not 500", () => {
+    const x = normalizeExtraction({ kind: "LENDER_OFFER", offers: [{ scheme: "TL", productSlug: "working-capital-term-loan", minTurnover: "Rs 50 Cr", maxAmount: 1 }] }, SL);
+    expect(x.offers[0]!.minTurnover).toBe(500_000_000);
   });
 });
