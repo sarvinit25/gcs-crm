@@ -96,11 +96,13 @@ import { fillContact, mergeIntoPolicy, normalizedForHash, type ExistingPolicy, t
 
 const held = (over: Partial<ExistingPolicy> = {}): ExistingPolicy => ({
   minAmount: 300_000, maxAmount: 2_000_000, minRate: 19, maxRate: 24, minTenureMonths: 12, maxTenureMonths: 120, rateType: null, processingFee: null,
-  specialScheme: "Quasi, Property Power", employmentTypes: ["Salaried"], cities: ["Mumbai"], gstRequired: false, allIndia: false, minCreditScore: null, notes: null, ...over,
+  specialScheme: "Quasi, Property Power", employmentTypes: ["Salaried"], cities: ["Mumbai"], gstRequired: false, allIndia: false, minCreditScore: null, notes: null,
+  minAge: null, maxAgeAtMaturity: null, minAnnualTurnover: null, minBusinessVintageMonths: null, hasFoir: false, programs: [], conditions: {}, ...over,
 });
 const flyer = (over: Partial<PolicyDraft> = {}): PolicyDraft => ({
   productSlug: "micro-lap", minAmount: 300_000, maxAmount: 2_000_000, minRate: 19, maxRate: 24, minTenureMonths: 12, maxTenureMonths: 120, rateType: null, processingFee: null,
-  specialScheme: "Quasi, Property Power", employmentTypes: ["Salaried"], gstRequired: false, minCreditScore: null, allIndia: false, cities: ["Mumbai"], notes: "turnaround 4 days", schemes: 2, ...over,
+  specialScheme: "Quasi, Property Power", employmentTypes: ["Salaried"], gstRequired: false, minCreditScore: null, allIndia: false, cities: ["Mumbai"], notes: "turnaround 4 days", schemes: 2,
+  minAge: null, maxAge: null, minAnnualTurnover: null, minBusinessVintageMonths: null, foirPct: null, programs: [], conditions: {}, ...over,
 });
 
 describe("adding a new flyer to a policy that already exists", () => {
@@ -233,5 +235,70 @@ describe("schemes with nothing to record, and offers that have ended", () => {
     const x = normalizeExtraction({ kind: "LENDER_OFFER", offers: [{ productSlug: "micro-lap", minAmount: "1 crore" }, { productSlug: "micro-lap", maxAmount: "60 lakh" }] }, SLUGS);
     const p = mergeOffers(x.offers).policies[0]!;
     expect([p.minAmount, p.maxAmount]).toEqual([null, 6_000_000]);
+  });
+});
+
+
+describe("programs and conditions read off a flyer", () => {
+  const SL = new Set(["home-loan", "working-capital-term-loan", "machine-loan"]);
+  const smfg = {
+    kind: "LENDER_OFFER",
+    summary: "SMFG Grihashakti programs",
+    lenderName: "SMFG Grihashakti",
+    offers: [
+      { scheme: "Salaried Customer Program", productSlug: "home-loan", maxAmount: 3000000, maxTenureMonths: 240, minRate: 10.5, ltv: "80% (With Insurance: 85%)", who: "Cash salary cases considered, max cash salary 30,000" },
+      { scheme: "ITR Program", productSlug: "home-loan", maxAmount: 10000000, maxTenureMonths: 240, minAge: 25, maxAge: 70, minVintageMonths: 36, who: "2 years regular ITR" },
+      { scheme: "Low LTV Program", productSlug: "home-loan", maxAmount: 10000000, maxTenureMonths: 180, ltv: "Up to 50%" },
+    ],
+  };
+  const jio = {
+    kind: "LENDER_OFFER",
+    lenderName: "Jio Credit",
+    offers: [
+      { scheme: "Term Loan (TL)", productSlug: "working-capital-term-loan", minAmount: 100000000, minTurnover: "50 Cr", maxTenureMonths: 60, foirPct: 0, conditions: { dscr: "1.2", guarantee: "PG/CG required", endUse: "Factory set up with plant and machinery", madeUp: "x" } },
+      { scheme: "Unsecured Industrial Machinery Purchase", productSlug: "machine-loan", maxAmount: 100000000, maxTenureMonths: 60, conditions: { moratoriumMonths: 3, fundingPct: 85 } },
+    ],
+  };
+
+  it("keeps every scheme of one loan type as a program with its own limits", () => {
+    const [policy] = mergeOffers(normalizeExtraction(smfg, SL).offers).policies;
+    expect(policy!.programs.map((p) => p.name)).toEqual(["Salaried Customer Program", "ITR Program", "Low LTV Program"]);
+    expect(policy!.programs[1]).toMatchObject({ maxAmount: 10000000, minAge: 25, maxAge: 70, who: "2 years regular ITR" });
+    expect(policy!.programs[2]).toMatchObject({ ltv: "Up to 50%", maxTenureMonths: 180 });
+    // the loan type's own range still widens across them
+    expect(policy).toMatchObject({ maxAmount: 10000000, maxTenureMonths: 240, minAge: 25, maxAge: 70, minBusinessVintageMonths: 36 });
+  });
+
+  it("makes no program list for a loan type with one scheme", () => {
+    const policies = mergeOffers(normalizeExtraction(jio, SL).offers).policies;
+    expect(policies.every((p) => p.programs.length === 0)).toBe(true);
+  });
+
+  it("reads turnover, FOIR and conditions, and drops anything unknown", () => {
+    const tl = mergeOffers(normalizeExtraction(jio, SL).offers).policies.find((p) => p.productSlug === "working-capital-term-loan")!;
+    expect(tl.minAnnualTurnover).toBe(500_000_000);
+    expect(tl.foirPct).toBeNull(); // a printed 0 is not a limit
+    expect(tl.conditions).toEqual({ dscr: 1.2, guarantee: "PG/CG required", endUse: "Factory set up with plant and machinery" });
+    const machine = mergeOffers(normalizeExtraction(jio, SL).offers).policies.find((p) => p.productSlug === "machine-loan")!;
+    expect(machine.conditions).toEqual({ moratoriumMonths: 3, fundingPct: 85 });
+  });
+
+  it("adds to a policy that exists without replacing anything", () => {
+    const [draft] = mergeOffers(normalizeExtraction(smfg, SL).offers).policies;
+    const have = {
+      minAmount: null, maxAmount: 5000000, minRate: null, maxRate: null, minTenureMonths: null, maxTenureMonths: null, rateType: null, processingFee: null,
+      specialScheme: null, employmentTypes: [], cities: [], gstRequired: false, allIndia: false, minCreditScore: null, notes: null,
+      minAge: 21, maxAgeAtMaturity: null, minAnnualTurnover: null, minBusinessVintageMonths: null, hasFoir: true,
+      programs: [{ name: "ITR Program", minAmount: null, maxAmount: 8000000, minRate: null, maxRate: null, minTenureMonths: null, maxTenureMonths: null, ltv: null, minAge: null, maxAge: null, who: null, documents: [], conditions: null, fee: null }],
+      conditions: { rating: "A" },
+    };
+    const { fields, changes } = mergeIntoPolicy(have, { ...draft!, conditions: { rating: "BBB-", dscr: 1.2 }, foirPct: 60 }, "2026-11-17");
+    const programs = fields.programs as { name: string; maxAmount: number | null; maxTenureMonths: number | null }[];
+    expect(programs.find((p) => p.name === "ITR Program")).toMatchObject({ maxAmount: 8000000, maxTenureMonths: 240 }); // held amount kept, blank filled
+    expect(programs.map((p) => p.name)).toEqual(expect.arrayContaining(["Salaried Customer Program", "Low LTV Program"]));
+    expect(fields.conditions).toEqual({ rating: "A", dscr: 1.2 }); // the held rating is kept
+    expect(fields.minAge).toBeUndefined(); // 25 would make the rule stricter than the 21 already held
+    expect(fields.foirBands).toBeUndefined(); // FOIR already recorded
+    expect(changes.join(" ")).toMatch(/programs added/);
   });
 });

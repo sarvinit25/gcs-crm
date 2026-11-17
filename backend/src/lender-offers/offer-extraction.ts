@@ -1,4 +1,5 @@
 import { cleanSheet, type SheetData } from "../lender-policies/policy-sheet-schema";
+import { cleanConditions, cleanPrograms, mergeConditions, mergePrograms, type Conditions, type Program } from "../lender-policies/policy-extras";
 
 // What a flyer, poster or forwarded message says about a lender, as plain data. The AI only reads; everything it returns
 // passes through `normalizeExtraction` here, so a bad or invented value is dropped before a person ever sees it.
@@ -31,6 +32,17 @@ export type OfferTerms = {
   charges: string | null;
   turnaround: string | null;
   notes: string | null;
+  minAge: number | null;
+  maxAge: number | null;
+  /** The smallest annual turnover a borrower needs, in rupees. */
+  minTurnover: number | null;
+  minVintageMonths: number | null;
+  /** The highest share of income that may go to EMIs, as a percentage. */
+  foirPct: number | null;
+  /** Who the scheme is for and how income is judged, in plain words. */
+  who: string | null;
+  /** Rating, DSCR, guarantee, security, moratorium, end use and the like. */
+  conditions: Conditions;
 };
 
 export type Extraction = {
@@ -98,6 +110,22 @@ const email = (v: unknown): string | null => {
 /** Keeps a range the right way round: a flyer's "10 to 5" is a misreading, not a rule. */
 const ordered = (lo: number | null, hi: number | null): [number | null, number | null] => (lo !== null && hi !== null && lo > hi ? [hi, lo] : [lo, hi]);
 
+/** The newer fields of a scheme: ages, turnover, vintage, FOIR, who it is for, and its conditions. */
+function ageAndMore(raw: Record<string, unknown>): Pick<OfferTerms, "minAge" | "maxAge" | "minTurnover" | "minVintageMonths" | "foirPct" | "who" | "conditions"> {
+  const [minAge, maxAge] = ordered(whole(raw.minAge, 18, 100), whole(raw.maxAge, 18, 100));
+  const turnover = toRupees(raw.minTurnover);
+  const foir = percent(raw.foirPct);
+  return {
+    minAge,
+    maxAge,
+    minTurnover: turnover ? turnover : null,
+    minVintageMonths: whole(raw.minVintageMonths, 1, 600),
+    foirPct: foir !== null && foir > 0 ? foir : null,
+    who: text(raw.who, 300),
+    conditions: cleanConditions(raw.conditions),
+  };
+}
+
 function terms(raw: Record<string, unknown>, slugs: ReadonlySet<string>): OfferTerms {
   // A monthly rate (2.7% a month) is stored as the yearly figure, since that is what the matcher compares.
   const perMonth = String(raw.ratePeriod ?? "").toUpperCase() === "MONTH";
@@ -135,6 +163,7 @@ function terms(raw: Record<string, unknown>, slugs: ReadonlySet<string>): OfferT
     charges: text(raw.charges, 300),
     turnaround: text(raw.turnaround, 120),
     notes: text(raw.notes, 500),
+    ...ageAndMore(raw),
   };
 }
 
@@ -161,7 +190,7 @@ export function normalizeExtraction(raw: unknown, slugs: ReadonlySet<string>): E
     })
     .filter((c) => c.phone || c.email)
     .slice(0, 10);
-  const offers = kind === "LENDER_OFFER" ? (Array.isArray(r.offers) ? r.offers : []).slice(0, 12).map((o) => terms((o ?? {}) as Record<string, unknown>, slugs)) : [];
+  const offers = kind === "LENDER_OFFER" ? (Array.isArray(r.offers) ? r.offers : []).slice(0, 20).map((o) => terms((o ?? {}) as Record<string, unknown>, slugs)) : [];
   const type = String(r.lenderType ?? "").toUpperCase();
   return {
     kind,
@@ -225,7 +254,21 @@ export type PolicyDraft = {
   cities: string[];
   notes: string | null;
   schemes: number;
+  minAge: number | null;
+  maxAge: number | null;
+  minAnnualTurnover: number | null;
+  minBusinessVintageMonths: number | null;
+  foirPct: number | null;
+  /** One entry per named scheme, kept only when the flyer lists two or more under this loan type. */
+  programs: Program[];
+  conditions: Conditions;
 };
+
+/** A flyer's scheme as a program entry: its own figures, so they are not blurred into the loan type's range. */
+const programOf = (g: OfferTerms): Program | null =>
+  g.scheme
+    ? cleanPrograms([{ name: g.scheme, minAmount: g.minAmount, maxAmount: g.maxAmount, minRate: g.minRate, maxRate: g.maxRate, minTenureMonths: g.minTenureMonths, maxTenureMonths: g.maxTenureMonths, ltv: g.ltv, minAge: g.minAge, maxAge: g.maxAge, who: g.who, documents: g.documents, conditions: g.notes, fee: g.processingFee }])[0] ?? null
+    : null;
 
 /**
  * One policy per loan type: several schemes on one flyer (a lender's "Quasi", "Property Power" and "Micro LAP") widen the
@@ -235,7 +278,8 @@ export type PolicyDraft = {
 export const hasTerms = (o: OfferTerms) =>
   [o.minAmount, o.maxAmount, o.minRate, o.maxRate, o.minTenureMonths, o.maxTenureMonths, o.minCreditScore].some((n) => n !== null) ||
   Boolean(o.processingFee || o.ltv || o.charges || o.turnaround || o.notes || o.rateType) ||
-  o.employmentTypes.length > 0 || o.documents.length > 0 || o.cities.length > 0 || o.gstRequired !== null || o.allIndia !== null;
+  o.employmentTypes.length > 0 || o.documents.length > 0 || o.cities.length > 0 || o.gstRequired !== null || o.allIndia !== null ||
+  [o.minAge, o.maxAge, o.minTurnover, o.minVintageMonths, o.foirPct].some((n) => n !== null) || Boolean(o.who) || Object.keys(o.conditions).length > 0;
 
 export function mergeOffers(offers: OfferTerms[]): { policies: PolicyDraft[]; skipped: number; empty: number } {
   const bySlug = new Map<string, OfferTerms[]>();
@@ -287,6 +331,14 @@ export function mergeOffers(offers: OfferTerms[]): { policies: PolicyDraft[]; sk
       cities: [...new Set(group.flatMap((g) => g.cities))].slice(0, 40),
       notes: notes || null,
       schemes: group.length,
+      minAge: group.reduce<number | null>((a, g) => lo(a, g.minAge), null),
+      maxAge: group.reduce<number | null>((a, g) => hi(a, g.maxAge), null),
+      minAnnualTurnover: group.reduce<number | null>((a, g) => lo(a, g.minTurnover), null),
+      minBusinessVintageMonths: group.reduce<number | null>((a, g) => lo(a, g.minVintageMonths), null),
+      foirPct: group.reduce<number | null>((a, g) => hi(a, g.foirPct), null),
+      programs: group.length >= 2 ? cleanPrograms(group.map(programOf).filter((p): p is Program => p !== null)) : [],
+      // When schemes disagree the first one printed wins; each scheme's own rules are kept in its program entry.
+      conditions: group.reduce<Conditions>((acc, g) => ({ ...g.conditions, ...acc }), {}),
     };
   });
   return { policies, skipped, empty };
@@ -309,6 +361,13 @@ export type ExistingPolicy = {
   allIndia: boolean;
   minCreditScore: number | null;
   notes: string | null;
+  minAge: number | null;
+  maxAgeAtMaturity: number | null;
+  minAnnualTurnover: number | null;
+  minBusinessVintageMonths: number | null;
+  hasFoir: boolean;
+  programs: Program[];
+  conditions: Conditions;
 };
 
 const rupees = (n: number) => "₹" + n.toLocaleString("en-IN");
@@ -376,6 +435,30 @@ export function mergeIntoPolicy(existing: ExistingPolicy, draft: PolicyDraft, to
   if (!existing.allIndia && draft.allIndia) {
     fields.allIndia = true;
     changes.push("available all India");
+  }
+  // Ages, turnover and vintage only widen; a rule is never made stricter by a new flyer.
+  const widen = (label: string, key: "minAge" | "maxAgeAtMaturity" | "minAnnualTurnover" | "minBusinessVintageMonths", incoming: number | null, pick: (a: number | null, b: number | null) => number | null, show: (n: number) => string) => {
+    const after = pick(existing[key], incoming);
+    if (after !== null && after !== existing[key]) { fields[key] = after; changes.push(`${label} ${show(after)}`); }
+  };
+  widen("minimum age", "minAge", draft.minAge, lo, (n) => `${n}`);
+  widen("maximum age at maturity", "maxAgeAtMaturity", draft.maxAge, hi, (n) => `${n}`);
+  widen("minimum annual turnover", "minAnnualTurnover", draft.minAnnualTurnover, lo, rupees);
+  widen("minimum business vintage", "minBusinessVintageMonths", draft.minBusinessVintageMonths, lo, (n) => `${n} months`);
+  if (!existing.hasFoir && draft.foirPct !== null) {
+    fields.foirBands = [{ upTo: null, value: draft.foirPct }];
+    changes.push(`FOIR up to ${draft.foirPct}%`);
+  }
+  const progs = mergePrograms(existing.programs, draft.programs);
+  if (progs.added.length || progs.filled.length) {
+    fields.programs = progs.programs;
+    if (progs.added.length) changes.push(`programs added: ${progs.added.join(", ")}`);
+    if (progs.filled.length) changes.push(`programs completed: ${progs.filled.join(", ")}`);
+  }
+  const conds = mergeConditions(existing.conditions, draft.conditions);
+  if (conds.filled.length) {
+    fields.conditions = conds.conditions;
+    changes.push(`conditions added: ${conds.filled.join(", ")}`);
   }
   if (draft.notes && !squash(existing.notes ?? "").includes(squash(draft.notes))) {
     const next = [existing.notes, `From flyer ${today}: ${draft.notes}`].filter(Boolean).join("\n");

@@ -6,7 +6,7 @@ const actor = { id: "u1", name: "Mahesh", email: "m@x.in", role: "ADMIN" } as ne
 
 const manba: Extraction = {
   kind: "LENDER_OFFER", summary: "Manba", lenderName: "Manba Finance", lenderType: "NBFC", website: null, address: null, city: null, contacts: [], validTill: null, sheet: {},
-  offers: [{ scheme: "Micro LAP", productSlug: "micro-lap", minAmount: 1_000_000, maxAmount: 2_000_000, minRate: 19, maxRate: 20, minTenureMonths: 12, maxTenureMonths: 120, rateType: null, processingFee: null, employmentTypes: [], gstRequired: false, minCreditScore: null, allIndia: null, cities: [], ltv: null, documents: [], charges: null, turnaround: null, notes: null }],
+  offers: [{ scheme: "Micro LAP", productSlug: "micro-lap", minAmount: 1_000_000, maxAmount: 2_000_000, minRate: 19, maxRate: 20, minTenureMonths: 12, maxTenureMonths: 120, rateType: null, processingFee: null, employmentTypes: [], gstRequired: false, minCreditScore: null, allIndia: null, cities: [], ltv: null, documents: [], charges: null, turnaround: null, notes: null, minAge: null, maxAge: null, minTurnover: null, minVintageMonths: null, foirPct: null, who: null, conditions: {} }],
 };
 
 function build(opts: { repeat?: string | null; autoAdd?: boolean; lenders?: { id: string; name: string }[] } = {}) {

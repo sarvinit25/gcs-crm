@@ -53,6 +53,10 @@ export class PolicyFieldsDto {
 
   @IsOptional() @IsArray() foirBands?: unknown[] | null;
   @IsOptional() @IsArray() ltvBands?: unknown[] | null;
+  /** The lender's named programs under this loan type; cleaned on the way in. */
+  @IsOptional() @IsArray() @ArrayMaxSize(12) programs?: unknown[] | null;
+  /** Rules that are not amounts or rates; only known keys are kept. */
+  @IsOptional() @IsObject() conditions?: Record<string, unknown> | null;
   @apply(list()) acceptedPropertyTypes?: string[];
 
   @IsOptional() @IsBoolean() allIndia?: boolean;

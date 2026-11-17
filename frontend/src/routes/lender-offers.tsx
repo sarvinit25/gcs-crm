@@ -22,7 +22,7 @@ type Extraction = { kind: Kind; summary: string; lenderName: string | null; lend
 type Row = { id: string; source: string; fileName: string | null; kind: Kind; summary: string | null; status: string; createdAt: string; createdByName: string | null; lenderName: string | null; offerCount: number };
 type Detail = Row & {
   extracted: Extraction; hasFile: boolean; rawText: string | null; mimeType: string | null; lenderMatch: { id: string; name: string } | null;
-  preview: { productSlug: string; productName: string; exists: boolean; schemes: number; changes: string[] }[]; skipped: number; sheetFound?: string[]; sheetPreview?: Record<string, string | number | string[] | null>;
+  preview: { productSlug: string; productName: string; exists: boolean; schemes: number; changes: string[]; programs?: { name: string }[]; conditions?: Record<string, unknown> }[]; skipped: number; sheetFound?: string[]; sheetPreview?: Record<string, string | number | string[] | null>;
   lenders: { id: string; name: string }[]; products: { slug: string; name: string }[];
   appliedSummary: Applied | null; duplicate?: boolean;
 };
@@ -237,7 +237,7 @@ export function ReviewModal({ id, onClose }: { id: string; onClose: () => void }
                       <tr key={p.productSlug}>
                         <td className="font-semibold whitespace-nowrap text-navy">{p.productName}</td>
                         <td className="whitespace-nowrap">{p.exists ? "Added to the existing policy" : "A new policy"}{p.schemes > 1 ? ` (${p.schemes} schemes combined)` : ""}</td>
-                        <td className="wrap">{p.exists ? (p.changes.length ? p.changes.join("; ") : "Nothing new: the lender already has all of this.") : "The figures from the flyer"}</td>
+                        <td className="wrap">{p.exists ? (p.changes.length ? p.changes.join("; ") : "Nothing new: the lender already has all of this.") : `The figures from the flyer${(p.programs?.length ?? 0) > 0 ? `, with ${p.programs!.length} programs: ${p.programs!.map((x) => x.name).join(", ")}` : ""}${Object.keys(p.conditions ?? {}).length > 0 ? `, and ${Object.keys(p.conditions ?? {}).length} conditions (rating, DSCR, guarantee and so on)` : ""}`}</td>
                       </tr>
                     ))}
                   </tbody>

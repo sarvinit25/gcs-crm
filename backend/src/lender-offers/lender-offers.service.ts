@@ -13,6 +13,7 @@ import { isDocx, isOldWord, readDocx } from "./docx-text";
 import { isXlsx, readXlsx } from "./xlsx-text";
 import { PolicySheetService } from "../lender-policies/policy-sheet.service";
 import { cleanSheet, SHEET_FIELDS, type SheetData } from "../lender-policies/policy-sheet-schema";
+import { cleanConditions, cleanPrograms } from "../lender-policies/policy-extras";
 import { sheetFromTerms } from "../lender-policies/policy-sheet-from-terms";
 import { bestLender, cleanPhone, fillContact, mergeIntoPolicy, mergeOffers, normalizedForHash, normalizeExtraction, offerEnded, type ExistingPolicy, type Extraction, type PolicyDraft } from "./offer-extraction";
 
@@ -34,6 +35,9 @@ function existingOf(p: Prisma.LenderPolicyGetPayload<object>): ExistingPolicy {
     minTenureMonths: p.minTenureMonths, maxTenureMonths: p.maxTenureMonths, rateType: p.rateType, processingFee: p.processingFee,
     specialScheme: p.specialScheme, employmentTypes: p.employmentTypes, cities: p.cities, gstRequired: p.gstRequired,
     allIndia: p.allIndia, minCreditScore: p.minCreditScore, notes: p.notes,
+    minAge: p.minAge, maxAgeAtMaturity: p.maxAgeAtMaturity, minAnnualTurnover: n(p.minAnnualTurnover), minBusinessVintageMonths: p.minBusinessVintageMonths,
+    hasFoir: Array.isArray(p.foirBands) && p.foirBands.length > 0,
+    programs: cleanPrograms(p.programs), conditions: cleanConditions(p.conditions),
   };
 }
 
@@ -362,6 +366,13 @@ export class LenderOffersService {
     for (const k of ["minAmount", "maxAmount", "minRate", "maxRate", "minTenureMonths", "maxTenureMonths", "rateType", "processingFee", "specialScheme", "minCreditScore"] as const) set(k, p[k]);
     set("employmentTypes", p.employmentTypes);
     set("cities", p.cities);
+    set("minAge", p.minAge);
+    set("maxAgeAtMaturity", p.maxAge);
+    set("minAnnualTurnover", p.minAnnualTurnover);
+    set("minBusinessVintageMonths", p.minBusinessVintageMonths);
+    if (p.foirPct !== null) out.foirBands = [{ upTo: null, value: p.foirPct }];
+    if (p.programs.length) out.programs = p.programs;
+    if (Object.keys(p.conditions).length) out.conditions = p.conditions;
     if (p.notes) out.notes = `From flyer ${TODAY()}: ${p.notes}`.slice(0, 1000);
     return out;
   }

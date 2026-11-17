@@ -1,3 +1,4 @@
+import { cleanConditions, cleanPrograms } from "./policy-extras";
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { AuditAction, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
@@ -120,7 +121,7 @@ export class LenderPoliciesService {
   }
 
   private data(dto: PolicyFieldsDto) {
-    const { foirBands, ltvBands, effectiveFrom, effectiveTo, ...rest } = dto;
+    const { foirBands, ltvBands, programs, conditions, effectiveFrom, effectiveTo, ...rest } = dto;
     if (dto.minAmount != null && dto.maxAmount != null && dto.minAmount > dto.maxAmount) {
       throw new BadRequestException("Minimum amount is above the maximum");
     }
@@ -139,6 +140,8 @@ export class LenderPoliciesService {
       ...rest,
       ...(foirBands !== undefined && { foirBands: bands(foirBands, 100) }),
       ...(ltvBands !== undefined && { ltvBands: bands(ltvBands, 100) }),
+      ...(programs !== undefined && { programs: programs === null || !cleanPrograms(programs).length ? Prisma.DbNull : json(cleanPrograms(programs)) }),
+      ...(conditions !== undefined && { conditions: conditions === null || !Object.keys(cleanConditions(conditions)).length ? Prisma.DbNull : json(cleanConditions(conditions)) }),
       ...(effectiveFrom && { effectiveFrom: new Date(effectiveFrom) }),
       ...(effectiveTo !== undefined && { effectiveTo: effectiveTo ? new Date(effectiveTo) : null }),
     };

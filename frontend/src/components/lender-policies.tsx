@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { formatAmount, formatDate, humanize } from "../lib/format";
+import { ConditionsEditor, ProgramsEditor, programLine, type Conditions, type Program } from "./policy-extras-editor";
 import { Modal } from "./modal";
 import { PageHeader } from "./app-shell";
 import { TableSkeleton } from "./skeleton";
@@ -48,6 +49,8 @@ export type PolicyRow = {
   allIndia: boolean;
   cities: string[];
   notes: string | null;
+  programs?: Program[] | null;
+  conditions?: Conditions | null;
   freshness: Freshness;
   _count?: { exceptions: number };
 };
@@ -155,6 +158,8 @@ function PolicyEditor({ policy, onClose }: { policy?: PolicyRow; onClose: () => 
   const products = useProducts();
   const [employment, setEmployment] = useState<string[]>(policy?.employmentTypes ?? []);
   const [allIndia, setAllIndia] = useState(policy?.allIndia ?? false);
+  const [programs, setPrograms] = useState<Program[]>(policy?.programs ?? []);
+  const [conditions, setConditions] = useState<Conditions>(policy?.conditions ?? {});
 
   const save = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
@@ -203,6 +208,8 @@ function PolicyEditor({ policy, onClose }: { policy?: PolicyRow; onClose: () => 
       allIndia,
       cities: allIndia ? [] : asList(f.get("cities")),
       notes: text("notes") || null,
+      programs: programs.filter((p) => p.name.trim()).length ? programs.filter((p) => p.name.trim()) : null,
+      conditions: Object.keys(conditions).length ? conditions : null,
       ...(policy ? { reason: text("reason") || undefined } : {}),
     };
     save.mutate(body);
@@ -307,6 +314,12 @@ function PolicyEditor({ policy, onClose }: { policy?: PolicyRow; onClose: () => 
             <span className="mt-0.5 block text-[11px] font-normal text-muted">Blank = not confirmed, so the matcher will ask a person.</span>
           </label>
         )}
+
+        <p className={section}>Programs</p>
+        <ProgramsEditor value={programs} onChange={setPrograms} />
+
+        <p className={section}>Other conditions</p>
+        <ConditionsEditor value={conditions} onChange={setConditions} />
 
         <label className="text-[13px] font-semibold text-navy sm:col-span-2">
           Notes
@@ -679,6 +692,7 @@ export function LenderPoliciesPage() {
                             <span className="ml-1.5 rounded bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-violet-700" title={p.source}>OCR</span>
                           )}
                           {p.notes && <div className="mt-0.5 max-w-sm truncate text-[11px] text-muted" title={p.notes}>{p.notes}</div>}
+                          {(p.programs?.length ?? 0) > 0 && <div className="mt-0.5 max-w-sm truncate text-[11px] font-semibold text-navy" title={p.programs!.map(programLine).join("\n")}>{p.programs!.length} program{p.programs!.length === 1 ? "" : "s"}: {p.programs!.map((x) => x.name).join(", ")}</div>}
                         </td>
                         <td className="px-4 py-2.5">{p.minAmount || p.maxAmount ? `${formatAmount(p.minAmount)} – ${formatAmount(p.maxAmount)}` : "—"}</td>
                         <td className="px-4 py-2.5">{p.minRate || p.maxRate ? `${p.minRate ?? "?"}% – ${p.maxRate ?? "?"}%` : "—"}</td>

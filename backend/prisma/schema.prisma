@@ -1567,6 +1567,11 @@ model LenderPolicy {
   acceptedConstitutions    String[]
   gstRequired              Boolean  @default(false)
 
+  // The lender's named variants of this loan type, each with its own limits: [{ name, minAmount, maxAmount, ... }].
+  programs              Json?
+  // Rules that are not amounts or rates (rating, DSCR, guarantee, security, moratorium, end use ...): { key: value }.
+  conditions            Json?
+
   // Money rules. Each band is { upTo: number | null, value: number } in rupees / percent.
   foirBands             Json?
   ltvBands              Json?
