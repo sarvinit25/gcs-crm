@@ -1,5 +1,5 @@
 import { cleanSheet, type SheetData } from "../lender-policies/policy-sheet-schema";
-import { cleanConditions, cleanPrograms, mergeConditions, mergePrograms, type Conditions, type Program } from "../lender-policies/policy-extras";
+import { cleanConditions, cleanPrograms, commonConditions, conditionsText, mergeConditions, mergePrograms, type Conditions, type Program } from "../lender-policies/policy-extras";
 
 // What a flyer, poster or forwarded message says about a lender, as plain data. The AI only reads; everything it returns
 // passes through `normalizeExtraction` here, so a bad or invented value is dropped before a person ever sees it.
@@ -277,7 +277,7 @@ export type PolicyDraft = {
 /** A flyer's scheme as a program entry: its own figures, so they are not blurred into the loan type's range. */
 const programOf = (g: OfferTerms): Program | null =>
   g.scheme
-    ? cleanPrograms([{ name: g.scheme, minAmount: g.minAmount, maxAmount: g.maxAmount, minRate: g.minRate, maxRate: g.maxRate, minTenureMonths: g.minTenureMonths, maxTenureMonths: g.maxTenureMonths, ltv: g.ltv, minAge: g.minAge, maxAge: g.maxAge, who: g.who, documents: g.documents, conditions: g.notes, fee: g.processingFee }])[0] ?? null
+    ? cleanPrograms([{ name: g.scheme, minAmount: g.minAmount, maxAmount: g.maxAmount, minRate: g.minRate, maxRate: g.maxRate, minTenureMonths: g.minTenureMonths, maxTenureMonths: g.maxTenureMonths, ltv: g.ltv, minAge: g.minAge, maxAge: g.maxAge, who: g.who, documents: g.documents, conditions: [g.notes, conditionsText(g.conditions)].filter(Boolean).join("; ").slice(0, 500) || null, fee: g.processingFee }])[0] ?? null
     : null;
 
 /**
@@ -320,13 +320,18 @@ export function mergeOffers(offers: OfferTerms[]): { policies: PolicyDraft[]; sk
       .join(" | ")
       .slice(0, 1000);
     // Several schemes can disagree (one says "1 crore", another "up to 60 lakh"): a minimum above the maximum is dropped.
-    const amountLow = group.reduce<number | null>((a, g) => lo(a, g.minAmount), null);
+    const amountLowStated = group.reduce<number | null>((a, g) => lo(a, g.minAmount), null);
+    // A requirement is stated for the loan type only when EVERY scheme states it. If one scheme says nothing, its requirement is
+    // unknown, so a figure from the others would wrongly speak for it. Each scheme's own figure stays in its program entry.
+    const stated = (pick: (g: OfferTerms) => number | null) => group.every((g) => pick(g) !== null);
+    const whenAllState = <T extends number | null>(value: T, pick: (g: OfferTerms) => number | null): T | null => (stated(pick) ? value : null);
     // A scheme that says "from 10 Cr" or "5 Cr and above" has no upper limit. Another scheme's cap ("up to 5 Cr") must not
     // become the ceiling for the whole loan type, so the ceiling is left unrecorded; each program keeps its own figures.
     // (Only when the schemes agree: a minimum above another scheme's maximum is a contradiction, handled just below.)
     const cap = group.reduce<number | null>((a, g) => hi(a, g.maxAmount), null);
     const openEnded = group.some((g) => g.minAmount !== null && g.maxAmount === null);
-    const contradiction = amountLow !== null && cap !== null && amountLow > cap;
+    const contradiction = amountLowStated !== null && cap !== null && amountLowStated > cap;
+    const amountLow = contradiction ? null : whenAllState(amountLowStated, (g) => g.minAmount);
     const amountHigh = openEnded && !contradiction ? null : cap;
     return {
       productSlug,
@@ -347,14 +352,14 @@ export function mergeOffers(offers: OfferTerms[]): { policies: PolicyDraft[]; sk
       cities: [...new Set(group.flatMap((g) => g.cities))].slice(0, 40),
       notes: notes || null,
       schemes: group.length,
-      minAge: group.reduce<number | null>((a, g) => lo(a, g.minAge), null),
-      maxAge: group.reduce<number | null>((a, g) => hi(a, g.maxAge), null),
-      minAnnualTurnover: group.reduce<number | null>((a, g) => lo(a, g.minTurnover), null),
-      minBusinessVintageMonths: group.reduce<number | null>((a, g) => lo(a, g.minVintageMonths), null),
+      minAge: whenAllState(group.reduce<number | null>((a, g) => lo(a, g.minAge), null), (g) => g.minAge),
+      maxAge: whenAllState(group.reduce<number | null>((a, g) => hi(a, g.maxAge), null), (g) => g.maxAge),
+      minAnnualTurnover: whenAllState(group.reduce<number | null>((a, g) => lo(a, g.minTurnover), null), (g) => g.minTurnover),
+      minBusinessVintageMonths: whenAllState(group.reduce<number | null>((a, g) => lo(a, g.minVintageMonths), null), (g) => g.minVintageMonths),
       foirPct: group.reduce<number | null>((a, g) => hi(a, g.foirPct), null),
       programs: group.length >= 2 ? cleanPrograms(group.map(programOf).filter((p): p is Program => p !== null)) : [],
-      // When schemes disagree the first one printed wins; each scheme's own rules are kept in its program entry.
-      conditions: group.reduce<Conditions>((acc, g) => ({ ...g.conditions, ...acc }), {}),
+      // Only what every scheme says, the same way, is said of the loan type; each scheme's own rules are kept in its program entry.
+      conditions: commonConditions(group.map((g) => g.conditions)),
     };
   });
   return { policies, skipped, empty };

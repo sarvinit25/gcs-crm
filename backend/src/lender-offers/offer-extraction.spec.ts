@@ -266,7 +266,10 @@ describe("programs and conditions read off a flyer", () => {
     expect(policy!.programs[1]).toMatchObject({ maxAmount: 10000000, minAge: 25, maxAge: 70, who: "2 years regular ITR" });
     expect(policy!.programs[2]).toMatchObject({ ltv: "Up to 50%", maxTenureMonths: 180 });
     // the loan type's own range still widens across them
-    expect(policy).toMatchObject({ maxAmount: 10000000, maxTenureMonths: 240, minAge: 25, maxAge: 70, minBusinessVintageMonths: 36 });
+    expect(policy).toMatchObject({ maxAmount: 10000000, maxTenureMonths: 240 });
+    // only the ITR program states ages and vintage, so they are NOT said of the whole Home Loan; they stay on that program
+    expect(policy).toMatchObject({ minAge: null, maxAge: null, minBusinessVintageMonths: null });
+    expect(policy!.programs[1]).toMatchObject({ minAge: 25, maxAge: 70 });
   });
 
   it("makes no program list for a loan type with one scheme", () => {
@@ -340,7 +343,8 @@ describe("a loan type with one open-ended scheme and one capped scheme", () => {
   it("does not turn the capped scheme's limit into a ceiling for all of them", () => {
     const [policy] = mergeOffers(x.offers).policies;
     expect(policy!.maxAmount).toBeNull();
-    expect(policy!.minAmount).toBe(50_000_000);
+    // the unsecured scheme states no minimum, so none is claimed for the loan type
+    expect(policy!.minAmount).toBeNull();
     // each program still holds its own figures
     expect(policy!.programs.find((p) => p.name === "Unsecured PID")!.maxAmount).toBe(50_000_000);
     expect(policy!.programs.find((p) => p.name === "Sales Invoice Discounting")!.minAmount).toBe(100_000_000);
@@ -351,5 +355,52 @@ describe("a loan type with one open-ended scheme and one capped scheme", () => {
       { scheme: "B", productSlug: "bill-discounting", maxAmount: 10000000 },
     ] }, SL);
     expect(mergeOffers(y.offers).policies[0]!.maxAmount).toBe(10_000_000);
+  });
+});
+
+
+describe("a requirement is said of the whole loan type only when every scheme states it", () => {
+  const SL = new Set(["bill-discounting", "home-loan"]);
+  const read = (offers: object[]) => mergeOffers(normalizeExtraction({ kind: "LENDER_OFFER", offers }, SL).offers).policies[0]!;
+
+  it("keeps a turnover, age or vintage that only one scheme states on that scheme", () => {
+    const p = read([
+      { scheme: "Secured", productSlug: "bill-discounting", minAmount: 50000000, minTurnover: "50 Cr", minVintageMonths: 36, minAge: 25 },
+      { scheme: "Unsecured", productSlug: "bill-discounting", maxAmount: 50000000 },
+    ]);
+    expect(p.minAnnualTurnover).toBeNull();
+    expect(p.minBusinessVintageMonths).toBeNull();
+    expect(p.minAge).toBeNull();
+    expect(p.programs.map((x) => x.name)).toEqual(["Secured", "Unsecured"]);
+  });
+
+  it("states it, as the lowest, when every scheme does", () => {
+    const p = read([
+      { scheme: "A", productSlug: "bill-discounting", minAmount: 100000000, minTurnover: "50 Cr", minAge: 25 },
+      { scheme: "B", productSlug: "bill-discounting", minAmount: 50000000, minTurnover: "75 Cr", minAge: 28 },
+    ]);
+    expect(p).toMatchObject({ minAmount: 50_000_000, minAnnualTurnover: 500_000_000, minAge: 25 });
+  });
+
+  it("says a condition of the loan type only when all schemes say it the same way, and keeps the rest on each program", () => {
+    const p = read([
+      { scheme: "Sales", productSlug: "bill-discounting", minAmount: 100000000, conditions: { sectors: "Sales only to Reliance group" } },
+      { scheme: "Unsecured", productSlug: "bill-discounting", maxAmount: 50000000, conditions: { rating: "BBB- and above", chargeOnAssets: "Not required", guarantee: "PG/CG required" } },
+      { scheme: "Secured", productSlug: "bill-discounting", minAmount: 50000000, conditions: { chargeOnAssets: "Required", guarantee: "PG/CG required" } },
+    ]);
+    // the rating belongs to one product, and the charge on assets differs: neither may be said of all three
+    expect(p.conditions).toEqual({});
+    const unsecured = p.programs.find((x) => x.name === "Unsecured")!;
+    expect(unsecured.conditions).toContain("Minimum credit rating of the borrower: BBB- and above");
+    expect(unsecured.conditions).toContain("Charge on current assets: Not required");
+    expect(p.programs.find((x) => x.name === "Secured")!.conditions).toContain("Charge on current assets: Required");
+  });
+
+  it("still states a condition every scheme agrees on", () => {
+    const p = read([
+      { scheme: "A", productSlug: "bill-discounting", minAmount: 100, conditions: { guarantee: "PG/CG required" } },
+      { scheme: "B", productSlug: "bill-discounting", minAmount: 200, conditions: { guarantee: "PG/CG required", rating: "A" } },
+    ]);
+    expect(p.conditions).toEqual({ guarantee: "PG/CG required" });
   });
 });

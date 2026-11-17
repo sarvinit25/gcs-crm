@@ -146,6 +146,21 @@ export function mergeConditions(existing: Conditions, incoming: Conditions): { c
   return { conditions, filled };
 }
 
+/** Conditions as one readable line ("Minimum credit rating of the borrower: BBB- and above; Guarantee: ..."), for a program's own notes. */
+export function conditionsText(c: Conditions): string {
+  return CONDITION_FIELDS.filter((f) => c[f.key] !== undefined)
+    .map((f) => `${f.label}: ${c[f.key]}`)
+    .join("; ");
+}
+
+/** The conditions every scheme states, with the same value: the only ones that can fairly be said of the whole loan type. */
+export function commonConditions(all: Conditions[]): Conditions {
+  if (all.length < 2) return all[0] ? { ...all[0] } : {};
+  const out: Conditions = {};
+  for (const [k, v] of Object.entries(all[0]!)) if (all.every((c) => c[k] === v)) out[k] = v;
+  return out;
+}
+
 /** A program's headline in one line, for lists. */
 export function programLine(p: Program): string {
   const rupee = (n: number) => (n >= 1e7 ? `₹${+(n / 1e7).toFixed(2)} Cr` : n >= 1e5 ? `₹${+(n / 1e5).toFixed(2)} L` : `₹${n.toLocaleString("en-IN")}`);
