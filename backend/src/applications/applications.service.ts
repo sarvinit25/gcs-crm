@@ -254,6 +254,16 @@ export class ApplicationsService {
       ip,
     });
 
+    // A file moved to Sanctioned from the menu still needs a sanction record, or it never shows on the Sanctions page.
+    // The amount, rate and tenure are filled in from the Sanction panel afterwards.
+    if (dto.status === ApplicationStatus.SANCTIONED && !before.sanction) {
+      await this.prisma.sanction.upsert({
+        where: { applicationId: id },
+        create: { applicationId: id, financialStatus: "APPROVED", financialAt: new Date() },
+        update: {},
+      });
+    }
+
     if (dto.status && dto.status !== before.status) {
       this.events.emit(dto.status === ApplicationStatus.REJECTED ? "FILE_REJECTED" : "FILE_STAGE_CHANGED", { applicationId: id });
     }
