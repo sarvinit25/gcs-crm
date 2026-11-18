@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, FileText, Loader2, MessageCircle, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, Mail, MessageCircle, Pencil, Plus, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { SmartMatchPanel } from "../components/smart-match-panel";
@@ -32,6 +32,7 @@ import { LoanProfilePanel } from "../components/loan-profile-panel";
 import { LeadDocuments } from "../components/lead-documents";
 import { LeadCamCard } from "../components/lead-cam-card";
 import { todayIST } from "../lib/date";
+import { formLink } from "../lib/customer-form";
 import { DatePicker } from "../components/date-picker";
 import { ArchiveButton, ArchivedBadge } from "../components/archive-button";
 
@@ -290,6 +291,38 @@ export function LeadDetailPage() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const [askingReason, setAskingReason] = useState(false);
+  // One click: start the application from what the lead already holds, make the customer's form link, and email it to them.
+  const raise = useMutation({
+    mutationFn: async () => {
+      const lead = query.data;
+      if (!lead) throw new Error("The lead has not loaded yet");
+      const phone = (lead.phone ?? "").replace(/\D/g, "").slice(-10);
+      const app = await api<{ id: string }>("/applications", {
+        method: "POST",
+        body: JSON.stringify({
+          leadId,
+          loanProductId: lead.loanProduct?.id,
+          requestedAmount: Number(lead.amount),
+          applicants: [{ isPrimary: true, name: lead.name, phone, email: lead.email ?? undefined, city: lead.city ?? undefined }],
+        }),
+      });
+      try {
+        const link = await api<{ token?: string | null }>(`/applications/${app.id}/customer-form`, { method: "POST" });
+        if (!link.token) throw new Error("The link could not be made");
+        await api(`/applications/${app.id}/customer-form/email`, { method: "POST", body: JSON.stringify({ url: formLink(window.location.origin, link.token) }) });
+      } catch (err) {
+        // The application exists; open it so the link can be sent again from there.
+        invalidate();
+        void navigate({ to: "/applications/$applicationId", params: { applicationId: app.id } });
+        throw new Error(`The application was raised, but the email did not go: ${(err as Error).message} Send it again from the application.`);
+      }
+      return app;
+    },
+    onSuccess: (app) => {
+      invalidate();
+      void navigate({ to: "/applications/$applicationId", params: { applicationId: app.id } });
+    },
+  });
   const setStatus = useMutation({
     mutationFn: (body: { status: LeadStatus; lostReason?: string }) =>
       api(`/leads/${leadId}`, { method: "PATCH", body: JSON.stringify(body) }),
@@ -334,6 +367,7 @@ export function LeadDetailPage() {
   }
 
   const lead = query.data;
+  const raiseMissing = lead ? [!lead.loanProduct?.id && "the loan type", !lead.amount && "the loan amount", !lead.email && "an email address", !/[6-9]\d{9}$/.test((lead.phone ?? "").replace(/\D/g, "")) && "a valid mobile number"].filter(Boolean) as string[] : [];
 
   return (
     <>
@@ -670,9 +704,21 @@ export function LeadDetailPage() {
                   No application raised from this lead yet. Raising one carries the enquiry over as
                   the primary applicant.
                 </p>
-                <button onClick={() => setShowWizard(true)} className="btn-primary mt-4">
-                  <FileText className="h-4 w-4" /> Raise Application
-                </button>
+                {raiseMissing.length > 0 && (
+                  <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-[12.5px] text-amber-900">
+                    To email the form, this lead first needs: {raiseMissing.join(", ")}. Add it above, or fill the application in yourself.
+                  </p>
+                )}
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <button onClick={() => raise.mutate()} disabled={raise.isPending || raiseMissing.length > 0} className="btn-primary">
+                    {raise.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />} Raise Application and email the form
+                  </button>
+                  <button onClick={() => setShowWizard(true)} className="text-[12.5px] font-semibold text-muted underline hover:text-navy">
+                    Fill it in myself instead
+                  </button>
+                </div>
+                {raise.isError && <p className="mt-2 text-[12.5px] font-medium text-red-700">{(raise.error as Error).message}</p>}
+                <p className="mt-2 text-[12px] text-muted">The customer gets an email with a link to fill in their own details. Nothing is typed here first.</p>
               </>
             )}
 
