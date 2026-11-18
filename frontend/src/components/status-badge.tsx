@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { PRIORITY_META } from "../lib/priority";
 import {
   APPLICATION_STATUS_LABEL,
   LEAD_SEGMENT_HINT,
@@ -33,23 +34,18 @@ export function LeadStatusBadge({ status }: { status: LeadStatus }) {
   );
 }
 
-export const SEGMENT_TONE: Record<LeadSegment, string> = {
-  HOT: "bg-red-50 text-red-700 ring-1 ring-red-200",
-  WARM: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-  FOLLOW_UP: "bg-sky-50 text-sky-700 ring-1 ring-sky-200",
-  COLD: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
-};
-
+/** A lead's priority as a coloured pill with its symbol (flame, sun, phone, snowflake), the same look everywhere. */
 export function SegmentBadge({ segment, note }: { segment: LeadSegment | null; note?: string | null }) {
   if (!segment) return <span className="text-[12px] text-muted">—</span>;
+  const look = PRIORITY_META[segment];
+  const Icon = look.icon;
   return (
     <span
       title={note ?? LEAD_SEGMENT_HINT[segment]}
-      className={clsx(
-        "inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap",
-        SEGMENT_TONE[segment],
-      )}
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap"
+      style={{ backgroundColor: look.tint, color: look.text, boxShadow: `inset 0 0 0 1px ${look.ring}` }}
     >
+      <Icon className="h-3 w-3" aria-hidden />
       {LEAD_SEGMENT_LABEL[segment]}
     </span>
   );

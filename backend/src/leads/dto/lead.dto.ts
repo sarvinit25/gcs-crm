@@ -204,6 +204,15 @@ export class ListLeadsQuery {
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) pageSize?: number;
 }
 
+/** The Archived leads section: converted or lost leads moved out of the working list. */
+export class ListArchivedLeadsQuery {
+  /** Only converted, or only lost; both when empty. */
+  @IsOptional() @IsIn(["CONVERTED", "LOST"]) status?: "CONVERTED" | "LOST";
+  @IsOptional() @IsString() @Length(1, 120) search?: string;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) pageSize?: number;
+}
+
 export class CreateFollowUpDto {
   @IsString()
   @Length(1, 2000)

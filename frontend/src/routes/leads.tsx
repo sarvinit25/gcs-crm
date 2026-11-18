@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, ChevronDown, Loader2, Plus, Search, Trash2, Upload } from "lucide-react";
+import { AlertCircle, Archive, ChevronDown, Loader2, Plus, Search, Trash2, Upload } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
 import { ExportMenu } from "../components/export-menu";
@@ -12,7 +12,6 @@ import {
   EMPLOYMENT_TYPE_LABEL,
   LEAD_SEGMENTS,
   LEAD_SEGMENT_HINT,
-  LEAD_SEGMENT_LABEL,
   LEAD_STATUSES,
   LEAD_STATUS_LABEL,
   type EmploymentType,
@@ -21,12 +20,15 @@ import {
   type Paginated,
 } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
-import { LeadStatusBadge, SEGMENT_TONE, SegmentBadge } from "../components/status-badge";
+import { LeadStatusBadge, SegmentBadge } from "../components/status-badge";
+import { PRIORITY_META } from "../lib/priority";
 import { ChannelInput, useChannels } from "../components/channel-field";
 import { Modal } from "../components/modal";
 import { DeleteConfirm } from "../components/delete-confirm";
+import { ArchivedLeads } from "../components/archived-leads";
 import { LeadImportModal } from "../components/lead-import-modal";
 import { DEFAULT_LEAD_SORT, LEAD_SORTS, sortParam, type LeadSortValue } from "../lib/lead-sort";
+import type { LeadLinkFilter } from "../lib/lead-filters";
 import { PeriodSelect } from "../components/period-select";
 import { DatePicker } from "../components/date-picker";
 import { TableSkeleton } from "../components/skeleton";
@@ -328,22 +330,25 @@ function ago(iso: string) {
   return days <= 0 ? "today" : days === 1 ? "yesterday" : days < 30 ? `${days} days ago` : formatDate(iso);
 }
 
-export function LeadsPage() {
+function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
   const queryClient = useQueryClient();
   const [toDelete, setToDelete] = useState<Lead | null>(null);
   const { user } = useAuth();
   // Advisors only ever see their own leads, so choosing an owner would mean nothing to them.
   const canFilterOwner = user?.role !== "ADVISOR";
+  // A link (from the Dashboard's charts and tiles, say) can open this page already filtered.
+  const link = useSearch({ strict: false }) as LeadLinkFilter;
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [segment, setSegment] = useState<LeadSegment | "">("");
+  const [status, setStatus] = useState(link.status ?? "");
+  const [segment, setSegment] = useState<LeadSegment | "">((link.segment as LeadSegment | undefined) ?? "");
+  const [source, setSource] = useState(link.source ?? "");
   const [chatbot, setChatbot] = useState(false);
-  const [dueOnly, setDueOnly] = useState(false);
+  const [dueOnly, setDueOnly] = useState(link.dueOnly === true);
   const [loanProductId, setLoanProductId] = useState("");
   const [channel, setChannel] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
-  const [ownerId, setOwnerId] = useState("");
+  const [ownerId, setOwnerId] = useState(link.owner ?? "");
   const [partnerId, setPartnerId] = useState("");
   const channels = useChannels();
   const questions = useQuery({
@@ -356,7 +361,6 @@ export function LeadsPage() {
   const [page, setPage] = useState(1);
   const [showNewLead, setShowNewLead] = useState(false);
   const [showImport, setShowImport] = useState(false);
-  const [archived, setArchived] = useState(false);
 
   const products = useQuery({
     queryKey: ["loan-products"],
@@ -383,15 +387,15 @@ export function LeadsPage() {
   });
 
   const query = useQuery({
-    queryKey: ["leads", { search, status, segment, chatbot, dueOnly, loanProductId, channel, question, answer, ownerId, partnerId, timeRange, sort, page, archived }],
+    queryKey: ["leads", { search, status, segment, source, chatbot, dueOnly, loanProductId, channel, question, answer, ownerId, partnerId, timeRange, sort, page }],
     queryFn: () =>
       api<Paginated<Lead>>(
-        `/leads${qs({ search, status, segment, chatbot: chatbot ? "true" : undefined, loanProductId, channel, question: question || undefined, answer: question ? answer || undefined : undefined, assignedOfficerId: ownerId, sourcingPartnerId: partnerId, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, sort: sortParam(sort), page })}`,
+        `/leads${qs({ search, status, segment, source: source || undefined, chatbot: chatbot ? "true" : undefined, loanProductId, channel, question: question || undefined, answer: question ? answer || undefined : undefined, assignedOfficerId: ownerId, sourcingPartnerId: partnerId, range: timeRange, dueOnly: dueOnly ? "true" : undefined, sort: sortParam(sort), page })}`,
       ),
   });
 
   // The export follows the list: same search, status, segment, loan type, source, owner, partner, period and archive view.
-  const exportFilters = { q: search, status, segment, loanProductId, channel, ownerId, partnerId, range: timeRange, archived: archived ? "true" : "false" };
+  const exportFilters = { q: search, status, segment, loanProductId, channel, ownerId, partnerId, range: timeRange, archived: "false" };
 
   const reset = (fn: () => void) => {
     fn();
@@ -407,6 +411,9 @@ export function LeadsPage() {
           <div className="flex items-center gap-2">
             <button onClick={() => setShowImport(true)} className="btn-ghost">
               <Upload className="h-4 w-4" /> Import
+            </button>
+            <button onClick={onOpenArchive} className="btn-ghost" title="Converted and lost leads that were moved out of this list">
+              <Archive className="h-4 w-4" /> Archived
             </button>
             <ExportMenu type="leads" filters={exportFilters} />
             <button onClick={() => setShowNewLead(true)} className="btn-primary">
@@ -477,15 +484,14 @@ export function LeadsPage() {
               key={k}
               onClick={() => reset(() => setSegment(segment === k ? "" : k))}
               title={LEAD_SEGMENT_HINT[k]}
+              style={{ borderTopColor: PRIORITY_META[k].color }}
               className={clsx(
-                "rounded-xl border px-4 py-3 text-left transition-colors",
+                "rounded-xl border border-t-[3px] px-4 py-3 text-left transition-colors",
                 segment === k ? "border-navy ring-2 ring-navy/20" : "border-line hover:border-navy/30",
                 "bg-white",
               )}
             >
-              <span className={clsx("inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold", SEGMENT_TONE[k])}>
-                {LEAD_SEGMENT_LABEL[k]}
-              </span>
+              <SegmentBadge segment={k} />
               <p className="mt-1 text-xl font-bold text-navy">{counts.data ? counts.data[k] : "—"}</p>
               <p className="text-[11px] leading-snug text-muted">{LEAD_SEGMENT_HINT[k]}</p>
             </button>
@@ -507,6 +513,17 @@ export function LeadsPage() {
           </button>
         </div>
 
+        {source && (
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-[13px]">
+            <span className="text-muted">Showing leads from</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-navy px-3 py-1 font-semibold text-white">
+              {source}
+              <button onClick={() => reset(() => setSource(""))} className="rounded-full px-1 text-white/70 hover:text-white" aria-label="Show every source">
+                ×
+              </button>
+            </span>
+          </div>
+        )}
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted/60" />
@@ -620,10 +637,6 @@ export function LeadsPage() {
             Follow-up due
           </button>
 
-          <label className="flex items-center gap-2 text-[13px] text-muted">
-            <input type="checkbox" checked={archived} onChange={(e) => reset(() => setArchived(e.target.checked))} />
-            Archived
-          </label>
         </div>
 
         <div className="card overflow-x-auto">
@@ -794,4 +807,11 @@ export function LeadsPage() {
       </div>
     </>
   );
+}
+
+/** The Leads page: the working list, and a separate Archived section for converted and lost leads moved out of it. */
+export function LeadsPage() {
+  const link = useSearch({ strict: false }) as LeadLinkFilter;
+  const [view, setView] = useState<"active" | "archived">(link.view === "archived" ? "archived" : "active");
+  return view === "archived" ? <ArchivedLeads onBack={() => setView("active")} /> : <ActiveLeadsPage onOpenArchive={() => setView("archived")} />;
 }

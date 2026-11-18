@@ -17,19 +17,32 @@ export function sourceLabel(source: string | null | undefined): string {
   return words.map((w, i) => WORDS[w] ?? (i === 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w)).join(" ");
 }
 
-export type CountRow = { key: string; label: string; count: number };
+export type CountRow = {
+  key: string;
+  label: string;
+  count: number;
+  /** The source as stored (its most common spelling), to open the leads from it. None for "Unknown" and "Other". */
+  value?: string;
+};
 
 /** Sources by number of leads, biggest first. Spellings that differ only by case or dashes are one source; the tail is "Other". */
 export function topSources(rows: { source: string | null; count: number }[], max = 8): CountRow[] {
-  const merged = new Map<string, CountRow>();
+  const merged = new Map<string, CountRow & { spellings: Map<string, number> }>();
   for (const r of rows) {
     const label = sourceLabel(r.source);
     const key = label.toLowerCase();
-    const row = merged.get(key) ?? { key, label, count: 0 };
+    const row = merged.get(key) ?? { key, label, count: 0, spellings: new Map<string, number>() };
     row.count += r.count;
+    const raw = r.source?.trim();
+    if (raw) row.spellings.set(raw, (row.spellings.get(raw) ?? 0) + r.count);
     merged.set(key, row);
   }
-  const sorted = [...merged.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+  const sorted: CountRow[] = [...merged.values()]
+    .map(({ spellings, ...row }) => {
+      const top = [...spellings].sort((a, b) => b[1] - a[1])[0];
+      return top ? { ...row, value: top[0] } : row;
+    })
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
   if (sorted.length <= max) return sorted;
   const head = sorted.slice(0, max - 1);
   const other = sorted.slice(max - 1).reduce((n, r) => n + r.count, 0);

@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { ApplicationStatus, AuditAction, LeadStatus, Prisma, Role } from "@prisma/client";
+import { ApplicationStatus, AuditAction, LeadStatus, Prisma, Role, SanctionStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { AuditService, diff } from "../audit/audit.service";
@@ -25,6 +25,24 @@ const LIST_INCLUDE = {
 } satisfies Prisma.ApplicationInclude;
 
 type WithSeq = { seq: number; createdAt: Date };
+
+/**
+ * Makes sure a file that is now Sanctioned has a sanction record, approved on the financial side, so it shows in the
+ * Sanctions section. A record already there is kept as it is (amounts, letter number, notes); only a decision still
+ * Pending or Rejected is set to Approved, because someone has just said the file is sanctioned.
+ */
+export async function markSanctioned(tx: Pick<Prisma.TransactionClient, "sanction">, applicationId: string) {
+  const now = new Date();
+  const existing = await tx.sanction.findUnique({ where: { applicationId }, select: { financialStatus: true, sanctionDate: true } });
+  if (!existing) {
+    await tx.sanction.create({ data: { applicationId, financialStatus: SanctionStatus.APPROVED, financialAt: now, sanctionDate: now } });
+  } else if (existing.financialStatus !== SanctionStatus.APPROVED) {
+    await tx.sanction.update({
+      where: { applicationId },
+      data: { financialStatus: SanctionStatus.APPROVED, financialAt: now, ...(existing.sanctionDate ? {} : { sanctionDate: now }) },
+    });
+  }
+}
 
 @Injectable()
 export class ApplicationsService {
@@ -219,10 +237,12 @@ export class ApplicationsService {
 
   async update(id: string, dto: UpdateApplicationDto, user: AuthUser, ip?: string) {
     const before = await this.findOne(id, user);
-    const app = await this.prisma.application.update({
-      where: { id },
-      data: { ...dto },
-      include: LIST_INCLUDE,
+    const app = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.application.update({ where: { id }, data: { ...dto }, include: LIST_INCLUDE });
+      // A file marked Sanctioned belongs in the Sanctions section. That section lists sanction records, and only saving
+      // a sanction used to make one, so a file moved to Sanctioned by status alone never appeared there.
+      if (dto.status === ApplicationStatus.SANCTIONED) await markSanctioned(tx, id);
+      return updated;
     });
 
     await this.audit.recordUpdate({

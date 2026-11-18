@@ -53,6 +53,7 @@ function Stat({
   icon: Icon,
   tint,
   className = "",
+  to,
 }: {
   label: string;
   value: React.ReactNode;
@@ -61,9 +62,11 @@ function Stat({
   icon: LucideIcon;
   tint: string;
   className?: string;
+  /** Makes the whole tile a link to the page this figure comes from. */
+  to?: string;
 }) {
-  return (
-    <div className={`card lift flex items-center gap-3.5 p-4 ${className}`} title={title}>
+  const inner = (
+    <>
       <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${tint}`}>
         <Icon className="h-5 w-5" />
       </span>
@@ -71,6 +74,16 @@ function Stat({
         <p className="truncate text-[10px] font-bold tracking-normal text-muted uppercase sm:text-[11px] sm:tracking-wide">{label}</p>
         <p className="mt-0.5 truncate text-xl font-bold text-navy">{value}</p>
       </div>
+    </>
+  );
+  const cls = `card lift flex items-center gap-3.5 p-4 ${className}`;
+  return to ? (
+    <Link to={to as never} className={cls} title={title ?? `Open ${label}`}>
+      {inner}
+    </Link>
+  ) : (
+    <div className={cls} title={title}>
+      {inner}
     </div>
   );
 }
@@ -140,15 +153,22 @@ function LeadPipeline({ total, byStatus }: { total: number; byStatus: Record<str
 
           <ul className="mt-4 grid flex-1 auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3">
             {stages.map((s) => (
-              <li key={s.key} className="flex flex-col justify-center rounded-xl border border-line bg-bg-light/50 p-3">
-                <p className="flex items-center gap-2 text-[12px] font-semibold text-muted">
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
-                  {s.label}
-                </p>
-                <p className="mt-1.5 flex items-baseline gap-2">
-                  <span className="text-xl font-bold text-navy">{s.count}</span>
-                  <span className="text-[12px] text-muted">{s.percent}%</span>
-                </p>
+              <li key={s.key} className="flex">
+                <Link
+                  to="/leads"
+                  search={{ status: s.key } as never}
+                  title={`Open the ${s.label.toLowerCase()} leads`}
+                  className="lift flex w-full flex-col justify-center rounded-xl border border-line bg-bg-light/50 p-3 hover:border-navy/30"
+                >
+                  <p className="flex items-center gap-2 text-[12px] font-semibold text-muted">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
+                    {s.label}
+                  </p>
+                  <p className="mt-1.5 flex items-baseline gap-2">
+                    <span className="text-xl font-bold text-navy">{s.count}</span>
+                    <span className="text-[12px] text-muted">{s.percent}%</span>
+                  </p>
+                </Link>
               </li>
             ))}
           </ul>
@@ -223,18 +243,6 @@ export function DashboardPage() {
       />
 
       <div className="px-6 py-5">
-        {user?.role === "ADMIN" && user.twoFactorEnabled === false && (
-          <Link
-            to={"/account" as never}
-            className="lift mb-5 flex items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900"
-          >
-            <ShieldCheck className="h-5 w-5 shrink-0" />
-            <span>
-              <strong>Protect your account.</strong> You can see everything in the firm — turn on two-step login so a stolen
-              password isn't enough.
-            </span>
-          </Link>
-        )}
         <div className="mb-5">
           <PunchCard />
         </div>
@@ -249,24 +257,28 @@ export function DashboardPage() {
             >
               <Stat
                 label="Leads"
+                to="/leads"
                 value={<CountUp value={query.data.leads.total} />}
                 icon={Users}
                 tint="bg-sky-50 text-sky-600"
               />
               <Stat
                 label="Applications"
+                to="/applications"
                 value={<CountUp value={query.data.applications} />}
                 icon={FileText}
                 tint="bg-violet-50 text-violet-600"
               />
               <Stat
                 label="Sanctions"
+                to="/sanctions"
                 value={<CountUp value={query.data.sanctions} />}
                 icon={ShieldCheck}
                 tint="bg-amber-50 text-amber-600"
               />
               <Stat
                 label="Disbursed"
+                to="/disbursements"
                 value={<CountUp value={Number(query.data.disbursements.amount)} format={formatCompact} />}
                 title={formatAmount(query.data.disbursements.amount)}
                 icon={Banknote}
@@ -275,6 +287,7 @@ export function DashboardPage() {
               {query.data.commissionEarned !== null && (
               <Stat
                   label="Commission"
+                  to="/commissions"
                   value={<CountUp value={Number(query.data.commissionEarned)} format={formatCompact} />}
                   title={formatAmount(query.data.commissionEarned)}
                   className="col-span-2 lg:col-span-1"
@@ -320,8 +333,15 @@ export function DashboardPage() {
               </section>
 
               <section className="card p-5">
-                <h2 className="text-sm font-bold text-navy">Loan distribution</h2>
-                <p className="text-[12px] text-muted">Applications by loan type</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-sm font-bold text-navy">Loan distribution</h2>
+                    <p className="text-[12px] text-muted">Applications by loan type</p>
+                  </div>
+                  <Link to={"/applications" as never} className="shrink-0 text-[12px] font-semibold text-gold-dark hover:text-navy">
+                    View applications →
+                  </Link>
+                </div>
                 {query.data.loanDistribution.length === 0 ? (
                   <p className="mt-6 text-center text-[13px] text-muted">No applications in this period.</p>
                 ) : (

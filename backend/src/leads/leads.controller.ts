@@ -12,6 +12,7 @@ import {
   BulkLeadsDto,
   CreateFollowUpDto,
   CreateLeadDto,
+  ListArchivedLeadsQuery,
   ListLeadsQuery,
   PublicLeadDto,
   LeadFollowUpDto,
@@ -95,6 +96,12 @@ export class LeadsController {
   }
 
   /** Form questions that have answers, for the "Form answer" filter on the leads list. */
+  /** Every archived lead with its details, a summary, and who archived it. Must stay above ":id". */
+  @Get("archive")
+  archivedLeads(@Query() query: ListArchivedLeadsQuery, @CurrentUser() user: AuthUser) {
+    return this.leads.archiveView(query, user);
+  }
+
   @Get("answer-questions")
   answerQuestions(@CurrentUser() user: AuthUser) {
     return this.leads.answerQuestions(user);

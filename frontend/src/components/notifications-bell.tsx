@@ -68,7 +68,7 @@ export function NotificationsBell() {
       </button>
 
       {open && (
-        <div className="card pop-enter absolute top-full right-0 z-40 mt-2 w-[22rem] max-w-[calc(100vw-2rem)] shadow-xl">
+        <div className="card pop-enter absolute top-full right-0 z-40 mt-2 w-[24rem] max-w-[calc(100vw-2rem)] overflow-hidden text-left whitespace-normal shadow-xl">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <p className="text-[13px] font-bold text-navy">Reminders</p>
             {count > 0 && <p className="text-[12px] text-muted">{data?.urgent ? `${data.urgent} urgent · ` : ""}{count} total</p>}
@@ -82,7 +82,7 @@ export function NotificationsBell() {
               <p className="text-[12px] text-muted">No follow-ups due, nothing stalled.</p>
             </div>
           ) : (
-            <ul className="max-h-[60vh] overflow-y-auto p-1.5">
+            <ul className="max-h-[75vh] overflow-x-hidden overflow-y-auto p-1.5">
               {data.items.map((n) => (
                 <li key={n.id}>
                   <button
@@ -93,9 +93,9 @@ export function NotificationsBell() {
                     className="flex w-full items-start gap-3 rounded-md px-2.5 py-2.5 text-left transition hover:bg-bg-light"
                   >
                     <span className={clsx("mt-1.5 h-2 w-2 shrink-0 rounded-full", DOT[n.severity])} />
-                    <span className="min-w-0">
-                      <span className="block text-[13px] font-semibold text-navy">{n.title}</span>
-                      <span className="block text-[12px] text-muted">{n.detail}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13px] leading-snug font-semibold break-words text-navy">{n.title}</span>
+                      <span className="mt-0.5 block text-[12px] leading-snug break-words text-muted">{n.detail}</span>
                     </span>
                   </button>
                 </li>
