@@ -53,8 +53,8 @@ export function TodayList({ title, limit = 6 }: { title: string; limit?: number 
               >
                 <span className={clsx("mt-1.5 h-2 w-2 shrink-0 rounded-full", DOT[n.severity])} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px] font-semibold text-navy">{n.title}</span>
-                  <span className="block truncate text-[12px] text-muted">{n.detail}</span>
+                  <span className="line-clamp-2 block text-[13px] leading-snug font-semibold text-navy">{n.title}</span>
+                  <span className="mt-0.5 line-clamp-2 block text-[12px] leading-snug text-muted">{n.detail}</span>
                 </span>
                 <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted/40 transition group-hover:translate-x-0.5 group-hover:text-navy" />
               </button>

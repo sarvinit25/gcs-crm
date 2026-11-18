@@ -50,3 +50,30 @@ export function formName(form: string): string {
   const words = form.replace(/[-_]+/g, " ").trim();
   return words ? words.charAt(0).toUpperCase() + words.slice(1) : "Unknown form";
 }
+
+/**
+ * The lead pipeline reads as progress: blue at the start, green once converted, red when lost. One colour per stage is
+ * used by the bar, the legend dot and the tile, so they always match. The labels carry the meaning too.
+ */
+export const STAGE_META = [
+  { key: "NEW", label: "New", color: "#0ea5e9" },
+  { key: "CONTACTED", label: "Contacted", color: "#6366f1" },
+  { key: "QUALIFIED", label: "Qualified", color: "#8b5cf6" },
+  { key: "DOCS_PENDING", label: "Docs pending", color: "#f59e0b" },
+  { key: "CONVERTED", label: "Converted", color: "#10b981" },
+  { key: "LOST", label: "Lost", color: "#f87171" },
+] as const;
+
+export type StageShare = { key: string; label: string; color: string; count: number; percent: number; width: number };
+
+/**
+ * Each stage's count and its share of all leads. `percent` is whole-number for display; `width` is what the stacked
+ * bar draws: the exact share, but never less than 2% for a stage that has any leads, so a small stage stays visible.
+ */
+export function stageShares(byStatus: Record<string, number | undefined>, total: number): StageShare[] {
+  return STAGE_META.map((s) => {
+    const count = byStatus[s.key] ?? 0;
+    const exact = total > 0 ? (count / total) * 100 : 0;
+    return { ...s, count, percent: Math.round(exact), width: count > 0 ? Math.max(exact, 2) : 0 };
+  });
+}
