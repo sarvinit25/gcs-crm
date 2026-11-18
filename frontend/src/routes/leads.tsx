@@ -26,6 +26,7 @@ import { ChannelInput, useChannels } from "../components/channel-field";
 import { Modal } from "../components/modal";
 import { DeleteConfirm } from "../components/delete-confirm";
 import { LeadImportModal } from "../components/lead-import-modal";
+import { DEFAULT_LEAD_SORT, LEAD_SORTS, sortParam, type LeadSortValue } from "../lib/lead-sort";
 import { PeriodSelect } from "../components/period-select";
 import { DatePicker } from "../components/date-picker";
 import { TableSkeleton } from "../components/skeleton";
@@ -351,6 +352,7 @@ export function LeadsPage() {
     staleTime: 60_000,
   });
   const [timeRange, setTimeRange] = useState("all");
+  const [sort, setSort] = useState<LeadSortValue>(DEFAULT_LEAD_SORT);
   const [page, setPage] = useState(1);
   const [showNewLead, setShowNewLead] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -381,10 +383,10 @@ export function LeadsPage() {
   });
 
   const query = useQuery({
-    queryKey: ["leads", { search, status, segment, chatbot, dueOnly, loanProductId, channel, question, answer, ownerId, partnerId, timeRange, page, archived }],
+    queryKey: ["leads", { search, status, segment, chatbot, dueOnly, loanProductId, channel, question, answer, ownerId, partnerId, timeRange, sort, page, archived }],
     queryFn: () =>
       api<Paginated<Lead>>(
-        `/leads${qs({ search, status, segment, chatbot: chatbot ? "true" : undefined, loanProductId, channel, question: question || undefined, answer: question ? answer || undefined : undefined, assignedOfficerId: ownerId, sourcingPartnerId: partnerId, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, page })}`,
+        `/leads${qs({ search, status, segment, chatbot: chatbot ? "true" : undefined, loanProductId, channel, question: question || undefined, answer: question ? answer || undefined : undefined, assignedOfficerId: ownerId, sourcingPartnerId: partnerId, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, sort: sortParam(sort), page })}`,
       ),
   });
 
@@ -602,6 +604,13 @@ export function LeadsPage() {
           </select>
 
           <PeriodSelect value={timeRange} onChange={(v) => reset(() => setTimeRange(v))} className="field w-56" />
+          <select value={sort} onChange={(e) => reset(() => setSort(e.target.value as LeadSortValue))} className="field w-56" aria-label="Sort by" title="Sort the list">
+            {LEAD_SORTS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
 
           <button
             onClick={() => reset(() => setDueOnly(!dueOnly))}

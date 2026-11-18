@@ -19,6 +19,7 @@ import {
 } from "class-validator";
 import { DocumentsStatus, EmploymentType, LeadSegment, LeadStatus } from "@prisma/client";
 import { DateInput } from "../../common/date-input.decorator";
+import { LEAD_SORTS, type LeadSort } from "../lead-sort";
 import { normalisePhone } from "../../common/phone.util";
 
 const PHONE = /^[6-9]\d{9}$/;
@@ -196,6 +197,8 @@ export class ListLeadsQuery {
   @IsOptional() @IsString() range?: string;
   @IsOptional() @IsString() from?: string;
   @IsOptional() @IsString() to?: string;
+  /** The order of the list: priority (default), priority_cold, number_new, number_old, followup or amount. */
+  @IsOptional() @IsIn(LEAD_SORTS) sort?: LeadSort;
 
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) pageSize?: number;

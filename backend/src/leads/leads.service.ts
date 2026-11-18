@@ -1,3 +1,4 @@
+import { leadOrderBy } from "./lead-sort";
 import { channelFromUtm, cleanLandingPage, cleanTag } from "../marketing/channel.util";
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, type OnApplicationBootstrap } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -473,13 +474,8 @@ export class LeadsService implements OnApplicationBootstrap {
       this.prisma.lead.findMany({
         where,
         include: { ...LIST_INCLUDE, ...LAST_CONTACT },
-        // Priority order: Hot, Warm, Follow-up, Cold (the enum's own order). Inside a segment the
-        // soonest follow-up, or the one most overdue, comes first, then the newest enquiry.
-        orderBy: [
-          { segment: { sort: "asc", nulls: "last" } },
-          { nextFollowUpAt: { sort: "asc", nulls: "last" } },
-          { createdAt: "desc" },
-        ],
+        // Priority order unless another is asked for (see lead-sort.ts).
+        orderBy: leadOrderBy(query.sort),
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
