@@ -243,18 +243,6 @@ export function DashboardPage() {
       />
 
       <div className="px-6 py-5">
-        {user?.role === "ADMIN" && user.twoFactorEnabled === false && (
-          <Link
-            to={"/account" as never}
-            className="lift mb-5 flex items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900"
-          >
-            <ShieldCheck className="h-5 w-5 shrink-0" />
-            <span>
-              <strong>Protect your account.</strong> You can see everything in the firm — turn on two-step login so a stolen
-              password isn't enough.
-            </span>
-          </Link>
-        )}
         <div className="mb-5">
           <PunchCard />
         </div>

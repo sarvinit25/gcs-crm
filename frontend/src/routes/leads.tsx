@@ -12,7 +12,6 @@ import {
   EMPLOYMENT_TYPE_LABEL,
   LEAD_SEGMENTS,
   LEAD_SEGMENT_HINT,
-  LEAD_SEGMENT_LABEL,
   LEAD_STATUSES,
   LEAD_STATUS_LABEL,
   type EmploymentType,
@@ -21,7 +20,8 @@ import {
   type Paginated,
 } from "../lib/types";
 import { PageHeader } from "../components/app-shell";
-import { LeadStatusBadge, SEGMENT_TONE, SegmentBadge } from "../components/status-badge";
+import { LeadStatusBadge, SegmentBadge } from "../components/status-badge";
+import { PRIORITY_META } from "../lib/priority";
 import { ChannelInput, useChannels } from "../components/channel-field";
 import { Modal } from "../components/modal";
 import { DeleteConfirm } from "../components/delete-confirm";
@@ -484,15 +484,14 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
               key={k}
               onClick={() => reset(() => setSegment(segment === k ? "" : k))}
               title={LEAD_SEGMENT_HINT[k]}
+              style={{ borderTopColor: PRIORITY_META[k].color }}
               className={clsx(
-                "rounded-xl border px-4 py-3 text-left transition-colors",
+                "rounded-xl border border-t-[3px] px-4 py-3 text-left transition-colors",
                 segment === k ? "border-navy ring-2 ring-navy/20" : "border-line hover:border-navy/30",
                 "bg-white",
               )}
             >
-              <span className={clsx("inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold", SEGMENT_TONE[k])}>
-                {LEAD_SEGMENT_LABEL[k]}
-              </span>
+              <SegmentBadge segment={k} />
               <p className="mt-1 text-xl font-bold text-navy">{counts.data ? counts.data[k] : "—"}</p>
               <p className="text-[11px] leading-snug text-muted">{LEAD_SEGMENT_HINT[k]}</p>
             </button>

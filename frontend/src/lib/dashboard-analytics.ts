@@ -1,4 +1,5 @@
 import { SERIES } from "./charts";
+import { PRIORITY_META } from "./priority";
 
 /** What the Dashboard's "Module analytics" endpoint returns (see backend/src/dashboard/dashboard-analytics.ts). */
 export type Analytics = {
@@ -25,10 +26,10 @@ export type Analytics = {
  * so the meaning never depends on telling the colours apart.
  */
 export const PRIORITY_ROWS = [
-  { key: "HOT", label: "Hot", color: SERIES[7] },
-  { key: "WARM", label: "Warm", color: SERIES[1] },
-  { key: "FOLLOW_UP", label: "Follow-up", color: SERIES[3] },
-  { key: "COLD", label: "Cold", color: SERIES[0] },
+  { key: "HOT", label: "Hot", color: PRIORITY_META.HOT.color },
+  { key: "WARM", label: "Warm", color: PRIORITY_META.WARM.color },
+  { key: "FOLLOW_UP", label: "Follow-up", color: PRIORITY_META.FOLLOW_UP.color },
+  { key: "COLD", label: "Cold", color: PRIORITY_META.COLD.color },
 ] as const;
 
 /** Open leads with a priority, in Hot-to-Cold order, for a bar chart. */
