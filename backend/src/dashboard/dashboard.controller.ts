@@ -17,6 +17,17 @@ export class DashboardController {
     return this.dashboard.summary(user, { range, from, to });
   }
 
+  /** Per-module analytics for the Dashboard's tabs: leads, team and channels. */
+  @Get("analytics")
+  analytics(
+    @CurrentUser() user: AuthUser,
+    @Query("range") range?: string,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+  ) {
+    return this.dashboard.analytics(user, { range, from, to });
+  }
+
   /** The period picker's options; financial-year names move with the calendar. */
   @Get("periods")
   periods() {
