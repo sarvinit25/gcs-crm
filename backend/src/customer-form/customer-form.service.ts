@@ -533,6 +533,24 @@ export class CustomerFormService {
         where: { id: app.id },
         data: { requestedAmount: form.requestedAmount!, tenureMonths: form.tenureMonths ?? null, purpose: form.purpose || null },
       });
+      // The lead page is where staff look first, so what the customer typed goes there too (a blank never erases what staff hold).
+      if (app.leadId) {
+        await tx.lead.update({
+          where: { id: app.leadId },
+          data: {
+            ...(form.email ? { email: form.email } : {}),
+            ...(form.city ? { city: form.city } : {}),
+            dateOfBirth: new Date(`${form.dateOfBirth}T00:00:00.000Z`),
+            pan: form.pan,
+            address: form.address,
+            pincode: form.pincode,
+            employmentType: form.employmentType,
+            ...(form.employerName ? { employerName: form.employerName } : {}),
+            monthlyIncome: form.monthlyIncome,
+            amount: form.requestedAmount!,
+          },
+        });
+      }
       await tx.reference.deleteMany({ where: { applicationId: app.id } });
       await tx.reference.createMany({
         data: completeReferences(form.references).map((r) => ({
