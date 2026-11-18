@@ -20,6 +20,11 @@ describe("opening the Leads page from a link", () => {
     expect(parseLeadSearch({ dueOnly: false })).toEqual({});
   });
 
+  it("can open the archived section, and ignores any other view", () => {
+    expect(parseLeadSearch({ view: "archived" })).toEqual({ view: "archived" });
+    expect(parseLeadSearch({ view: "trash" })).toEqual({});
+  });
+
   it("builds a link to the Leads page", () => {
     expect(leadsLink({ segment: "HOT" })).toEqual({ to: "/leads", search: { segment: "HOT" } });
     expect(leadsLink()).toEqual({ to: "/leads", search: {} });

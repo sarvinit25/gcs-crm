@@ -1,4 +1,5 @@
 import { leadOrderBy } from "./lead-sort";
+import { archivedByMap, averageDays, daysInPipeline, lostReasons } from "./archive-view";
 import { channelFromUtm, cleanLandingPage, cleanTag } from "../marketing/channel.util";
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, type OnApplicationBootstrap } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -19,6 +20,7 @@ import {
   BulkLeadsDto,
   CreateFollowUpDto,
   CreateLeadDto,
+  ListArchivedLeadsQuery,
   ListLeadsQuery,
   LeadFollowUpDto,
   PublicLeadDto,
@@ -485,6 +487,75 @@ export class LeadsService implements OnApplicationBootstrap {
 
     return {
       items: items.map(({ followUps, _count, ...lead }) => ({ ...lead, lastContactAt: followUps[0]?.createdAt ?? null, contactCount: _count.followUps })),
+      total,
+      page,
+      pageSize,
+    };
+  }
+
+  /**
+   * The Archived leads section: every converted or lost lead that was archived, newest archive first, with the details
+   * staff look for (entry and archive dates, days in the pipeline, who archived it, the lost reason, the application it
+   * became), and a summary over all of them, not just the page shown. Advisors see only their own.
+   */
+  async archiveView(query: ListArchivedLeadsQuery, user: AuthUser) {
+    const page = query.page ?? 1;
+    const pageSize = Math.min(query.pageSize ?? 25, 100);
+    const scope: Prisma.LeadWhereInput = { ...this.scopeFor(user), archivedAt: { not: null } };
+    const where: Prisma.LeadWhereInput = {
+      ...scope,
+      ...(query.status && { status: query.status }),
+      ...(query.search && {
+        OR: [
+          { name: { contains: query.search, mode: "insensitive" } },
+          { phone: { contains: query.search } },
+          { email: { contains: query.search, mode: "insensitive" } },
+        ],
+      }),
+    };
+
+    const [items, total, everything] = await Promise.all([
+      this.prisma.lead.findMany({
+        where,
+        include: { ...LIST_INCLUDE, ...LAST_CONTACT, application: { select: { id: true, seq: true, createdAt: true } } },
+        orderBy: [{ archivedAt: "desc" }, { leadNo: "desc" }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.prisma.lead.count({ where }),
+      this.prisma.lead.findMany({ where: scope, select: { status: true, amount: true, createdAt: true, archivedAt: true, lostReason: true } }),
+    ]);
+
+    const audits = items.length
+      ? await this.prisma.auditLog.findMany({
+          where: { entity: "Lead", entityId: { in: items.map((l) => l.id) }, changes: { path: ["archived", "to"], equals: true } },
+          select: { entityId: true, actorName: true, createdAt: true },
+        })
+      : [];
+    const by = archivedByMap(audits);
+
+    const converted = everything.filter((l) => l.status === LeadStatus.CONVERTED);
+    const lost = everything.filter((l) => l.status === LeadStatus.LOST);
+    const sum = (rows: { amount: Prisma.Decimal | null }[]) => rows.reduce((n, r) => n + (r.amount ? r.amount.toNumber() : 0), 0);
+
+    return {
+      summary: {
+        total: everything.length,
+        converted: converted.length,
+        lost: lost.length,
+        convertedAmount: sum(converted),
+        lostAmount: sum(lost),
+        averageDays: averageDays(everything),
+        lostReasons: lostReasons(lost),
+      },
+      items: items.map(({ followUps, _count, application, ...lead }) => ({
+        ...lead,
+        lastContactAt: followUps[0]?.createdAt ?? null,
+        contactCount: _count.followUps,
+        daysInPipeline: lead.archivedAt ? daysInPipeline(lead.createdAt, lead.archivedAt) : null,
+        archivedByName: by.get(lead.id) ?? null,
+        application: application && { id: application.id, applicationNo: this.settings.applicationNo(application.seq, application.createdAt) },
+      })),
       total,
       page,
       pageSize,

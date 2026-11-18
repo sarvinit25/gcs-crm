@@ -13,6 +13,8 @@ export type LeadLinkFilter = {
   dueOnly?: boolean;
   /** A staff member's id, or "none" for leads nobody owns. */
   owner?: string;
+  /** "archived" opens the Archived leads section instead of the working list. */
+  view?: "archived";
 };
 
 const SEGMENTS = ["HOT", "WARM", "FOLLOW_UP", "COLD"];
@@ -27,6 +29,7 @@ export function parseLeadSearch(s: Record<string, unknown>): LeadLinkFilter {
   if (s.dueOnly === "true" || s.dueOnly === true) out.dueOnly = true;
   const owner = word(s.owner, 40);
   if (owner) out.owner = owner;
+  if (s.view === "archived") out.view = "archived";
   return out;
 }
 
