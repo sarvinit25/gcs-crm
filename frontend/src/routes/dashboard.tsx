@@ -19,6 +19,7 @@ import { HubCharts } from "./reports-hub";
 import type { Hub } from "../lib/reports";
 import { CountUp } from "../components/count-up";
 import { TodayList } from "../components/today-list";
+import { DashboardAnalytics } from "../components/dashboard-analytics";
 import { Link } from "@tanstack/react-router";
 import { DashboardSkeleton } from "../components/skeleton";
 import { PeriodSelect } from "../components/period-select";
@@ -105,6 +106,16 @@ function exportSummary(d: Summary) {
     ...d.loanDistribution.map((l) => [l.name, l.count, l.amount]),
   ]);
 }
+
+/** The lead pipeline reads as progress: blue at the start, green once converted, red when lost. The labels carry the meaning too. */
+const STATUS_BAR: Record<string, string> = {
+  NEW: "bg-sky-500",
+  CONTACTED: "bg-indigo-500",
+  QUALIFIED: "bg-violet-500",
+  DOCS_PENDING: "bg-amber-500",
+  CONVERTED: "bg-emerald-500",
+  LOST: "bg-red-400",
+};
 
 function Meter({ label, pct, hint }: { label: string; pct: number; hint?: string }) {
   return (
@@ -236,7 +247,7 @@ export function DashboardPage() {
                         </span>
                         <div className="h-2 flex-1 overflow-hidden rounded-full bg-bg-light">
                           <div
-                            className="bar-grow h-full rounded-full bg-navy transition-all"
+                            className={`bar-grow h-full rounded-full transition-all ${STATUS_BAR[status] ?? "bg-navy"}`}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
@@ -311,6 +322,8 @@ export function DashboardPage() {
                 )}
               </section>
             </div>
+
+            <DashboardAnalytics range={range} staff={user?.role !== "ADVISOR"} />
 
             {overview.data && (
               <section className="mt-6">
