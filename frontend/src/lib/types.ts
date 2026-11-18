@@ -213,6 +213,10 @@ export type Applicant = {
   email: string | null;
   pan: string | null;
   city: string | null;
+  dateOfBirth?: string | null;
+  aadhaarLast4?: string | null;
+  address?: string | null;
+  pincode?: string | null;
   employmentType: EmploymentType | null;
   constitution: ApplicantConstitution | null;
   isNRI: boolean;

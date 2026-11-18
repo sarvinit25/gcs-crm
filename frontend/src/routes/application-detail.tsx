@@ -365,8 +365,25 @@ export function ApplicationDetailPage() {
                         )}
                       </div>
                     </div>
+                    <dl className="mt-3 grid gap-x-6 gap-y-2 text-[12.5px] sm:grid-cols-2">
+                      {([
+                        ["Mobile", a!.phone],
+                        ["Email", a!.email],
+                        ["Date of birth", a!.dateOfBirth ? formatDate(a!.dateOfBirth) : null],
+                        ["PAN", a!.pan],
+                        ["Aadhaar (last 4)", a!.aadhaarLast4],
+                        ["Address", [a!.address, a!.city, a!.pincode].filter(Boolean).join(", ")],
+                        ["Work", a!.employmentType ? EMPLOYMENT_TYPE_LABEL[a!.employmentType] : null],
+                        ["Employer / business", a!.employerName],
+                        ["Monthly income", a!.monthlyIncome ? formatAmount(a!.monthlyIncome) : null],
+                      ] as [string, string | null | undefined][]).map(([k, v]) => (
+                        <div key={k} className="flex gap-2">
+                          <dt className="w-32 shrink-0 text-muted">{k}</dt>
+                          <dd className={v ? "font-medium text-navy" : "text-muted"}>{v || "Not given yet"}</dd>
+                        </div>
+                      ))}
+                    </dl>
                     <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[12px] text-muted">
-                      {a!.monthlyIncome && <span>Income {formatAmount(a!.monthlyIncome)}/mo</span>}
                       {a!.cibilScore && <span>CIBIL {a!.cibilScore}</span>}
                       <Link to="/cibil" search={{ q: app.applicationNo } as never} className="font-semibold text-navy underline-offset-2 hover:underline">
                         {a!.cibilScore ? "CIBIL details" : "Check CIBIL"}
