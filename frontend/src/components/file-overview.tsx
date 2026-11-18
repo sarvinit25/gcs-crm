@@ -1,8 +1,8 @@
-import { Check, MessageCircle, Phone } from "lucide-react";
+import { ArrowRight, Check, MessageCircle, Phone } from "lucide-react";
 import clsx from "clsx";
-import { formatAmount, formatCompact, initials } from "../lib/format";
+import { formatAmount, formatCompact, formatDate, humanize, initials } from "../lib/format";
 import { whatsappLink } from "../lib/customer-form";
-import { APPLICATION_STATUS_LABEL, type ApplicationDetail, type ApplicationStatus } from "../lib/types";
+import { APPLICATION_STATUS_LABEL, CONSTITUTION_LABEL, EMPLOYMENT_TYPE_LABEL, type ApplicationDetail, type ApplicationStatus } from "../lib/types";
 import { ApplicationStatusBadge } from "./status-badge";
 
 /** The usual road of a file. Rejected and Withdrawn end it early, so they are shown as a banner, not a stage. */
@@ -100,6 +100,95 @@ export function FileSummary({ app }: { app: ApplicationDetail }) {
         {stat("Disbursed", app.summary.disbursedAmount, "Amount paid out so far")}
         {app.summary.commissionAmount !== null && stat("Commission", app.summary.commissionAmount, "What the lender pays us")}
       </div>
+    </section>
+  );
+}
+
+const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+/** The one thing to do next on this file, as a single clear button. Moving to another stage is still possible from the menu at the top. */
+export function NextStepBar({ app, busy, onMove }: { app: ApplicationDetail; busy: boolean; onMove: (status: ApplicationStatus, label: string) => void }) {
+  const steps: Partial<Record<ApplicationStatus, { text: string; label: string; act: () => void }>> = {
+    DRAFT: { text: "The customer has been sent the form, or you have filled it in. When the details are complete, submit the application.", label: "Submit application", act: () => onMove("SUBMITTED", "Submit this application?") },
+    SUBMITTED: { text: "Next: log the file in at the lender, and record the login date, the bank's application ID and the banker.", label: "Record bank login", act: () => go("login") },
+    BANK_LOGIN: { text: "The file is with the lender. When they start assessing it, move it to Under review.", label: "Mark under review", act: () => onMove("UNDER_REVIEW", "Move this file to Under review?") },
+    UNDER_REVIEW: { text: "Waiting for the lender's decision. Record the sanction when it comes.", label: "Record sanction", act: () => go("sanction") },
+    SANCTIONED: { text: "Sanctioned. Record each payout as the lender releases money.", label: "Record disbursement", act: () => go("disbursement") },
+  };
+  const step = steps[app.status];
+  if (!step) return null;
+  return (
+    <section className="card flex flex-wrap items-center justify-between gap-3 border-gold-dark/30 bg-gold-pale/40 p-4">
+      <div>
+        <p className="text-[11px] font-bold tracking-wide text-gold-dark uppercase">Next step</p>
+        <p className="mt-0.5 max-w-2xl text-[13px] text-navy">{step.text}</p>
+      </div>
+      <button type="button" className="btn-primary" disabled={busy} onClick={step.act}>
+        {step.label} <ArrowRight className="h-4 w-4" />
+      </button>
+    </section>
+  );
+}
+
+function Item({ label, children }: { label: string; children: React.ReactNode }) {
+  const empty = children === null || children === undefined || children === "";
+  return (
+    <div className="min-w-0">
+      <p className="text-[11px] font-bold tracking-wide text-muted uppercase">{label}</p>
+      <p className={clsx("mt-0.5 text-[13px] break-words", empty ? "text-muted" : "font-medium text-navy")}>{empty ? "—" : children}</p>
+    </div>
+  );
+}
+
+/** Everything the file holds about the customer, the loan, the business and the bank login, in one place at the top. */
+export function FileAtAGlance({ app }: { app: ApplicationDetail }) {
+  const a = app.applicants.find((x) => x.isPrimary) ?? app.applicants[0];
+  const block = (title: string, children: React.ReactNode) => (
+    <div>
+      <h3 className="mb-2 border-b border-line pb-1 text-[12px] font-bold tracking-wide text-gold-dark uppercase">{title}</h3>
+      <div className="grid grid-cols-2 gap-x-5 gap-y-3 sm:grid-cols-3 lg:grid-cols-4">{children}</div>
+    </div>
+  );
+  return (
+    <section className="card space-y-5 p-5" aria-label="File details">
+      {block("Applicant", <>
+        <Item label="Name">{a?.name}</Item>
+        <Item label="Mobile">{a?.phone}</Item>
+        <Item label="Email">{a?.email}</Item>
+        <Item label="Date of birth">{a?.dateOfBirth ? formatDate(a.dateOfBirth) : null}</Item>
+        <Item label="PAN">{a?.pan}</Item>
+        <Item label="Aadhaar (last 4)">{a?.aadhaarLast4}</Item>
+        <Item label="CIBIL score">{a?.cibilScore ? String(a.cibilScore) : "Not recorded"}</Item>
+        <Item label="Work">{a?.employmentType ? EMPLOYMENT_TYPE_LABEL[a.employmentType] : null}</Item>
+        <Item label="Monthly income">{a?.monthlyIncome ? formatAmount(a.monthlyIncome) : null}</Item>
+        <Item label="Address">{[a?.address, a?.city, a?.pincode].filter(Boolean).join(", ")}</Item>
+      </>)}
+      {block("Loan", <>
+        <Item label="File number">{app.applicationNo}</Item>
+        <Item label="Loan type">{app.loanProduct?.name}</Item>
+        <Item label="Amount">{formatAmount(app.requestedAmount)}</Item>
+        <Item label="Tenure">{app.tenureMonths ? `${app.tenureMonths} months` : null}</Item>
+        <Item label="Purpose">{app.purpose}</Item>
+        <Item label="Lender">{app.lender?.name}</Item>
+      </>)}
+      {(a?.constitution || a?.employerName) && block("Business", <>
+        <Item label="Entity type">{a?.constitution ? CONSTITUTION_LABEL[a.constitution] : null}</Item>
+        <Item label="Employer / business">{a?.employerName}</Item>
+      </>)}
+      {block("Internal", <>
+        <Item label="Sourced by">{app.lead ? humanize(app.lead.source) : "Direct"}</Item>
+        <Item label="Assigned to">{app.owner?.name}</Item>
+        <Item label="Created on">{formatDate(app.createdAt)}</Item>
+        <Item label="Stage">{APPLICATION_STATUS_LABEL[app.status]}</Item>
+      </>)}
+      {block("Bank login", <>
+        <Item label="Status">{app.bankLoginAt ? "Login done" : "Not logged in"}</Item>
+        <Item label="Login date">{app.bankLoginAt ? formatDate(app.bankLoginAt) : null}</Item>
+        <Item label="Bank application ID">{app.bankReferenceNo}</Item>
+        <Item label="Login fees">{app.loginFees ? formatAmount(app.loginFees) : null}</Item>
+        <Item label="Banker">{[app.bankerName, app.bankerMobile].filter(Boolean).join(" · ")}</Item>
+        <Item label="Channel">{app.dsaChannel}</Item>
+      </>)}
     </section>
   );
 }

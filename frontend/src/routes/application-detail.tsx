@@ -29,7 +29,7 @@ import { MoneyTrailStrip } from "../components/money-trail";
 import { ChecklistPanel } from "../components/checklist-panel";
 import { ArchiveButton } from "../components/archive-button";
 import { CreditEvaluationPanel } from "../components/credit-evaluation-panel";
-import { FileSummary, SectionNav, StageTracker, emi } from "../components/file-overview";
+import { FileAtAGlance, FileSummary, NextStepBar, SectionNav, StageTracker, emi } from "../components/file-overview";
 
 const EMPLOYMENT_TYPES = Object.keys(EMPLOYMENT_TYPE_LABEL) as EmploymentType[];
 const CONSTITUTIONS = Object.keys(CONSTITUTION_LABEL) as ApplicantConstitution[];
@@ -181,12 +181,16 @@ export function ApplicationDetailPage() {
 
         <div className="mb-5 space-y-4">
           <FileSummary app={app} />
+          <NextStepBar app={app} busy={patch.isPending} onMove={(status, question) => { if (window.confirm(question)) patch.mutate({ status }); }} />
+          <FileAtAGlance app={app} />
           <StageTracker status={app.status} />
           <SectionNav />
         </div>
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
           <div className="space-y-5">
+            <div id="customer-form"><CustomerFormPanel applicationId={applicationId} /></div>
+
             <section id="loan" className="card p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-sm font-bold text-navy">Loan</h2>
@@ -237,8 +241,6 @@ export function ApplicationDetailPage() {
             <CreditEvaluationPanel applicationId={applicationId} />
 
             <div id="login"><LoginStatusPanel applicationId={applicationId} /></div>
-
-            <div id="customer-form"><CustomerFormPanel applicationId={applicationId} /></div>
 
             <div id="portal"><BorrowerPortalPanel applicationId={applicationId} /></div>
 
