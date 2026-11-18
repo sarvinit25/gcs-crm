@@ -29,7 +29,7 @@ import {
   Users,
   UserSquare,
 } from "lucide-react";
-import { BellRing, Headphones, MessageCircle, Phone, Plug, ScrollText } from "lucide-react";
+import { BellRing, Gavel, Headphones, MessageCircle, Phone, Plug, ScrollText } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
@@ -101,6 +101,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { to: "/reports", label: "Reports", icon: BarChart3 },
       { to: "/audit", label: "Audit log", icon: History, roles: ["ADMIN"] },
       { to: "/website", label: "Website", icon: Globe, roles: ["ADMIN", "MANAGER"], badge: "testimonials" },
+      { to: "/ca-legal", label: "CA & Legal", icon: Gavel, roles: ["ADMIN", "MANAGER"] },
       { to: "/settings", label: "Settings", icon: Settings, roles: ["ADMIN"] },
     ],
   },

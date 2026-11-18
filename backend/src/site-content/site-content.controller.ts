@@ -12,6 +12,7 @@ export const SITE_CONTENT_KEYS = [
   "products",
   "caseStudies",
   "services",
+  "caLegal",
   "siteInfo",
   "pageText",
   "bankRates",
@@ -45,6 +46,21 @@ export const SITE_CONTENT_KEYS = [
   "servicePageText",
   "siteText",
 ] as const;
+/** The copy built into the website, as shipped with the CRM (prisma/site-content.defaults.json). */
+function readDefaults(): Record<string, unknown> {
+  const file = [
+    join(process.cwd(), "prisma", "site-content.defaults.json"),
+    join(__dirname, "..", "..", "prisma", "site-content.defaults.json"),
+  ].find((f) => existsSync(f));
+  return file ? JSON.parse(readFileSync(file, "utf8")) : {};
+}
+
+/** The addresses of the CA & legal services built into the website. A service added in the CRM may not reuse one. */
+function builtInServiceSlugs(): string[] {
+  const services = readDefaults().services;
+  return services && typeof services === "object" ? Object.keys(services) : [];
+}
+
 /** Wording edited per language: pageText:hi, pageText:mr. */
 const LANGUAGE_KEY = /^pageText:(hi|mr)$/;
 const MAX_BYTES = 400_000;
@@ -118,6 +134,62 @@ function assertLists(value: unknown) {
       for (const [field, text] of Object.entries(item as Record<string, unknown>)) {
         if (field.length > 40 || typeof text !== "string" || text.length > 2000) throw bad("List fields must be short plain text");
       }
+    }
+  }
+}
+
+
+const CA_LEGAL_DIVISIONS = ["CA Services", "Legal Services"];
+const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/**
+ * caLegal is { custom?, hidden?, blurbs? }: services staff added to the CA & Legal pages, the addresses of services
+ * to hide, and the line under each category in the website's header menu. All plain text. A service added here may
+ * not take an address a built-in service already has, so it can never replace one.
+ */
+export function assertCaLegal(value: unknown, builtIn: string[]) {
+  const bad = (m: string) => new BadRequestException(m);
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw bad("CA & Legal must be a set of settings");
+  const v = value as Record<string, unknown>;
+  for (const k of Object.keys(v)) if (!["custom", "hidden", "blurbs"].includes(k)) throw bad(`Unknown CA & Legal setting "${k}"`);
+
+  const text = (x: unknown, min: number, max: number) => typeof x === "string" && x.trim().length >= min && x.length <= max;
+  const lines = (x: unknown, what: string) => {
+    if (x === undefined) return;
+    if (!Array.isArray(x) || x.length > 30) throw bad(`${what} can have up to 30 lines`);
+    for (const line of x) if (!text(line, 1, 400)) throw bad(`Every line of ${what.toLowerCase()} must be short text`);
+  };
+
+  if (v.custom !== undefined) {
+    if (!Array.isArray(v.custom) || v.custom.length > 60) throw bad("You can add up to 60 services");
+    const seen = new Set<string>();
+    for (const raw of v.custom as Record<string, unknown>[]) {
+      const c = raw && typeof raw === "object" ? raw : {};
+      const slug = typeof c.slug === "string" ? c.slug : "";
+      if (!SLUG.test(slug) || slug.length > 80) throw bad("A service address may only use lowercase letters, numbers and dashes");
+      if (seen.has(slug)) throw bad(`Two services share the address "${slug}"`);
+      if (builtIn.includes(slug)) throw bad(`"${slug}" is already a built-in service address`);
+      seen.add(slug);
+      if (!CA_LEGAL_DIVISIONS.includes(c.division as string)) throw bad("A service must belong to CA Services or Legal Services");
+      if (!text(c.category, 2, 60)) throw bad("Every service needs a category");
+      if (!text(c.title, 2, 120)) throw bad("Every service needs a title");
+      if (!text(c.summary, 1, 1500)) throw bad("Every service needs a short description");
+      if (c.whoNeedsIt !== undefined && !text(c.whoNeedsIt, 0, 1500)) throw bad("\"Who needs it\" is too long");
+      lines(c.process, "Steps");
+      lines(c.documents, "Documents");
+      if (c.icon !== undefined && !(typeof c.icon === "string" && /^[a-z]{2,20}$/.test(c.icon))) throw bad("Unknown icon");
+    }
+  }
+  if (v.hidden !== undefined) {
+    if (!Array.isArray(v.hidden) || v.hidden.length > 300 || v.hidden.some((h) => typeof h !== "string" || !SLUG.test(h) || h.length > 80)) {
+      throw bad("Hidden services must be a list of service addresses");
+    }
+  }
+  if (v.blurbs !== undefined) {
+    const b = v.blurbs;
+    if (!b || typeof b !== "object" || Array.isArray(b) || Object.keys(b).length > 60) throw bad("Menu lines must be set per category");
+    for (const [cat, line] of Object.entries(b)) {
+      if (!text(cat, 1, 60) || !text(line, 0, 120)) throw bad("A menu line must be short plain text (up to 120 characters)");
     }
   }
 }
@@ -211,6 +283,7 @@ function validate(key: string, value: unknown) {
   if (key === "customPages") assertPages(value);
   if (key === "testimonials") assertTestimonials(value);
   if (key === "lists") assertLists(value);
+  if (key === "caLegal") assertCaLegal(value, builtInServiceSlugs());
   if (key === "homeText" || key === "aboutText" || key === "contactText" || key === "servicesText" || key === "cibilText" || key === "whyusText" ||
     key === "calegalText" || key === "partnerText" || key === "trackText" ||
     key === "builderText" ||
@@ -258,11 +331,7 @@ export class SiteContentAdminController {
   @Get("defaults")
   @Roles(Role.ADMIN)
   defaults() {
-    const file = [
-      join(process.cwd(), "prisma", "site-content.defaults.json"),
-      join(__dirname, "..", "..", "prisma", "site-content.defaults.json"),
-    ].find((f) => existsSync(f));
-    return file ? JSON.parse(readFileSync(file, "utf8")) : {};
+    return readDefaults();
   }
 
   /** Recent saves of one section, newest first. */
