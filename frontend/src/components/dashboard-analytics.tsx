@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Flame, Globe, Headphones, MessageCircle, Phone, Scale, TrendingUp, UserX, Users, UsersRound, type LucideIcon } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
 import { formatAmount, formatCompact } from "../lib/format";
 import { SERIES } from "../lib/charts";
-import { formName, openLeads, priorityBars, type Analytics } from "../lib/dashboard-analytics";
+import { formName, openLeads, prioritySlices, sourceSlices, type Analytics } from "../lib/dashboard-analytics";
+import { leadsLink } from "../lib/lead-filters";
 import { formatDuration, type TelephonyStats } from "../lib/telephony";
-import { ChartCard, HBarChart, LineChart } from "./charts";
+import { ChartCard, DonutChart, HBarChart, LineChart } from "./charts";
 
 type TabId = "leads" | "team" | "channels";
 
@@ -26,20 +27,44 @@ const TONE = {
 } as const;
 type Tone = keyof typeof TONE;
 
-function MiniStat({ icon: Icon, label, value, hint, tone }: { icon: LucideIcon; label: string; value: React.ReactNode; hint?: string; tone: Tone }) {
-  return (
-    <div className={clsx("card border-t-[3px] p-4", TONE[tone].edge)}>
+function MiniStat({
+  icon: Icon,
+  label,
+  value,
+  hint,
+  tone,
+  link,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: React.ReactNode;
+  hint?: string;
+  tone: Tone;
+  /** Makes the whole tile a link, e.g. to the Leads page with a filter. */
+  link?: { to: string; search?: object };
+}) {
+  const inner = (
+    <>
       <div className="flex items-center gap-3">
         <span className={clsx("grid h-10 w-10 shrink-0 place-items-center rounded-xl", TONE[tone].tile)}>
           <Icon className="h-5 w-5" />
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="truncate text-[11px] font-bold tracking-wide text-muted uppercase">{label}</p>
           <p className="text-xl font-bold text-navy">{value}</p>
         </div>
+        {link && <ArrowRight className="h-4 w-4 shrink-0 text-muted/50" aria-hidden />}
       </div>
       {hint && <p className="mt-2 text-[12px] text-muted">{hint}</p>}
-    </div>
+    </>
+  );
+  const cls = clsx("card block border-t-[3px] p-4", TONE[tone].edge);
+  return link ? (
+    <Link to={link.to as never} search={link.search as never} className={clsx(cls, "lift")} title={`Open: ${label}`}>
+      {inner}
+    </Link>
+  ) : (
+    <div className={cls}>{inner}</div>
   );
 }
 
@@ -85,29 +110,61 @@ function ChannelCard({
 }
 
 function LeadsTab({ data, staff }: { data: Analytics["leads"]; staff: boolean }) {
+  const navigate = useNavigate();
+  const open = (filter: Parameters<typeof leadsLink>[0]) => void navigate(leadsLink(filter) as never);
   const total = openLeads(data.priority);
+  const sourceTotal = data.sources.reduce((n, s) => n + s.count, 0);
   const trendMonths = data.trend.map((t) => t.month);
   const noTrend = data.trend.every((t) => t.leads === 0);
   return (
     <div className="space-y-4">
       <div className={clsx("grid grid-cols-2 gap-3", staff ? "lg:grid-cols-4" : "lg:grid-cols-3")}>
-        <MiniStat icon={Users} label="Open leads" value={total} tone="sky" hint="Not yet converted or lost" />
-        <MiniStat icon={Flame} label="Hot now" value={data.priority.HOT} tone="red" hint={total ? `${Math.round((data.priority.HOT / total) * 100)}% of open leads` : "No open leads"} />
+        <MiniStat icon={Users} label="Open leads" value={total} tone="sky" hint="Not yet converted or lost" link={leadsLink()} />
+        <MiniStat
+          icon={Flame}
+          label="Hot now"
+          value={data.priority.HOT}
+          tone="red"
+          hint={total ? `${Math.round((data.priority.HOT / total) * 100)}% of open leads` : "No open leads"}
+          link={leadsLink({ segment: "HOT" })}
+        />
         <MiniStat
           icon={TrendingUp}
           label="Follow-ups overdue"
           value={data.overdueFollowUps}
           tone={data.overdueFollowUps ? "amber" : "emerald"}
           hint={data.overdueFollowUps ? "Call these first" : "All caught up"}
+          link={leadsLink({ dueOnly: true })}
         />
-        {staff && <MiniStat icon={UserX} label="Unassigned" value={data.unassigned} tone={data.unassigned ? "amber" : "emerald"} hint={data.unassigned ? "Nobody owns these yet" : "Every lead has an owner"} />}
+        {staff && (
+          <MiniStat
+            icon={UserX}
+            label="Unassigned"
+            value={data.unassigned}
+            tone={data.unassigned ? "amber" : "emerald"}
+            hint={data.unassigned ? "Nobody owns these yet" : "Every lead has an owner"}
+            link={leadsLink({ owner: "none" })}
+          />
+        )}
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
-        <ChartCard title="Where leads come from" note="By source, in the period chosen above" empty={data.sources.length === 0} emptyText="No leads in this period.">
-          <HBarChart ariaLabel="Leads by source" color={SERIES[0]} rows={data.sources.map((s) => ({ key: s.key, label: s.label, value: s.count, display: String(s.count) }))} />
+        <ChartCard title="Where leads come from" note="Click a slice or a name to open those leads" empty={data.sources.length === 0} emptyText="No leads in this period.">
+          <DonutChart
+            ariaLabel="Leads by source"
+            centreLabel="Leads"
+            centreValue={String(sourceTotal)}
+            slices={sourceSlices(data.sources)}
+            onSelect={(source) => open({ source })}
+          />
         </ChartCard>
-        <ChartCard title="Priority now" note="Open leads, Hot to Cold" empty={total === 0} emptyText="No open leads.">
-          <HBarChart ariaLabel="Open leads by priority" rows={priorityBars(data.priority)} />
+        <ChartCard title="Priority now" note="Open leads, Hot to Cold. Click to open them" empty={total === 0} emptyText="No open leads.">
+          <DonutChart
+            ariaLabel="Open leads by priority"
+            centreLabel="With a priority"
+            centreValue={String(total - data.priority.NONE)}
+            slices={prioritySlices(data.priority)}
+            onSelect={(segment) => open({ segment })}
+          />
           {data.priority.NONE > 0 && <p className="mt-3 text-[12px] text-muted">{data.priority.NONE} more with no priority yet.</p>}
         </ChartCard>
         <ChartCard title="Leads and conversions" note="Last 6 months, by month the lead came in" empty={noTrend} emptyText="No leads in the last 6 months.">
@@ -155,7 +212,11 @@ function TeamTab({ rows }: { rows: NonNullable<Analytics["team"]> }) {
               <td className="px-5 py-2.5">
                 <span className={clsx("grid h-6 w-6 place-items-center rounded-full text-[11px] font-bold", i === 0 ? "bg-amber-100 text-amber-700" : "bg-bg-light text-muted")}>{i + 1}</span>
               </td>
-              <td className="px-3 py-2.5 font-semibold text-navy">{r.name}</td>
+              <td className="px-3 py-2.5 font-semibold text-navy">
+                <Link to="/leads" search={{ owner: r.id } as never} className="hover:underline" title={`Open ${r.name}'s leads`}>
+                  {r.name}
+                </Link>
+              </td>
               <td className="px-3 py-2.5 text-right">{r.leads}</td>
               <td className="px-3 py-2.5 text-right">
                 {r.converted} <span className="text-[11px] text-muted">({r.conversionPct}%)</span>

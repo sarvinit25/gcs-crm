@@ -61,6 +61,7 @@ import { WhatsAppInboxPage } from "./routes/whatsapp-inbox";
 import { WhatsAppSetupPage } from "./routes/whatsapp-setup";
 import { TelephonyPage } from "./routes/telephony";
 import { CaLegalPage } from "./routes/ca-legal";
+import { parseLeadSearch } from "./lib/lead-filters";
 import { NotificationTemplatesPage } from "./routes/notification-templates";
 import { NotificationLogsPage } from "./routes/notification-logs";
 import { VoiceCallsPage } from "./routes/voice-calls";
@@ -209,7 +210,7 @@ const routeTree = rootRoute.addChildren([
   ]),
   protectedRoute.addChildren([
     createRoute({ getParentRoute: () => protectedRoute, path: "/", component: DashboardPage }),
-    createRoute({ getParentRoute: () => protectedRoute, path: "/leads", component: LeadsPage }),
+    createRoute({ getParentRoute: () => protectedRoute, path: "/leads", component: LeadsPage, validateSearch: parseLeadSearch }),
     createRoute({
       getParentRoute: () => protectedRoute,
       path: "/leads/$leadId",

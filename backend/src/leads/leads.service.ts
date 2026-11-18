@@ -445,7 +445,8 @@ export class LeadsService implements OnApplicationBootstrap {
           ? { status: { notIn: [LeadStatus.CONVERTED, LeadStatus.LOST] } }
           : {}),
       ...(query.segment && { segment: query.segment }),
-      ...(query.source && { source: query.source }),
+      // Capitalisation is ignored: the Dashboard groups "Website" and "website" as one source.
+      ...(query.source && { source: { equals: query.source, mode: "insensitive" as const } }),
       ...(query.question && {
         answers: {
           some: {

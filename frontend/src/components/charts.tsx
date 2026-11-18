@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import clsx from "clsx";
+import { ChevronRight } from "lucide-react";
 import { BRAND_BAR, SERIES, compactCount, donutArcs, linePath, monthTick, niceScale, sharePercent } from "../lib/charts";
 
 /**
@@ -347,7 +348,16 @@ export function HBarChart({ rows, ariaLabel, color = BRAND_BAR }: { rows: BarRow
 
 // ── Donut ───────────────────────────────────────────────────────────────────
 
-export type Slice = { key: string; label: string; value: number; display?: string };
+export type Slice = {
+  key: string;
+  label: string;
+  value: number;
+  display?: string;
+  /** Overrides the next colour in the fixed series order. */
+  color?: string;
+  /** With onSelect, false leaves this slice as plain information (nothing to open). */
+  selectable?: boolean;
+};
 
 /** A ring with the total (or the hovered slice) in the middle, and a legend of values and shares beside it. */
 export function DonutChart({
@@ -356,12 +366,15 @@ export function DonutChart({
   centreValue,
   ariaLabel,
   format = (n: number) => String(n),
+  onSelect,
 }: {
   slices: Slice[];
   centreLabel: string;
   centreValue: string;
   ariaLabel: string;
   format?: (n: number) => string;
+  /** Makes each selectable slice, in the ring and in the legend, a button that calls this with the slice's key. */
+  onSelect?: (key: string) => void;
 }) {
   const id = useId();
   const [active, setActive] = useState<number | null>(null);
@@ -369,6 +382,9 @@ export function DonutChart({
   const size = 176;
   const arcs = donutArcs(slices.map((s) => s.value), size / 2, size / 2, 84, 54);
   const hot = active === null ? null : slices[active];
+  const colourOf = (i: number) => slices[i]?.color ?? SERIES[i % SERIES.length];
+  const canOpen = (i: number) => Boolean(onSelect) && slices[i]?.selectable !== false;
+  const activate = (i: number) => canOpen(i) && onSelect?.(slices[i]!.key);
 
   return (
     <div className="@container">
@@ -378,10 +394,26 @@ export function DonutChart({
           <path
             key={slices[a.index].key}
             d={a.path}
-            fill={SERIES[a.index % SERIES.length]}
+            fill={colourOf(a.index)}
             opacity={active === null || active === a.index ? 1 : 0.35}
             onPointerEnter={() => setActive(a.index)}
             onPointerLeave={() => setActive(null)}
+            {...(canOpen(a.index)
+              ? {
+                  role: "link",
+                  tabIndex: 0,
+                  style: { cursor: "pointer" },
+                  onClick: () => activate(a.index),
+                  onFocus: () => setActive(a.index),
+                  onBlur: () => setActive(null),
+                  onKeyDown: (e: React.KeyboardEvent) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      activate(a.index);
+                    }
+                  },
+                }
+              : {})}
           >
             <title>{`${slices[a.index].label}: ${slices[a.index].display ?? format(a.value)} (${sharePercent(a.value, total)})`}</title>
           </path>
@@ -396,16 +428,26 @@ export function DonutChart({
       </svg>
       <ul id={id} className="w-full min-w-0 flex-1 space-y-1">
         {slices.map((s, i) => (
-          <li
-            key={s.key}
-            className={clsx("flex items-center gap-2 rounded px-1.5 py-1 text-[12px]", active === i && "bg-bg-light")}
-            onPointerEnter={() => setActive(i)}
-            onPointerLeave={() => setActive(null)}
-          >
-            <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: SERIES[i % SERIES.length] }} aria-hidden />
-            <span className="min-w-0 flex-1 truncate text-ink">{s.label}</span>
-            <span className="shrink-0 font-semibold text-navy">{s.display ?? format(s.value)}</span>
-            <span className="w-9 shrink-0 text-right text-muted">{sharePercent(s.value, total)}</span>
+          <li key={s.key} onPointerEnter={() => setActive(i)} onPointerLeave={() => setActive(null)}>
+            {(() => {
+              const row = (
+                <>
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: colourOf(i) }} aria-hidden />
+                  <span className="min-w-0 flex-1 truncate text-left text-ink">{s.label}</span>
+                  <span className="shrink-0 font-semibold text-navy">{s.display ?? format(s.value)}</span>
+                  <span className="w-9 shrink-0 text-right text-muted">{sharePercent(s.value, total)}</span>
+                  {canOpen(i) && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted/50" aria-hidden />}
+                </>
+              );
+              const base = clsx("flex w-full items-center gap-2 rounded px-1.5 py-1 text-[12px]", active === i && "bg-bg-light");
+              return canOpen(i) ? (
+                <button type="button" onClick={() => activate(i)} onFocus={() => setActive(i)} onBlur={() => setActive(null)} className={clsx(base, "cursor-pointer hover:bg-bg-light")} title={`Open ${s.label}`}>
+                  {row}
+                </button>
+              ) : (
+                <div className={base}>{row}</div>
+              );
+            })()}
           </li>
         ))}
       </ul>

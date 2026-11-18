@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, ChevronDown, Loader2, Plus, Search, Trash2, Upload } from "lucide-react";
 import clsx from "clsx";
@@ -27,6 +27,7 @@ import { Modal } from "../components/modal";
 import { DeleteConfirm } from "../components/delete-confirm";
 import { LeadImportModal } from "../components/lead-import-modal";
 import { DEFAULT_LEAD_SORT, LEAD_SORTS, sortParam, type LeadSortValue } from "../lib/lead-sort";
+import type { LeadLinkFilter } from "../lib/lead-filters";
 import { PeriodSelect } from "../components/period-select";
 import { DatePicker } from "../components/date-picker";
 import { TableSkeleton } from "../components/skeleton";
@@ -334,16 +335,19 @@ export function LeadsPage() {
   const { user } = useAuth();
   // Advisors only ever see their own leads, so choosing an owner would mean nothing to them.
   const canFilterOwner = user?.role !== "ADVISOR";
+  // A link (from the Dashboard's charts and tiles, say) can open this page already filtered.
+  const link = useSearch({ strict: false }) as LeadLinkFilter;
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [segment, setSegment] = useState<LeadSegment | "">("");
+  const [status, setStatus] = useState(link.status ?? "");
+  const [segment, setSegment] = useState<LeadSegment | "">((link.segment as LeadSegment | undefined) ?? "");
+  const [source, setSource] = useState(link.source ?? "");
   const [chatbot, setChatbot] = useState(false);
-  const [dueOnly, setDueOnly] = useState(false);
+  const [dueOnly, setDueOnly] = useState(link.dueOnly === true);
   const [loanProductId, setLoanProductId] = useState("");
   const [channel, setChannel] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
-  const [ownerId, setOwnerId] = useState("");
+  const [ownerId, setOwnerId] = useState(link.owner ?? "");
   const [partnerId, setPartnerId] = useState("");
   const channels = useChannels();
   const questions = useQuery({
@@ -383,10 +387,10 @@ export function LeadsPage() {
   });
 
   const query = useQuery({
-    queryKey: ["leads", { search, status, segment, chatbot, dueOnly, loanProductId, channel, question, answer, ownerId, partnerId, timeRange, sort, page, archived }],
+    queryKey: ["leads", { search, status, segment, source, chatbot, dueOnly, loanProductId, channel, question, answer, ownerId, partnerId, timeRange, sort, page, archived }],
     queryFn: () =>
       api<Paginated<Lead>>(
-        `/leads${qs({ search, status, segment, chatbot: chatbot ? "true" : undefined, loanProductId, channel, question: question || undefined, answer: question ? answer || undefined : undefined, assignedOfficerId: ownerId, sourcingPartnerId: partnerId, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, sort: sortParam(sort), page })}`,
+        `/leads${qs({ search, status, segment, source: source || undefined, chatbot: chatbot ? "true" : undefined, loanProductId, channel, question: question || undefined, answer: question ? answer || undefined : undefined, assignedOfficerId: ownerId, sourcingPartnerId: partnerId, range: timeRange, dueOnly: dueOnly ? "true" : undefined, archived: archived ? "true" : undefined, sort: sortParam(sort), page })}`,
       ),
   });
 
@@ -507,6 +511,17 @@ export function LeadsPage() {
           </button>
         </div>
 
+        {source && (
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-[13px]">
+            <span className="text-muted">Showing leads from</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-navy px-3 py-1 font-semibold text-white">
+              {source}
+              <button onClick={() => reset(() => setSource(""))} className="rounded-full px-1 text-white/70 hover:text-white" aria-label="Show every source">
+                ×
+              </button>
+            </span>
+          </div>
+        )}
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted/60" />

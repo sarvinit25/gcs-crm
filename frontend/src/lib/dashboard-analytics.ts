@@ -3,7 +3,8 @@ import { SERIES } from "./charts";
 /** What the Dashboard's "Module analytics" endpoint returns (see backend/src/dashboard/dashboard-analytics.ts). */
 export type Analytics = {
   leads: {
-    sources: { key: string; label: string; count: number }[];
+    /** value is the source as stored, to open its leads; none for Unknown and Other. */
+    sources: { key: string; label: string; count: number; value?: string }[];
     priority: Record<"HOT" | "WARM" | "FOLLOW_UP" | "COLD" | "NONE", number>;
     unassigned: number;
     overdueFollowUps: number;
@@ -76,4 +77,25 @@ export function stageShares(byStatus: Record<string, number | undefined>, total:
     const exact = total > 0 ? (count / total) * 100 : 0;
     return { ...s, count, percent: Math.round(exact), width: count > 0 ? Math.max(exact, 2) : 0 };
   });
+}
+
+const GREY = "#94a3b8";
+
+/**
+ * Donut slices for "where leads come from": one colour per source in the fixed series order. A source that cannot be
+ * opened as a list (Unknown, Other) is grey and plain information, not a button. A slice's key is the stored source.
+ */
+export function sourceSlices(sources: Analytics["leads"]["sources"]) {
+  return sources.map((s, i) => ({
+    key: s.value ?? s.key,
+    label: s.label,
+    value: s.count,
+    color: s.value ? SERIES[i % SERIES.length] : GREY,
+    selectable: Boolean(s.value),
+  }));
+}
+
+/** Donut slices for the priority mix, Hot to Cold in heat colours. A slice's key is the segment, to open those leads. */
+export function prioritySlices(priority: Analytics["leads"]["priority"]) {
+  return PRIORITY_ROWS.map((p) => ({ key: p.key, label: p.label, value: priority[p.key], color: p.color }));
 }

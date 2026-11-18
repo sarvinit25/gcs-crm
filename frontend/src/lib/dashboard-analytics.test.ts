@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { STAGE_META, formName, openLeads, priorityBars, stageShares, type Analytics } from "./dashboard-analytics";
+import { STAGE_META, formName, openLeads, priorityBars, prioritySlices, sourceSlices, stageShares, type Analytics } from "./dashboard-analytics";
 
 const mix: Analytics["leads"]["priority"] = { HOT: 4, WARM: 3, FOLLOW_UP: 2, COLD: 1, NONE: 5 };
 
@@ -43,5 +43,26 @@ describe("lead pipeline shares", () => {
 
   it("gives each stage its own colour", () => {
     expect(new Set(STAGE_META.map((m) => m.color)).size).toBe(STAGE_META.length);
+  });
+});
+
+describe("donut slices", () => {
+  it("colours each source in order, and greys out the ones that cannot be opened", () => {
+    const slices = sourceSlices([
+      { key: "website", label: "Website", count: 6, value: "website" },
+      { key: "whatsapp", label: "WhatsApp", count: 2, value: "WhatsApp" },
+      { key: "unknown", label: "Unknown", count: 1 },
+      { key: "other", label: "Other", count: 3 },
+    ]);
+    expect(slices.map((s) => s.key)).toEqual(["website", "WhatsApp", "unknown", "other"]);
+    expect(slices.map((s) => s.selectable)).toEqual([true, true, false, false]);
+    expect(slices[0]!.color).not.toBe(slices[1]!.color);
+    expect(slices[2]!.color).toBe(slices[3]!.color);
+  });
+
+  it("lists priority Hot to Cold keyed by segment, each in its own heat colour", () => {
+    const slices = prioritySlices(mix);
+    expect(slices.map((s) => [s.key, s.value])).toEqual([["HOT", 4], ["WARM", 3], ["FOLLOW_UP", 2], ["COLD", 1]]);
+    expect(new Set(slices.map((s) => s.color)).size).toBe(4);
   });
 });

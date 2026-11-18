@@ -20,6 +20,18 @@ describe("sources", () => {
     expect(rows.map((r) => [r.label, r.count])).toEqual([["Website", 7], ["CA legal enquiry", 5], ["Unknown", 1]]);
   });
 
+  it("carries the stored spelling to link with: the most common one, and none for Unknown or Other", () => {
+    const rows = topSources([
+      { source: "website", count: 3 },
+      { source: "Website", count: 4 },
+      { source: null, count: 1 },
+    ]);
+    expect(rows[0]!.value).toBe("Website");
+    expect(rows[1]!.value).toBeUndefined();
+    const many = topSources(Array.from({ length: 4 }, (_, i) => ({ source: `s${i}`, count: 4 - i })), 3);
+    expect(many.at(-1)).toEqual({ key: "other", label: "Other", count: 3 });
+  });
+
   it("folds the tail into Other when there are too many", () => {
     const rows = topSources(Array.from({ length: 12 }, (_, i) => ({ source: `s${i}`, count: 12 - i })), 5);
     expect(rows).toHaveLength(5);
