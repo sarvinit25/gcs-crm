@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Download, FileSpreadsheet, Loader2, Plus, Search } from "lucide-react";
+import { Download, Loader2, Plus, Search } from "lucide-react";
 import { api, qs, tokenStore } from "../lib/api";
 import { formatDateTime } from "../lib/format";
+import { PageHeader } from "../components/app-shell";
 
 type Row = {
   leadId: string; leadNo: number; name: string; phone: string; productName: string | null; familyLabel: string; progress: number;
@@ -58,11 +59,9 @@ export function CamsPage() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
-      <div>
-        <h1 className="flex items-center gap-2 text-lg font-bold text-navy"><FileSpreadsheet className="h-5 w-5" /> CAM: credit appraisal memos</h1>
-        <p className="text-[13px] text-muted">Every customer's detailed CAM in one list. Open one to fill it in or send the customer their link, or download the Excel.</p>
-      </div>
+    <>
+      <PageHeader title="CAM: credit appraisal memos" subtitle="Every customer's detailed CAM in one list. Open one to fill it in or send the customer their link, or download the Excel." />
+      <div className="mx-auto max-w-6xl space-y-5 px-6 py-5">
 
       <section className="card space-y-3 p-4">
         <h2 className="text-sm font-bold text-navy">Start a CAM for a lead</h2>
@@ -133,6 +132,7 @@ export function CamsPage() {
           </table>
         )}
       </section>
-    </div>
+      </div>
+    </>
   );
 }
