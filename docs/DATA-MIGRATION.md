@@ -118,3 +118,40 @@ hand the callable pool to the telecallers; keep the Excel as a frozen archive an
 - Whether Sourish, Mahesh, Sheetal and Sneha are CRM users, so their calls are credited to them.
 - Whether the real disbursement register for the Shriram cases exists.
 - Go-ahead for Phase 1, the clean-and-stage run with its report, which changes nothing in the CRM.
+
+## Phase 1 result (19 Nov 2026): clean and stage, built and run
+
+The cleaning rules are in `backend/src/legacy-import/` (with tests) and the command is `npm run legacy:stage`. It reads the
+workbook, cleans it, merges repeats on mobile and writes a review report. **It changes nothing in the CRM and never
+touches the database.**
+
+```bash
+cd backend
+npm run legacy:stage -- /path/to/workbook.xlsx /path/to/private-output-folder
+```
+
+The output folder must be **outside** the project (the command refuses otherwise): `people.jsonl` holds customer
+details and must never be committed. `report.md` and `report.json` hold counts only.
+
+Result on the 19 Nov 2026 workbook:
+
+| | |
+|---|---|
+| Rows read (plus 54 formula-only rows with no data, skipped) | 46,623 |
+| People after merging on mobile | 40,255 (6,368 rows were repeats) |
+| Live leads | 22,148 |
+| Archived history | 11,151 (not interested 10,407; wrong number 566; do not disturb 178; 185 are do-not-call in all) |
+| Needs phone | 6,956 |
+| Application records to create (old Shriram cases) | 2,647, of which 2,518 are complete; 129 lack an amount |
+| Call history entries | 27,666 |
+| People with a city | 8,448 |
+
+What the run taught us:
+- **The 99 Databank batch (9,318 rows) was entered with shifted columns.** Its "Loan Amount" column holds the city, so it is
+  read as the city, not as an unreadable amount. Unreadable amounts fell from 8,730 to 99.
+- 15,084 people have no loan product in the sheet; 396 + 304 + 303 + 235 more carry Shriram product names ("POW HL V BRE"
+  and similar) that are left unmapped rather than guessed.
+- 21,523 call entries have no caller recorded.
+
+Next: Phase 2 (the additive fields: company name, legacy reference, import batch, do-not-call, and keeping imported
+leads out of reminders), then the 500-row pilot on a copy of the database.
