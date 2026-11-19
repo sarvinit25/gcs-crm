@@ -428,28 +428,28 @@ model Lead {
   notes          String?
 
   // Why a lead was closed out — set when status becomes LOST, cleared if it is reopened.
-  lostReason      String?
+  lostReason             String?
   // Closed files are archived, never deleted: hidden from working lists, still searchable and in reports.
-  archivedAt      DateTime?
-  employmentType  EmploymentType?
-  monthlyIncome   Decimal?        @db.Decimal(14, 2)
+  archivedAt             DateTime?
+  employmentType         EmploymentType?
+  monthlyIncome          Decimal?        @db.Decimal(14, 2)
   // What a lender asks before a meeting. All optional, and they carry over to the applicant when the lead becomes a file.
-  secondaryPhone  String?
-  dateOfBirth     DateTime?       @db.Date
-  pan             String?
-  address         String?
-  pincode         String?
-  employerName    String?
-  designation     String?
+  secondaryPhone         String?
+  dateOfBirth            DateTime?       @db.Date
+  pan                    String?
+  address                String?
+  pincode                String?
+  employerName           String?
+  designation            String?
   // Total work experience, and the part of it in the current job or business.
-  experienceYears Decimal?        @db.Decimal(4, 1)
-  currentExperienceYears Decimal? @db.Decimal(4, 1)
-  workLocation    String?
-  officialEmail   String?
-  meetingMode     String?
-  meetingPlace    String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  experienceYears        Decimal?        @db.Decimal(4, 1)
+  currentExperienceYears Decimal?        @db.Decimal(4, 1)
+  workLocation           String?
+  officialEmail          String?
+  meetingMode            String?
+  meetingPlace           String?
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
 
   // Priority segment. Worked out automatically from the lead's details, documents and follow-up
   // date (see leads/lead-segment.ts) unless staff pin it (segmentLocked). Null once a lead is closed.
@@ -478,6 +478,13 @@ model Lead {
   answers             LeadAnswer[]
   files               LeadFile[]
   partnerApplications PartnerApplication[]
+  // Set when the lead came from the old calling workbook (docs/DATA-MIGRATION.md). importBatch groups one import so it can
+  // be filtered or undone as a unit; legacyRef is the lead's address in that sheet and stops a second run duplicating it.
+  companyName         String?
+  legacyRef           String?
+  importBatch         String?
+  // Asked not to be called. Never cleared by an import; staff decide.
+  doNotCall           Boolean              @default(false)
 
   @@index([chatVerifiedAt])
   @@index([status, nextFollowUpAt])
@@ -489,6 +496,8 @@ model Lead {
   @@index([sourcingPartnerId])
   @@index([channel, createdAt])
   @@index([archivedAt])
+  @@index([importBatch])
+  @@index([legacyRef])
 }
 
 /**
@@ -738,9 +747,12 @@ model Application {
   invites             ApplicationInvite[]
   existingLoans       ExistingLoan[]
   creditEvaluation    CreditEvaluation?
+  // The old-workbook import this file came from, so it can be filtered or removed as a unit.
+  importBatch         String?
 
   @@index([status])
   @@index([ownerId])
+  @@index([importBatch])
   @@index([createdAt])
   @@index([loanProductId])
   @@index([lenderId])
@@ -1266,11 +1278,11 @@ model ApplicationInvite {
   createdById String?
   createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
-  expiresAt   DateTime
-  revokedAt   DateTime?
-  openedAt    DateTime?
-  lastSavedAt DateTime?
-  submittedAt DateTime?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  openedAt     DateTime?
+  lastSavedAt  DateTime?
+  submittedAt  DateTime?
   // The emailed one-time code that opens the form (only its hash is kept), and how it is being used.
   otpHash      String?
   otpExpiresAt DateTime?
@@ -1279,8 +1291,8 @@ model ApplicationInvite {
   // Answers to the extra loan-profile questions, kept as { "lp-<id>": value } until the form is sent in.
   profileDraft Json?
   // What the customer has typed so far; applied to the real records only when they submit.
-  draft       Json?
-  createdAt   DateTime  @default(now())
+  draft        Json?
+  createdAt    DateTime  @default(now())
 
   documents Document[]
 
@@ -1568,9 +1580,9 @@ model LenderPolicy {
   gstRequired              Boolean  @default(false)
 
   // The lender's named variants of this loan type, each with its own limits: [{ name, minAmount, maxAmount, ... }].
-  programs              Json?
+  programs   Json?
   // Rules that are not amounts or rates (rating, DSCR, guarantee, security, moratorium, end use ...): { key: value }.
-  conditions            Json?
+  conditions Json?
 
   // Money rules. Each band is { upTo: number | null, value: number } in rupees / percent.
   foirBands             Json?
@@ -1924,14 +1936,14 @@ model VoiceCall {
   receivedAt DateTime @default(now())
 
   /// The provider's own id for the call, used to ignore a message delivered twice.
-  callId String? @unique
-  phone  String?
-  status String?
+  callId      String? @unique
+  phone       String?
+  status      String?
   durationSec Int?
   /// What the call produced: LEAD_CREATED, LEAD_UPDATED, NO_LEAD (not connected or no usable mobile number) or ERROR.
-  outcome String
-  leadId  String?
-  error   String?
+  outcome     String
+  leadId      String?
+  error       String?
 
   summary    String?
   transcript String?

@@ -130,7 +130,7 @@ export class DashboardService {
     const [bySource, bySegment, unassigned, overdue, recent] = await Promise.all([
       this.prisma.lead.groupBy({ by: ["source"], where: { ...mine, ...within("createdAt") }, _count: { _all: true }, orderBy: { source: "asc" } }),
       this.prisma.lead.groupBy({ by: ["segment"], where: { ...mine, ...open }, _count: { _all: true }, orderBy: { segment: "asc" } }),
-      staff ? this.prisma.lead.count({ where: { ...open, assignedOfficerId: null } }) : Promise.resolve(0),
+      staff ? this.prisma.lead.count({ where: { ...open, assignedOfficerId: null, importBatch: null } }) : Promise.resolve(0),
       this.prisma.lead.count({ where: { ...mine, ...open, nextFollowUpAt: { lte: new Date() } } }),
       this.prisma.lead.findMany({ where: { ...mine, createdAt: { gte: sixMonthsAgo } }, select: { createdAt: true, status: true } }),
     ]);
