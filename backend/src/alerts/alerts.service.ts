@@ -157,7 +157,7 @@ export class AlertsService {
             ["Received", `${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} (India time)`],
           ],
           t.quote,
-          `${base}/website`,
+          `${base}/settings#clientstories`,
         ),
       });
     } catch (err) {

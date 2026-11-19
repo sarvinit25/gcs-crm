@@ -29,7 +29,7 @@ import {
   Users,
   UserSquare,
 } from "lucide-react";
-import { BellRing, Gavel, Headphones, MessageCircle, Phone, Plug, ScrollText } from "lucide-react";
+import { BellRing, Gavel, Star, Headphones, MessageCircle, Phone, Plug, ScrollText } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
@@ -41,7 +41,7 @@ import { NotificationsBell } from "./notifications-bell";
 import { AskAi } from "./ask-ai";
 import { useScrollToHash } from "../lib/use-scroll-to-hash";
 
-type NavItem = { to: string; label: string; icon: LucideIcon; roles?: Role[]; exact?: boolean; badge?: "whatsapp" | "testimonials" };
+type NavItem = { to: string; label: string; icon: LucideIcon; roles?: Role[]; exact?: boolean; badge?: "whatsapp" | "testimonials"; hash?: string };
 
 const NAV: { section: string; items: NavItem[] }[] = [
   {
@@ -100,7 +100,8 @@ const NAV: { section: string; items: NavItem[] }[] = [
       },
       { to: "/reports", label: "Reports", icon: BarChart3 },
       { to: "/audit", label: "Audit log", icon: History, roles: ["ADMIN"] },
-      { to: "/website", label: "Website", icon: Globe, roles: ["ADMIN", "MANAGER"], badge: "testimonials" },
+      { to: "/website", label: "Website", icon: Globe, roles: ["ADMIN", "MANAGER"] },
+      { to: "/settings", hash: "clientstories", label: "Client reviews", icon: Star, roles: ["ADMIN"], badge: "testimonials" },
       { to: "/ca-legal", label: "CA & Legal", icon: Gavel, roles: ["ADMIN", "MANAGER"] },
       { to: "/settings", label: "Settings", icon: Settings, roles: ["ADMIN"] },
     ],
@@ -167,11 +168,13 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 </p>
                 {items.map((item) => {
                   const active =
-                    item.to === "/" || item.exact ? pathname === item.to : pathname === item.to || pathname.startsWith(`${item.to}/`);
+                    !item.hash &&
+                    (item.to === "/" || item.exact ? pathname === item.to : pathname === item.to || pathname.startsWith(`${item.to}/`));
                   return (
                     <Link
-                      key={item.to}
+                      key={item.to + (item.hash ?? "")}
                       to={item.to}
+                      hash={item.hash}
                       onClick={onNavigate}
                       className={clsx(
                         "mb-0.5 flex items-center gap-2.5 rounded-full px-3 py-2 text-[13px] font-semibold transition",

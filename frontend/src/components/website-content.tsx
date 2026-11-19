@@ -708,7 +708,7 @@ function textSpecFor(section: Section, content: Content | undefined): HomeTextSe
 export function WebsiteContent({ scope }: { scope?: "home" | "about" | "contact" | "services" | "cibil" | "whyus" | "calegal" | "partner" | "track" | "builder" | "freelancer" | "estimator" | "insights" | "cases" | "rates" | "tools" | "advisor" | "advisory" | "city" | "loanpages" | "casepages" | "servicepages" | "site" } = {}) {
   const queryClient = useQueryClient();
   const page = scope ? PAGE_SCOPES[scope] : undefined;
-  const [section, setSection] = useState<Section>(page ? page.first : "pageText");
+  const [section, setSection] = useState<Section>(page ? page.first : typeof window !== "undefined" && window.location.hash === "#clientstories" ? "testimonials" : "pageText");
 
   const saved = useQuery({
     queryKey: ["site-content"],

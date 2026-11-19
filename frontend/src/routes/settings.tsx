@@ -515,6 +515,7 @@ export function SettingsPage() {
       ratecards: "Commission rate cards",
       websitechecklists: "Website checklists",
       websitecontent: "Website content",
+      clientstories: "Website content",
       homepage: "Home page",
       aboutpage: "About page",
       contactpage: "Contact page",
