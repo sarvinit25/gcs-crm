@@ -85,12 +85,36 @@ hand the callable pool to the telecallers; keep the Excel as a frozen archive an
 - Imported people are **not** marked as having agreed to WhatsApp messages. No bulk WhatsApp or SMS goes to them until
   consent is recorded. Numbers marked not interested or DND are never called again.
 - The 99 Databank and exhibition lists are bought or collected data: they stay in their own batch so they can be filtered, paused or removed.
-- Disbursed and declined cases are kept as history on the lead. Application, sanction and disbursement records are **not**
-  invented from this sheet, because they drive commissions and reports; they come from the real disbursement register if one exists.
+- Application records are made only for the old Shriram cases (see "Decisions"), never for anything else, and never with
+  invented money: no Disbursement, Sanction or Commission records come from this sheet, because they drive the Dashboard's
+  money figures and the commission reports and the sheet has no disbursal date or disbursed amount.
 
-## Questions that need an answer before Phase 1 is final
-1. Not interested and wrong-number rows (about 13,000): import as archived history, or leave out?
-2. The 7,081 rows with no mobile: import as company-only leads to be completed, or leave out?
-3. Callers Sourish, Mahesh, Sheetal, Sneha: are they CRM users, so history is credited to them?
-4. Disbursed and declined cases: history only (recommended), or also create application records?
-5. Merge people who appear several times by mobile (recommended)?
+## Decisions (made 19 Nov 2026)
+
+1. **Dead leads (about 13,000 not interested, wrong or unreachable numbers):** imported as archived history. Each is a Lost
+   lead with its reason in the Archived leads section. They never reach the working list or reminders, and are never called again.
+2. **Rows with no mobile (7,081):** imported as their own "Needs phone" batch, kept out of reminders until a number is found.
+3. **Case outcomes: also create application records.** What the sheet supports:
+
+   | Outcome | Rows | Amount | Product | Date | Lender |
+   |---|---|---|---|---|---|
+   | Disbursed | 1,070 | 1,006 | all (BL 843, LAP 225) | 1,069 | Shriram 1,064 |
+   | Policy declined | 1,781 | 1,712 | all (BL 1,771) | all | Shriram, all |
+   | Underwriter review | 495 | 493 | all | all | Shriram, all |
+
+   All of them are Shriram cases from 2011 to 2014, so they are twelve years old.
+   - **Disbursed** becomes an Application with status Disbursed, lender Shriram, the product, the requested amount and the
+     sheet's date as its created date. **Policy declined** becomes an Application with status Rejected and the reason.
+   - **Underwriter review (495)** is not made an application: a twelve-year-old review that never finished is not a live file.
+     It stays as a lead with a note.
+   - All of these applications are created archived, so they do not crowd the live Applications list, and carry the import
+     batch so they can be filtered or removed in one step.
+   - No Disbursement, Sanction or Commission record is created. The Dashboard's disbursed amount and the commission reports
+     therefore do not change. If the real disbursement register exists, it is added later as a separate step.
+   - The sheet's date is the entry date, not the disbursal date, so reports for a period show these under the entry year.
+4. **Duplicates:** one person who appears in several rows is merged on mobile (newest call wins, the history is kept).
+
+## Still needed
+- Whether Sourish, Mahesh, Sheetal and Sneha are CRM users, so their calls are credited to them.
+- Whether the real disbursement register for the Shriram cases exists.
+- Go-ahead for Phase 1, the clean-and-stage run with its report, which changes nothing in the CRM.
