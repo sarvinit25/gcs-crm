@@ -34,6 +34,7 @@ export const STEP_NAMES = {
   disbursal: "Disbursement recorded",
   commission: "Commission created",
   commissionPaid: "Commission claimed or received",
+  followUp: "Follow-up needed",
 } as const;
 export type StepKey = keyof typeof STEP_NAMES;
 

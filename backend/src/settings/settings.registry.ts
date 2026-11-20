@@ -202,6 +202,13 @@ export const SETTINGS: SettingDef[] = [
     default: true,
   },
   {
+    key: "alerts.step.followUp",
+    group: "Alerts",
+    label: "Step email: A follow-up is needed (phone call asked for a call back, or a follow-up is logged)",
+    type: "boolean",
+    default: true,
+  },
+  {
     key: "alerts.testimonialEmails",
     group: "Alerts",
     label: "Email me when a client sends a testimonial",

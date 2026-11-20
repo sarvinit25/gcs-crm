@@ -31,6 +31,33 @@ export class StepAlertsService implements OnModuleInit {
     on("CIBIL_CHECKED", (p) => this.cibil(String(p.applicantId), String(p.how ?? ""), (p.score as number | null) ?? null));
     on("COMMISSION_CREATED", (p) => this.commission("commission", String(p.commissionId)));
     on("COMMISSION_STATUS", (p) => this.commission("commissionPaid", String(p.commissionId)));
+    on("FOLLOW_UP_NEEDED", (p) => this.followUp(p));
+  }
+
+  private async followUp(p: Record<string, unknown>) {
+    const l = await this.prisma.lead.findUnique({ where: { id: String(p.leadId) }, select: { id: true, leadNo: true, name: true, phone: true, city: true, amount: true, assignedOfficer: { select: { name: true, email: true } } } });
+    if (!l) return;
+    const why = String(p.why ?? "");
+    const reason: Record<string, string> = {
+      "human-callback": "The caller asked for a team member to call back",
+      "callback-later": "The caller asked to be called at another time",
+      "ca-legal": "The caller asked about CA or legal services",
+      "details-collected": "The phone assistant took the details; a team member should call to take it forward",
+      "follow-up": "A follow-up was logged in the CRM",
+    };
+    const when = p.dueAt ? new Date(String(p.dueAt)).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" }) + " (India time)" : String(p.callbackTime ?? "");
+    const rows: [string, string][] = [
+      ["Why", reason[why] ?? "A follow-up is needed"],
+      ["Call back", when],
+      ["Customer", l.name],
+      ["Phone", l.phone ?? ""],
+      ["City", l.city ?? ""],
+      ["Loan size", l.amount ? rupees(l.amount) : ""],
+      ["Note", String(p.note ?? "").slice(0, 400)],
+      ["Logged by", String(p.by ?? "")],
+      ["Handled by", l.assignedOfficer?.name ?? "Not assigned"],
+    ];
+    await this.alerts.stepChanged("followUp", `Follow-up needed: ${l.name} (lead #${l.leadNo})`, rows, `/leads/${l.id}`, { alsoTo: l.assignedOfficer?.email ? [l.assignedOfficer.email] : [], button: "Open the lead" });
   }
 
   private async file(applicationId: string) {

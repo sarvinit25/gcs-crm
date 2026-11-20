@@ -956,6 +956,8 @@ export class LeadsService implements OnApplicationBootstrap {
         data: { nextFollowUpAt: dto.dueAt },
       });
       await this.refreshSegment(id);
+      // A dated follow-up tells the team (and the lead's owner) that a call is planned.
+      this.events.emit("FOLLOW_UP_NEEDED", { leadId: id, why: "follow-up", dueAt: new Date(dto.dueAt).toISOString(), note: dto.note, by: followUp.user?.name ?? null });
     }
     return followUp;
   }
