@@ -45,6 +45,9 @@ For each of these the plan lists recommended questions. The website forms alread
 - **Business Loan:** audited financials available, average monthly bank credit, collateral available.
 - **Home Loan:** whether a co-applicant will sign, booking amount paid (exists), own contribution (exists).
 
+### Round 3: every product compared with the plan
+All 28 products were compared question by question with the plan's lists (the website forms already held most). Added: lease rental (market value); project funding (title clear, completion date); private funding (security or guarantee); machine loan (imported or not, hypothecated); bank guarantee (tender value, claim period); bill discounting (purchase orders, buyer acceptance, domestic or export); education loan (student's age); education infrastructure (project cost); used car (loan running); car refinance (present EMI and rate); loan against securities (which platform, recent statement); CGTMSE (collateral already given elsewhere). Our own additions, asked last in every form: applicant's age (where the form did not ask it), employer or business name, best time to call. Speaking style: the prescribed welcome word for word, a "Now, let's understand ..." lead-in at each new part of the form, and the prescribed closing wording.
+
 ## 4. Our own additions (beyond the plan)
 1. **Consent line** in the welcome ("by continuing you agree GCS may contact you about this enquiry"), recorded on the lead.
 2. **Welcome back** for a returning customer: "You were part way through your Balance Transfer enquiry. Shall we continue?"

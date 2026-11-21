@@ -13,7 +13,7 @@ type Turn = { role: "user" | "assistant"; content: string };
 type Chat = { role: "system" | "user" | "assistant"; content: string };
 
 /** One thing to ask, or to look for in the customer's reply. */
-type Ask = { key: string; question: string; type: string; choices?: string[]; help?: string; allowZero?: boolean };
+type Ask = { key: string; question: string; type: string; choices?: string[]; help?: string; allowZero?: boolean; section?: string };
 
 type Extracted = {
   name?: string | null;
@@ -244,7 +244,7 @@ export class IntakeService {
     }
 
     // 3. Word the reply.
-    const written = await this.write(turns, plan, extracted, saved, after, options, tap ? [] : figures, { retry, skipped, late, returning, resumed: resume, summary: justFinished && !late ? this.summaryOf(after) : null, checklist: justFinished && !late ? checklistUrl(this.siteUrl(), after.loanSlug, after.applicant) : null, loanHelp: Boolean(!tap && !media && !firstMessage && plan.kind === "ask" && plan.ask[0]?.key === "loan_slug" && lastTyped.trim().length > 12) });
+    const written = await this.write(turns, plan, extracted, saved, after, options, tap ? [] : figures, { retry, skipped, late, returning, resumed: resume, newSection: plan.kind === "ask" && plan.ask[0]?.section && plan.ask[0].section !== asked[0]?.section ? plan.ask[0].section : null, summary: justFinished && !late ? this.summaryOf(after) : null, checklist: justFinished && !late ? checklistUrl(this.siteUrl(), after.loanSlug, after.applicant) : null, loanHelp: Boolean(!tap && !media && !firstMessage && plan.kind === "ask" && plan.ask[0]?.key === "loan_slug" && lastTyped.trim().length > 12) });
     if (!written) return { text: null, handoff: plan.kind === "handoff" };
     return { text: written.text, handoff: plan.kind === "handoff", ...(written.options ? { options: written.options } : {}) };
   }
@@ -299,7 +299,7 @@ export class IntakeService {
     const unclear = otherToSpecify(snap.loanSlug, snap.answers);
     if (unclear) return [{ key: `${unclear.key}__other`, question: `You chose "Other" for "${unclear.label}". Ask what it is, in a few words`, type: "text" }];
     const { fields } = nextQuestions(snap.loanSlug, snap.answers, 1);
-    return fields.map((f) => ({ key: f.key, question: f.label, type: f.kind, ...(f.options ? { choices: f.options } : {}), ...(f.help ? { help: f.help } : {}), ...(f.allowZero ? { allowZero: true } : {}) }));
+    return fields.map((f) => ({ key: f.key, question: f.label, type: f.kind, ...(f.options ? { choices: f.options } : {}), ...(f.help ? { help: f.help } : {}), ...(f.allowZero ? { allowZero: true } : {}), ...(f.section ? { section: f.section } : {}) }));
   }
 
   private async history(conversationId: string): Promise<Turn[]> {
@@ -545,7 +545,7 @@ Rules:
 
   // -- job 2: word the reply --------------------------------------------------------------------
 
-  private async write(turns: Turn[], plan: Plan, x: Extracted, saved: string[], snap: Snapshot, options: OptionSet | null, figures: string[], extra: { retry: string | null; skipped: boolean; late: boolean; returning: boolean; resumed: boolean; summary: string | null; checklist: string | null; loanHelp: boolean }): Promise<{ text: string; options?: Interactive } | null> {
+  private async write(turns: Turn[], plan: Plan, x: Extracted, saved: string[], snap: Snapshot, options: OptionSet | null, figures: string[], extra: { retry: string | null; skipped: boolean; late: boolean; returning: boolean; resumed: boolean; newSection: string | null; summary: string | null; checklist: string | null; loanHelp: boolean }): Promise<{ text: string; options?: Interactive } | null> {
     const company = this.settings.get<string>("org.name") || "Growth Capital Services";
     const system = `You are Ria, the WhatsApp assistant of ${company}, a loan consultant (a DSA) in Mumbai that helps people compare loan options from 75+ banks and NBFCs, free of charge to the customer. You are NOT the lender.
 
@@ -577,9 +577,20 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
     const first = turns.filter((t) => t.role === "assistant").length === 0;
     if (first) {
       lines.push(
-        "This is the customer's first message, so this is your WELCOME. In two or three short sentences: greet them warmly (one emoji is fine), say you are Ria from the company, that you compare loan offers from 75+ banks and NBFCs for them at no cost, and that you will ask a few quick questions (about a minute). Then ask your first question.",
+        `This is the customer's first message, so this is your WELCOME. Write it EXACTLY as the text below (translate it faithfully if the customer writes in Hindi or Marathi, but change nothing else). One blank line between the paragraphs. No other greeting, no emoji.
+
+Hello! Welcome to ${company}.
+
+I'm Ria, your AI Loan Assistant.
+
+We help you explore suitable loan solutions from our network of 75+ Banks and NBFCs.
+
+Our team will understand your financial requirements, compare available options and guide you through the process.
+
+By continuing, you agree that we may contact you about this enquiry.
+
+After that, ask your first question. If your first question is which loan they need, ask it as: "Which type of financial assistance are you looking for?"`,
       );
-      lines.push("In the welcome also add one short line: by continuing, they agree that the company may contact them about this enquiry.");
     }
     if (x.sent_file === "audio") lines.push("They sent a voice note, which you cannot listen to here. Kindly say so and ask them to type, or tap an option, instead. Then ask the question again.");
     else if (x.sent_file?.startsWith("saved")) {
@@ -596,6 +607,7 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
     if (extra.retry) lines.push(`Their last reply could not be used (${extra.retry}). Do NOT repeat the question in the same words. In one short sentence say exactly what you need and give a concrete example answer (for an amount: the number, for example 55,000 per month, or 0 if there is none). Then stop.`);
     else if (extra.skipped) lines.push("The previous question could not be answered here. Begin with: \"No problem, our expert can take that on the call.\" Then ask the question below. Do not mention it again.");
     else if (!saved.length && plan.kind === "ask" && !x.typing && !x.sent_file && !first && !extra.late && !extra.resumed) lines.push("They did not answer the last question. Ask it once more in plain words.");
+    if (extra.newSection && !extra.retry && !extra.returning) lines.push(`This question starts a new part of the form, called "${extra.newSection}". Begin with one short, professional lead-in that says what you are about to understand, in the style "Now, let's understand ..." (for example "Now, let's understand the property offered as security." or "Thank you. Let's understand your existing loan facility so that we can explore suitable options."). Do not quote the part's title word for word, and keep the lead-in to one sentence. Then ask the question.`);
     if (extra.returning && plan.kind === "ask") lines.push("They are back after a break, part way through. Begin with one short line welcoming them back and saying you will carry on from where you stopped. Then ask the question below.");
     if (extra.loanHelp) lines.push("They described what they need but the loan type is not settled yet. In one or two short plain sentences explain the closest options without recommending any bank or rate (for example: a one-time loan against a property, versus an overdraft limit against a property that you draw as needed and pay interest on only what you use). Then ask which suits them, and show the list.");
     if (extra.late) lines.push("They added a detail after the questions were over. It has been noted for the expert: say exactly that in one short line (\"Noted, I have added that for our expert.\").");
@@ -612,7 +624,7 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
         );
       } else {
         const amountNote = a.type === "amount" ? ` [this needs an amount in rupees as a number: say so briefly with an example such as 55,000${a.allowZero ? ", and that they can type 0 if there is none" : ""}]` : "";
-        lines.push(`Ask exactly this ONE question:\n${a.question}${amountNote}${!options && a.choices ? (a.choices.length > 6 ? ` [there are many possible answers; do NOT list them: just ask openly, you may give two or three examples such as ${a.choices.slice(0, 3).join(", ")}]` : ` [choices: ${a.choices.join(" | ")}]`) : ""}${a.help ? ` (${a.help})` : ""}`);
+        lines.push(`Ask exactly this ONE question:\n${a.question}${amountNote}${!options && a.choices ? (a.choices.length > 6 ? ` [there are many possible answers; do NOT list them: just ask openly, you may give two or three examples such as ${a.choices.slice(0, 3).join(", ")}]` : ` [choices: ${a.choices.join(" | ")}]`) : ""}${a.help ? ` [background note, never read out or quoted: ${a.help}]` : ""}`);
         if (snap.more === "Yes" && plan.left > 0) {
           lines.push(
             plan.left === 1
@@ -630,7 +642,7 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
       lines.push(
         plan.declined
           ? "They would rather not answer more questions now. Say that is fine, an expert from our team will contact them soon with what they have shared, and they can message here any time to add more details. If they only said hello or something small, welcome them back in one short line and say that if they wish to carry on with the questions they can just say continue. Do not ask any question."
-          : `You have what is needed.${extra.summary ? ` First give a short confirmation of what has been noted, using EXACTLY these facts and no others (one fact per line is fine here): ${extra.summary}. Then say that if anything is wrong they can simply reply with the correction, and an expert from our team will contact them soon and go through anything else. Thank them by first name.` : " Thank them by first name and say an expert from our team will contact them soon and will go through anything else."} ${extra.checklist ? ` Also say that the documents usually needed for this loan are listed here, and give this link exactly: ${extra.checklist}. Say they need not send anything now.` : ""} Do not ask any more questions. If one of your earlier messages already said an expert will contact them, do NOT say it again: reply with one short friendly closing line only.`,
+          : `You have what is needed.${extra.summary ? ` Write the closing in this order and in these words (translate faithfully if needed): "Thank you for providing these details. We have captured your preliminary requirements." Then give a short confirmation of what has been noted, using EXACTLY these facts and no others (one fact per line is fine here): ${extra.summary}. Then: "Our GCS loan specialist will review the details you have shared to identify potentially suitable lenders. We will contact you to discuss the next steps. Final eligibility and terms will depend on the respective lender's assessment." Then say that if anything is wrong they can simply reply with the correction. Thank them by first name.` : " Thank them by first name and say an expert from our team will contact them soon and will go through anything else."} ${extra.checklist ? ` Also say that the documents usually needed for this loan are listed here, and give this link exactly: ${extra.checklist}. Say they need not send anything now.` : ""} Do not ask any more questions. If one of your earlier messages already said an expert will contact them, do NOT say it again: reply with one short friendly closing line only.`,
       );
     } else {
       lines.push("They want a person. Say a team member will message them here soon. Do not ask any questions.");

@@ -5,6 +5,8 @@ export type IntakeField = {
   key: string;
   label: string;
   kind: string;
+  /** The title of the part of the form this question sits in, so the assistant can introduce each new part. */
+  section?: string;
   options?: string[];
   showWhen?: { key: string; values: string[] };
   required?: boolean;
@@ -31,6 +33,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "homeLoanType",
     "label": "Type of home loan",
     "kind": "choice",
+    "section": "About the home you want to buy or build",
     "options": [
      "Home Loan",
      "Home Construction Loan",
@@ -48,6 +51,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About the home you want to buy or build",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -55,6 +59,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purpose",
     "label": "Type of property",
     "kind": "choice",
+    "section": "About the home you want to buy or build",
     "options": [
      "Ready-to-move flat or house",
      "Under-construction property (builder purchase)",
@@ -76,6 +81,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyKind",
     "label": "Is it a flat or a house?",
     "kind": "choice",
+    "section": "About the home you want to buy or build",
     "options": [
      "Flat / apartment",
      "Independent house / villa",
@@ -95,6 +101,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyStatus",
     "label": "Where are you with the property?",
     "kind": "choice",
+    "section": "About the home you want to buy or build",
     "options": [
      "Already finalised",
      "Shortlisted a few",
@@ -114,6 +121,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bookingPaid",
     "label": "Have you already paid a booking amount?",
     "kind": "choice",
+    "section": "About the home you want to buy or build",
     "options": [
      "Yes",
      "No"
@@ -129,6 +137,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "plotOwned",
     "label": "Do you already own the plot?",
     "kind": "choice",
+    "section": "About the home you want to buy or build",
     "options": [
      "Yes, it is in my name",
      "Yes, jointly or in the family",
@@ -145,6 +154,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constructionPlotOwned",
     "label": "Do you already own the plot?",
     "kind": "choice",
+    "section": "About the home you want to buy or build",
     "options": [
      "Yes, it is in my name",
      "Yes, jointly or in the family",
@@ -161,12 +171,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyArea",
     "label": "Location of the property",
     "kind": "text",
+    "section": "About the home you want to buy or build",
     "help": "Lenders differ by city and by locality."
    },
    {
     "key": "builderName",
     "label": "Builder / project name",
     "kind": "text",
+    "section": "About the home you want to buy or build",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -178,6 +190,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "agreementValue",
     "label": "Property price / agreement value",
     "kind": "amount",
+    "section": "About the home you want to buy or build",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -193,6 +206,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "workCost",
     "label": "Estimated cost of the construction / renovation",
     "kind": "amount",
+    "section": "About the home you want to buy or build",
     "showWhen": {
      "key": "homeLoanType",
      "values": [
@@ -207,6 +221,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "selfBuildCost",
     "label": "Estimated cost of the construction",
     "kind": "amount",
+    "section": "About the home you want to buy or build",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -219,6 +234,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bank",
     "label": "Which bank or finance company has the loan now?",
     "kind": "text",
+    "section": "About the home you want to buy or build",
     "showWhen": {
      "key": "homeLoanType",
      "values": [
@@ -232,6 +248,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "outstanding",
     "label": "Amount still to be repaid on it",
     "kind": "amount",
+    "section": "About the home you want to buy or build",
     "showWhen": {
      "key": "homeLoanType",
      "values": [
@@ -245,6 +262,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "topUp",
     "label": "Top-up amount you need",
     "kind": "amount",
+    "section": "About the home you want to buy or build",
     "showWhen": {
      "key": "homeLoanType",
      "values": [
@@ -257,6 +275,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownContribution",
     "label": "Your own contribution available (savings or down payment)",
     "kind": "amount",
+    "section": "About the home you want to buy or build",
     "showWhen": {
      "key": "homeLoanType",
      "values": [
@@ -275,6 +294,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Up to 10 years",
      "10 to 15 years",
@@ -288,6 +308,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the loan?",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Immediately",
      "Within a month",
@@ -299,6 +320,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "applicantCategory",
     "label": "Type of income (salaried, self-employed or NRI)",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Salaried",
      "Self-Employed",
@@ -309,6 +331,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "employerType",
     "label": "Where do you work?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Government / PSU",
      "Listed or MNC company",
@@ -327,6 +350,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInJob",
     "label": "Time with the current employer",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -344,6 +368,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "totalExperience",
     "label": "Total work experience so far",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -361,6 +386,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "netSalary",
     "label": "Monthly take-home salary",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantCategory",
      "values": [
@@ -372,6 +398,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "salaryMode",
     "label": "How is the salary paid?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Credited to a bank account",
      "Partly cash",
@@ -391,6 +418,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "businessType",
     "label": "Your business or profession",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantCategory",
      "values": [
@@ -402,6 +430,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInBusiness",
     "label": "Years in the business or profession",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -419,6 +448,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -435,6 +465,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "None",
      "1 year",
@@ -452,6 +483,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -468,6 +500,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantCategory",
      "values": [
@@ -479,6 +512,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -493,6 +527,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "country",
     "label": "Country you live and work in",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantCategory",
      "values": [
@@ -504,6 +539,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsAbroad",
     "label": "Years working abroad",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 5 years",
@@ -520,6 +556,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nriIncome",
     "label": "Monthly income, in rupees",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantCategory",
      "values": [
@@ -531,6 +568,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nriAccount",
     "label": "Do you have an NRE / NRO account in India?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -546,6 +584,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "indiaSigner",
     "label": "Is there someone in India who can sign for you on a Power of Attorney?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No",
@@ -562,12 +601,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherIncome",
     "label": "Other regular monthly income (rent, interest, etc.)",
     "kind": "amount",
+    "section": "Your work and income",
     "allowZero": true
    },
    {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -577,6 +618,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -590,6 +632,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -601,6 +644,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -622,6 +666,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -633,6 +678,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -644,6 +690,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -656,6 +703,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -667,6 +715,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -678,6 +727,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -693,6 +743,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -704,6 +755,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -725,6 +777,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -736,6 +789,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -748,6 +802,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -765,6 +820,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -777,6 +833,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -793,6 +850,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -811,6 +869,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a home loan with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -820,6 +879,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -831,6 +891,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -851,6 +912,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -862,6 +924,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a home loan application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -871,6 +934,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -882,6 +946,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicant",
     "label": "Will someone apply with you (spouse, parent, sibling, partner)?",
     "kind": "choice",
+    "section": "Anyone applying with you?",
     "options": [
      "Yes",
      "No"
@@ -891,6 +956,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "Anyone applying with you?",
     "options": [
      "Spouse",
      "Parent",
@@ -910,6 +976,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantMobile",
     "label": "Their mobile number",
     "kind": "text",
+    "section": "Anyone applying with you?",
     "showWhen": {
      "key": "coApplicant",
      "values": [
@@ -921,6 +988,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantWork",
     "label": "What do they do?",
     "kind": "choice",
+    "section": "Anyone applying with you?",
     "options": [
      "Salaried",
      "Runs a business",
@@ -939,6 +1007,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantIncome",
     "label": "Their monthly income",
     "kind": "amount",
+    "section": "Anyone applying with you?",
     "showWhen": {
      "key": "coApplicantWork",
      "values": [
@@ -954,6 +1023,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantEmi",
     "label": "EMIs they already pay every month",
     "kind": "amount",
+    "section": "Anyone applying with you?",
     "showWhen": {
      "key": "coApplicantWork",
      "values": [
@@ -969,6 +1039,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -978,6 +1049,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -997,6 +1069,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -1008,6 +1081,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -1024,6 +1098,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -1033,6 +1108,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -1048,6 +1124,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -1059,6 +1136,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -1068,6 +1146,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -1087,6 +1166,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -1098,6 +1178,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -1113,6 +1194,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -1124,12 +1206,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -1143,6 +1258,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanType",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About the loan you have today",
     "options": [
      "Home Loan Balance Transfer",
      "Home Loan Balance Transfer + Top-Up",
@@ -1158,6 +1274,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About the loan you have today",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -1165,6 +1282,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "applicantType",
     "label": "You are",
     "kind": "choice",
+    "section": "About the loan you have today",
     "options": [
      "Salaried",
      "Self-Employed",
@@ -1176,27 +1294,32 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "bank",
     "label": "Which bank or finance company has it now?",
-    "kind": "text"
+    "kind": "text",
+    "section": "About the loan you have today"
    },
    {
     "key": "outstanding",
     "label": "Amount still to be repaid",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "About the loan you have today"
    },
    {
     "key": "rate",
     "label": "Interest rate you pay now",
-    "kind": "percent"
+    "kind": "percent",
+    "section": "About the loan you have today"
    },
    {
     "key": "emi",
     "label": "Your EMI for this loan",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "About the loan you have today"
    },
    {
     "key": "remaining",
     "label": "How long is left on the loan?",
     "kind": "choice",
+    "section": "About the loan you have today",
     "options": [
      "Less than 5 years",
      "5 to 10 years",
@@ -1209,6 +1332,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vintage",
     "label": "How long have you been repaying it?",
     "kind": "choice",
+    "section": "About the loan you have today",
     "options": [
      "Less than 1 year",
      "1 to 2 years",
@@ -1222,6 +1346,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "track",
     "label": "How regular has the repayment been?",
     "kind": "choice",
+    "section": "About the loan you have today",
     "options": [
      "Every EMI on time",
      "A few delays or bounces",
@@ -1232,6 +1357,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When would you like to move the loan?",
     "kind": "choice",
+    "section": "About the loan you have today",
     "options": [
      "Immediately",
      "Within a month",
@@ -1243,6 +1369,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "trackReason",
     "label": "Briefly, what caused the delay or overdue?",
     "kind": "text",
+    "section": "About the loan you have today",
     "showWhen": {
      "key": "track",
      "values": [
@@ -1255,6 +1382,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "odSanctioned",
     "label": "Original sanctioned limit",
     "kind": "amount",
+    "section": "Your present overdraft facility",
     "showWhen": {
      "key": "loanType",
      "values": [
@@ -1266,6 +1394,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "odCurrentLimit",
     "label": "Current sanctioned limit, after any reductions",
     "kind": "amount",
+    "section": "Your present overdraft facility",
     "showWhen": {
      "key": "loanType",
      "values": [
@@ -1277,6 +1406,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "odDrawing",
     "label": "Drawing power or unused limit available today",
     "kind": "amount",
+    "section": "Your present overdraft facility",
     "showWhen": {
      "key": "loanType",
      "values": [
@@ -1289,6 +1419,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "odRateType",
     "label": "Is the interest rate fixed or floating?",
     "kind": "choice",
+    "section": "Your present overdraft facility",
     "options": [
      "Floating",
      "Fixed",
@@ -1305,6 +1436,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "odRepayment",
     "label": "How is your monthly payment structured?",
     "kind": "choice",
+    "section": "Your present overdraft facility",
     "options": [
      "Interest plus principal",
      "Interest only",
@@ -1321,6 +1453,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "odInterestDebit",
     "label": "Interest debited to the account each month",
     "kind": "amount",
+    "section": "Your present overdraft facility",
     "showWhen": {
      "key": "loanType",
      "values": [
@@ -1333,6 +1466,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "odReduction",
     "label": "How does the limit come down?",
     "kind": "text",
+    "section": "Your present overdraft facility",
     "showWhen": {
      "key": "loanType",
      "values": [
@@ -1344,6 +1478,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "odRenewal",
     "label": "Renewal or maturity date of the facility",
     "kind": "text",
+    "section": "Your present overdraft facility",
     "showWhen": {
      "key": "loanType",
      "values": [
@@ -1355,6 +1490,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "odOverdue",
     "label": "Is any amount overdue right now?",
     "kind": "choice",
+    "section": "Your present overdraft facility",
     "options": [
      "No",
      "Yes"
@@ -1370,6 +1506,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "odOverdueAmount",
     "label": "How much is overdue?",
     "kind": "amount",
+    "section": "Your present overdraft facility",
     "showWhen": {
      "key": "odOverdue",
      "values": [
@@ -1381,6 +1518,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "topUp",
     "label": "Top-up amount you need",
     "kind": "amount",
+    "section": "The top-up you would like",
     "showWhen": {
      "key": "loanType",
      "values": [
@@ -1395,6 +1533,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "topUpPurpose",
     "label": "What is the top-up for?",
     "kind": "choice",
+    "section": "The top-up you would like",
     "options": [
      "Business expansion or working capital",
      "Buying or building a property",
@@ -1418,6 +1557,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyKind",
     "label": "Type of property",
     "kind": "choice",
+    "section": "The property behind the loan",
     "options": [
      "Residential",
      "Commercial",
@@ -1437,17 +1577,20 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "propertyArea",
     "label": "Location of the property",
-    "kind": "text"
+    "kind": "text",
+    "section": "The property behind the loan"
    },
    {
     "key": "propertyValue",
     "label": "Approximate market value today",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "The property behind the loan"
    },
    {
     "key": "ownership",
     "label": "Whose name is the property in?",
     "kind": "choice",
+    "section": "The property behind the loan",
     "options": [
      "My own name",
      "Jointly with spouse or family",
@@ -1459,6 +1602,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownerSign",
     "label": "Will the property owner(s) sign the application and the mortgage papers?",
     "kind": "choice",
+    "section": "The property behind the loan",
     "options": [
      "Yes",
      "No",
@@ -1477,6 +1621,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "docsReady",
     "label": "Do you have the latest loan statement and the sanction letter?",
     "kind": "choice",
+    "section": "The property behind the loan",
     "options": [
      "Yes, both",
      "Only one of them",
@@ -1487,6 +1632,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "employerType",
     "label": "Where do you work?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Government / PSU",
      "Listed or MNC company",
@@ -1505,6 +1651,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInJob",
     "label": "Time with the current employer",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -1522,6 +1669,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "totalExperience",
     "label": "Total work experience so far",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -1539,6 +1687,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "netSalary",
     "label": "Monthly take-home salary",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -1550,6 +1699,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "salaryMode",
     "label": "How is the salary paid?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Credited to a bank account",
      "Partly cash",
@@ -1569,6 +1719,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "businessType",
     "label": "Your business or profession",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -1582,6 +1733,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInBusiness",
     "label": "Years in the business or profession",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -1601,6 +1753,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -1619,6 +1772,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "None",
      "1 year",
@@ -1638,6 +1792,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -1654,6 +1809,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -1667,6 +1823,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -1681,12 +1838,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherIncome",
     "label": "Other regular monthly income (rent, interest, etc.)",
     "kind": "amount",
+    "section": "Your work and income",
     "allowZero": true
    },
    {
     "key": "hasLoans",
     "label": "Do you have any other running loans or credit cards, apart from this one?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -1696,6 +1855,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -1709,6 +1869,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -1720,6 +1881,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -1741,6 +1903,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -1752,6 +1915,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -1763,6 +1927,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -1775,6 +1940,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -1786,6 +1952,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -1797,6 +1964,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -1812,6 +1980,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -1823,6 +1992,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -1844,6 +2014,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -1855,6 +2026,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -1867,6 +2039,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -1884,6 +2057,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -1896,6 +2070,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -1912,6 +2087,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -1930,6 +2106,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a balance transfer with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -1939,6 +2116,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -1950,6 +2128,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -1970,6 +2149,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -1981,6 +2161,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a balance transfer application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -1990,6 +2171,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -2001,6 +2183,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -2010,6 +2193,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -2029,6 +2213,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -2040,6 +2225,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -2056,6 +2242,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -2065,6 +2252,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -2080,6 +2268,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -2091,6 +2280,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -2100,6 +2290,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -2119,6 +2310,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -2130,6 +2322,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -2145,6 +2338,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -2156,12 +2350,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -2193,6 +2420,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Loan Against Property (LAP)",
      "LAP Balance Transfer",
@@ -2208,6 +2436,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About the property you would offer as security",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -2215,6 +2444,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purposeBusiness",
     "label": "What do you need the money for?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Business expansion or working capital",
      "Buying machinery or stock",
@@ -2235,6 +2465,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purpose",
     "label": "What do you need the money for?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Repaying other loans",
      "Medical need",
@@ -2256,6 +2487,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyKind",
     "label": "Type of property",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Residential (flat / house)",
      "Commercial (shop / office)",
@@ -2268,6 +2500,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyUse",
     "label": "How is the property used today?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Self-occupied or self-used",
      "Rented out",
@@ -2286,6 +2519,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "monthlyRent",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "About the property you would offer as security",
     "showWhen": {
      "key": "propertyUse",
      "values": [
@@ -2297,18 +2531,21 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyArea",
     "label": "Location of the property",
     "kind": "text",
+    "section": "About the property you would offer as security",
     "help": "Lenders differ by city and by locality."
    },
    {
     "key": "propertyValue",
     "label": "Approximate market value of the property",
     "kind": "amount",
+    "section": "About the property you would offer as security",
     "help": "A rough figure is fine."
    },
    {
     "key": "ownership",
     "label": "Whose name is the property in?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "My own name",
      "Jointly with spouse or family",
@@ -2320,6 +2557,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownerJoins",
     "label": "Will the owner(s) sign the application along with you?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Yes",
      "No",
@@ -2339,6 +2577,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingMortgage",
     "label": "Is there already a loan on this property?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Yes",
      "No"
@@ -2348,6 +2587,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "mortgageOutstanding",
     "label": "Amount still to be repaid on it",
     "kind": "amount",
+    "section": "About the property you would offer as security",
     "showWhen": {
      "key": "existingMortgage",
      "values": [
@@ -2360,6 +2600,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "mortgageWish",
     "label": "What would you like to do with that loan?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Move it to a cheaper lender and take a top-up",
      "Keep it and raise a second loan",
@@ -2376,6 +2617,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "titleClear",
     "label": "Is the title clear, with all the original documents with you?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Yes",
      "Some documents are missing",
@@ -2386,6 +2628,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Up to 5 years",
      "5 to 10 years",
@@ -2398,6 +2641,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "structure",
     "label": "Which kind of loan would suit you?",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "A term loan with fixed EMIs",
      "An overdraft limit I can draw and repay",
@@ -2409,6 +2653,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the loan?",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Immediately",
      "Within a month",
@@ -2420,6 +2665,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "applicantCategory",
     "label": "Type of income (salaried, self-employed or NRI)",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Salaried",
      "Self-Employed",
@@ -2430,6 +2676,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "employerType",
     "label": "Where do you work?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Government / PSU",
      "Listed or MNC company",
@@ -2448,6 +2695,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInJob",
     "label": "Time with the current employer",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -2465,6 +2713,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "totalExperience",
     "label": "Total work experience so far",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -2482,6 +2731,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "netSalary",
     "label": "Monthly take-home salary",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantCategory",
      "values": [
@@ -2493,6 +2743,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "salaryMode",
     "label": "How is the salary paid?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Credited to a bank account",
      "Partly cash",
@@ -2512,6 +2763,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "businessType",
     "label": "Your business or profession",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantCategory",
      "values": [
@@ -2523,6 +2775,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInBusiness",
     "label": "Years in the business or profession",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -2540,6 +2793,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -2556,6 +2810,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "None",
      "1 year",
@@ -2573,6 +2828,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -2589,6 +2845,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantCategory",
      "values": [
@@ -2600,6 +2857,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -2614,6 +2872,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "country",
     "label": "Country you live and work in",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantCategory",
      "values": [
@@ -2625,6 +2884,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsAbroad",
     "label": "Years working abroad",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 5 years",
@@ -2641,6 +2901,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nriIncome",
     "label": "Monthly income, in rupees",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantCategory",
      "values": [
@@ -2652,6 +2913,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nriAccount",
     "label": "Do you have an NRE / NRO account in India?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -2667,6 +2929,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "indiaSigner",
     "label": "Is there someone in India who can sign for you on a Power of Attorney?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No",
@@ -2683,12 +2946,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherIncome",
     "label": "Other regular monthly income (rent, interest, etc.)",
     "kind": "amount",
+    "section": "Your work and income",
     "allowZero": true
    },
    {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -2698,6 +2963,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -2711,6 +2977,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -2722,6 +2989,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -2743,6 +3011,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -2754,6 +3023,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -2765,6 +3035,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -2777,6 +3048,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -2788,6 +3060,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -2799,6 +3072,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -2814,6 +3088,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -2825,6 +3100,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -2846,6 +3122,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -2857,6 +3134,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -2869,6 +3147,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -2886,6 +3165,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -2898,6 +3178,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -2914,6 +3195,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -2932,6 +3214,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a loan against property with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -2941,6 +3224,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -2952,6 +3236,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -2972,6 +3257,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -2983,6 +3269,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a loan against property application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -2992,6 +3279,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -3003,6 +3291,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicant",
     "label": "Will someone apply with you (spouse, parent, sibling, partner)?",
     "kind": "choice",
+    "section": "Anyone applying with you?",
     "options": [
      "Yes",
      "No"
@@ -3012,6 +3301,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "Anyone applying with you?",
     "options": [
      "Spouse",
      "Parent",
@@ -3031,6 +3321,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantMobile",
     "label": "Their mobile number",
     "kind": "text",
+    "section": "Anyone applying with you?",
     "showWhen": {
      "key": "coApplicant",
      "values": [
@@ -3042,6 +3333,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantWork",
     "label": "What do they do?",
     "kind": "choice",
+    "section": "Anyone applying with you?",
     "options": [
      "Salaried",
      "Runs a business",
@@ -3060,6 +3352,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantIncome",
     "label": "Their monthly income",
     "kind": "amount",
+    "section": "Anyone applying with you?",
     "showWhen": {
      "key": "coApplicantWork",
      "values": [
@@ -3075,6 +3368,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantEmi",
     "label": "EMIs they already pay every month",
     "kind": "amount",
+    "section": "Anyone applying with you?",
     "showWhen": {
      "key": "coApplicantWork",
      "values": [
@@ -3090,6 +3384,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -3099,6 +3394,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -3118,6 +3414,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -3129,6 +3426,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -3145,6 +3443,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -3154,6 +3453,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -3169,6 +3469,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -3180,6 +3481,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -3189,6 +3491,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -3208,6 +3511,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -3219,6 +3523,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -3234,6 +3539,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -3245,12 +3551,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -3279,6 +3618,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Micro LAP",
      "Micro LAP Top-Up",
@@ -3291,6 +3631,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About the property you would offer as security",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -3298,6 +3639,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "applicantType",
     "label": "Type of income (salaried or self-employed)",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Salaried",
      "Self-Employed"
@@ -3308,6 +3650,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purposeBusiness",
     "label": "What do you need the money for?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Business expansion or working capital",
      "Buying machinery or stock",
@@ -3328,6 +3671,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purpose",
     "label": "What do you need the money for?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Repaying other loans",
      "Medical need",
@@ -3348,6 +3692,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyKind",
     "label": "Type of property",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Residential (flat / house)",
      "Commercial (shop / office)",
@@ -3360,6 +3705,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyUse",
     "label": "How is the property used today?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Self-occupied or self-used",
      "Rented out",
@@ -3378,6 +3724,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "monthlyRent",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "About the property you would offer as security",
     "showWhen": {
      "key": "propertyUse",
      "values": [
@@ -3389,18 +3736,21 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyArea",
     "label": "Location of the property",
     "kind": "text",
+    "section": "About the property you would offer as security",
     "help": "Lenders differ by city and by locality."
    },
    {
     "key": "propertyValue",
     "label": "Approximate market value of the property",
     "kind": "amount",
+    "section": "About the property you would offer as security",
     "help": "A rough figure is fine."
    },
    {
     "key": "ownership",
     "label": "Whose name is the property in?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "My own name",
      "Jointly with spouse or family",
@@ -3412,6 +3762,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownerJoins",
     "label": "Will the owner(s) sign the application along with you?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Yes",
      "No",
@@ -3431,6 +3782,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingMortgage",
     "label": "Is there already a loan on this property?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Yes",
      "No"
@@ -3440,6 +3792,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "mortgageOutstanding",
     "label": "Amount still to be repaid on it",
     "kind": "amount",
+    "section": "About the property you would offer as security",
     "showWhen": {
      "key": "existingMortgage",
      "values": [
@@ -3452,6 +3805,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "mortgageWish",
     "label": "What would you like to do with that loan?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Move it to a cheaper lender and take a top-up",
      "Keep it and raise a second loan",
@@ -3468,6 +3822,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "titleClear",
     "label": "Is the title clear, with all the original documents with you?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Yes",
      "Some documents are missing",
@@ -3478,6 +3833,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Up to 3 years",
      "3 to 5 years",
@@ -3490,6 +3846,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the loan?",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Immediately",
      "Within a month",
@@ -3501,6 +3858,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "employerType",
     "label": "Where do you work?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Government / PSU",
      "Listed or MNC company",
@@ -3519,6 +3877,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInJob",
     "label": "Time with the current employer",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -3536,6 +3895,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "totalExperience",
     "label": "Total work experience so far",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -3553,6 +3913,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "netSalary",
     "label": "Monthly take-home salary",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -3564,6 +3925,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "salaryMode",
     "label": "How is the salary paid?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Credited to a bank account",
      "Partly cash",
@@ -3583,6 +3945,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "businessType",
     "label": "Your business or profession",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -3594,6 +3957,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInBusiness",
     "label": "Years in the business or profession",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -3611,6 +3975,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -3627,6 +3992,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "None",
      "1 year",
@@ -3644,6 +4010,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -3660,6 +4027,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -3671,6 +4039,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -3685,12 +4054,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherIncome",
     "label": "Other regular monthly income (rent, interest, etc.)",
     "kind": "amount",
+    "section": "Your work and income",
     "allowZero": true
    },
    {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -3700,6 +4071,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -3713,6 +4085,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -3724,6 +4097,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -3745,6 +4119,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -3756,6 +4131,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -3767,6 +4143,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -3779,6 +4156,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -3790,6 +4168,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -3801,6 +4180,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -3816,6 +4196,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -3827,6 +4208,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -3848,6 +4230,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -3859,6 +4242,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -3871,6 +4255,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -3888,6 +4273,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -3900,6 +4286,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -3916,6 +4303,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -3934,6 +4322,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a loan against property with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -3943,6 +4332,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -3954,6 +4344,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -3974,6 +4365,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -3985,6 +4377,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a loan against property application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -3994,6 +4387,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -4005,6 +4399,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicant",
     "label": "Will someone apply with you (spouse, parent, sibling, partner)?",
     "kind": "choice",
+    "section": "Anyone applying with you?",
     "options": [
      "Yes",
      "No"
@@ -4014,6 +4409,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "Anyone applying with you?",
     "options": [
      "Spouse",
      "Parent",
@@ -4033,6 +4429,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantMobile",
     "label": "Their mobile number",
     "kind": "text",
+    "section": "Anyone applying with you?",
     "showWhen": {
      "key": "coApplicant",
      "values": [
@@ -4044,6 +4441,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantWork",
     "label": "What do they do?",
     "kind": "choice",
+    "section": "Anyone applying with you?",
     "options": [
      "Salaried",
      "Runs a business",
@@ -4062,6 +4460,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantIncome",
     "label": "Their monthly income",
     "kind": "amount",
+    "section": "Anyone applying with you?",
     "showWhen": {
      "key": "coApplicantWork",
      "values": [
@@ -4077,6 +4476,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coApplicantEmi",
     "label": "EMIs they already pay every month",
     "kind": "amount",
+    "section": "Anyone applying with you?",
     "showWhen": {
      "key": "coApplicantWork",
      "values": [
@@ -4092,6 +4492,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -4101,6 +4502,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -4120,6 +4522,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -4131,6 +4534,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -4147,6 +4551,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -4156,6 +4561,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -4171,6 +4577,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -4182,6 +4589,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -4191,6 +4599,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -4210,6 +4619,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -4221,6 +4631,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -4236,6 +4647,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -4247,12 +4659,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -4277,6 +4722,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About the let-out property and the lease",
     "options": [
      "Lease Rental Discounting (LRD)",
      "LRD Balance Transfer",
@@ -4288,6 +4734,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About the let-out property and the lease",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -4295,6 +4742,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyKind",
     "label": "Type of property",
     "kind": "choice",
+    "section": "About the let-out property and the lease",
     "options": [
      "Office",
      "Shop / retail space",
@@ -4309,12 +4757,20 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "propertyArea",
     "label": "Location of the property",
-    "kind": "text"
+    "kind": "text",
+    "section": "About the let-out property and the lease"
+   },
+   {
+    "key": "lrdPropertyValue",
+    "label": "Approximate market value of the property",
+    "kind": "amount",
+    "section": "About the let-out property and the lease"
    },
    {
     "key": "leaseRegistered",
     "label": "Is the lease registered?",
     "kind": "choice",
+    "section": "About the let-out property and the lease",
     "options": [
      "Yes",
      "Registration is under way",
@@ -4325,6 +4781,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "leaseRemaining",
     "label": "How long does the lease still have to run?",
     "kind": "choice",
+    "section": "About the let-out property and the lease",
     "options": [
      "Less than 3 years",
      "3 to 5 years",
@@ -4336,6 +4793,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenantType",
     "label": "Who is the tenant?",
     "kind": "choice",
+    "section": "About the let-out property and the lease",
     "options": [
      "A listed or multinational company",
      "A private limited company",
@@ -4347,12 +4805,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyRent",
     "label": "Total rent received every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "About the let-out property and the lease"
    },
    {
     "key": "rentMode",
     "label": "How is the rent paid to you?",
     "kind": "choice",
+    "section": "About the let-out property and the lease",
     "options": [
      "By bank transfer",
      "By cheque",
@@ -4363,6 +4823,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentRecord",
     "label": "Has the rent come in on time?",
     "kind": "choice",
+    "section": "About the let-out property and the lease",
     "options": [
      "Always",
      "Mostly, with a few delays",
@@ -4373,6 +4834,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingMortgage",
     "label": "Is there already a loan on this property?",
     "kind": "choice",
+    "section": "About the let-out property and the lease",
     "options": [
      "Yes",
      "No"
@@ -4382,6 +4844,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "mortgageOutstanding",
     "label": "Amount still to be repaid on it",
     "kind": "amount",
+    "section": "About the let-out property and the lease",
     "showWhen": {
      "key": "existingMortgage",
      "values": [
@@ -4394,6 +4857,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "mortgageWish",
     "label": "Do you want to refinance it through this loan?",
     "kind": "choice",
+    "section": "About the let-out property and the lease",
     "options": [
      "Yes",
      "No"
@@ -4409,6 +4873,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Up to 5 years",
      "5 to 10 years",
@@ -4421,6 +4886,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the loan?",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Immediately",
      "Within a month",
@@ -4432,6 +4898,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purpose",
     "label": "What will you use the money for?",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Business needs",
      "Buying another property",
@@ -4444,6 +4911,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownerType",
     "label": "Who owns the property?",
     "kind": "choice",
+    "section": "About you, the owner",
     "options": [
      "An individual (or jointly with family)",
      "A company",
@@ -4454,6 +4922,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownerIncome",
     "label": "Your other regular monthly income, apart from this rent",
     "kind": "amount",
+    "section": "About you, the owner",
     "showWhen": {
      "key": "ownerType",
      "values": [
@@ -4466,6 +4935,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "About you, the owner",
     "options": [
      "None",
      "1 year",
@@ -4483,6 +4953,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "firmYears",
     "label": "Years the company or firm has been running",
     "kind": "choice",
+    "section": "About you, the owner",
     "options": [
      "Less than 2 years",
      "2 to 5 years",
@@ -4500,6 +4971,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "firmTurnover",
     "label": "Annual turnover (last financial year)",
     "kind": "amount",
+    "section": "About you, the owner",
     "showWhen": {
      "key": "ownerType",
      "values": [
@@ -4512,6 +4984,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -4521,6 +4994,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -4534,6 +5008,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -4545,6 +5020,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -4566,6 +5042,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -4577,6 +5054,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -4588,6 +5066,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -4600,6 +5079,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -4611,6 +5091,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -4622,6 +5103,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -4637,6 +5119,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -4648,6 +5131,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -4669,6 +5153,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -4680,6 +5165,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -4692,6 +5178,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -4709,6 +5196,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -4721,6 +5209,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -4737,6 +5226,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -4755,6 +5245,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a lease rental discounting with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -4764,6 +5255,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -4775,6 +5267,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -4795,6 +5288,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -4806,6 +5300,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a lease rental discounting application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -4815,6 +5310,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -4826,6 +5322,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -4835,6 +5332,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -4854,6 +5352,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -4865,6 +5364,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -4881,6 +5381,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -4890,6 +5391,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -4905,6 +5407,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -4916,6 +5419,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -4925,6 +5429,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -4944,6 +5449,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -4955,6 +5461,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -4970,6 +5477,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -4981,12 +5489,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -5012,6 +5553,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Drop-Line Overdraft (DOD)",
      "Drop-Line Overdraft Balance Transfer",
@@ -5023,6 +5565,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About the property you would offer as security",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -5030,6 +5573,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "applicantType",
     "label": "Type of income (salaried or self-employed)",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Salaried",
      "Self-Employed"
@@ -5040,6 +5584,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your business or practice set up?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Professional (doctor, CA, architect, etc.)",
      "Proprietorship",
@@ -5058,6 +5603,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purposeBusiness",
     "label": "What do you need the money for?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Business expansion or working capital",
      "Buying machinery or stock",
@@ -5078,6 +5624,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purpose",
     "label": "What do you need the money for?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Repaying other loans",
      "Medical need",
@@ -5098,6 +5645,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyKind",
     "label": "Type of property",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Residential (flat / house)",
      "Commercial (shop / office)",
@@ -5110,6 +5658,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyUse",
     "label": "How is the property used today?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Self-occupied or self-used",
      "Rented out",
@@ -5128,6 +5677,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "monthlyRent",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "About the property you would offer as security",
     "showWhen": {
      "key": "propertyUse",
      "values": [
@@ -5139,18 +5689,21 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyArea",
     "label": "Location of the property",
     "kind": "text",
+    "section": "About the property you would offer as security",
     "help": "Lenders differ by city and by locality."
    },
    {
     "key": "propertyValue",
     "label": "Approximate market value of the property",
     "kind": "amount",
+    "section": "About the property you would offer as security",
     "help": "A rough figure is fine."
    },
    {
     "key": "ownership",
     "label": "Whose name is the property in?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "My own name",
      "Jointly with spouse or family",
@@ -5162,6 +5715,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownerJoins",
     "label": "Will the owner(s) sign the application along with you?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Yes",
      "No",
@@ -5181,6 +5735,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingMortgage",
     "label": "Is there already a loan on this property?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Yes",
      "No"
@@ -5190,6 +5745,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "mortgageOutstanding",
     "label": "Amount still to be repaid on it",
     "kind": "amount",
+    "section": "About the property you would offer as security",
     "showWhen": {
      "key": "existingMortgage",
      "values": [
@@ -5202,6 +5758,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "titleClear",
     "label": "Is the title clear, with all the original documents with you?",
     "kind": "choice",
+    "section": "About the property you would offer as security",
     "options": [
      "Yes",
      "Some documents are missing",
@@ -5212,6 +5769,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "requirement",
     "label": "Is this a new limit or a move from another lender?",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "A fresh limit",
      "Move my present overdraft or loan",
@@ -5222,6 +5780,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btLender",
     "label": "Which lender has it now?",
     "kind": "text",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -5234,6 +5793,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btOutstanding",
     "label": "Present outstanding or limit",
     "kind": "amount",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -5246,6 +5806,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btRate",
     "label": "Interest rate you pay now",
     "kind": "percent",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -5258,6 +5819,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btSanctioned",
     "label": "Current sanctioned limit",
     "kind": "amount",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -5270,6 +5832,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btDrawing",
     "label": "Unused limit or drawing power available today",
     "kind": "amount",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -5283,6 +5846,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btRenewal",
     "label": "Renewal or maturity date of the present facility",
     "kind": "text",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -5295,6 +5859,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btOverdue",
     "label": "Is any amount overdue on it right now?",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "No",
      "Yes"
@@ -5311,6 +5876,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btExtra",
     "label": "Extra funding you need",
     "kind": "amount",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -5322,6 +5888,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "usage",
     "label": "How will you use the limit?",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "Draw and repay often, as cash needs go up and down",
      "Draw most of it once and repay steadily",
@@ -5333,6 +5900,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred period",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "Up to 5 years",
      "5 to 10 years",
@@ -5345,6 +5913,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need it?",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "Immediately",
      "Within a month",
@@ -5355,17 +5924,20 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "primaryBank",
     "label": "Your main bank",
-    "kind": "text"
+    "kind": "text",
+    "section": "Your banking"
    },
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into the account every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Your banking"
    },
    {
     "key": "chequeReturns",
     "label": "Any cheque returns or missed instalments in the last 6 months?",
     "kind": "choice",
+    "section": "Your banking",
     "options": [
      "No",
      "Yes, once or twice",
@@ -5376,6 +5948,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "employerType",
     "label": "Where do you work?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Government / PSU",
      "Listed or MNC company",
@@ -5394,6 +5967,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInJob",
     "label": "Time with the current employer",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -5411,6 +5985,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "totalExperience",
     "label": "Total work experience so far",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -5428,6 +6003,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "netSalary",
     "label": "Monthly take-home salary",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -5439,6 +6015,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "salaryMode",
     "label": "How is the salary paid?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Credited to a bank account",
      "Partly cash",
@@ -5458,6 +6035,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "businessType",
     "label": "Your business or profession",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -5469,6 +6047,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInBusiness",
     "label": "Years in the business or profession",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -5486,6 +6065,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -5502,6 +6082,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "None",
      "1 year",
@@ -5519,6 +6100,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -5535,6 +6117,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -5546,6 +6129,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -5560,12 +6144,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherIncome",
     "label": "Other regular monthly income (rent, interest, etc.)",
     "kind": "amount",
+    "section": "Your work and income",
     "allowZero": true
    },
    {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -5575,6 +6161,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -5588,6 +6175,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -5599,6 +6187,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -5620,6 +6209,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -5631,6 +6221,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -5642,6 +6233,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -5654,6 +6246,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -5665,6 +6258,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -5676,6 +6270,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -5691,6 +6286,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -5702,6 +6298,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -5723,6 +6320,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -5734,6 +6332,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -5746,6 +6345,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -5763,6 +6363,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -5775,6 +6376,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -5791,6 +6393,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -5809,6 +6412,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a drop-line overdraft with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -5818,6 +6422,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -5829,6 +6434,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -5849,6 +6455,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -5860,6 +6467,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a drop-line overdraft application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -5869,6 +6477,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -5880,6 +6489,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -5889,6 +6499,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -5908,6 +6519,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -5919,6 +6531,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -5935,6 +6548,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -5944,6 +6558,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -5959,6 +6574,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -5970,6 +6586,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -5979,6 +6596,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -5998,6 +6616,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -6009,6 +6628,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -6024,6 +6644,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -6035,12 +6656,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -6074,6 +6728,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About the project",
     "options": [
      "Land Purchase Loan",
      "Construction Finance",
@@ -6088,6 +6743,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About the project",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -6095,6 +6751,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "projectType",
     "label": "What kind of project is it?",
     "kind": "choice",
+    "section": "About the project",
     "options": [
      "Residential project or township",
      "Commercial project, mall or office",
@@ -6107,12 +6764,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "projectArea",
     "label": "Where is the project?",
-    "kind": "text"
+    "kind": "text",
+    "section": "About the project"
    },
    {
     "key": "stage",
     "label": "Where is the project today?",
     "kind": "choice",
+    "section": "About the project",
     "options": [
      "Still to buy the land",
      "Land bought, approvals pending",
@@ -6125,6 +6784,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "progress",
     "label": "How much of the construction is done?",
     "kind": "choice",
+    "section": "About the project",
     "options": [
      "Less than 25%",
      "25% to 50%",
@@ -6142,6 +6802,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "sold",
     "label": "How much of the project is already sold or let?",
     "kind": "choice",
+    "section": "About the project",
     "options": [
      "Nothing yet",
      "Up to 25%",
@@ -6161,12 +6822,31 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "projectCost",
     "label": "Total project cost",
     "kind": "amount",
+    "section": "Cost, contribution and security",
     "help": "Land, building, machinery, set-up and other costs."
+   },
+   {
+    "key": "titleClear",
+    "label": "Are the title documents for the land clear?",
+    "kind": "choice",
+    "section": "Cost, contribution and security",
+    "options": [
+     "Yes",
+     "Some documents are missing",
+     "Not sure"
+    ]
+   },
+   {
+    "key": "completionBy",
+    "label": "When do you expect the project to be complete?",
+    "kind": "text",
+    "section": "Cost, contribution and security"
    },
    {
     "key": "landOwned",
     "label": "Is the land in the project's or promoter's name?",
     "kind": "choice",
+    "section": "Cost, contribution and security",
     "options": [
      "Yes, fully owned",
      "Under a joint development agreement"
@@ -6185,6 +6865,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownContribution",
     "label": "Your own contribution so far",
     "kind": "amount",
+    "section": "Cost, contribution and security",
     "allowZero": true,
     "help": "Lenders fund only a part of the cost, so the rest has to come from the promoters."
    },
@@ -6192,6 +6873,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "security",
     "label": "What security can you offer? (pick all that apply)",
     "kind": "multi",
+    "section": "Cost, contribution and security",
     "options": [
      "The project itself",
      "Other residential property",
@@ -6205,12 +6887,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "securityValue",
     "label": "Approximate value of the security",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Cost, contribution and security"
    },
    {
     "key": "projectDebt",
     "label": "Is there already a loan on the project or the land?",
     "kind": "choice",
+    "section": "Cost, contribution and security",
     "options": [
      "Yes",
      "No"
@@ -6220,6 +6904,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "projectDebtAmount",
     "label": "Amount still to be repaid on it",
     "kind": "amount",
+    "section": "Cost, contribution and security",
     "showWhen": {
      "key": "projectDebt",
      "values": [
@@ -6232,6 +6917,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the funds?",
     "kind": "choice",
+    "section": "Cost, contribution and security",
     "options": [
      "Immediately",
      "Within a month",
@@ -6243,6 +6929,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is the promoter entity set up?",
     "kind": "choice",
+    "section": "About the promoters",
     "options": [
      "Proprietorship",
      "Partnership or LLP",
@@ -6256,6 +6943,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "venture",
     "label": "Is this a new venture or an existing business?",
     "kind": "choice",
+    "section": "About the promoters",
     "options": [
      "An existing business",
      "A new venture"
@@ -6265,6 +6953,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInBusiness",
     "label": "Years in business",
     "kind": "choice",
+    "section": "About the promoters",
     "options": [
      "Less than 3 years",
      "3 to 5 years",
@@ -6282,6 +6971,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "turnover",
     "label": "Latest annual turnover of the business",
     "kind": "amount",
+    "section": "About the promoters",
     "showWhen": {
      "key": "venture",
      "values": [
@@ -6293,6 +6983,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "profit",
     "label": "Net profit or cash accruals last year",
     "kind": "amount",
+    "section": "About the promoters",
     "showWhen": {
      "key": "venture",
      "values": [
@@ -6305,6 +6996,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "projectsDone",
     "label": "How many similar projects have the promoters completed?",
     "kind": "choice",
+    "section": "Experience and approvals",
     "options": [
      "None, this is the first",
      "1 or 2",
@@ -6316,6 +7008,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "experience",
     "label": "The promoters' relevant experience",
     "kind": "text",
+    "section": "Experience and approvals",
     "showWhen": {
      "key": "projectsDone",
      "values": [
@@ -6327,6 +7020,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "approvals",
     "label": "How far are the main approvals and licences?",
     "kind": "choice",
+    "section": "Experience and approvals",
     "options": [
      "All in place",
      "Some are pending",
@@ -6345,6 +7039,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "approvalsPending",
     "label": "Which ones are still pending?",
     "kind": "text",
+    "section": "Experience and approvals",
     "showWhen": {
      "key": "approvals",
      "values": [
@@ -6357,6 +7052,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rera",
     "label": "Is the project registered under RERA?",
     "kind": "choice",
+    "section": "Experience and approvals",
     "options": [
      "Yes",
      "Applied",
@@ -6375,6 +7071,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "dpr",
     "label": "Is the Detailed Project Report ready?",
     "kind": "choice",
+    "section": "Experience and approvals",
     "options": [
      "Yes",
      "In process",
@@ -6393,6 +7090,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -6402,6 +7100,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -6415,6 +7114,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -6426,6 +7126,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -6447,6 +7148,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -6458,6 +7160,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -6469,6 +7172,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -6481,6 +7185,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -6492,6 +7197,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -6503,6 +7209,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -6518,6 +7225,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -6529,6 +7237,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -6550,6 +7259,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -6561,6 +7271,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -6573,6 +7284,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed repayments or cheque returns in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -6590,6 +7302,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is the owner's or promoters' CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -6602,6 +7315,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -6618,6 +7332,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -6636,6 +7351,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a project funding with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -6645,6 +7361,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -6656,6 +7373,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -6676,6 +7394,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -6687,6 +7406,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a project funding application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -6696,6 +7416,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -6707,6 +7428,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -6716,6 +7438,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -6735,6 +7458,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -6746,6 +7470,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -6762,6 +7487,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -6771,6 +7497,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -6786,6 +7513,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -6797,6 +7525,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -6806,6 +7535,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -6825,6 +7555,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -6836,6 +7567,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -6851,6 +7583,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -6862,12 +7595,25 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -6905,6 +7651,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About you",
     "options": [
      "Personal Loan",
      "Wedding Loan",
@@ -6920,6 +7667,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About you",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -6927,6 +7675,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "age",
     "label": "Your age",
     "kind": "choice",
+    "section": "About you",
     "options": [
      "Below 21",
      "21 to 35",
@@ -6940,6 +7689,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "residence",
     "label": "Where do you live?",
     "kind": "choice",
+    "section": "About you",
     "options": [
      "In my own house",
      "In a rented house",
@@ -6951,6 +7701,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "applicantType",
     "label": "Type of income (salaried or self-employed)",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Salaried",
      "Self-Employed"
@@ -6961,6 +7712,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "employerType",
     "label": "Where do you work?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Government / PSU",
      "Listed or MNC company",
@@ -6979,6 +7731,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInJob",
     "label": "Time with the current employer",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -6996,6 +7749,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "totalExperience",
     "label": "Total work experience so far",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -7013,6 +7767,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "netSalary",
     "label": "Monthly take-home salary",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -7024,6 +7779,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "salaryMode",
     "label": "How is the salary paid?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Credited to a bank account",
      "Partly cash",
@@ -7043,6 +7799,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "businessType",
     "label": "Your business or profession",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -7054,6 +7811,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInBusiness",
     "label": "Years in the business or profession",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -7071,6 +7829,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -7087,6 +7846,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "None",
      "1 year",
@@ -7104,6 +7864,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -7120,6 +7881,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -7131,6 +7893,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -7145,12 +7908,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherIncome",
     "label": "Other regular monthly income (rent, interest, etc.)",
     "kind": "amount",
+    "section": "Your work and income",
     "allowZero": true
    },
    {
     "key": "purpose",
     "label": "What is the loan for?",
     "kind": "choice",
+    "section": "What you need the loan for",
     "options": [
      "Medical need",
      "Wedding",
@@ -7166,6 +7931,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purposeOther",
     "label": "Please say what it is for",
     "kind": "text",
+    "section": "What you need the loan for",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -7177,6 +7943,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "repayAmount",
     "label": "Amount of the loans you want to repay",
     "kind": "amount",
+    "section": "What you need the loan for",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -7188,6 +7955,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "What you need the loan for",
     "options": [
      "Up to 1 year",
      "1 to 2 years",
@@ -7200,6 +7968,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the money?",
     "kind": "choice",
+    "section": "What you need the loan for",
     "options": [
      "Immediately",
      "Within a month",
@@ -7211,6 +7980,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -7220,6 +7990,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7233,6 +8004,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7244,6 +8016,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -7265,6 +8038,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7276,6 +8050,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7287,6 +8062,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7299,6 +8075,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7310,6 +8087,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7321,6 +8099,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -7336,6 +8115,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -7347,6 +8127,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -7368,6 +8149,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -7379,6 +8161,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -7391,6 +8174,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -7408,6 +8192,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -7420,6 +8205,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -7436,6 +8222,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -7454,6 +8241,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a personal loan with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -7463,6 +8251,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -7474,6 +8263,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -7494,6 +8284,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -7505,6 +8296,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a personal loan application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -7514,6 +8306,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -7525,6 +8318,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -7534,6 +8328,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -7553,6 +8348,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -7564,6 +8360,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -7580,6 +8377,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -7589,6 +8387,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -7604,6 +8403,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -7615,6 +8415,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -7624,6 +8425,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -7643,6 +8445,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -7654,6 +8457,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -7669,6 +8473,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -7680,12 +8485,31 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -7710,6 +8534,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Unsecured Business Loan",
      "Secured Business Loan",
@@ -7724,6 +8549,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nature",
     "label": "Industry",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Manufacturing",
      "Trading or distribution",
@@ -7744,6 +8570,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About your business",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -7751,6 +8578,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your business set up?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Proprietorship",
      "Partnership",
@@ -7765,6 +8593,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vintage",
     "label": "How long has the business been running?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -7777,6 +8606,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -7787,6 +8617,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "None",
      "1 year",
@@ -7798,6 +8629,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "Yes",
      "No"
@@ -7813,12 +8645,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Turnover and proof of income"
    },
    {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Turnover and proof of income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -7832,12 +8666,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into your business accounts every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Turnover and proof of income"
    },
    {
     "key": "purpose",
     "label": "What is the loan for?",
     "kind": "choice",
+    "section": "What you need the money for",
     "options": [
      "Working capital",
      "Expanding the business",
@@ -7851,6 +8687,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purposeOther",
     "label": "Please say what it is for",
     "kind": "text",
+    "section": "What you need the money for",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -7862,6 +8699,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "repayAmount",
     "label": "Amount of the loans you want to repay",
     "kind": "amount",
+    "section": "What you need the money for",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -7873,6 +8711,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "What you need the money for",
     "options": [
      "Up to 1 year",
      "1 to 2 years",
@@ -7885,6 +8724,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the loan?",
     "kind": "choice",
+    "section": "What you need the money for",
     "options": [
      "Immediately",
      "Within a month",
@@ -7896,6 +8736,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -7905,6 +8746,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7918,6 +8760,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7929,6 +8772,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -7950,6 +8794,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7961,6 +8806,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7972,6 +8818,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7984,6 +8831,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -7995,6 +8843,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -8006,6 +8855,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -8021,6 +8871,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -8032,6 +8883,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -8053,6 +8905,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -8064,6 +8917,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -8076,6 +8930,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed repayments or cheque returns in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -8093,6 +8948,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is the owner's or promoters' CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -8105,6 +8961,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -8121,6 +8978,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -8139,6 +8997,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a business loan with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -8148,6 +9007,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -8159,6 +9019,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -8179,6 +9040,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -8190,6 +9052,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a business loan application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -8199,6 +9062,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -8210,6 +9074,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -8219,6 +9084,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -8238,6 +9104,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -8249,6 +9116,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -8265,6 +9133,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -8274,6 +9143,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -8289,6 +9159,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -8300,6 +9171,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -8309,6 +9181,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -8328,6 +9201,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -8339,6 +9213,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -8354,6 +9229,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -8365,12 +9241,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -8389,6 +9298,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About you and your business",
     "options": [
      "Micro Business Loan",
      "Micro Business Loan Balance Transfer",
@@ -8401,6 +9311,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About you and your business",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -8408,6 +9319,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your business set up?",
     "kind": "choice",
+    "section": "About you and your business",
     "options": [
      "Self-employed individual",
      "Sole proprietorship",
@@ -8421,6 +9333,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nature",
     "label": "What does your business do?",
     "kind": "choice",
+    "section": "About you and your business",
     "options": [
      "Manufacturing",
      "Trading or distribution",
@@ -8436,6 +9349,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vintage",
     "label": "How long has the business been running?",
     "kind": "choice",
+    "section": "About you and your business",
     "options": [
      "Less than 1 year",
      "1 to 2 years",
@@ -8448,6 +9362,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "age",
     "label": "Your age",
     "kind": "choice",
+    "section": "About you and your business",
     "options": [
      "Below 25",
      "25 to 40",
@@ -8461,6 +9376,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "womanCoApplicant",
     "label": "Can a woman from your family apply with you as co-applicant?",
     "kind": "choice",
+    "section": "About you and your business",
     "options": [
      "Yes",
      "I am a woman applicant",
@@ -8472,6 +9388,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "accountAge",
     "label": "Has your business account been in use for at least 6 months?",
     "kind": "choice",
+    "section": "Your banking and income",
     "options": [
      "Yes",
      "No"
@@ -8481,6 +9398,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "audited",
     "label": "Do you have audited or CA-certified statements for the last 2 to 3 years?",
     "kind": "choice",
+    "section": "Your banking and income",
     "options": [
      "Yes, all years",
      "Some years",
@@ -8491,6 +9409,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Your banking and income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -8501,6 +9420,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your banking and income",
     "options": [
      "None",
      "1 year",
@@ -8512,6 +9432,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 6 months of business bank statements?",
     "kind": "choice",
+    "section": "Your banking and income",
     "options": [
      "Yes",
      "No"
@@ -8527,12 +9448,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Your banking and income"
    },
    {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your banking and income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -8546,12 +9469,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into your business accounts every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Your banking and income"
    },
    {
     "key": "propertyOwner",
     "label": "Does anyone in your family own a house or shop that could be on the deal?",
     "kind": "choice",
+    "section": "Property and repayment",
     "options": [
      "Yes, I own one",
      "Yes, a family member owns one",
@@ -8563,6 +9488,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyKind",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "Property and repayment",
     "options": [
      "Residential",
      "Commercial",
@@ -8580,6 +9506,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purpose",
     "label": "What is the loan for?",
     "kind": "choice",
+    "section": "Property and repayment",
     "options": [
      "Working capital",
      "Expanding the business",
@@ -8592,6 +9519,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purposeOther",
     "label": "Please say what it is for",
     "kind": "text",
+    "section": "Property and repayment",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -8603,6 +9531,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "Property and repayment",
     "options": [
      "Up to 1 year",
      "1 to 2 years",
@@ -8615,6 +9544,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the loan?",
     "kind": "choice",
+    "section": "Property and repayment",
     "options": [
      "Immediately",
      "Within a month",
@@ -8626,6 +9556,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -8635,6 +9566,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -8648,6 +9580,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -8659,6 +9592,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -8680,6 +9614,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -8691,6 +9626,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -8702,6 +9638,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -8714,6 +9651,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -8725,6 +9663,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -8736,6 +9675,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -8751,6 +9691,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -8762,6 +9703,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -8783,6 +9725,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -8794,6 +9737,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -8806,6 +9750,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed repayments or cheque returns in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -8823,6 +9768,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is the owner's or promoters' CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -8835,6 +9781,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -8851,6 +9798,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -8869,6 +9817,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a micro business loan with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -8878,6 +9827,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -8889,6 +9839,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -8909,6 +9860,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -8920,6 +9872,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a micro business loan application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -8929,6 +9882,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -8940,6 +9894,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -8949,6 +9904,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -8968,6 +9924,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -8979,6 +9936,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -8995,6 +9953,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -9004,6 +9963,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -9019,6 +9979,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -9030,6 +9991,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -9039,6 +10001,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -9058,6 +10021,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -9069,6 +10033,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -9084,6 +10049,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -9095,12 +10061,31 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -9137,6 +10122,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About your enterprise",
     "options": [
      "CGTMSE Term Loan",
      "CGTMSE Working Capital",
@@ -9151,6 +10137,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About your enterprise",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -9158,6 +10145,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "udyam",
     "label": "Is your enterprise registered under Udyam?",
     "kind": "choice",
+    "section": "About your enterprise",
     "options": [
      "Yes",
      "Applied",
@@ -9169,6 +10157,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "udyamSize",
     "label": "Which category is your Udyam certificate in?",
     "kind": "choice",
+    "section": "About your enterprise",
     "options": [
      "Micro",
      "Small",
@@ -9185,6 +10174,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your enterprise set up?",
     "kind": "choice",
+    "section": "About your enterprise",
     "options": [
      "Proprietorship",
      "Partnership",
@@ -9197,6 +10187,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "activity",
     "label": "What does your enterprise do?",
     "kind": "choice",
+    "section": "About your enterprise",
     "options": [
      "Manufacturing",
      "Services",
@@ -9209,6 +10200,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vintage",
     "label": "How long has it been running?",
     "kind": "choice",
+    "section": "About your enterprise",
     "options": [
      "Less than 1 year",
      "1 to 2 years",
@@ -9221,6 +10213,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "structure",
     "label": "What kind of facility do you need?",
     "kind": "choice",
+    "section": "The facility you need",
     "options": [
      "A term loan",
      "A working capital limit",
@@ -9229,9 +10222,21 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     ]
    },
    {
+    "key": "cgtCollateral",
+    "label": "Is any collateral already given to another lender for this business?",
+    "kind": "choice",
+    "section": "The facility you need",
+    "options": [
+     "No",
+     "Yes",
+     "Not sure"
+    ]
+   },
+   {
     "key": "termFor",
     "label": "What will the term loan be used for?",
     "kind": "choice",
+    "section": "The facility you need",
     "options": [
      "Machinery or equipment",
      "Building or premises",
@@ -9251,6 +10256,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "planReady",
     "label": "Is a business or project plan ready?",
     "kind": "choice",
+    "section": "The facility you need",
     "options": [
      "Yes",
      "In process",
@@ -9268,6 +10274,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "The facility you need",
     "options": [
      "Up to 3 years",
      "3 to 5 years",
@@ -9280,6 +10287,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need it?",
     "kind": "choice",
+    "section": "The facility you need",
     "options": [
      "Immediately",
      "Within a month",
@@ -9291,6 +10299,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -9301,6 +10310,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "None",
      "1 year",
@@ -9312,6 +10322,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "Yes",
      "No"
@@ -9327,12 +10338,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Turnover and proof of income"
    },
    {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Turnover and proof of income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -9346,12 +10359,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into your business accounts every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Turnover and proof of income"
    },
    {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -9361,6 +10376,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -9374,6 +10390,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -9385,6 +10402,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -9406,6 +10424,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -9417,6 +10436,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -9428,6 +10448,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -9440,6 +10461,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -9451,6 +10473,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -9462,6 +10485,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -9477,6 +10501,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -9488,6 +10513,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -9509,6 +10535,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -9520,6 +10547,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -9532,6 +10560,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed repayments or cheque returns in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -9549,6 +10578,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is the owner's or promoters' CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -9561,6 +10591,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -9577,6 +10608,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -9595,6 +10627,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a CGTMSE loan with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -9604,6 +10637,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -9615,6 +10649,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -9635,6 +10670,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -9646,6 +10682,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a CGTMSE loan application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -9655,6 +10692,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -9666,6 +10704,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -9675,6 +10714,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -9694,6 +10734,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -9705,6 +10746,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -9721,6 +10763,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -9730,6 +10773,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -9745,6 +10789,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -9756,6 +10801,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -9765,6 +10811,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -9784,6 +10831,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -9795,6 +10843,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -9810,6 +10859,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -9821,12 +10871,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -9865,6 +10948,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "The equipment",
     "options": [
      "New Machinery Loan",
      "Used Machinery Loan",
@@ -9879,6 +10963,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nature",
     "label": "Type of industry",
     "kind": "choice",
+    "section": "The equipment",
     "options": [
      "Engineering & Manufacturing",
      "Automobile",
@@ -9904,6 +10989,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "The equipment",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -9911,6 +10997,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "equipment",
     "label": "What do you want to finance?",
     "kind": "choice",
+    "section": "The equipment",
     "options": [
      "Machinery for production",
      "Medical equipment",
@@ -9924,6 +11011,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "condition",
     "label": "Is it new or used?",
     "kind": "choice",
+    "section": "The equipment",
     "options": [
      "New",
      "Used"
@@ -9933,6 +11021,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "machineAge",
     "label": "How old is the machine?",
     "kind": "text",
+    "section": "The equipment",
     "showWhen": {
      "key": "condition",
      "values": [
@@ -9944,6 +11033,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "quotation",
     "label": "Do you have a quotation or proforma invoice?",
     "kind": "choice",
+    "section": "The equipment",
     "options": [
      "Yes",
      "Not yet"
@@ -9953,6 +11043,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vendorStatus",
     "label": "Have you finalised the machine vendor?",
     "kind": "choice",
+    "section": "The equipment",
     "options": [
      "Yes, finalised",
      "Not finalised yet"
@@ -9962,6 +11053,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vendorName",
     "label": "Who is the vendor?",
     "kind": "text",
+    "section": "The equipment",
     "showWhen": {
      "key": "vendorStatus",
      "values": [
@@ -9972,19 +11064,43 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "cost",
     "label": "Total cost of the equipment, including GST",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "The equipment"
    },
    {
     "key": "ownContribution",
     "label": "Your own contribution",
     "kind": "amount",
+    "section": "The equipment",
     "allowZero": true,
     "help": "Many lenders fund most of the cost, but not always all of it."
+   },
+   {
+    "key": "machineOrigin",
+    "label": "Will the machine be bought in India or imported?",
+    "kind": "choice",
+    "section": "The equipment",
+    "options": [
+     "Bought in India",
+     "Imported"
+    ]
+   },
+   {
+    "key": "machineHypothecated",
+    "label": "Is the machine already financed or hypothecated to anyone?",
+    "kind": "choice",
+    "section": "The equipment",
+    "options": [
+     "No",
+     "Yes",
+     "Not sure"
+    ]
    },
    {
     "key": "leaseTerm",
     "label": "For how long would you like to lease it?",
     "kind": "choice",
+    "section": "The equipment",
     "options": [
      "1 year",
      "2 years",
@@ -10001,6 +11117,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your business set up?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Proprietorship",
      "Partnership",
@@ -10014,6 +11131,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nature",
     "label": "What does your business do?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Manufacturing",
      "Trading or distribution",
@@ -10029,6 +11147,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vintage",
     "label": "How long has the business been running?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -10041,6 +11160,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "profitable",
     "label": "Has the business made a profit in each of the last 2 years?",
     "kind": "choice",
+    "section": "Profit, turnover and banking",
     "options": [
      "Yes, both years",
      "One of the two",
@@ -10051,6 +11171,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Profit, turnover and banking",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -10061,6 +11182,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Profit, turnover and banking",
     "options": [
      "None",
      "1 year",
@@ -10072,6 +11194,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Profit, turnover and banking",
     "options": [
      "Yes",
      "No"
@@ -10087,12 +11210,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Profit, turnover and banking"
    },
    {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Profit, turnover and banking",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -10106,12 +11231,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into your business accounts every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Profit, turnover and banking"
    },
    {
     "key": "premisesOwned",
     "label": "Does the business or its owner own a factory or property?",
     "kind": "choice",
+    "section": "Profit, turnover and banking",
     "options": [
      "Yes",
      "No"
@@ -10122,6 +11249,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Up to 2 years",
      "2 to 4 years",
@@ -10134,6 +11262,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the funds?",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Immediately",
      "Within a month",
@@ -10145,6 +11274,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -10154,6 +11284,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10167,6 +11298,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10178,6 +11310,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -10199,6 +11332,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10210,6 +11344,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10221,6 +11356,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10233,6 +11369,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10244,6 +11381,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10255,6 +11393,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -10270,6 +11409,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -10281,6 +11421,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -10302,6 +11443,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -10313,6 +11455,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -10325,6 +11468,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed repayments or cheque returns in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -10342,6 +11486,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is the owner's or promoters' CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -10354,6 +11499,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -10370,6 +11516,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -10388,6 +11535,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a machine loan with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -10397,6 +11545,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -10408,6 +11557,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -10428,6 +11578,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -10439,6 +11590,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a machine loan application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -10448,6 +11600,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -10459,6 +11612,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -10468,6 +11622,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -10487,6 +11642,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -10498,6 +11654,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -10514,6 +11671,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -10523,6 +11681,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -10538,6 +11697,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -10549,6 +11709,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -10558,6 +11719,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -10577,6 +11739,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -10588,6 +11751,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -10603,6 +11767,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -10614,12 +11779,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -10649,6 +11847,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Working Capital Term Loan",
      "Cash Credit / Overdraft Regularisation",
@@ -10662,6 +11861,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About your business",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -10669,6 +11869,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your business set up?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Proprietorship",
      "Partnership",
@@ -10683,6 +11884,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nature",
     "label": "What does your business do?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Manufacturing",
      "Trading or distribution",
@@ -10698,6 +11900,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vintage",
     "label": "How long has the business been running?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -10710,6 +11913,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gapCause",
     "label": "What do you need it for?",
     "kind": "choice",
+    "section": "The cash gap",
     "options": [
      "A gap between paying suppliers and getting paid",
      "To regularise a stretched cash credit or overdraft",
@@ -10723,6 +11927,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "stretchedBank",
     "label": "Which bank has the cash credit or overdraft?",
     "kind": "text",
+    "section": "The cash gap",
     "showWhen": {
      "key": "gapCause",
      "values": [
@@ -10734,6 +11939,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "stretchedAmount",
     "label": "Amount outstanding on it",
     "kind": "amount",
+    "section": "The cash gap",
     "showWhen": {
      "key": "gapCause",
      "values": [
@@ -10745,6 +11951,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "duesAmount",
     "label": "Total of the dues you want to consolidate",
     "kind": "amount",
+    "section": "The cash gap",
     "showWhen": {
      "key": "gapCause",
      "values": [
@@ -10756,6 +11963,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gapCauseOther",
     "label": "Please say what it is for",
     "kind": "text",
+    "section": "The cash gap",
     "showWhen": {
      "key": "gapCause",
      "values": [
@@ -10767,6 +11975,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "audited",
     "label": "Do you have audited or CA-certified statements for the last 2 to 3 years?",
     "kind": "choice",
+    "section": "Accounts and turnover",
     "options": [
      "Yes, all years",
      "Some years",
@@ -10777,6 +11986,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Accounts and turnover",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -10787,6 +11997,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Accounts and turnover",
     "options": [
      "None",
      "1 year",
@@ -10798,6 +12009,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Accounts and turnover",
     "options": [
      "Yes",
      "No"
@@ -10813,12 +12025,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Accounts and turnover"
    },
    {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Accounts and turnover",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -10832,12 +12046,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into your business accounts every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Accounts and turnover"
    },
    {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Up to 1 year",
      "1 to 2 years",
@@ -10850,6 +12066,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "moratorium",
     "label": "Would a gap before the EMIs start help you?",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Yes",
      "No"
@@ -10860,6 +12077,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the loan?",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Immediately",
      "Within a month",
@@ -10871,6 +12089,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -10880,6 +12099,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10893,6 +12113,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10904,6 +12125,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -10925,6 +12147,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10936,6 +12159,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10947,6 +12171,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10959,6 +12184,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10970,6 +12196,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -10981,6 +12208,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -10996,6 +12224,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -11007,6 +12236,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -11028,6 +12258,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -11039,6 +12270,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -11051,6 +12283,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed repayments or cheque returns in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -11068,6 +12301,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is the owner's or promoters' CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -11080,6 +12314,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -11096,6 +12331,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -11114,6 +12350,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a working capital term loan with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -11123,6 +12360,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -11134,6 +12372,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -11154,6 +12393,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -11165,6 +12405,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a working capital term loan application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -11174,6 +12415,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -11185,6 +12427,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -11194,6 +12437,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -11213,6 +12457,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -11224,6 +12469,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -11240,6 +12486,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -11249,6 +12496,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -11264,6 +12512,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -11275,6 +12524,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -11284,6 +12534,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -11303,6 +12554,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -11314,6 +12566,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -11329,6 +12582,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -11340,12 +12594,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -11365,6 +12652,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Cash Credit against Stock and Debtors",
      "Cash Credit against Receivables",
@@ -11378,6 +12666,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About your business",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -11385,6 +12674,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your business set up?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Proprietorship",
      "Partnership",
@@ -11398,6 +12688,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nature",
     "label": "What does your business do?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Manufacturing",
      "Trading or distribution",
@@ -11413,6 +12704,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vintage",
     "label": "How long has the business been running?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -11424,29 +12716,34 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "avgStock",
     "label": "Value of the stock you usually hold",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Stock and customers"
    },
    {
     "key": "avgDebtors",
     "label": "Money customers owe you at any time",
     "kind": "amount",
+    "section": "Stock and customers",
     "allowZero": true
    },
    {
     "key": "avgCreditors",
     "label": "Money you owe your suppliers at any time",
     "kind": "amount",
+    "section": "Stock and customers",
     "allowZero": true
    },
    {
     "key": "projectedTurnover",
     "label": "Sales you expect in the coming year",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Stock and customers"
    },
    {
     "key": "creditPeriod",
     "label": "How long do customers take to pay you?",
     "kind": "choice",
+    "section": "Stock and customers",
     "options": [
      "They pay in cash",
      "Up to 30 days",
@@ -11459,6 +12756,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "stockStatements",
     "label": "Can you give the lender a stock statement every month?",
     "kind": "choice",
+    "section": "Stock and customers",
     "options": [
      "Yes",
      "Yes, with my accountant's help",
@@ -11470,6 +12768,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "requirement",
     "label": "Is this a new limit or a move from another lender?",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "A new limit",
      "Move my present limit to another bank",
@@ -11480,6 +12779,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "presentLender",
     "label": "Which lender has it now?",
     "kind": "text",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -11492,6 +12792,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "presentLimit",
     "label": "Present limit or outstanding",
     "kind": "amount",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -11504,6 +12805,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "presentRate",
     "label": "Interest rate you pay now",
     "kind": "percent",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -11516,6 +12818,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "security",
     "label": "What can you offer as security, besides stock and money owed to you?",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "A property",
      "Fixed deposits or securities",
@@ -11526,6 +12829,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "securityValue",
     "label": "Approximate value of it",
     "kind": "amount",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "security",
      "values": [
@@ -11538,6 +12842,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need it?",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "Immediately",
      "Within a month",
@@ -11549,6 +12854,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "audited",
     "label": "Are your accounts audited?",
     "kind": "choice",
+    "section": "Accounts and turnover",
     "options": [
      "Yes",
      "Not yet",
@@ -11559,6 +12865,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Accounts and turnover",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -11569,6 +12876,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Accounts and turnover",
     "options": [
      "None",
      "1 year",
@@ -11580,6 +12888,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Accounts and turnover",
     "options": [
      "Yes",
      "No"
@@ -11595,12 +12904,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Accounts and turnover"
    },
    {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Accounts and turnover",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -11614,12 +12925,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into your business accounts every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Accounts and turnover"
    },
    {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -11629,6 +12942,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -11642,6 +12956,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -11653,6 +12968,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -11674,6 +12990,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -11685,6 +13002,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -11696,6 +13014,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -11708,6 +13027,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -11719,6 +13039,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -11730,6 +13051,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -11745,6 +13067,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -11756,6 +13079,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -11777,6 +13101,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -11788,6 +13113,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -11800,6 +13126,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed repayments or cheque returns in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -11817,6 +13144,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is the owner's or promoters' CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -11829,6 +13157,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -11845,6 +13174,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -11863,6 +13193,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a cash credit with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -11872,6 +13203,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -11883,6 +13215,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -11903,6 +13236,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -11914,6 +13248,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a cash credit application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -11923,6 +13258,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -11934,6 +13270,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -11943,6 +13280,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -11962,6 +13300,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -11973,6 +13312,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -11989,6 +13329,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -11998,6 +13339,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -12013,6 +13355,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -12024,6 +13367,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -12033,6 +13377,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -12052,6 +13397,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -12063,6 +13409,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -12078,6 +13425,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -12089,12 +13437,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -12132,6 +13513,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About you",
     "options": [
      "Overdraft against Property",
      "Overdraft against Fixed Deposits",
@@ -12146,6 +13528,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About you",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -12153,6 +13536,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "applicantType",
     "label": "Type of income (salaried or self-employed)",
     "kind": "choice",
+    "section": "About you",
     "options": [
      "Salaried",
      "Self-Employed"
@@ -12163,6 +13547,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your business or practice set up?",
     "kind": "choice",
+    "section": "About you",
     "options": [
      "Professional (doctor, CA, architect, etc.)",
      "Proprietorship",
@@ -12181,6 +13566,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "securityKind",
     "label": "How would you like it secured?",
     "kind": "choice",
+    "section": "The overdraft you would like",
     "options": [
      "Against a property",
      "Against fixed deposits or securities",
@@ -12192,6 +13578,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyKind",
     "label": "What kind of property?",
     "kind": "choice",
+    "section": "The overdraft you would like",
     "options": [
      "Residential",
      "Commercial",
@@ -12209,6 +13596,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyValue",
     "label": "Approximate market value of the property",
     "kind": "amount",
+    "section": "The overdraft you would like",
     "showWhen": {
      "key": "securityKind",
      "values": [
@@ -12220,6 +13608,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownership",
     "label": "Whose name is the property in?",
     "kind": "choice",
+    "section": "The overdraft you would like",
     "options": [
      "My own name",
      "Jointly with spouse or family",
@@ -12237,6 +13626,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "depositValue",
     "label": "Approximate value of the deposits or securities",
     "kind": "amount",
+    "section": "The overdraft you would like",
     "showWhen": {
      "key": "securityKind",
      "values": [
@@ -12248,6 +13638,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "requirement",
     "label": "Is this a new overdraft or a move from another lender?",
     "kind": "choice",
+    "section": "The overdraft you would like",
     "options": [
      "A fresh overdraft",
      "Move my present overdraft or loan",
@@ -12258,6 +13649,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "presentLender",
     "label": "Which lender has it now?",
     "kind": "text",
+    "section": "The overdraft you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -12270,6 +13662,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "presentLimit",
     "label": "Present limit or outstanding",
     "kind": "amount",
+    "section": "The overdraft you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -12282,6 +13675,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "presentRate",
     "label": "Interest rate you pay now",
     "kind": "percent",
+    "section": "The overdraft you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -12294,6 +13688,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "presentUsed",
     "label": "How much of the present limit do you use on average?",
     "kind": "amount",
+    "section": "The overdraft you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -12307,6 +13702,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "odPurpose",
     "label": "What will the overdraft be used for?",
     "kind": "choice",
+    "section": "The overdraft you would like",
     "options": [
      "Business cash flow",
      "Buying stock or paying suppliers",
@@ -12320,6 +13716,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need it?",
     "kind": "choice",
+    "section": "The overdraft you would like",
     "options": [
      "Immediately",
      "Within a month",
@@ -12330,17 +13727,20 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "primaryBank",
     "label": "Your main bank",
-    "kind": "text"
+    "kind": "text",
+    "section": "Your banking"
    },
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into the account every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Your banking"
    },
    {
     "key": "chequeReturns",
     "label": "Any cheque returns or missed instalments in the last 6 months?",
     "kind": "choice",
+    "section": "Your banking",
     "options": [
      "No",
      "Yes, once or twice",
@@ -12351,6 +13751,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "employerType",
     "label": "Where do you work?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Government / PSU",
      "Listed or MNC company",
@@ -12369,6 +13770,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInJob",
     "label": "Time with the current employer",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -12386,6 +13788,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "totalExperience",
     "label": "Total work experience so far",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -12403,6 +13806,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "netSalary",
     "label": "Monthly take-home salary",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -12414,6 +13818,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "salaryMode",
     "label": "How is the salary paid?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Credited to a bank account",
      "Partly cash",
@@ -12433,6 +13838,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "businessType",
     "label": "Your business or profession",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -12444,6 +13850,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInBusiness",
     "label": "Years in the business or profession",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -12461,6 +13868,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -12477,6 +13885,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "None",
      "1 year",
@@ -12494,6 +13903,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -12510,6 +13920,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -12521,6 +13932,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -12535,12 +13947,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherIncome",
     "label": "Other regular monthly income (rent, interest, etc.)",
     "kind": "amount",
+    "section": "Your work and income",
     "allowZero": true
    },
    {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -12550,6 +13964,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -12563,6 +13978,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -12574,6 +13990,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -12595,6 +14012,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -12606,6 +14024,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -12617,6 +14036,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -12629,6 +14049,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -12640,6 +14061,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -12651,6 +14073,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -12666,6 +14089,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -12677,6 +14101,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -12698,6 +14123,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -12709,6 +14135,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -12721,6 +14148,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -12738,6 +14166,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -12750,6 +14179,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -12766,6 +14196,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -12784,6 +14215,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for an overdraft with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -12793,6 +14225,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -12804,6 +14237,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -12824,6 +14258,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -12835,6 +14270,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has an overdraft application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -12844,6 +14280,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -12855,6 +14292,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -12864,6 +14302,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -12883,6 +14322,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -12894,6 +14334,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -12910,6 +14351,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -12919,6 +14361,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -12934,6 +14377,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -12945,6 +14389,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -12954,6 +14399,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -12973,6 +14419,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -12984,6 +14431,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -12999,6 +14447,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -13010,12 +14459,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -13051,6 +14533,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "The guarantee",
     "options": [
      "Performance Guarantee",
      "Financial Guarantee",
@@ -13067,6 +14550,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "The guarantee",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -13074,6 +14558,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bgType",
     "label": "What kind of guarantee do you need?",
     "kind": "choice",
+    "section": "The guarantee",
     "options": [
      "Performance guarantee",
      "Financial guarantee",
@@ -13088,6 +14573,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "beneficiary",
     "label": "Who is it for?",
     "kind": "choice",
+    "section": "The guarantee",
     "options": [
      "A government department or PSU",
      "A private company",
@@ -13098,6 +14584,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "contractDoc",
     "label": "Do you have the tender or contract document?",
     "kind": "choice",
+    "section": "The guarantee",
     "options": [
      "Yes",
      "Not yet"
@@ -13107,6 +14594,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "validity",
     "label": "For how long does it have to run?",
     "kind": "choice",
+    "section": "The guarantee",
     "options": [
      "Up to 6 months",
      "6 to 12 months",
@@ -13115,9 +14603,27 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     ]
    },
    {
+    "key": "bgTenderValue",
+    "label": "Value of the contract or tender",
+    "kind": "amount",
+    "section": "The guarantee"
+   },
+   {
+    "key": "bgClaimPeriod",
+    "label": "Does the guarantee need a claim period after it expires?",
+    "kind": "choice",
+    "section": "The guarantee",
+    "options": [
+     "Yes",
+     "No",
+     "Not sure"
+    ]
+   },
+   {
     "key": "timeline",
     "label": "By when do you need it?",
     "kind": "choice",
+    "section": "The guarantee",
     "options": [
      "Within a week",
      "Within a month",
@@ -13128,6 +14634,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "margin",
     "label": "How much cash margin can you keep with the bank?",
     "kind": "choice",
+    "section": "Margin and security",
     "options": [
      "10%",
      "10% to 25%",
@@ -13139,6 +14646,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "collateral",
     "label": "What collateral can you offer instead?",
     "kind": "choice",
+    "section": "Margin and security",
     "options": [
      "A property",
      "Fixed deposits or securities",
@@ -13154,12 +14662,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "bank",
     "label": "Which bank do you bank with?",
-    "kind": "text"
+    "kind": "text",
+    "section": "Margin and security"
    },
    {
     "key": "existingLimit",
     "label": "Do you already have a bank guarantee or working-capital limit?",
     "kind": "choice",
+    "section": "Margin and security",
     "options": [
      "Yes",
      "No"
@@ -13169,6 +14679,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingLimitAmount",
     "label": "Amount of that limit",
     "kind": "amount",
+    "section": "Margin and security",
     "showWhen": {
      "key": "existingLimit",
      "values": [
@@ -13180,6 +14691,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your business set up?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Proprietorship",
      "Partnership",
@@ -13193,6 +14705,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nature",
     "label": "What does your business do?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Manufacturing",
      "Trading or distribution",
@@ -13208,6 +14721,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vintage",
     "label": "How long has the business been running?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -13220,6 +14734,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -13230,6 +14745,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "None",
      "1 year",
@@ -13241,6 +14757,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "Yes",
      "No"
@@ -13256,12 +14773,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Turnover and proof of income"
    },
    {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Turnover and proof of income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -13275,12 +14794,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into your business accounts every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Turnover and proof of income"
    },
    {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -13290,6 +14811,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -13303,6 +14825,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -13314,6 +14837,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -13335,6 +14859,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -13346,6 +14871,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -13357,6 +14883,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -13369,6 +14896,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -13380,6 +14908,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -13391,6 +14920,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -13406,6 +14936,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -13417,6 +14948,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -13438,6 +14970,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -13449,6 +14982,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -13461,6 +14995,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed repayments or cheque returns in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -13478,6 +15013,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is the owner's or promoters' CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -13490,6 +15026,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -13506,6 +15043,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -13524,6 +15062,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a bank guarantee with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -13533,6 +15072,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -13544,6 +15084,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -13564,6 +15105,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -13575,6 +15117,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a bank guarantee application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -13584,6 +15127,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -13595,6 +15139,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -13604,6 +15149,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -13623,6 +15169,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -13634,6 +15181,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -13650,6 +15198,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -13659,6 +15208,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -13674,6 +15224,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -13685,6 +15236,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -13694,6 +15246,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -13713,6 +15266,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -13724,6 +15278,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -13739,6 +15294,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -13750,12 +15306,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -13788,6 +15377,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "The letter of credit",
     "options": [
      "Inland Letter of Credit",
      "Import Letter of Credit",
@@ -13804,6 +15394,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "The letter of credit",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -13811,6 +15402,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "lcType",
     "label": "What kind of letter of credit do you need?",
     "kind": "choice",
+    "section": "The letter of credit",
     "options": [
      "Inland (within India)",
      "Import"
@@ -13821,6 +15413,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "country",
     "label": "Which country are you buying from?",
     "kind": "text",
+    "section": "The letter of credit",
     "showWhen": {
      "key": "lcType",
      "values": [
@@ -13831,12 +15424,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "goods",
     "label": "What are you buying?",
-    "kind": "text"
+    "kind": "text",
+    "section": "The letter of credit"
    },
    {
     "key": "usance",
     "label": "When will you pay the supplier?",
     "kind": "choice",
+    "section": "The letter of credit",
     "options": [
      "At sight, when the documents arrive",
      "Within 90 days",
@@ -13847,6 +15442,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "supplierDoc",
     "label": "Do you have a supplier contract or proforma invoice?",
     "kind": "choice",
+    "section": "The letter of credit",
     "options": [
      "Yes",
      "Not yet"
@@ -13856,6 +15452,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLcLimit",
     "label": "Do you already have a letter of credit limit?",
     "kind": "choice",
+    "section": "Your limit and margin",
     "options": [
      "Yes",
      "No"
@@ -13865,6 +15462,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "lcLimitBank",
     "label": "Which bank has it?",
     "kind": "text",
+    "section": "Your limit and margin",
     "showWhen": {
      "key": "hasLcLimit",
      "values": [
@@ -13876,6 +15474,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "lcLimitAmount",
     "label": "Amount of the limit",
     "kind": "amount",
+    "section": "Your limit and margin",
     "showWhen": {
      "key": "hasLcLimit",
      "values": [
@@ -13887,6 +15486,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cashMargin",
     "label": "Can you pay the full amount as cash margin?",
     "kind": "choice",
+    "section": "Your limit and margin",
     "options": [
      "Yes",
      "Part of it",
@@ -13904,6 +15504,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "By when do you need it?",
     "kind": "choice",
+    "section": "Your limit and margin",
     "options": [
      "Within a week",
      "Within a month",
@@ -13914,6 +15515,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your business set up?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Proprietorship",
      "Partnership",
@@ -13927,6 +15529,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nature",
     "label": "What does your business do?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Manufacturing",
      "Trading or distribution",
@@ -13942,6 +15545,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vintage",
     "label": "How long has the business been running?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -13954,6 +15558,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -13964,6 +15569,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "None",
      "1 year",
@@ -13975,6 +15581,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "Yes",
      "No"
@@ -13990,12 +15597,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Turnover and proof of income"
    },
    {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Turnover and proof of income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -14009,12 +15618,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into your business accounts every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Turnover and proof of income"
    },
    {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -14024,6 +15635,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14037,6 +15649,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14048,6 +15661,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -14069,6 +15683,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14080,6 +15695,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14091,6 +15707,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14103,6 +15720,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14114,6 +15732,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14125,6 +15744,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -14140,6 +15760,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -14151,6 +15772,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -14172,6 +15794,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -14183,6 +15806,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -14195,6 +15819,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed repayments or cheque returns in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -14212,6 +15837,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is the owner's or promoters' CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -14224,6 +15850,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -14240,6 +15867,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -14258,6 +15886,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a letter of credit with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -14267,6 +15896,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -14278,6 +15908,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -14298,6 +15929,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -14309,6 +15941,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a letter of credit application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -14318,6 +15951,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -14329,6 +15963,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -14338,6 +15973,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -14357,6 +15993,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -14368,6 +16005,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -14384,6 +16022,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -14393,6 +16032,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -14408,6 +16048,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -14419,6 +16060,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -14428,6 +16070,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -14447,6 +16090,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -14458,6 +16102,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -14473,6 +16118,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -14484,12 +16130,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -14511,6 +16190,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Sales Bill Discounting",
      "Supplier Bill Discounting",
@@ -14526,6 +16206,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About your business",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -14533,6 +16214,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your business set up?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Proprietorship",
      "Partnership",
@@ -14546,6 +16228,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nature",
     "label": "What does your business do?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Manufacturing",
      "Trading or distribution",
@@ -14561,6 +16244,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vintage",
     "label": "How long has the business been running?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -14572,12 +16256,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "invoiceVolume",
     "label": "Value of invoices you raise every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Your invoices and customers"
    },
    {
     "key": "creditPeriod",
     "label": "How long do customers take to pay?",
     "kind": "choice",
+    "section": "Your invoices and customers",
     "options": [
      "Up to 30 days",
      "30 to 60 days",
@@ -14589,6 +16275,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "buyers",
     "label": "How many customers make up most of your sales?",
     "kind": "choice",
+    "section": "Your invoices and customers",
     "options": [
      "1 or 2",
      "3 to 5",
@@ -14600,6 +16287,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "buyerQuality",
     "label": "Are your main customers large, well-known companies?",
     "kind": "choice",
+    "section": "Your invoices and customers",
     "options": [
      "Yes",
      "A mix",
@@ -14610,15 +16298,50 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "overdueInvoices",
     "label": "Are any invoices overdue by more than 90 days?",
     "kind": "choice",
+    "section": "Your invoices and customers",
     "options": [
      "Yes",
      "No"
     ]
    },
    {
+    "key": "billPO",
+    "label": "Are the invoices raised against confirmed purchase orders?",
+    "kind": "choice",
+    "section": "Your invoices and customers",
+    "options": [
+     "Yes, all",
+     "Some",
+     "No"
+    ]
+   },
+   {
+    "key": "billAccepted",
+    "label": "Do your buyers formally accept the invoices?",
+    "kind": "choice",
+    "section": "Your invoices and customers",
+    "options": [
+     "Yes, all",
+     "Some",
+     "No"
+    ]
+   },
+   {
+    "key": "billKind",
+    "label": "Are the receivables domestic or export?",
+    "kind": "choice",
+    "section": "Your invoices and customers",
+    "options": [
+     "Domestic",
+     "Export",
+     "Both"
+    ]
+   },
+   {
     "key": "alreadyDiscounting",
     "label": "Do you already discount bills or have a cash credit or overdraft?",
     "kind": "choice",
+    "section": "Your invoices and customers",
     "options": [
      "Yes",
      "No"
@@ -14628,6 +16351,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "presentLender",
     "label": "Which lender, and what is the limit?",
     "kind": "text",
+    "section": "Your invoices and customers",
     "showWhen": {
      "key": "alreadyDiscounting",
      "values": [
@@ -14639,6 +16363,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need it?",
     "kind": "choice",
+    "section": "Your invoices and customers",
     "options": [
      "Immediately",
      "Within a month",
@@ -14650,6 +16375,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -14660,6 +16386,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "None",
      "1 year",
@@ -14671,6 +16398,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Turnover and proof of income",
     "options": [
      "Yes",
      "No"
@@ -14686,12 +16414,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Turnover and proof of income"
    },
    {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Turnover and proof of income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -14705,12 +16435,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into your business accounts every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Turnover and proof of income"
    },
    {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -14720,6 +16452,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14733,6 +16466,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14744,6 +16478,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -14765,6 +16500,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14776,6 +16512,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14787,6 +16524,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14799,6 +16537,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14810,6 +16549,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -14821,6 +16561,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -14836,6 +16577,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -14847,6 +16589,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -14868,6 +16611,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -14879,6 +16623,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -14891,6 +16636,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed repayments or cheque returns in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -14908,6 +16654,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is the owner's or promoters' CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -14920,6 +16667,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -14936,6 +16684,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -14954,6 +16703,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a bill discounting with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -14963,6 +16713,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -14974,6 +16725,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -14994,6 +16746,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -15005,6 +16758,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a bill discounting application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -15014,6 +16768,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -15025,6 +16780,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -15034,6 +16790,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -15053,6 +16810,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -15064,6 +16822,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -15080,6 +16839,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -15089,6 +16849,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -15104,6 +16865,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -15115,6 +16877,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -15124,6 +16887,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -15143,6 +16907,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -15154,6 +16919,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -15169,6 +16935,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -15180,12 +16947,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -15217,6 +17017,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About you",
     "options": [
      "Unsecured Drop-Line Overdraft",
      "Unsecured Overdraft",
@@ -15230,6 +17031,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About you",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -15237,6 +17039,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "applicantType",
     "label": "Type of income (salaried or self-employed)",
     "kind": "choice",
+    "section": "About you",
     "options": [
      "Salaried",
      "Self-Employed"
@@ -15247,6 +17050,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your business or practice set up?",
     "kind": "choice",
+    "section": "About you",
     "options": [
      "Professional (doctor, CA, architect, etc.)",
      "Proprietorship",
@@ -15265,6 +17069,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nature",
     "label": "What does your business do?",
     "kind": "choice",
+    "section": "About you",
     "options": [
      "Manufacturing",
      "Trading or distribution",
@@ -15286,6 +17091,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vintage",
     "label": "How long has it been running?",
     "kind": "choice",
+    "section": "About you",
     "options": [
      "Less than 3 years",
      "3 to 5 years",
@@ -15302,22 +17108,26 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "primaryBank",
     "label": "Your main bank",
-    "kind": "text"
+    "kind": "text",
+    "section": "Your bank account"
    },
    {
     "key": "avgBalance",
     "label": "Average balance you keep in the account",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Your bank account"
    },
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into the account every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Your bank account"
    },
    {
     "key": "chequeReturns",
     "label": "Any cheque returns or missed instalments in the last 6 months?",
     "kind": "choice",
+    "section": "Your bank account",
     "options": [
      "No",
      "Yes, once or twice",
@@ -15328,6 +17138,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "adverse",
     "label": "Any overdue or adverse remark on your present credit facilities?",
     "kind": "choice",
+    "section": "Your bank account",
     "options": [
      "Yes",
      "No"
@@ -15337,6 +17148,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "adverseNote",
     "label": "Please give brief details",
     "kind": "text",
+    "section": "Your bank account",
     "showWhen": {
      "key": "adverse",
      "values": [
@@ -15348,6 +17160,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "employerType",
     "label": "Where do you work?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Government / PSU",
      "Listed or MNC company",
@@ -15366,6 +17179,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInJob",
     "label": "Time with the current employer",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -15383,6 +17197,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "totalExperience",
     "label": "Total work experience so far",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -15400,6 +17215,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "netSalary",
     "label": "Monthly take-home salary",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -15411,6 +17227,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "salaryMode",
     "label": "How is the salary paid?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Credited to a bank account",
      "Partly cash",
@@ -15430,6 +17247,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "businessType",
     "label": "Your business or profession",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -15441,6 +17259,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInBusiness",
     "label": "Years in the business or profession",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -15458,6 +17277,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -15474,6 +17294,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "None",
      "1 year",
@@ -15491,6 +17312,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -15507,6 +17329,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -15518,6 +17341,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -15532,12 +17356,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherIncome",
     "label": "Other regular monthly income (rent, interest, etc.)",
     "kind": "amount",
+    "section": "Your work and income",
     "allowZero": true
    },
    {
     "key": "requirement",
     "label": "Is this a new limit or a move from another lender?",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "A fresh limit",
      "Move my present overdraft or loan",
@@ -15548,6 +17374,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btLender",
     "label": "Which lender has it now?",
     "kind": "text",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -15560,6 +17387,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btOutstanding",
     "label": "Present outstanding or limit",
     "kind": "amount",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -15572,6 +17400,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btRate",
     "label": "Interest rate you pay now",
     "kind": "percent",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -15584,6 +17413,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btSanctioned",
     "label": "Current sanctioned limit",
     "kind": "amount",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -15596,6 +17426,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btDrawing",
     "label": "Unused limit or drawing power available today",
     "kind": "amount",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -15609,6 +17440,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btRenewal",
     "label": "Renewal or maturity date of the present facility",
     "kind": "text",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -15621,6 +17453,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btOverdue",
     "label": "Is any amount overdue on it right now?",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "No",
      "Yes"
@@ -15637,6 +17470,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btExtra",
     "label": "Extra funding you need",
     "kind": "amount",
+    "section": "The limit you would like",
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -15648,6 +17482,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "usage",
     "label": "How will you use the limit?",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "Draw and repay often, as cash needs go up and down",
      "Draw most of it once and repay steadily",
@@ -15659,6 +17494,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred period",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "Up to 5 years",
      "5 to 10 years",
@@ -15671,6 +17507,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need it?",
     "kind": "choice",
+    "section": "The limit you would like",
     "options": [
      "Immediately",
      "Within a month",
@@ -15682,6 +17519,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -15691,6 +17529,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -15704,6 +17543,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -15715,6 +17555,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -15736,6 +17577,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -15747,6 +17589,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -15758,6 +17601,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -15770,6 +17614,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -15781,6 +17626,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -15792,6 +17638,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -15807,6 +17654,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -15818,6 +17666,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -15839,6 +17688,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -15850,6 +17700,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -15862,6 +17713,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -15879,6 +17731,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -15891,6 +17744,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -15907,6 +17761,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -15925,6 +17780,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for an unsecured drop-line overdraft with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -15934,6 +17790,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -15945,6 +17802,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -15965,6 +17823,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -15976,6 +17835,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has an unsecured drop-line overdraft application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -15985,6 +17845,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -15996,6 +17857,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -16005,6 +17867,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -16024,6 +17887,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -16035,6 +17899,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -16051,6 +17916,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -16060,6 +17926,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -16075,6 +17942,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -16086,6 +17954,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -16095,6 +17964,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -16114,6 +17984,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -16125,6 +17996,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -16140,6 +18012,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -16151,12 +18024,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -16180,6 +18086,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "The course",
     "options": [
      "Education Loan",
      "Secured Education Loan",
@@ -16193,6 +18100,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "The course",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -16200,6 +18108,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "destination",
     "label": "Where will the student study?",
     "kind": "choice",
+    "section": "The course",
     "options": [
      "In India",
      "Abroad"
@@ -16207,9 +18116,22 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "required": true
    },
    {
+    "key": "studentAge",
+    "label": "Student's age",
+    "kind": "choice",
+    "section": "The course",
+    "options": [
+     "Below 18",
+     "18 to 22",
+     "23 to 27",
+     "28 and above"
+    ]
+   },
+   {
     "key": "country",
     "label": "Which country?",
     "kind": "text",
+    "section": "The course",
     "showWhen": {
      "key": "destination",
      "values": [
@@ -16221,6 +18143,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "level",
     "label": "What level is the course?",
     "kind": "choice",
+    "section": "The course",
     "options": [
      "Undergraduate",
      "Postgraduate",
@@ -16232,17 +18155,20 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "courseName",
     "label": "Name of the course",
-    "kind": "text"
+    "kind": "text",
+    "section": "The course"
    },
    {
     "key": "institution",
     "label": "College or university",
-    "kind": "text"
+    "kind": "text",
+    "section": "The course"
    },
    {
     "key": "admission",
     "label": "Where is the admission?",
     "kind": "choice",
+    "section": "The course",
     "options": [
      "Confirmed",
      "Waiting for the result",
@@ -16254,6 +18180,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "startsIn",
     "label": "When does the course start?",
     "kind": "choice",
+    "section": "The course",
     "options": [
      "Within 3 months",
      "In 3 to 6 months",
@@ -16265,6 +18192,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "duration",
     "label": "How long is the course?",
     "kind": "choice",
+    "section": "The course",
     "options": [
      "Up to 1 year",
      "2 years",
@@ -16276,6 +18204,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "test",
     "label": "Have you taken the entrance or language test (GRE, GMAT, IELTS or similar)?",
     "kind": "choice",
+    "section": "The course",
     "options": [
      "Yes",
      "Preparing for it",
@@ -16291,18 +18220,21 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "totalCost",
     "label": "Total cost of the course and living",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Cost and own funds"
    },
    {
     "key": "ownFunds",
     "label": "Money the family can put in",
     "kind": "amount",
+    "section": "Cost and own funds",
     "allowZero": true
    },
    {
     "key": "scholarship",
     "label": "Has a scholarship been awarded?",
     "kind": "choice",
+    "section": "Cost and own funds",
     "options": [
      "Yes",
      "No"
@@ -16312,6 +18244,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "scholarshipAmount",
     "label": "Amount of the scholarship",
     "kind": "amount",
+    "section": "Cost and own funds",
     "showWhen": {
      "key": "scholarship",
      "values": [
@@ -16323,6 +18256,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "marks",
     "label": "Marks in the last exam",
     "kind": "choice",
+    "section": "Cost and own funds",
     "options": [
      "Above 75%",
      "60% to 75%",
@@ -16334,6 +18268,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coRelation",
     "label": "Who will be the co-applicant?",
     "kind": "choice",
+    "section": "The co-applicant",
     "options": [
      "Father",
      "Mother",
@@ -16347,6 +18282,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coWork",
     "label": "What does the co-applicant do?",
     "kind": "choice",
+    "section": "The co-applicant",
     "options": [
      "Salaried",
      "Runs a business",
@@ -16359,6 +18295,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coIncome",
     "label": "Co-applicant's monthly income",
     "kind": "amount",
+    "section": "The co-applicant",
     "showWhen": {
      "key": "coWork",
      "values": [
@@ -16373,12 +18310,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "coEmi",
     "label": "EMIs the co-applicant already pays every month",
     "kind": "amount",
+    "section": "The co-applicant",
     "allowZero": true
    },
    {
     "key": "collateral",
     "label": "Can the family offer a property or deposit as security?",
     "kind": "choice",
+    "section": "The co-applicant",
     "options": [
      "Yes, a property",
      "Yes, a fixed deposit",
@@ -16390,6 +18329,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "collateralValue",
     "label": "Approximate value of it",
     "kind": "amount",
+    "section": "The co-applicant",
     "showWhen": {
      "key": "collateral",
      "values": [
@@ -16402,6 +18342,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -16411,6 +18352,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -16430,6 +18372,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -16441,6 +18384,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -16457,6 +18401,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -16466,6 +18411,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -16481,6 +18427,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -16492,6 +18439,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -16501,6 +18449,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -16520,6 +18469,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -16531,6 +18481,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -16546,6 +18497,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -16557,12 +18509,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -16594,6 +18579,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About your institution",
     "options": [
      "Unsecured Funding for Schools",
      "Secured Funding for Schools",
@@ -16606,6 +18592,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About your institution",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -16613,6 +18600,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is the institution run?",
     "kind": "choice",
+    "section": "About your institution",
     "options": [
      "Trust",
      "Society",
@@ -16628,6 +18616,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "institutionType",
     "label": "What kind of institution is it?",
     "kind": "choice",
+    "section": "About your institution",
     "options": [
      "School",
      "College or higher education institute",
@@ -16638,6 +18627,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "boardAffiliation",
     "label": "Which board is the school affiliated to?",
     "kind": "choice",
+    "section": "About your institution",
     "options": [
      "CBSE",
      "ICSE",
@@ -16657,6 +18647,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "affiliatedBody",
     "label": "Which university, council or body is it affiliated to?",
     "kind": "text",
+    "section": "About your institution",
     "showWhen": {
      "key": "institutionType",
      "values": [
@@ -16669,6 +18660,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "courses",
     "label": "Which courses does it run?",
     "kind": "choice",
+    "section": "About your institution",
     "options": [
      "B.Ed",
      "Pharmacy",
@@ -16688,6 +18680,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "studentStrength",
     "label": "How many students does it have?",
     "kind": "choice",
+    "section": "About your institution",
     "options": [
      "Less than 200",
      "200 to 300",
@@ -16700,6 +18693,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsRunning",
     "label": "How long has it been running?",
     "kind": "choice",
+    "section": "About your institution",
     "options": [
      "Less than 3 years",
      "3 to 5 years",
@@ -16710,6 +18704,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "premises",
     "label": "Who owns the land and building it runs from?",
     "kind": "choice",
+    "section": "About your institution",
     "options": [
      "The institution owns both",
      "The institution owns the building on leased land",
@@ -16721,18 +18716,21 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualTurnover",
     "label": "Total yearly income of the institution (fees and other receipts)",
     "kind": "amount",
+    "section": "Income and accounts",
     "help": "For the last financial year."
    },
    {
     "key": "annualProfit",
     "label": "Surplus after expenses (last financial year)",
     "kind": "amount",
+    "section": "Income and accounts",
     "allowZero": true
    },
    {
     "key": "auditedYears",
     "label": "For how many years are the audited accounts ready?",
     "kind": "choice",
+    "section": "Income and accounts",
     "options": [
      "None",
      "1 year",
@@ -16744,6 +18742,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "Income tax returns filed for how many years?",
     "kind": "choice",
+    "section": "Income and accounts",
     "options": [
      "None",
      "1 year",
@@ -16755,6 +18754,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of the institution's bank statements?",
     "kind": "choice",
+    "section": "Income and accounts",
     "options": [
      "Yes",
      "No"
@@ -16764,6 +18764,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "feeRecords",
     "label": "Do you keep fee collection records for the last 12 months?",
     "kind": "choice",
+    "section": "Income and accounts",
     "options": [
      "Yes",
      "No"
@@ -16773,6 +18774,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purpose",
     "label": "What is the funding for?",
     "kind": "choice",
+    "section": "The funding you need",
     "options": [
      "Building a new school or campus",
      "Adding classrooms, floors or a new wing",
@@ -16784,9 +18786,16 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     ]
    },
    {
+    "key": "infraProjectCost",
+    "label": "Total cost of the project",
+    "kind": "amount",
+    "section": "The funding you need"
+   },
+   {
     "key": "purposeOther",
     "label": "Please say what it is for",
     "kind": "text",
+    "section": "The funding you need",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -16798,6 +18807,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "securityOffered",
     "label": "Can you offer property as security?",
     "kind": "choice",
+    "section": "The funding you need",
     "options": [
      "Yes, property",
      "No, I want it without security",
@@ -16809,6 +18819,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyKind",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "The funding you need",
     "options": [
      "School or college building or land",
      "Commercial property",
@@ -16826,6 +18837,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyOwner",
     "label": "Whose name is the property in?",
     "kind": "choice",
+    "section": "The funding you need",
     "options": [
      "The institution (trust, society, company or firm)",
      "A trustee, director or partner",
@@ -16843,6 +18855,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyArea",
     "label": "Where is the property?",
     "kind": "text",
+    "section": "The funding you need",
     "showWhen": {
      "key": "securityOffered",
      "values": [
@@ -16854,6 +18867,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "propertyValue",
     "label": "Approximate market value of the property",
     "kind": "amount",
+    "section": "The funding you need",
     "showWhen": {
      "key": "securityOffered",
      "values": [
@@ -16866,6 +18880,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingMortgage",
     "label": "Is there already a loan on this property?",
     "kind": "choice",
+    "section": "The funding you need",
     "options": [
      "Yes",
      "No"
@@ -16881,6 +18896,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "mortgageOutstanding",
     "label": "Amount still to be repaid on it",
     "kind": "amount",
+    "section": "The funding you need",
     "showWhen": {
      "key": "existingMortgage",
      "values": [
@@ -16893,6 +18909,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "The funding you need",
     "options": [
      "Up to 5 years",
      "5 to 10 years",
@@ -16904,6 +18921,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the funds?",
     "kind": "choice",
+    "section": "The funding you need",
     "options": [
      "Immediately",
      "Within a month",
@@ -16915,6 +18933,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -16924,6 +18943,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -16937,6 +18957,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -16948,6 +18969,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -16969,6 +18991,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -16980,6 +19003,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -16991,6 +19015,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -17003,6 +19028,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -17014,6 +19040,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -17025,6 +19052,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -17040,6 +19068,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -17051,6 +19080,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -17072,6 +19102,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -17083,6 +19114,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -17095,6 +19127,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed repayments or cheque returns in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -17112,6 +19145,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is the owner's or promoters' CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -17124,6 +19158,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -17140,6 +19175,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -17158,6 +19194,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for an education infrastructure loan with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -17167,6 +19204,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -17178,6 +19216,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -17198,6 +19237,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -17209,6 +19249,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has an education infrastructure loan application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -17218,6 +19259,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -17229,6 +19271,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -17238,6 +19281,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -17257,6 +19301,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -17268,6 +19313,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -17284,6 +19330,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -17293,6 +19340,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -17308,6 +19356,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -17319,6 +19368,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -17328,6 +19378,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -17347,6 +19398,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -17358,6 +19410,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -17373,6 +19426,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -17384,12 +19438,25 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -17412,6 +19479,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "The car",
     "options": [
      "New Car Loan",
      "Electric Vehicle Loan",
@@ -17424,6 +19492,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "The car",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -17431,12 +19500,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "carModel",
     "label": "Which car are you buying?",
     "kind": "text",
+    "section": "The car",
     "required": true
    },
    {
     "key": "booked",
     "label": "Have you booked it?",
     "kind": "choice",
+    "section": "The car",
     "options": [
      "Yes, booked",
      "Finalised, not booked",
@@ -17446,12 +19517,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "onRoad",
     "label": "On-road price",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "The car"
    },
    {
     "key": "downPayment",
     "label": "Down payment you can make",
     "kind": "amount",
+    "section": "The car",
     "allowZero": true,
     "help": "Some lenders fund up to the full on-road price."
    },
@@ -17459,6 +19532,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "usage",
     "label": "Is the car for personal or business use?",
     "kind": "choice",
+    "section": "The car",
     "options": [
      "Personal use",
      "Business use"
@@ -17468,6 +19542,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "applicantType",
     "label": "Type of income (salaried or self-employed)",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Salaried",
      "Self-Employed"
@@ -17478,6 +19553,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "employerType",
     "label": "Where do you work?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Government / PSU",
      "Listed or MNC company",
@@ -17496,6 +19572,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInJob",
     "label": "Time with the current employer",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -17513,6 +19590,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "totalExperience",
     "label": "Total work experience so far",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -17530,6 +19608,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "netSalary",
     "label": "Monthly take-home salary",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -17541,6 +19620,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "salaryMode",
     "label": "How is the salary paid?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Credited to a bank account",
      "Partly cash",
@@ -17560,6 +19640,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "businessType",
     "label": "Your business or profession",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -17571,6 +19652,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInBusiness",
     "label": "Years in the business or profession",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -17588,6 +19670,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -17604,6 +19687,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "None",
      "1 year",
@@ -17621,6 +19705,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -17637,6 +19722,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -17648,6 +19734,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -17662,12 +19749,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherIncome",
     "label": "Other regular monthly income (rent, interest, etc.)",
     "kind": "amount",
+    "section": "Your work and income",
     "allowZero": true
    },
    {
     "key": "registeredIn",
     "label": "In whose name will the car be registered?",
     "kind": "choice",
+    "section": "Registration and repayment",
     "options": [
      "My own name",
      "My spouse",
@@ -17678,6 +19767,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "Registration and repayment",
     "options": [
      "Up to 2 years",
      "2 to 3 years",
@@ -17689,12 +19779,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "emiComfort",
     "label": "The monthly EMI you are comfortable with",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Registration and repayment"
    },
    {
     "key": "timeline",
     "label": "When do you need the loan?",
     "kind": "choice",
+    "section": "Registration and repayment",
     "options": [
      "Immediately",
      "Within a month",
@@ -17706,6 +19798,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -17715,6 +19808,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -17728,6 +19822,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -17739,6 +19834,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -17760,6 +19856,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -17771,6 +19868,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -17782,6 +19880,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -17794,6 +19893,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -17805,6 +19905,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -17816,6 +19917,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -17831,6 +19933,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -17842,6 +19945,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -17863,6 +19967,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -17874,6 +19979,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -17886,6 +19992,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -17903,6 +20010,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -17915,6 +20023,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -17931,6 +20040,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -17949,6 +20059,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a car loan with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -17958,6 +20069,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -17969,6 +20081,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -17989,6 +20102,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -18000,6 +20114,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a car loan application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -18009,6 +20124,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -18020,6 +20136,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -18029,6 +20146,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -18048,6 +20166,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -18059,6 +20178,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -18075,6 +20195,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -18084,6 +20205,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -18099,6 +20221,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -18110,6 +20233,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -18119,6 +20243,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -18138,6 +20263,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -18149,6 +20275,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -18164,6 +20291,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -18175,12 +20303,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -18207,6 +20368,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "The car",
     "options": [
      "Used Car Loan from a Dealer",
      "Used Car Loan from a Private Owner",
@@ -18220,6 +20382,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "The car",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -18227,12 +20390,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "carModel",
     "label": "Which car are you buying?",
     "kind": "text",
+    "section": "The car",
     "required": true
    },
    {
     "key": "carAge",
     "label": "How old is the car?",
     "kind": "choice",
+    "section": "The car",
     "options": [
      "Less than 3 years",
      "3 to 5 years",
@@ -18245,6 +20410,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "seller",
     "label": "Who are you buying it from?",
     "kind": "choice",
+    "section": "The car",
     "options": [
      "A dealer",
      "A private owner"
@@ -18253,18 +20419,21 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "price",
     "label": "Price agreed for the car",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "The car"
    },
    {
     "key": "downPayment",
     "label": "Down payment you can make",
     "kind": "amount",
+    "section": "The car",
     "allowZero": true
    },
    {
     "key": "papers",
     "label": "Are the RC and insurance papers clear?",
     "kind": "choice",
+    "section": "The car",
     "options": [
      "Yes",
      "Not sure",
@@ -18272,9 +20441,20 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     ]
    },
    {
+    "key": "carHasLoan",
+    "label": "Is there a loan running on this car?",
+    "kind": "choice",
+    "section": "The car",
+    "options": [
+     "No",
+     "Yes"
+    ]
+   },
+   {
     "key": "applicantType",
     "label": "Type of income (salaried or self-employed)",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Salaried",
      "Self-Employed"
@@ -18285,6 +20465,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "employerType",
     "label": "Where do you work?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Government / PSU",
      "Listed or MNC company",
@@ -18303,6 +20484,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInJob",
     "label": "Time with the current employer",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -18320,6 +20502,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "totalExperience",
     "label": "Total work experience so far",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -18337,6 +20520,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "netSalary",
     "label": "Monthly take-home salary",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -18348,6 +20532,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "salaryMode",
     "label": "How is the salary paid?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Credited to a bank account",
      "Partly cash",
@@ -18367,6 +20552,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "businessType",
     "label": "Your business or profession",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -18378,6 +20564,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInBusiness",
     "label": "Years in the business or profession",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -18395,6 +20582,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -18411,6 +20599,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "None",
      "1 year",
@@ -18428,6 +20617,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -18444,6 +20634,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -18455,6 +20646,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -18469,12 +20661,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherIncome",
     "label": "Other regular monthly income (rent, interest, etc.)",
     "kind": "amount",
+    "section": "Your work and income",
     "allowZero": true
    },
    {
     "key": "registeredIn",
     "label": "In whose name will the car be registered?",
     "kind": "choice",
+    "section": "Registration and repayment",
     "options": [
      "My own name",
      "My spouse",
@@ -18485,6 +20679,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "Registration and repayment",
     "options": [
      "Up to 2 years",
      "2 to 3 years",
@@ -18496,12 +20691,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "emiComfort",
     "label": "The monthly EMI you are comfortable with",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Registration and repayment"
    },
    {
     "key": "timeline",
     "label": "When do you need the loan?",
     "kind": "choice",
+    "section": "Registration and repayment",
     "options": [
      "Immediately",
      "Within a month",
@@ -18513,6 +20710,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -18522,6 +20720,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -18535,6 +20734,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -18546,6 +20746,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -18567,6 +20768,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -18578,6 +20780,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -18589,6 +20792,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -18601,6 +20805,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -18612,6 +20817,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -18623,6 +20829,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -18638,6 +20845,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -18649,6 +20857,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -18670,6 +20879,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -18681,6 +20891,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -18693,6 +20904,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -18710,6 +20922,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -18722,6 +20935,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -18738,6 +20952,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -18756,6 +20971,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a car loan with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -18765,6 +20981,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -18776,6 +20993,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -18796,6 +21014,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -18807,6 +21026,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a car loan application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -18816,6 +21036,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -18827,6 +21048,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -18836,6 +21058,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -18855,6 +21078,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -18866,6 +21090,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -18882,6 +21107,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -18891,6 +21117,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -18906,6 +21133,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -18917,6 +21145,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -18926,6 +21155,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -18945,6 +21175,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -18956,6 +21187,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -18971,6 +21203,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -18982,12 +21215,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -19021,6 +21287,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "Your car",
     "options": [
      "Loan Against Car",
      "Car Loan Balance Transfer",
@@ -19033,6 +21300,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "Your car",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -19040,12 +21308,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "carModel",
     "label": "Which car do you own?",
     "kind": "text",
+    "section": "Your car",
     "required": true
    },
    {
     "key": "carAge",
     "label": "How old is it?",
     "kind": "choice",
+    "section": "Your car",
     "options": [
      "Less than 3 years",
      "3 to 5 years",
@@ -19057,6 +21327,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownName",
     "label": "Is the car registered in your own name?",
     "kind": "choice",
+    "section": "Your car",
     "options": [
      "Yes",
      "No"
@@ -19065,12 +21336,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "carValue",
     "label": "What do you think the car is worth today?",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Your car"
    },
    {
     "key": "carLoan",
     "label": "Is there a loan on the car now?",
     "kind": "choice",
+    "section": "Your car",
     "options": [
      "Yes",
      "No"
@@ -19080,6 +21353,31 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "carLoanLender",
     "label": "Which lender?",
     "kind": "text",
+    "section": "Your car",
+    "showWhen": {
+     "key": "carLoan",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "carEmi",
+    "label": "Present EMI on the car loan",
+    "kind": "amount",
+    "section": "Your car",
+    "showWhen": {
+     "key": "carLoan",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "carRate",
+    "label": "Interest rate on the car loan",
+    "kind": "percent",
+    "section": "Your car",
     "showWhen": {
      "key": "carLoan",
      "values": [
@@ -19091,6 +21389,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "carLoanOutstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your car",
     "showWhen": {
      "key": "carLoan",
      "values": [
@@ -19102,6 +21401,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "carLoanTakeover",
     "label": "Do you want this loan taken over as part of the new one?",
     "kind": "choice",
+    "section": "Your car",
     "options": [
      "Yes",
      "No"
@@ -19117,6 +21417,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purpose",
     "label": "What is the money for?",
     "kind": "choice",
+    "section": "What you need the money for",
     "options": [
      "A business need",
      "A personal need",
@@ -19129,6 +21430,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purposeOther",
     "label": "Please say what it is for",
     "kind": "text",
+    "section": "What you need the money for",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -19140,6 +21442,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "What you need the money for",
     "options": [
      "Up to 1 year",
      "1 to 2 years",
@@ -19152,6 +21455,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the money?",
     "kind": "choice",
+    "section": "What you need the money for",
     "options": [
      "Immediately",
      "Within a month",
@@ -19163,6 +21467,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "applicantType",
     "label": "Type of income (salaried or self-employed)",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Salaried",
      "Self-Employed"
@@ -19173,6 +21478,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "employerType",
     "label": "Where do you work?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Government / PSU",
      "Listed or MNC company",
@@ -19191,6 +21497,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInJob",
     "label": "Time with the current employer",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -19208,6 +21515,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "totalExperience",
     "label": "Total work experience so far",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -19225,6 +21533,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "netSalary",
     "label": "Monthly take-home salary",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -19236,6 +21545,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "salaryMode",
     "label": "How is the salary paid?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Credited to a bank account",
      "Partly cash",
@@ -19255,6 +21565,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "businessType",
     "label": "Your business or profession",
     "kind": "text",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -19266,6 +21577,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "yearsInBusiness",
     "label": "Years in the business or profession",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Less than 2 years",
      "2 to 3 years",
@@ -19283,6 +21595,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -19299,6 +21612,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "None",
      "1 year",
@@ -19316,6 +21630,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Your work and income",
     "options": [
      "Yes",
      "No"
@@ -19332,6 +21647,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "applicantType",
      "values": [
@@ -19343,6 +21659,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your work and income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -19357,12 +21674,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherIncome",
     "label": "Other regular monthly income (rent, interest, etc.)",
     "kind": "amount",
+    "section": "Your work and income",
     "allowZero": true
    },
    {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -19372,6 +21691,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -19385,6 +21705,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -19396,6 +21717,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -19417,6 +21739,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -19428,6 +21751,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -19439,6 +21763,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -19451,6 +21776,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -19462,6 +21788,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -19473,6 +21800,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -19488,6 +21816,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -19499,6 +21828,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -19520,6 +21850,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -19531,6 +21862,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -19543,6 +21875,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -19560,6 +21893,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -19572,6 +21906,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -19588,6 +21923,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -19606,6 +21942,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a car refinance with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -19615,6 +21952,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -19626,6 +21964,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -19646,6 +21985,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -19657,6 +21997,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a car refinance application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -19666,6 +22007,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -19677,6 +22019,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -19686,6 +22029,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -19705,6 +22049,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -19716,6 +22061,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -19732,6 +22078,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -19741,6 +22088,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -19756,6 +22104,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -19767,6 +22116,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -19776,6 +22126,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -19795,6 +22146,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -19806,6 +22158,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -19821,6 +22174,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -19832,12 +22186,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -19863,6 +22250,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "The vehicle",
     "options": [
      "New Commercial Vehicle Loan",
      "Used Commercial Vehicle Loan",
@@ -19875,6 +22263,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "The vehicle",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -19882,6 +22271,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vehicleType",
     "label": "What kind of vehicle?",
     "kind": "choice",
+    "section": "The vehicle",
     "options": [
      "Truck",
      "Tipper",
@@ -19898,6 +22288,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "condition",
     "label": "Is it new or used?",
     "kind": "choice",
+    "section": "The vehicle",
     "options": [
      "New",
      "Used"
@@ -19907,6 +22298,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vehicleAge",
     "label": "How old is it?",
     "kind": "choice",
+    "section": "The vehicle",
     "options": [
      "Less than 3 years",
      "3 to 5 years",
@@ -19923,18 +22315,21 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "price",
     "label": "Price of the vehicle",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "The vehicle"
    },
    {
     "key": "downPayment",
     "label": "Down payment you can make",
     "kind": "amount",
+    "section": "The vehicle",
     "allowZero": true
    },
    {
     "key": "usage",
     "label": "How will it earn?",
     "kind": "choice",
+    "section": "The vehicle",
     "options": [
      "Carrying my own goods",
      "Hired out as a transport service",
@@ -19946,6 +22341,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "permit",
     "label": "Do you have the permit or route papers?",
     "kind": "choice",
+    "section": "The vehicle",
     "options": [
      "Yes",
      "Applying for them",
@@ -19956,6 +22352,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How are you set up?",
     "kind": "choice",
+    "section": "About you and your business",
     "options": [
      "An individual transporter",
      "Proprietorship",
@@ -19968,6 +22365,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "experience",
     "label": "Years of experience in transport or this business",
     "kind": "choice",
+    "section": "About you and your business",
     "options": [
      "Less than 1 year",
      "1 to 3 years",
@@ -19979,6 +22377,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownedVehicles",
     "label": "How many vehicles do you already own?",
     "kind": "choice",
+    "section": "About you and your business",
     "options": [
      "None",
      "1 or 2",
@@ -19990,6 +22389,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownedLoans",
     "label": "Are those vehicles under loan?",
     "kind": "choice",
+    "section": "About you and your business",
     "options": [
      "Yes, some",
      "No, they are fully paid for"
@@ -20007,6 +22407,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
+    "section": "Income and banking",
     "options": [
      "Yes, and returns are filed regularly",
      "Yes, but returns are irregular",
@@ -20017,6 +22418,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Income and banking",
     "options": [
      "None",
      "1 year",
@@ -20028,6 +22430,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Income and banking",
     "options": [
      "Yes",
      "No"
@@ -20043,12 +22446,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "annualTurnover",
     "label": "Annual turnover (last financial year)",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Income and banking"
    },
    {
     "key": "annualProfit",
     "label": "Net profit as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Income and banking",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -20062,12 +22467,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into your business accounts every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Income and banking"
    },
    {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Up to 2 years",
      "2 to 4 years",
@@ -20080,6 +22487,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the vehicle?",
     "kind": "choice",
+    "section": "How you would like to repay",
     "options": [
      "Immediately",
      "Within a month",
@@ -20091,6 +22499,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -20100,6 +22509,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20113,6 +22523,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20124,6 +22535,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -20145,6 +22557,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20156,6 +22569,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20167,6 +22581,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20179,6 +22594,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20190,6 +22606,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20201,6 +22618,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -20216,6 +22634,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -20227,6 +22646,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -20248,6 +22668,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -20259,6 +22680,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -20271,6 +22693,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed repayments or cheque returns in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -20288,6 +22711,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is the owner's or promoters' CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -20300,6 +22724,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -20316,6 +22741,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -20334,6 +22760,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a commercial vehicle loan with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -20343,6 +22770,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -20354,6 +22782,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -20374,6 +22803,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -20385,6 +22815,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a commercial vehicle loan application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -20394,6 +22825,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -20405,6 +22837,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -20414,6 +22847,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -20433,6 +22867,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -20444,6 +22879,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -20460,6 +22896,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -20469,6 +22906,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -20484,6 +22922,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -20495,6 +22934,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -20504,6 +22944,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -20523,6 +22964,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -20534,6 +22976,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -20549,6 +22992,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -20560,12 +23004,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -20597,6 +23074,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "What you would pledge",
     "options": [
      "Loan Against Shares",
      "Loan Against Mutual Funds",
@@ -20609,6 +23087,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "What you would pledge",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -20616,6 +23095,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "holding",
     "label": "What would you like to pledge?",
     "kind": "multi",
+    "section": "What you would pledge",
     "options": [
      "Shares",
      "ETFs",
@@ -20626,14 +23106,32 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "required": true
    },
    {
+    "key": "lasPlatform",
+    "label": "Which bank, demat account or fund house holds them?",
+    "kind": "text",
+    "section": "What you would pledge"
+   },
+   {
+    "key": "lasStatement",
+    "label": "Do you have a recent portfolio statement?",
+    "kind": "choice",
+    "section": "What you would pledge",
+    "options": [
+     "Yes",
+     "No"
+    ]
+   },
+   {
     "key": "holdingValue",
     "label": "Approximate market value of everything you would pledge",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "What you would pledge"
    },
    {
     "key": "ownName",
     "label": "Are they all held in your own name?",
     "kind": "choice",
+    "section": "What you would pledge",
     "options": [
      "Yes",
      "Some are held jointly",
@@ -20644,6 +23142,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pledged",
     "label": "Is any of it already pledged for another loan?",
     "kind": "choice",
+    "section": "What you would pledge",
     "options": [
      "Yes",
      "No"
@@ -20653,6 +23152,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "approvedList",
     "label": "Have you checked that your holdings are on a lender's approved list?",
     "kind": "choice",
+    "section": "What you would pledge",
     "options": [
      "Yes",
      "No, please check for me"
@@ -20663,6 +23163,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purpose",
     "label": "What will you use the money for?",
     "kind": "choice",
+    "section": "The facility you would like",
     "options": [
      "A personal need",
      "A business need",
@@ -20675,6 +23176,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purposeOther",
     "label": "Please say what it is for",
     "kind": "text",
+    "section": "The facility you would like",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -20686,6 +23188,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "usage",
     "label": "How will you use the limit?",
     "kind": "choice",
+    "section": "The facility you would like",
     "options": [
      "Draw and repay as needed",
      "Draw once and repay later",
@@ -20697,6 +23200,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need it?",
     "kind": "choice",
+    "section": "The facility you would like",
     "options": [
      "Immediately",
      "Within a month",
@@ -20708,6 +23212,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "applicantType",
     "label": "Type of income (salaried or self-employed)",
     "kind": "choice",
+    "section": "About you",
     "options": [
      "Salaried",
      "Self-Employed",
@@ -20717,12 +23222,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyIncome",
     "label": "Your monthly income, from all sources",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "About you"
    },
    {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -20732,6 +23239,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20745,6 +23253,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20756,6 +23265,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -20777,6 +23287,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20788,6 +23299,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20799,6 +23311,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20811,6 +23324,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20822,6 +23336,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -20833,6 +23348,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -20848,6 +23364,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -20859,6 +23376,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -20880,6 +23398,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -20891,6 +23410,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -20903,6 +23423,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -20920,6 +23441,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -20932,6 +23454,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -20948,6 +23471,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -20966,6 +23490,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a loan against securities with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -20975,6 +23500,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -20986,6 +23512,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -21006,6 +23533,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -21017,6 +23545,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a loan against securities application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -21026,6 +23555,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -21037,6 +23567,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -21046,6 +23577,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -21065,6 +23597,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -21076,6 +23609,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -21092,6 +23626,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -21101,6 +23636,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -21116,6 +23652,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -21127,6 +23664,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -21136,6 +23674,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -21155,6 +23694,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -21166,6 +23706,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -21181,6 +23722,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -21192,12 +23734,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -21226,6 +23801,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About your practice",
     "options": [
      "Professional Loan",
      "Doctor Loan",
@@ -21241,6 +23817,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "profession",
     "label": "Profession",
     "kind": "choice",
+    "section": "About your practice",
     "options": [
      "Doctor or dentist",
      "Chartered Accountant",
@@ -21255,6 +23832,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About your practice",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -21262,6 +23840,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "registered",
     "label": "Are you registered with your professional body or council?",
     "kind": "choice",
+    "section": "About your practice",
     "options": [
      "Yes",
      "Applied",
@@ -21272,6 +23851,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "experience",
     "label": "Years in practice",
     "kind": "choice",
+    "section": "About your practice",
     "options": [
      "Less than 2 years",
      "2 to 5 years",
@@ -21283,6 +23863,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "practiceType",
     "label": "How do you practise?",
     "kind": "choice",
+    "section": "About your practice",
     "options": [
      "My own practice",
      "Partner in a firm",
@@ -21293,6 +23874,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "premises",
     "label": "Do you own the practice premises?",
     "kind": "choice",
+    "section": "About your practice",
     "options": [
      "Yes, I own them",
      "Rented",
@@ -21309,12 +23891,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "receipts",
     "label": "Gross receipts from your practice last financial year",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Your income"
    },
    {
     "key": "itrYears",
     "label": "ITR filed for how many years?",
     "kind": "choice",
+    "section": "Your income",
     "options": [
      "None",
      "1 year",
@@ -21326,6 +23910,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of practice bank statements?",
     "kind": "choice",
+    "section": "Your income",
     "options": [
      "Yes",
      "No"
@@ -21342,6 +23927,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "annualProfit",
     "label": "Net income as shown in the ITR (last financial year)",
     "kind": "amount",
+    "section": "Your income",
     "showWhen": {
      "key": "itrYears",
      "values": [
@@ -21355,12 +23941,14 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "monthlyCredits",
     "label": "Average amount that comes into your practice accounts every month",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Your income"
    },
    {
     "key": "purpose",
     "label": "What is the loan for?",
     "kind": "choice",
+    "section": "What you need the money for",
     "options": [
      "Setting up or moving a practice",
      "Buying equipment",
@@ -21373,6 +23961,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purposeOther",
     "label": "Please say what it is for",
     "kind": "text",
+    "section": "What you need the money for",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -21384,6 +23973,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "quotation",
     "label": "Do you have a quotation for the equipment?",
     "kind": "choice",
+    "section": "What you need the money for",
     "options": [
      "Yes",
      "No"
@@ -21399,6 +23989,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "tenure",
     "label": "Preferred repayment period",
     "kind": "choice",
+    "section": "What you need the money for",
     "options": [
      "Up to 2 years",
      "2 to 4 years",
@@ -21411,6 +24002,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "timeline",
     "label": "When do you need the loan?",
     "kind": "choice",
+    "section": "What you need the money for",
     "options": [
      "Immediately",
      "Within a month",
@@ -21422,6 +24014,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoans",
     "label": "Do you have any running loans or credit cards?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -21431,6 +24024,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "existingEmi",
     "label": "Total EMIs you pay every month",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -21444,6 +24038,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Bank",
     "label": "Bank or NBFC of your biggest running loan",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -21455,6 +24050,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -21476,6 +24072,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Original",
     "label": "Original loan amount",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -21487,6 +24084,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -21498,6 +24096,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -21510,6 +24109,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Roi",
     "label": "Its interest rate",
     "kind": "percent",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -21521,6 +24121,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan1Left",
     "label": "How much time is left, and since when has it been running?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -21532,6 +24133,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasLoan2",
     "label": "Is there another running loan you would like to tell us about?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -21547,6 +24149,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Bank",
     "label": "Its bank or NBFC",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -21558,6 +24161,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Type",
     "label": "What kind of loan is it?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Home Loan",
      "Loan Against Property",
@@ -21579,6 +24183,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Outstanding",
     "label": "Amount still to be repaid",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -21590,6 +24195,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loan2Emi",
     "label": "Its monthly EMI",
     "kind": "amount",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "hasLoan2",
      "values": [
@@ -21602,6 +24208,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any late or missed EMI or card payments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "No",
      "Yes, once or twice",
@@ -21619,6 +24226,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "cibilKnown",
     "label": "Roughly what is your CIBIL score?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "750 or above",
      "700 to 749",
@@ -21631,6 +24239,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcern",
     "label": "Is there anything on your credit report that worries you?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Nothing that I know of",
      "EMI delay",
@@ -21647,6 +24256,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "creditConcernNote",
     "label": "A line about it, if you can",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "creditConcern",
      "values": [
@@ -21665,6 +24275,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedElsewhere",
     "label": "Have you applied for a professional loan with another lender?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -21674,6 +24285,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedBank",
     "label": "Which bank or NBFC?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -21685,6 +24297,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedStatus",
     "label": "Where does that application stand?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Under process",
      "Approved",
@@ -21705,6 +24318,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "appliedRemarks",
     "label": "Any reason or remark they gave?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "appliedElsewhere",
      "values": [
@@ -21716,6 +24330,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a professional loan application of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans and credit",
     "options": [
      "Yes",
      "No"
@@ -21725,6 +24340,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -21736,6 +24352,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -21745,6 +24362,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -21764,6 +24382,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -21775,6 +24394,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -21791,6 +24411,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -21800,6 +24421,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -21815,6 +24437,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -21826,6 +24449,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -21835,6 +24459,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -21854,6 +24479,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -21865,6 +24491,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -21880,6 +24507,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -21891,12 +24519,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  },
@@ -21926,6 +24587,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanKind",
     "label": "Type of loan",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Private Business Funding",
      "Short-Term Working Capital Funding",
@@ -21939,6 +24601,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "nature",
     "label": "Industry",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Manufacturing",
      "Trading or distribution",
@@ -21959,6 +24622,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "location",
     "label": "Location",
     "kind": "text",
+    "section": "About your business",
     "required": true,
     "help": "The area or locality you live or work in."
    },
@@ -21966,6 +24630,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "constitution",
     "label": "How is your business set up?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Proprietorship",
      "Partnership",
@@ -21980,6 +24645,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "vintage",
     "label": "How long has the business been running?",
     "kind": "choice",
+    "section": "About your business",
     "options": [
      "Less than 3 years",
      "3 to 5 years",
@@ -21990,18 +24656,21 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    {
     "key": "annualTurnover",
     "label": "Latest annual turnover",
-    "kind": "amount"
+    "kind": "amount",
+    "section": "Turnover and accounts"
    },
    {
     "key": "annualProfit",
     "label": "Net profit last financial year",
     "kind": "amount",
+    "section": "Turnover and accounts",
     "allowZero": true
    },
    {
     "key": "itrCertified",
     "label": "Are your ITRs with CA-certified financials ready for the last 3 years?",
     "kind": "choice",
+    "section": "Turnover and accounts",
     "options": [
      "Yes, all 3 years",
      "Some years",
@@ -22012,6 +24681,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "gstFiled",
     "label": "Are your GSTR-3B returns filed for the last 12 months?",
     "kind": "choice",
+    "section": "Turnover and accounts",
     "options": [
      "Yes",
      "Mostly",
@@ -22023,6 +24693,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "bankStatements",
     "label": "Do you have 12 months of business bank statements?",
     "kind": "choice",
+    "section": "Turnover and accounts",
     "options": [
      "Yes",
      "No"
@@ -22032,6 +24703,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purpose",
     "label": "What is the funding for?",
     "kind": "choice",
+    "section": "The funding you need",
     "options": [
      "Working capital",
      "Business expansion",
@@ -22046,6 +24718,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "purposeOther",
     "label": "Please say what it is for",
     "kind": "text",
+    "section": "The funding you need",
     "showWhen": {
      "key": "purpose",
      "values": [
@@ -22057,6 +24730,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "fundingTenure",
     "label": "For how long do you need the money?",
     "kind": "choice",
+    "section": "The funding you need",
     "options": [
      "Up to 4 months",
      "4 to 6 months",
@@ -22068,6 +24742,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "urgency",
     "label": "How soon do you need the funds?",
     "kind": "choice",
+    "section": "The funding you need",
     "options": [
      "Within 48 hours",
      "Within a week",
@@ -22078,6 +24753,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "repaySource",
     "label": "How will you repay it?",
     "kind": "choice",
+    "section": "The funding you need",
     "options": [
      "From sales and money owed to me",
      "From selling stock",
@@ -22090,6 +24766,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pdc",
     "label": "Are you comfortable giving post-dated cheques as the repayment security?",
     "kind": "choice",
+    "section": "The funding you need",
     "options": [
      "Yes",
      "No",
@@ -22097,9 +24774,22 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     ]
    },
    {
+    "key": "securityOffered",
+    "label": "Can you offer any security or a guarantee?",
+    "kind": "choice",
+    "section": "The funding you need",
+    "options": [
+     "Yes, a property",
+     "Yes, a personal or company guarantee",
+     "Both",
+     "No"
+    ]
+   },
+   {
     "key": "hasLoans",
     "label": "Does the business have any running loans or credit limits?",
     "kind": "choice",
+    "section": "Your existing loans",
     "options": [
      "Yes",
      "No"
@@ -22109,6 +24799,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "monthlyObligation",
     "label": "Total repayments the business makes every month",
     "kind": "amount",
+    "section": "Your existing loans",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -22120,6 +24811,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "loanOutstanding",
     "label": "Total amount still to be repaid on them",
     "kind": "amount",
+    "section": "Your existing loans",
     "showWhen": {
      "key": "hasLoans",
      "values": [
@@ -22131,6 +24823,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "latePayments",
     "label": "Any cheque returns or missed repayments in the last 12 months?",
     "kind": "choice",
+    "section": "Your existing loans",
     "options": [
      "No",
      "Yes, once or twice",
@@ -22147,6 +24840,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejection",
     "label": "Has a funding request of yours been declined before?",
     "kind": "choice",
+    "section": "Your existing loans",
     "options": [
      "Yes",
      "No"
@@ -22156,6 +24850,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "pastRejectionNote",
     "label": "Which lender, and when?",
     "kind": "text",
+    "section": "Your existing loans",
     "showWhen": {
      "key": "pastRejection",
      "values": [
@@ -22167,6 +24862,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "ownsOtherProperty",
     "label": "Do you own any property today?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -22176,6 +24872,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyType",
     "label": "What kind of property is it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Residential flat",
      "Shop",
@@ -22195,6 +24892,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyLocation",
     "label": "Where is it?",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "ownsOtherProperty",
      "values": [
@@ -22206,6 +24904,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "otherPropertyUse",
     "label": "Who uses it?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "I live in it",
      "It is rented out",
@@ -22222,6 +24921,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "hasRentalIncome",
     "label": "Do you receive any rent?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -22231,6 +24931,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalProperty",
     "label": "Is the rent from a property you already own, or one you plan to buy?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "One I already own",
      "One I plan to buy"
@@ -22246,6 +24947,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "rentalMonthly",
     "label": "Rent you receive every month",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "hasRentalIncome",
      "values": [
@@ -22257,6 +24959,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarner",
     "label": "Is there another earning member whose income should be counted?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Yes",
      "No"
@@ -22266,6 +24969,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerRelation",
     "label": "How are they related to you?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Spouse",
      "Father",
@@ -22285,6 +24989,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerAge",
     "label": "Their age",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -22296,6 +25001,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerWork",
     "label": "Are they salaried or self-employed?",
     "kind": "choice",
+    "section": "More about your finances",
     "options": [
      "Salaried",
      "Self-employed"
@@ -22311,6 +25017,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerEmployer",
     "label": "Their company, or business name",
     "kind": "text",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
@@ -22322,12 +25029,45 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "extraEarnerIncome",
     "label": "Their monthly income, or net profit if they run a business",
     "kind": "amount",
+    "section": "More about your finances",
     "showWhen": {
      "key": "extraEarner",
      "values": [
       "Yes"
      ]
     }
+   },
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Below 25",
+     "25 to 40",
+     "41 to 55",
+     "56 to 65",
+     "Above 65"
+    ],
+    "help": "Lenders set age limits, so it helps us pick the right ones."
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
    }
   ]
  }

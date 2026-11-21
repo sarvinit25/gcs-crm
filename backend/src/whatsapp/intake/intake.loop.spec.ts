@@ -5,7 +5,7 @@ import { answerKey, loanFor, nextQuestions, type Answers } from "./intake.engine
 // The chat that went wrong: the customer answered "Rent" to a question that needs an amount, and was asked it three more times.
 const SLUG = "balance-transfer";
 
-function setup(userSays: () => string, aiValue: () => string = userSays, lastOnly = false) {
+function setup(userSays: () => string, aiValue: () => string = userSays, lastOnly = false, firstMessage = false) {
   const loan = loanFor(SLUG)!;
   // everything before "other monthly income" is already answered
   const answers: Answers = {};
@@ -36,7 +36,7 @@ function setup(userSays: () => string, aiValue: () => string = userSays, lastOnl
       findUnique: async ({ where }: { where: { leadId_key: { key: string } } }) => rows.get(where.leadId_key.key) ?? null,
     },
     whatsAppMessage: {
-      findMany: async () => [{ direction: WhatsAppDirection.OUT, type: "text", body: "Other regular monthly income?" }, { direction: WhatsAppDirection.IN, type: "text", body: userSays() }].reverse(),
+      findMany: async () => (firstMessage ? [{ direction: WhatsAppDirection.IN, type: "text", body: userSays() }] : [{ direction: WhatsAppDirection.OUT, type: "text", body: "Other regular monthly income?" }, { direction: WhatsAppDirection.IN, type: "text", body: userSays() }].reverse()),
       findFirst: async () => ({ body: userSays() }),
     },
   };
@@ -133,11 +133,29 @@ describe("what the chat tells the lead", () => {
 
 describe("the end of the questions", () => {
   it("answering the very last question shows the summary and the document checklist, not a 'late addition' note", async () => {
-    const { svc, tasks } = setup(() => "No", () => "No", true);
+    const { svc, tasks } = setup(() => "Any time", () => "Any time", true);
     await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
     const t = tasks.at(-1)!;
     expect(t).toMatch(/short confirmation of what has been noted/);
     expect(t).toMatch(/\/checklists\/balance-transfer-checklist\.pdf/);
     expect(t).not.toMatch(/added a detail after the questions were over/);
+  });
+});
+
+describe("the way Ria speaks", () => {
+  it("opens with the prescribed welcome, word for word", async () => {
+    const { svc, tasks } = setup(() => "hi", () => "x", false, true);
+    await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
+    const t = tasks.at(-1)!;
+    expect(t).toMatch(/Hello! Welcome to Growth Capital Services\./);
+    expect(t).toMatch(/I'm Ria, your AI Loan Assistant\./);
+    expect(t).toMatch(/network of 75\+ Banks and NBFCs/);
+    expect(t).toMatch(/Which type of financial assistance are you looking for\?/);
+  });
+  it("introduces each new part of the form with a 'Now, let's understand' lead-in", async () => {
+    const { svc, tasks } = setup(() => "55000");
+    await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
+    expect(tasks.at(-1)).toMatch(/starts a new part of the form/);
+    expect(tasks.at(-1)).toMatch(/Now, let's understand/);
   });
 });
