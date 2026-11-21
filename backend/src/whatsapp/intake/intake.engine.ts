@@ -189,3 +189,53 @@ export function answersByKey(loanSlug: string | null | undefined, rows: { key: s
 }
 
 export { answerKey };
+
+const SELF_EMPLOYED_WORDS = ["self-employed", "self employed", "proprietor", "partner", "director", "professional", "partnership", "pvt ltd co"];
+
+/**
+ * What the lead's own fields should say, worked out from the answers, the same way the website's second form does it:
+ * salaried or self-employed, and the monthly take-home salary. Staff-entered values are never touched by the caller.
+ */
+export function leadFacts(loanSlug: string | null | undefined, answers: Answers, applicant: string | null): { employmentType: "SALARIED" | "SELF_EMPLOYED" | null; monthlyIncome: number | null } {
+  const who = (answers["applicantType"] ?? answers["applicantCategory"] ?? applicant ?? "").trim().toLowerCase();
+  const employmentType = who === "salaried" ? "SALARIED" : SELF_EMPLOYED_WORDS.includes(who) ? "SELF_EMPLOYED" : null;
+  const salary = answers["netSalary"] ? parseMoney(answers["netSalary"]) : null;
+  return { employmentType, monthlyIncome: salary && salary > 0 ? salary : null };
+}
+
+/**
+ * Things that mean an expert must look at the file before anything is said to the customer. Never a reason to turn a
+ * customer away: a bounce, an overdue, an unusual owner or a title question is a conversation, not a rejection.
+ */
+export function reviewReasons(loanSlug: string | null | undefined, answers: Answers): string[] {
+  const loan = loanFor(loanSlug);
+  if (!loan) return [];
+  const out: string[] = [];
+  const say = (reason: string) => { if (!out.includes(reason)) out.push(reason); };
+  if (loanSlug === "private-funding") say("Private funding always needs an expert's review");
+  for (const f of loan.fields) {
+    const v = (answers[f.key] ?? "").trim();
+    if (!v || /^Not (sure|given)/.test(v)) continue;
+    if (/how regular has the repayment been/i.test(f.label)) {
+      if (/overdue now/i.test(v)) say("Something is overdue on the present loan");
+      else if (/delays or bounces/i.test(v)) say("Delays or bounces on the present loan");
+    } else if (/is any amount overdue/i.test(f.label) && v === "Yes") say("An amount is overdue on the present facility");
+    else if (/cheque returns or missed instalments/i.test(f.label) && /more often/i.test(v)) say("Cheque returns or missed instalments, more than once or twice");
+    else if (/late or missed emi or card payments/i.test(f.label) && /more often/i.test(v)) say("Late or missed payments in the last year, more than once or twice");
+    else if (/anything on your credit report/i.test(f.label) && /write-off|settlement|overdue|cheque bounce/i.test(v)) say(`Credit report concern: ${v}`);
+    else if (/declined before/i.test(f.label) && v === "Yes") say("A similar application was declined before");
+    else if (/whose name is the property in/i.test(f.label) && v !== "My own name") say("The property is not in the applicant's own name");
+    else if (/is the title clear/i.test(f.label) && !/^Yes/.test(v)) say("Property title is not confirmed clear");
+  }
+  return out;
+}
+
+const CHECKLIST_OF: Record<string, string> = { Salaried: "home-loan-salaried", NRI: "home-loan-nri" };
+
+/** The website's document checklist (a PDF) for a loan. Home loans have one each for salaried, self-employed and NRI. */
+export function checklistUrl(site: string, loanSlug: string | null | undefined, applicant: string | null): string | null {
+  if (!loanSlug || !loanFor(loanSlug)) return null;
+  let file = loanSlug;
+  if (loanSlug === "home-loan") file = CHECKLIST_OF[applicant ?? ""] ?? (applicant && SELF_EMPLOYED_WORDS.includes(applicant.toLowerCase()) ? "home-loan-self-employed" : "home-loan");
+  return `${site.replace(/\/+$/, "")}/checklists/${file}-checklist.pdf`;
+}

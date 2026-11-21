@@ -5,13 +5,15 @@ import { answerKey, loanFor, nextQuestions, type Answers } from "./intake.engine
 // The chat that went wrong: the customer answered "Rent" to a question that needs an amount, and was asked it three more times.
 const SLUG = "balance-transfer";
 
-function setup(userSays: () => string, aiValue: () => string = userSays) {
+function setup(userSays: () => string, aiValue: () => string = userSays, lastOnly = false) {
   const loan = loanFor(SLUG)!;
   // everything before "other monthly income" is already answered
   const answers: Answers = {};
+  let openKey = "otherIncome";
   for (;;) {
-    const f = nextQuestions(SLUG, answers, 1).fields[0]!;
-    if (f.key === "otherIncome") break;
+    const q = nextQuestions(SLUG, answers, 1);
+    const f = q.fields[0]!;
+    if (lastOnly ? q.remaining <= 1 : f.key === "otherIncome") { openKey = f.key; break; }
     answers[f.key] = f.kind === "choice" ? f.options![0]! : f.kind === "amount" ? "₹100000" : f.kind === "percent" ? "10%" : "x";
   }
   const rows = new Map<string, { key: string; label: string; value: string }>();
@@ -22,10 +24,11 @@ function setup(userSays: () => string, aiValue: () => string = userSays) {
   rows.set(answerKey("You are"), { key: answerKey("You are"), label: "You are", value: "Proprietor" });
   rows.set(answerKey("Agreed to answer more questions"), { key: answerKey("Agreed to answer more questions"), label: "x", value: "Yes" });
 
+  const updates: unknown[] = [];
   const prisma = {
     lead: {
       findUnique: async () => ({ name: "Mahesh Ghadge", city: "Mumbai", amount: 20000000, loanProduct: { slug: SLUG, name: "Balance Transfer" }, answers: [...rows.values()] }),
-      update: async () => ({}),
+      update: async (a: unknown) => { updates.push(a); return {}; },
     },
     loanProduct: { findUnique: async () => ({ id: "p" }) },
     leadAnswer: {
@@ -38,7 +41,7 @@ function setup(userSays: () => string, aiValue: () => string = userSays) {
     },
   };
   const tasks: string[] = [];
-  const answerKeyWanted = "otherIncome";
+  const answerKeyWanted = openKey;
   (global as { fetch: unknown }).fetch = jest.fn(async (_url: string, init: { body: string }) => {
     const body = JSON.parse(init.body) as { messages: { role: string; content: string }[]; response_format?: unknown };
     const system = body.messages[0]!.content;
@@ -50,7 +53,7 @@ function setup(userSays: () => string, aiValue: () => string = userSays) {
   const settings = { get: (k: string) => (k === "whatsapp.aiIntake" ? true : "Growth Capital Services") };
   const config = { get: () => "key" };
   const svc = new IntakeService(prisma as never, settings as never, config as never);
-  return { svc, rows, tasks };
+  return { svc, rows, tasks, updates };
 }
 
 describe("a question the customer keeps answering without a usable figure", () => {
@@ -107,5 +110,34 @@ describe("the AI must not invent a figure", () => {
     const { svc, rows } = setup(() => "none", () => "0");
     await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
     expect(rows.get(answerKey("Other regular monthly income (rent, interest, etc.)"))?.value).toBe("₹0");
+  });
+});
+
+describe("carrying on after a break or a reminder", () => {
+  it("'continue' just carries on with the open question, it is not an answer to it", async () => {
+    const { svc, rows, tasks } = setup(() => "continue");
+    await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
+    expect(tasks.at(-1)).not.toMatch(/could not be used/);
+    expect(tasks.at(-1)).toMatch(/Ask exactly this ONE question/);
+    expect(rows.has(answerKey("Other regular monthly income (rent, interest, etc.)"))).toBe(false);
+  });
+});
+
+describe("what the chat tells the lead", () => {
+  it("sets the lead's employment type from who the customer is, so it lands in the right working list", async () => {
+    const { svc, updates } = setup(() => "55000");
+    await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
+    expect(JSON.stringify(updates)).toMatch(/SELF_EMPLOYED/);
+  });
+});
+
+describe("the end of the questions", () => {
+  it("answering the very last question shows the summary and the document checklist, not a 'late addition' note", async () => {
+    const { svc, tasks } = setup(() => "No", () => "No", true);
+    await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
+    const t = tasks.at(-1)!;
+    expect(t).toMatch(/short confirmation of what has been noted/);
+    expect(t).toMatch(/\/checklists\/balance-transfer-checklist\.pdf/);
+    expect(t).not.toMatch(/added a detail after the questions were over/);
   });
 });

@@ -56,6 +56,12 @@ const PERSONAS = [
     about:
       "You are Mahesh, a proprietor in Chembur, Mumbai. You want to move your drop-line overdraft from L&T Finance: original sanctioned limit 2 crore, still to repay 1.60 crore, rate 11 percent floating, about 1,55,000 a month, 10 to 15 years left, repaying for 1 to 2 years, a few delays because your customers paid late (nothing overdue now). The property is in Vikhroli, worth about 6 crore, in your parents' name, and they will sign. When asked for its type pick Other (it is a mixed-use building). You also want a top-up. A rent of 55,000 a month comes in. IMPORTANT: when you are first asked about other monthly income, answer only the single word Rent with no number, like a hurried customer; if the assistant asks again giving an example, then give the number. If asked something you do not know (for example the drawing power), say: not sure. Your address on the loan papers and all other answers are small sensible figures.",
   },
+  {
+    phone: "9000000018",
+    opening: "I have a property and need 1 crore for my business, but I do not want a regular EMI",
+    about:
+      "You are Sanjay Kulkarni, who owns a printing press in Thane (name: Sanjay). You do not know loan names. You own a commercial shop in Thane worth about 3 crore in your own name, with no loan on it. You need about 1 crore as working money and like the idea of paying interest only on what you use. Business turnover about 4 crore a year, 7 years old, proprietorship, GST registered, ITR filed 3 years, CIBIL 760. When shown a list, pick what fits best. Answer other things with small sensible figures.",
+  },
 ] as const;
 
 async function pretendCustomer(persona: string, transcript: { who: "gia" | "me"; text: string }[], offered: string[]) {

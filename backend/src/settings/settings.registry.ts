@@ -114,6 +114,14 @@ export const SETTINGS: SettingDef[] = [
     default: "18:30",
   },
   {
+    key: "whatsapp.nudgeUnfinished",
+    group: "WhatsApp",
+    label: "Ria sends one reminder to a customer who goes quiet part way through the questions",
+    help: "Off by default. When on, a customer who stopped answering for a few hours gets one polite message (only between 9 am and 8 pm India time, only within WhatsApp's 24-hour window, never twice, never after a person has taken over or after the customer said not now). They reply continue and Ria carries on. Needs Ria switched on above.",
+    type: "boolean",
+    default: false,
+  },
+  {
     key: "whatsapp.briefRecipients",
     group: "WhatsApp",
     label: "Who gets the briefs",

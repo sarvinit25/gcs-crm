@@ -63,3 +63,11 @@ describe("what is said back", () => {
     expect(hasEnoughDetail("GST registration")).toBe(false);
   });
 });
+
+describe("a clear request for a CA or legal service", () => {
+  const { asksForService } = jest.requireActual("./ca-legal");
+  it("is told apart from an answer to a loan question", () => {
+    for (const t of ["I need GST registration for my shop", "can you file my ITR", "looking for a rent agreement", "please draft an affidavit", "do you do trademark registration"]) expect(asksForService(t)).toBe(true);
+    for (const t of ["Yes, GST registered", "3 years of ITR filed", "GST returns are regular", "no notice received", "Printing press owner"]) expect(asksForService(t)).toBe(false);
+  });
+});

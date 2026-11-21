@@ -23,14 +23,14 @@ Written 21 Nov 2026. This takes Mahesh's improvement plan (the ChatGPT write-up)
 | 10 | Reach all 28 products by tap | **Done.** First list has the popular nine plus "More loan types", which opens the four groups, then the loans in each group. |
 | 11 | One question at a time, no sensitive data in chat | Already so. |
 | 12 | Never stop the form half way | **Done.** The old stop after 20 answers is gone; the customer can still say "rest on the call". |
-| 13 | Welcome message with consent | Next (see section 4). |
-| 14 | Conversation memory: resume an unfinished chat | Partly there (answers are kept per lead, so the chat resumes at the next open question). A "Welcome back, shall we continue?" message is next. |
-| 15 | Multi-product, reuse the customer profile | Next. |
-| 16 | Lead priority (1, 2, 3, Manual review) | Next. |
-| 17 | Preliminary CAM and lender shortlist from the chat | Next: the pieces exist (CAM, lender match with per-program fit); the chat answers must feed them. |
-| 18 | Follow-up reminders for unfinished chats and pending documents | Next. |
-| 19 | Website: Apply Now opens the assistant with the product chosen; Continue Application; product comparison; balance transfer calculator; document checklist; tracking | Next, website work. |
-| 20 | "I don't know the product" guided help (property + business money + no EMI) | Next. |
+| 13 | Welcome message with consent | **Done.** The welcome carries a short consent line, and the lead records that consent was given on WhatsApp, with the date. |
+| 14 | Conversation memory: resume an unfinished chat | **Done.** Answers are kept per lead; after a break of 6 hours or more she welcomes the customer back and carries on from the open question. "Continue" resumes without being taken as an answer. |
+| 15 | Multi-product, reuse the customer profile | **Not done.** A second product needs its own lead that reuses the first one's name, city and profile; that touches how leads, duplicates and applications relate, so it needs a decision first. |
+| 16 | Lead priority (1, 2, 3, Manual review) | **Done, using what the CRM already has.** The WhatsApp answers now fill the lead's employment type and salary, so it lands in HOT, WARM, FOLLOW-UP or COLD like a website lead. Bounces, overdue, an owner who is not the applicant, an unclear title, a past decline or private funding add a **"Needs an expert's review"** line with the reasons. Nobody is ever auto-rejected. |
+| 17 | Preliminary CAM and lender shortlist from the chat | **Partly.** The answers now reach the lead's own fields, which the lender match reads. An automatic CAM built from the chat answers is not done yet. |
+| 18 | Follow-up reminders for unfinished chats | **Done, switched off until you turn it on** (Settings, WhatsApp). One reminder only, 9 am to 8 pm India time, inside WhatsApp's 24-hour window, never after a person took over or "not now". Pending-document reminders are not done. |
+| 19 | Website: Apply Now opens the assistant with the product chosen; Continue Application; product comparison; balance transfer calculator; document checklist; tracking | **Partly.** The website forms gained the new questions (pull request 6). The rest is website work not started. The document checklist link is now sent at the end of the WhatsApp chat. |
+| 20 | "I don't know the product" guided help | **Done for the common case.** "Property, need 1 crore for business, no regular EMI" is read as an overdraft against property, with a plain-words comparison of the closest options. |
 
 ## 3. Phased plan (Mahesh's own three phases, with where we are)
 - **Phase 1, smart lead collection:** all 28 flows exist. Done now: the engine fixes above and the overdraft questions. Next: sharpen the other priority products one by one (below).
@@ -54,6 +54,11 @@ For each of these the plan lists recommended questions. The website forms alread
 6. **Staff view of the chat:** a one-screen "what she learned, what is missing, which lenders look right" on the lead, using the program-fit result.
 7. **Unfinished-chat nudge** after a day, then after three days, then stop. Never more.
 8. **Quality checks for us:** a weekly list of questions that customers skip or answer wrongly most, so the form wording can be fixed.
+
+## 4a. Found by testing, and fixed
+- A customer's reply to the form ("Yes, GST registered") was grabbed by the CA and legal desk and the chat was handed to a person. While a loan question is open, only a clear request for the service now leaves the form.
+- "Almost done" repeated four times in a row.
+- A last answer was mistaken for a late addition, so the summary and checklist link were skipped.
 
 ## 5. How it was tested
 A pretend customer (an AI playing Mahesh, with the answers from the real chat above: Chembur, L&T Finance, ₹1.60 Cr, "Rent" typed without a number, property type "Other", "not sure" for the drawing power) chatted with the assistant through the CRM's own message handling, with no real phone and no Meta. Found and fixed during the run: "11 percent floating" not read as a rate; a confirm question mixed into the next question; the AI turning "Rent" into 0; the summary quoting the middle of the chosen amount range as if it were the customer's figure.

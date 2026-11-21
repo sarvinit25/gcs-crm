@@ -8478,6 +8478,16 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     ]
    },
    {
+    "key": "audited",
+    "label": "Do you have audited or CA-certified statements for the last 2 to 3 years?",
+    "kind": "choice",
+    "options": [
+     "Yes, all years",
+     "Some years",
+     "No"
+    ]
+   },
+   {
     "key": "gstRegistered",
     "label": "Is your business registered under GST?",
     "kind": "choice",
@@ -11423,6 +11433,17 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "allowZero": true
    },
    {
+    "key": "avgCreditors",
+    "label": "Money you owe your suppliers at any time",
+    "kind": "amount",
+    "allowZero": true
+   },
+   {
+    "key": "projectedTurnover",
+    "label": "Sales you expect in the coming year",
+    "kind": "amount"
+   },
+   {
     "key": "creditPeriod",
     "label": "How long do customers take to pay you?",
     "kind": "choice",
@@ -12268,6 +12289,32 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
       "Move it and add more funding"
      ]
     }
+   },
+   {
+    "key": "presentUsed",
+    "label": "How much of the present limit do you use on average?",
+    "kind": "amount",
+    "showWhen": {
+     "key": "requirement",
+     "values": [
+      "Move my present overdraft or loan",
+      "Move it and add more funding"
+     ]
+    },
+    "allowZero": true
+   },
+   {
+    "key": "odPurpose",
+    "label": "What will the overdraft be used for?",
+    "kind": "choice",
+    "options": [
+     "Business cash flow",
+     "Buying stock or paying suppliers",
+     "Seasonal needs",
+     "Repaying other loans",
+     "Personal needs",
+     "Other"
+    ]
    },
    {
     "key": "timeline",

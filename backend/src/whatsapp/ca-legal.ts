@@ -53,6 +53,13 @@ export function caLegalIntent(text: string): { categories: Category[] } | null {
   return { categories: categories as Category[] };
 }
 
+/**
+ * Does the message clearly ask for a CA or legal service ("I need GST registration", "can you file my ITR")? While a customer is
+ * answering a loan form, only such a request leaves the form: "Yes, GST registered" is an answer to the form's own question.
+ */
+export const asksForService = (text: string) =>
+  /\b(i|we) (need|want|require)\b|\blooking for\b|\bhelp (me )?(with|in)\b|\bcan (you|u)\b|\bcould you\b|\bdo (you|u) (do|provide|offer|handle|help)\b|\bplease (do|file|register|draft|arrange)\b|\b(register|file|draft|prepare) (my|our|a|an)\b|\bneed (a|an|to|help)\b/i.test(text);
+
 /** A person asking for a loan while we wait for their CA/legal details: the loan flow should carry on. */
 export const looksLikeLoanTalk = (text: string) => LOAN_WORDS.test(text) && !caLegalIntent(text);
 

@@ -9,6 +9,7 @@ import { ConversationsService } from "./conversations.service";
 import { IntakeService } from "./intake/intake.service";
 import { MediaService, type SavedFile } from "./media.service";
 import { CaLegalDesk } from "./ca-legal.service";
+import { asksForService } from "./ca-legal";
 import { WHATSAPP_PROVIDER, type Interactive, type WhatsAppProvider } from "./whatsapp.provider";
 import { contactKey, toWaId } from "./phone";
 import { STAGE_LABEL } from "./templates.util";
@@ -298,7 +299,9 @@ export class InboundService {
     const typedOrTapped = m.type === "text" || (m.type === "interactive" && Boolean(m.replyId));
     // Someone asking about GST, ITR, an agreement or a title check is not asking about a loan. The CA & Legal desk answers,
     // takes down what they need, and hands the chat to the team.
-    if (m.type === "text" && conversation.leadId && !wantsPerson && !inProfile && !wantsProfile) {
+    // Part way through a loan form, a short reply that answers the open question stays with the form.
+    const midForm = m.type === "text" && conversation.leadId && this.intake.enabled() ? await this.intake.isMidForm(conversation.leadId) : false;
+    if (m.type === "text" && conversation.leadId && !wantsPerson && !inProfile && !wantsProfile && !(midForm && !asksForService(m.body ?? ""))) {
       const desk = await this.caLegal.handle(conversation.leadId, m.body ?? "");
       if (desk) {
         void this.provider.showTyping(m.id);

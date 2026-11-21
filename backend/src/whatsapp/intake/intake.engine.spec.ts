@@ -156,3 +156,29 @@ describe("reading a figure out of a sentence", () => {
     expect(checkAnswer(amt, "Rent").ok).toBe(false);
   });
 });
+
+describe("what the answers say about the lead", () => {
+  const { leadFacts, reviewReasons, checklistUrl } = jest.requireActual("./intake.engine");
+  it("sets salaried or self-employed and the salary, the way the website's form does", () => {
+    expect(leadFacts("personal-loan", { netSalary: "₹85,000" }, "Salaried")).toEqual({ employmentType: "SALARIED", monthlyIncome: 85000 });
+    expect(leadFacts("business-loan", {}, "Proprietor")).toEqual({ employmentType: "SELF_EMPLOYED", monthlyIncome: null });
+    expect(leadFacts("home-loan", {}, "NRI")).toEqual({ employmentType: null, monthlyIncome: null });
+  });
+  it("flags what an expert must look at, and never says to turn the customer away", () => {
+    const r = reviewReasons("balance-transfer", { loanType: "Drop-Line Overdraft Balance Transfer", track: "A few delays or bounces", ownership: "A parent or family member", odOverdue: "Yes" });
+    expect(r).toEqual(expect.arrayContaining(["Delays or bounces on the present loan", "The property is not in the applicant's own name", "An amount is overdue on the present facility"]));
+    expect(r.join(" ")).not.toMatch(/reject|decline the customer/i);
+    expect(reviewReasons("balance-transfer", { track: "Every EMI on time", ownership: "My own name" })).toEqual([]);
+    expect(reviewReasons("private-funding", {})).toEqual(["Private funding always needs an expert's review"]);
+  });
+  it("does not count a skipped answer as a problem", () => {
+    expect(reviewReasons("balance-transfer", { track: "Not sure (the expert will confirm)" })).toEqual([]);
+  });
+  it("links the website's document checklist for the loan", () => {
+    expect(checklistUrl("https://growthcapitalservices.in/", "balance-transfer", "Proprietor")).toBe("https://growthcapitalservices.in/checklists/balance-transfer-checklist.pdf");
+    expect(checklistUrl("https://x.in", "home-loan", "Salaried")).toBe("https://x.in/checklists/home-loan-salaried-checklist.pdf");
+    expect(checklistUrl("https://x.in", "home-loan", "Proprietor")).toBe("https://x.in/checklists/home-loan-self-employed-checklist.pdf");
+    expect(checklistUrl("https://x.in", "home-loan", "NRI")).toBe("https://x.in/checklists/home-loan-nri-checklist.pdf");
+    expect(checklistUrl("https://x.in", "nonsense", null)).toBeNull();
+  });
+});

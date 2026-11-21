@@ -6,6 +6,7 @@ import { LoanProfileModule } from "../loan-profile/loan-profile.module";
 import { BriefsService } from "./briefs.service";
 import { ConversationsService } from "./conversations.service";
 import { InboundService } from "./inbound.service";
+import { IntakeNudgeService } from "./intake/intake-nudge.service";
 import { IntakeService } from "./intake/intake.service";
 import { MediaService } from "./media.service";
 import { CaLegalDesk } from "./ca-legal.service";
@@ -34,6 +35,7 @@ import { WHATSAPP_PROVIDER, createWhatsAppProvider } from "./whatsapp.provider";
     ConversationsService,
     InboundService,
     IntakeService,
+    IntakeNudgeService,
     MediaService,
     CaLegalDesk,
     NotificationEngine,

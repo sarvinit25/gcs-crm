@@ -4,7 +4,8 @@ import { Prisma, WhatsAppDirection } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import { SettingsService } from "../../settings/settings.service";
 import type { Interactive } from "../whatsapp.provider";
-import { answerKey, answersByKey, checkAnswer, hasFigure, loanChoices, loanFor, loanGroups, nextQuestions, otherToSpecify, parseMoney, resolveField, rupees, withSeeds, type Answers } from "./intake.engine";
+import { LeadsService } from "../../leads/leads.service";
+import { answerKey, answersByKey, checkAnswer, checklistUrl, hasFigure, leadFacts, loanChoices, loanFor, loanGroups, nextQuestions, otherToSpecify, parseMoney, reviewReasons, resolveField, rupees, withSeeds, type Answers } from "./intake.engine";
 import { LANGUAGE_NAME, detectLanguage } from "./intake.language";
 import { YOU_ARE, groupLoanOptions, groupOptions, optionsFor, parseTap, shorten, type OptionSet, type Tap } from "./intake.options";
 
@@ -49,6 +50,8 @@ const MAX_HISTORY = 16;
 const ENOUGH_ANSWERS = 90;
 /** A question the customer has not answered usefully is explained once, then skipped for the expert to cover on the call. */
 const MAX_TRIES = 2;
+/** After a break this long the customer is welcomed back before the next question. */
+const RETURN_AFTER_MS = 6 * 60 * 60 * 1000;
 const LATE_NOTE = "Added later on WhatsApp";
 const GENERIC_NAME = /^(whatsapp enquiry|unknown)$/i;
 /** The answer rows that record the short first part and the choice to go on. */
@@ -98,6 +101,7 @@ export class IntakeService {
     private prisma: PrismaService,
     private settings: SettingsService,
     private config: ConfigService,
+    private leads?: LeadsService,
   ) {}
 
   enabled() {
@@ -126,6 +130,8 @@ export class IntakeService {
       before = await this.snapshot(leadId);
     }
     const asked = this.focus(before).ask;
+    // "continue" after a reminder or a break just carries on with the open question: it is not an answer to it.
+    const resume = !tap && !media && Boolean(asked[0]) && /^\s*(continue|go ahead|resume|chalo|haan chalo|yes continue)[\s.!]*$/i.test(lastTyped);
     // "Not sure" or "skip" on a question the form allows to skip: noted for the expert, and the chat moves on without pressing.
     let notSure = false;
     const open = asked[0];
@@ -140,7 +146,7 @@ export class IntakeService {
       }
     }
     // A file, photo or voice note cannot be read here: nothing is learned from it, and the same question is asked again.
-    const extracted: Extracted | null = media ? { sent_file: media } : tap ? this.fromTap(tap, before) : notSure ? {} : await this.extract(turns, asked, before);
+    const extracted: Extracted | null = media ? { sent_file: media } : tap ? this.fromTap(tap, before) : notSure || resume ? {} : await this.extract(turns, asked, before);
     if (!extracted) return { text: null, handoff: true };
     if (media && media.startsWith("not_saved")) await this.writeAnswer(leadId, "Tried to send a file on WhatsApp", `${media.replace(/_/g, " ")} (not kept: ask for it on the call)`);
     // These are decided on the customer's LATEST typed message only, in code, so an old message cannot keep raising them.
@@ -161,11 +167,20 @@ export class IntakeService {
     const allowed = new Set(tap?.kind === "answer" ? [tap.key] : asked.map((a) => a.key));
     for (const a of asked) if (a.key.endsWith("__other")) allowed.add(a.key.replace(/__other$/, ""));
     if (firstMessage) ["loan_slug", "loan_amount", "name", "city", "applicant"].forEach((k) => allowed.add(k));
+    // Continuing the chat is the customer's consent to be contacted about this enquiry: kept on the lead, once, with the date.
+    if (turns.every((t) => t.role === "user") && !media) await this.recordConsent(leadId);
     const { saved, figures, rejected } = await this.apply(leadId, extracted, allowed, tap || media ? "" : lastTyped);
 
     // everything is in and they have been told an expert will call: a bare "thanks" needs no answer
     let after = await this.snapshot(leadId);
     if (!tap && JUST_THANKS.test(lastTyped) && this.toAsk(after).length === 0) return { text: null, handoff: false, silent: true };
+
+    // What the answers say about the person goes onto the lead's own fields, so the lead lands in the right working list.
+    await this.syncLead(leadId, after);
+
+    // Someone back after a break, part way through, is welcomed back before the next question.
+    const lastOut = await this.prisma.whatsAppMessage.findFirst({ where: { conversationId: conversation.id, direction: WhatsAppDirection.OUT }, orderBy: { createdAt: "desc" }, select: { createdAt: true } });
+    const returning = Boolean(lastOut?.createdAt) && Date.now() - new Date(lastOut!.createdAt).getTime() > RETURN_AFTER_MS && turns.some((t) => t.role === "assistant");
 
     // A question that did not get a usable answer: say once exactly what is needed, then move on instead of asking a third time.
     let retry: string | null = null;
@@ -173,7 +188,7 @@ export class IntakeService {
     let giveUp = false;
     const openKey = asked[0]?.key;
     const stillOpen = Boolean(openKey) && this.toAsk(after)[0]?.key === openKey;
-    const noAnswer = !tap && !media && !notSure && !extracted.browse && !extracted.typing && !extracted.their_question && !extracted.wants_person && !firstMessage;
+    const noAnswer = !tap && !media && !notSure && !resume && !extracted.browse && !extracted.typing && !extracted.their_question && !extracted.wants_person && !firstMessage;
     if (openKey && stillOpen && noAnswer) {
       const tryKey = `${leadId}:${openKey}`;
       const n = (this.tries.get(tryKey) ?? 0) + 1;
@@ -223,13 +238,13 @@ export class IntakeService {
 
     // Something the customer adds after the questions are over (a figure, a correction) is kept for the expert, never lost.
     let late = false;
-    if (plan.kind === "wrap" && !plan.declined && !tap && !media && after.basicsDone && !extracted.wants_person && !extracted.their_question && !JUST_THANKS.test(lastTyped) && !STOP_ASKING.test(lastTyped) && !RESUME_ASKING.test(lastTyped) && (/\d/.test(lastTyped) || lastTyped.trim().length >= 25)) {
+    if (plan.kind === "wrap" && !plan.declined && asked.length === 0 && !tap && !media && after.basicsDone && !extracted.wants_person && !extracted.their_question && !JUST_THANKS.test(lastTyped) && !STOP_ASKING.test(lastTyped) && !RESUME_ASKING.test(lastTyped) && (/\d/.test(lastTyped) || lastTyped.trim().length >= 25)) {
       await this.addLate(leadId, lastTyped);
       late = true;
     }
 
     // 3. Word the reply.
-    const written = await this.write(turns, plan, extracted, saved, after, options, tap ? [] : figures, { retry, skipped, late, summary: justFinished && !late ? this.summaryOf(after) : null });
+    const written = await this.write(turns, plan, extracted, saved, after, options, tap ? [] : figures, { retry, skipped, late, returning, resumed: resume, summary: justFinished && !late ? this.summaryOf(after) : null, checklist: justFinished && !late ? checklistUrl(this.siteUrl(), after.loanSlug, after.applicant) : null, loanHelp: Boolean(!tap && !media && !firstMessage && plan.kind === "ask" && plan.ask[0]?.key === "loan_slug" && lastTyped.trim().length > 12) });
     if (!written) return { text: null, handoff: plan.kind === "handoff" };
     return { text: written.text, handoff: plan.kind === "handoff", ...(written.options ? { options: written.options } : {}) };
   }
@@ -338,7 +353,7 @@ Rules:
 - applicant: only if asked, and one of: Salaried, Proprietor, Partner, Director, Professional, NRI, Other (a shop or business owner on their own = Proprietor; a doctor, CA or similar = Professional).
 - more_details: only if asked. true if they agree to go on ("yes", "ok", "sure", "haan", "chalo", "होय"), false if they decline ("not now", "later", "no", "nahi").
 - Messages marked "(tapped)" are the customer's pick from a list we showed; the text after it is the option's title.
-- loan_slug: only if they clearly name a loan, or what it is for matches one loan; otherwise null.
+- loan_slug: only if they clearly name a loan, or what it is for matches one loan; otherwise null. When they describe a need without naming a loan: money against a property that they want to draw as needed and pay interest on only what they use, with no fixed EMI = "dlod"; a one-time lump sum against a property = "loan-against-property"; taking over an existing loan from another bank = "balance-transfer"; if it is still unclear, null.
 - wants_person: true if they ask for a person or a call, or are upset.
 - shared_private_number: true if they sent a PAN, Aadhaar, OTP, password, card or bank account number (these appear as [... removed]).
 - their_question: a question asked in their LATEST message only (rates, approval, documents...) in a few words, else null. Do not repeat a question from an earlier message.`;
@@ -447,6 +462,57 @@ Rules:
     return { saved, figures, rejected };
   }
 
+  private siteUrl() {
+    return (this.config.get<string>("PUBLIC_SITE_URL") || "https://growthcapitalservices.in").replace(/\/+$/, "");
+  }
+
+  /** The customer carrying on with the chat is their consent to be contacted about the enquiry. */
+  private async recordConsent(leadId: string) {
+    const key = answerKey("Consent to be contacted");
+    const have = await this.prisma.leadAnswer.findUnique({ where: { leadId_key: { leadId, key } }, select: { value: true } });
+    if (have) return;
+    const when = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" });
+    await this.writeAnswer(leadId, "Consent to be contacted", `Given on WhatsApp by continuing the chat (${when} IST)`);
+  }
+
+  /**
+   * Fills the lead's employment type and monthly income from the answers (only where staff have left them blank), notes why
+   * an expert should look at the file, and refreshes the lead's working list. Never lets a problem here break the chat.
+   */
+  private async syncLead(leadId: string, snap: Snapshot) {
+    try {
+      const facts = leadFacts(snap.loanSlug, snap.answers, snap.applicant);
+      const lead = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { employmentType: true, monthlyIncome: true } });
+      const data: Prisma.LeadUpdateInput = {};
+      if (lead && !lead.employmentType && facts.employmentType) data.employmentType = facts.employmentType;
+      if (lead && !lead.monthlyIncome && facts.monthlyIncome) data.monthlyIncome = facts.monthlyIncome;
+      if (Object.keys(data).length) await this.prisma.lead.update({ where: { id: leadId }, data });
+      const reasons = reviewReasons(snap.loanSlug, snap.answers);
+      if (reasons.length) {
+        const key = answerKey("Needs an expert's review");
+        const value = reasons.join("; ").slice(0, 480);
+        const have = await this.prisma.leadAnswer.findUnique({ where: { leadId_key: { leadId, key } }, select: { value: true } });
+        if (have?.value !== value) await this.writeAnswer(leadId, "Needs an expert's review", value);
+      }
+      await this.leads?.refreshSegment(leadId);
+    } catch (error) {
+      this.log.warn(`Could not update the lead from the chat: ${(error as Error).message.slice(0, 200)}`);
+    }
+  }
+
+  /** Is a loan question open right now? Then a reply is most likely its answer. */
+  async isMidForm(leadId: string): Promise<boolean> {
+    const snap = await this.snapshot(leadId);
+    return snap.more !== "No" && snap.basicsDone && this.toAsk(snap).length > 0;
+  }
+
+  /** Is this customer part way through the questions? Used to decide whether a reminder makes sense. */
+  async isUnfinished(leadId: string): Promise<{ unfinished: boolean; loan: string | null; name: string | null }> {
+    const snap = await this.snapshot(leadId);
+    const unfinished = snap.more !== "No" && this.toAsk(snap).length > 0;
+    return { unfinished, loan: snap.loanName, name: snap.lead && !GENERIC_NAME.test(snap.lead.name) ? snap.lead.name.trim().split(/\s+/)[0]! : null };
+  }
+
   /** What has been noted, in plain facts the writer repeats back to the customer. */
   private summaryOf(snap: Snapshot): string {
     const bits = [
@@ -479,7 +545,7 @@ Rules:
 
   // -- job 2: word the reply --------------------------------------------------------------------
 
-  private async write(turns: Turn[], plan: Plan, x: Extracted, saved: string[], snap: Snapshot, options: OptionSet | null, figures: string[], extra: { retry: string | null; skipped: boolean; late: boolean; summary: string | null }): Promise<{ text: string; options?: Interactive } | null> {
+  private async write(turns: Turn[], plan: Plan, x: Extracted, saved: string[], snap: Snapshot, options: OptionSet | null, figures: string[], extra: { retry: string | null; skipped: boolean; late: boolean; returning: boolean; resumed: boolean; summary: string | null; checklist: string | null; loanHelp: boolean }): Promise<{ text: string; options?: Interactive } | null> {
     const company = this.settings.get<string>("org.name") || "Growth Capital Services";
     const system = `You are Ria, the WhatsApp assistant of ${company}, a loan consultant (a DSA) in Mumbai that helps people compare loan options from 75+ banks and NBFCs, free of charge to the customer. You are NOT the lender.
 
@@ -513,6 +579,7 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
       lines.push(
         "This is the customer's first message, so this is your WELCOME. In two or three short sentences: greet them warmly (one emoji is fine), say you are Ria from the company, that you compare loan offers from 75+ banks and NBFCs for them at no cost, and that you will ask a few quick questions (about a minute). Then ask your first question.",
       );
+      lines.push("In the welcome also add one short line: by continuing, they agree that the company may contact them about this enquiry.");
     }
     if (x.sent_file === "audio") lines.push("They sent a voice note, which you cannot listen to here. Kindly say so and ask them to type, or tap an option, instead. Then ask the question again.");
     else if (x.sent_file?.startsWith("saved")) {
@@ -528,7 +595,9 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
     if (x.their_question) lines.push(`They asked: "${x.their_question}". Answer in one or two safe sentences (no promises), then continue.`);
     if (extra.retry) lines.push(`Their last reply could not be used (${extra.retry}). Do NOT repeat the question in the same words. In one short sentence say exactly what you need and give a concrete example answer (for an amount: the number, for example 55,000 per month, or 0 if there is none). Then stop.`);
     else if (extra.skipped) lines.push("The previous question could not be answered here. Begin with: \"No problem, our expert can take that on the call.\" Then ask the question below. Do not mention it again.");
-    else if (!saved.length && plan.kind === "ask" && !x.typing && !x.sent_file && !first && !extra.late) lines.push("They did not answer the last question. Ask it once more in plain words.");
+    else if (!saved.length && plan.kind === "ask" && !x.typing && !x.sent_file && !first && !extra.late && !extra.resumed) lines.push("They did not answer the last question. Ask it once more in plain words.");
+    if (extra.returning && plan.kind === "ask") lines.push("They are back after a break, part way through. Begin with one short line welcoming them back and saying you will carry on from where you stopped. Then ask the question below.");
+    if (extra.loanHelp) lines.push("They described what they need but the loan type is not settled yet. In one or two short plain sentences explain the closest options without recommending any bank or rate (for example: a one-time loan against a property, versus an overdraft limit against a property that you draw as needed and pay interest on only what you use). Then ask which suits them, and show the list.");
     if (extra.late) lines.push("They added a detail after the questions were over. It has been noted for the expert: say exactly that in one short line (\"Noted, I have added that for our expert.\").");
     if (figures.length) lines.push(`They typed an amount in their own words. Repeat it back once, briefly, as a plain statement (never as a question, and do not ask "is that correct"), in digits, so they can correct it if it is wrong; then ask your question. Use exactly these figures: ${figures.join("; ")}.`);
     if (x.browse) lines.push(x.browse.step === "groups" ? "They want to see more loan types. Ask which group of loans they are looking for. Keep it to one short line." : `They chose the group "${loanGroups()[x.browse.index]?.name ?? ""}". Ask which loan in it they need. Keep it to one short line.`);
@@ -548,8 +617,10 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
           lines.push(
             plan.left === 1
               ? "This is the LAST question: say so."
-              : plan.left <= 3
-                ? `About ${plan.left} questions are left: you can say you are almost done.`
+              : plan.left === 3
+                ? "About 3 questions are left: you may say, once, that you are almost done."
+                : plan.left === 2
+                  ? "Two questions are left. Do not say again that you are almost done."
                 : `About ${plan.left} questions are left in this longer part. You may mention once in a while that it is a few more, but do not announce it every time.`,
           );
         }
@@ -559,7 +630,7 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
       lines.push(
         plan.declined
           ? "They would rather not answer more questions now. Say that is fine, an expert from our team will contact them soon with what they have shared, and they can message here any time to add more details. If they only said hello or something small, welcome them back in one short line and say that if they wish to carry on with the questions they can just say continue. Do not ask any question."
-          : `You have what is needed.${extra.summary ? ` First give a short confirmation of what has been noted, using EXACTLY these facts and no others (one fact per line is fine here): ${extra.summary}. Then say that if anything is wrong they can simply reply with the correction, and an expert from our team will contact them soon and go through anything else. Thank them by first name.` : " Thank them by first name and say an expert from our team will contact them soon and will go through anything else."} Do not ask any more questions. If one of your earlier messages already said an expert will contact them, do NOT say it again: reply with one short friendly closing line only.`,
+          : `You have what is needed.${extra.summary ? ` First give a short confirmation of what has been noted, using EXACTLY these facts and no others (one fact per line is fine here): ${extra.summary}. Then say that if anything is wrong they can simply reply with the correction, and an expert from our team will contact them soon and go through anything else. Thank them by first name.` : " Thank them by first name and say an expert from our team will contact them soon and will go through anything else."} ${extra.checklist ? ` Also say that the documents usually needed for this loan are listed here, and give this link exactly: ${extra.checklist}. Say they need not send anything now.` : ""} Do not ask any more questions. If one of your earlier messages already said an expert will contact them, do NOT say it again: reply with one short friendly closing line only.`,
       );
     } else {
       lines.push("They want a person. Say a team member will message them here soon. Do not ask any questions.");
