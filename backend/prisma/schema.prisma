@@ -1777,6 +1777,7 @@ enum NotificationTrigger {
   DISBURSAL_COMPLETED
   MORNING_BRIEF
   EVENING_BRIEF
+  DOCS_PENDING
 }
 
 enum NotificationRecipient {

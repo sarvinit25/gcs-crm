@@ -10,6 +10,7 @@ const STALLED_AFTER = 3 * DAY;
 /** And it is reminded about at most this often. */
 const REMIND_EVERY = 3 * DAY;
 const MARKER = "Documents reminder sent";
+const CUSTOMER_MARKER = "Customer documents reminder sent";
 
 /**
  * Nudges the team about a lead that has been waiting for documents with nobody touching it. It goes out as the usual
@@ -55,6 +56,13 @@ export class DocsReminderService implements OnModuleInit, OnModuleDestroy {
         if (Number.isFinite(lastAt) && now.getTime() - lastAt < REMIND_EVERY) continue;
         const days = Math.floor((now.getTime() - lead.updatedAt.getTime()) / DAY);
         this.events.emit("FOLLOW_UP_NEEDED", { leadId: lead.id, why: "documents-pending", note: `Waiting for documents; nothing has changed for ${days} days.` });
+        // The customer is reminded once only (if the template is set up and approved); the team is reminded every few days.
+        const cKey = answerKey(CUSTOMER_MARKER);
+        const told = await this.prisma.leadAnswer.findUnique({ where: { leadId_key: { leadId: lead.id, key: cKey } }, select: { id: true } });
+        if (!told) {
+          this.events.emit("DOCS_STALLED", { leadId: lead.id });
+          await this.prisma.leadAnswer.create({ data: { leadId: lead.id, stage: "system", key: cKey, label: CUSTOMER_MARKER, value: now.toISOString() } });
+        }
         await this.prisma.leadAnswer.upsert({
           where: { leadId_key: { leadId: lead.id, key } },
           create: { leadId: lead.id, stage: "system", key, label: MARKER, value: now.toISOString() },
