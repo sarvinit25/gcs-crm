@@ -11,6 +11,9 @@
 //    the case to a human, it does not silently exclude it;
 //  - lender payout or commission is not an input, so it cannot influence a ranking.
 
+import type { Program } from "./policy-extras";
+import { fitPrograms, type ProgramFit } from "./program-fit";
+
 export type Band = { upTo: number | null; value: number };
 
 export type PolicyRule = {
@@ -43,6 +46,8 @@ export type PolicyRule = {
   acceptedPropertyTypes: string[];
   allIndia: boolean;
   cities: string[];
+  /** The lender's named programs for this loan type, each judged on its own rules. */
+  programs?: Program[];
 };
 
 export type Profile = {
@@ -79,6 +84,8 @@ export type MatchResult = {
   checks: string[];
   /** True when the record itself needs attention (expired or not verified in time). */
   policyNeedsReview: boolean;
+  /** Each named program of the lender judged on its own rules: for a person to read, never part of the score. */
+  programFit?: ProgramFit[];
 };
 
 /** Suggested starting weights (they add up to 100). */
@@ -336,7 +343,11 @@ const RANK: Record<MatchStatus, number> = { STRONG: 0, POSSIBLE: 1, EXPERT_REVIE
 
 /** Runs the matcher across every policy and returns them best first. */
 export function matchAll(profile: Profile, policies: PolicyRule[], now: Date = new Date()): MatchResult[] {
-  const results = policies.map((p) => matchOne(profile, p, now));
+  const results = policies.map((p) => {
+    const r = matchOne(profile, p, now);
+    if (p.programs?.length && r.status !== "EXCLUDED") r.programFit = fitPrograms(profile, p.programs, { rate: p.maxRate ?? p.minRate, tenureMonths: p.maxTenureMonths });
+    return r;
+  });
 
   // Pricing is relative, so it is judged across the lenders still in the running: a small nudge,
   // never a reason by itself to drop or promote a lender.

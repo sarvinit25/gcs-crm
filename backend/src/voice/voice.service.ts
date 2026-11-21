@@ -4,6 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { LeadsService } from "../leads/leads.service";
 import { loanSlug, readCall, type CallDetails } from "./voice-payload";
 import { caLegalIntent } from "../whatsapp/ca-legal";
+import { EventsService } from "../events/events.service";
 
 /** The CA or legal services a call was about: what the agent reported, or else what its own words say. */
 export function caLegalOf(c: CallDetails): { services: string[]; need: string | null } | null {
@@ -14,6 +15,18 @@ export function caLegalOf(c: CallDetails): { services: string[]; need: string | 
   if (!wanted && !found.length) return null;
   const services = found.length ? found : x.caLegalService ? [x.caLegalService] : ["CA & Legal"];
   return { services, need: x.caLegalNeed ?? x.caLegalService ?? null };
+}
+
+/** Why a call needs a person to ring back, or null when nothing is owed (not interested, do not call, wrong number). */
+export function followUpReason(c: CallDetails): "human-callback" | "callback-later" | "ca-legal" | "details-collected" | null {
+  const x = c.extra;
+  if (x.doNotCall) return null;
+  const o = x.outcome ?? "";
+  if (o === "not_interested" || o === "wrong_number") return null;
+  if (x.humanCallback) return "human-callback";
+  if (x.callbackTime || o === "callback_later") return "callback-later";
+  if (caLegalOf(c)) return "ca-legal";
+  return "details-collected";
 }
 
 export const VOICE_SOURCE = "ai-telecaller";
@@ -54,6 +67,7 @@ export class VoiceService {
   constructor(
     private prisma: PrismaService,
     private leads: LeadsService,
+    private events?: EventsService,
   ) {}
 
   /** Puts what the agent learnt into the lead's own fields, but only where the lead has nothing yet: staff's entries stay. */
@@ -121,6 +135,8 @@ export class VoiceService {
         await this.fillBlanks(lead.id, call);
         await this.saveCaLegal(lead.id, call);
         outcome = "isNew" in lead && lead.isNew ? "LEAD_CREATED" : "LEAD_UPDATED";
+        const why = followUpReason(call);
+        if (why) this.events?.emit("FOLLOW_UP_NEEDED", { leadId: lead.id, why, callbackTime: call.extra.callbackTime, note: call.summary });
       } catch (err) {
         outcome = "ERROR";
         error = (err as Error).message.slice(0, 500);

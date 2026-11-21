@@ -92,6 +92,7 @@ describe("finding the lender already in the CRM", () => {
   });
 });
 
+import { cleanProgram } from "../lender-policies/policy-extras";
 import { fillContact, mergeIntoPolicy, normalizedForHash, type ExistingPolicy, type PolicyDraft } from "./offer-extraction";
 
 const held = (over: Partial<ExistingPolicy> = {}): ExistingPolicy => ({
@@ -292,7 +293,7 @@ describe("programs and conditions read off a flyer", () => {
       minAmount: null, maxAmount: 5000000, minRate: null, maxRate: null, minTenureMonths: null, maxTenureMonths: null, rateType: null, processingFee: null,
       specialScheme: null, employmentTypes: [], cities: [], gstRequired: false, allIndia: false, minCreditScore: null, notes: null,
       minAge: 21, maxAgeAtMaturity: null, minAnnualTurnover: null, minBusinessVintageMonths: null, hasFoir: true,
-      programs: [{ name: "ITR Program", minAmount: null, maxAmount: 8000000, minRate: null, maxRate: null, minTenureMonths: null, maxTenureMonths: null, ltv: null, minAge: null, maxAge: null, who: null, documents: [], conditions: null, fee: null }],
+      programs: [cleanProgram({ name: "ITR Program", maxAmount: 8000000 })!],
       conditions: { rating: "A" },
     };
     const { fields, changes } = mergeIntoPolicy(have, { ...draft!, conditions: { rating: "BBB-", dscr: 1.2 }, foirPct: 60 }, "2026-11-17");

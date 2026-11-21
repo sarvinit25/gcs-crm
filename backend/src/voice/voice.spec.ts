@@ -1,4 +1,4 @@
-import { callNote, caLegalOf, VoiceService } from "./voice.service";
+import { callNote, caLegalOf, followUpReason, VoiceService } from "./voice.service";
 import { readCall } from "./voice-payload";
 
 const campaignStyle = {
@@ -221,5 +221,23 @@ describe("CA and legal enquiries on a call", () => {
   it("is written on the lead's note for the CA and legal team", () => {
     const note = callNote(call({ service_interest: "ca_legal", ca_legal_need: "rent agreement for a flat" }, "Needs a rent agreement."));
     expect(note).toMatch(/CA & LEGAL: the caller asked about Legal Drafting \(rent agreement for a flat\)/);
+  });
+});
+
+describe("who needs a call back after a call", () => {
+  const c = (extra: Record<string, unknown>, summary = "") => readCall({ user_phone_number: "9820012345", duration: 60, interaction_transcript: [], call_summary: summary, ...extra });
+  it("asks for a call back when the caller wants a person or named a time", () => {
+    expect(followUpReason(c({ outcome: "human_callback_requested" }))).toBe("human-callback");
+    expect(followUpReason(c({ callback_time_preference: "evening" }))).toBe("callback-later");
+    expect(followUpReason(c({ outcome: "callback_later" }))).toBe("callback-later");
+  });
+  it("flags CA and legal enquiries and plain collected details", () => {
+    expect(followUpReason(c({ service_interest: "ca_legal", ca_legal_service: "GST registration" }))).toBe("ca-legal");
+    expect(followUpReason(c({ outcome: "details_collected" }))).toBe("details-collected");
+  });
+  it("stays quiet for not interested, wrong number and do not call", () => {
+    expect(followUpReason(c({ outcome: "not_interested" }))).toBeNull();
+    expect(followUpReason(c({ outcome: "wrong_number" }))).toBeNull();
+    expect(followUpReason(c({ outcome: "do_not_call", callback_time_preference: "evening" }))).toBeNull();
   });
 });
