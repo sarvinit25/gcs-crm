@@ -155,3 +155,32 @@ What the run taught us:
 
 Next: Phase 2 (the additive fields: company name, legacy reference, import batch, do-not-call, and keeping imported
 leads out of reminders), then the 500-row pilot on a copy of the database.
+
+## Phase 2 and 3 result: the importer
+
+`npm run legacy:import` (backend/prisma/legacy-import.ts) reads the `people.jsonl` that `legacy:stage` wrote and creates the leads, follow-up history and case files. Nothing is written without `--commit`.
+
+```
+npm run legacy:import -- --people <folder>/people.jsonl --batch dcr-2026-11 --user <staff email>            # dry run
+npm run legacy:import -- ... --limit 200 --commit                                                          # pilot
+npm run legacy:import -- ... --commit                                                                      # the rest
+npm run legacy:import -- --batch dcr-2026-11 --rollback --commit                                           # undo the batch
+```
+
+What it does, as tested on a throwaway database with the real staged file (40,255 people):
+
+| Result | Count |
+| --- | --- |
+| Leads created | 40,255 (22,148 live, 11,151 dead and archived as Lost, 6,956 with no phone) |
+| Follow-up history entries | 27,441 (recorded against `--user`, with the caller's name in the note) |
+| Case files | 2,518 (965 Disbursed, 1,553 Rejected), all archived; 129 more skipped for a missing product, amount or date |
+| Marked do-not-call | 185 |
+
+- **Safe to repeat.** A person already imported (same `legacyRef`) or already in the CRM with the same mobile is skipped, never changed. A second full run created nothing.
+- **Undo.** `--rollback` removes everything in one batch (leads, follow-ups, applicants, applications). After rollback the test database was empty again.
+- **Additive migration** `20261119100000_legacy_import_fields`: `Lead.companyName`, `legacyRef`, `importBatch`, `doNotCall`, and `Application.importBatch`. Existing rows are untouched.
+- **No owner is assigned**, and imported leads are left out of the "new lead" and "no owner" reminders and the dashboard's unassigned count, so 40,000 old leads do not flood the bell on day one. Only a follow-up date still in the future is carried over.
+- **Case files** use sequence numbers from 900001, so they never use up the live GCS-2026-nnnn references. They have no disbursement, sanction or commission, because the sheet holds no disbursal date or amount.
+- **No consent is assumed.** Do-not-call stays on until staff clear it.
+
+Before running with `--commit` on production: the deploy must work, the migration must be applied, a pilot of 200 should be checked in the CRM, and the two open questions (are the callers CRM users; is there a real Shriram disbursement register) should be answered.

@@ -57,6 +57,7 @@ export class NotificationsService {
       this.prisma.lead.findMany({
         where: {
           ...leadScope,
+          importBatch: null, // imported legacy leads are a backlog to work through, not a fresh enquiry
           status: LeadStatus.NEW,
           archivedAt: null,
           // Leads with no owner are listed separately below, for managers.
@@ -137,7 +138,7 @@ export class NotificationsService {
       staff
         ? []
         : this.prisma.lead.findMany({
-            where: { assignedOfficerId: null, status: LeadStatus.NEW },
+            where: { assignedOfficerId: null, importBatch: null, status: LeadStatus.NEW },
             orderBy: { createdAt: "asc" },
             take: PER_KIND,
             select: { id: true, leadNo: true, name: true, source: true, createdAt: true },

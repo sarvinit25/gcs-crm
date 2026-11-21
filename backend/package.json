@@ -14,6 +14,7 @@
     "reset:admin": "ts-node prisma/reset-admin-password.ts",
     "backfill:answers": "ts-node prisma/backfill-lead-answers.ts",
     "legacy:stage": "ts-node prisma/legacy-stage.ts",
+    "legacy:import": "ts-node prisma/legacy-import.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "jest --config test/jest-e2e.json"
