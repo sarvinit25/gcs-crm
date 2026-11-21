@@ -16,9 +16,9 @@ Menu: **Messaging → WhatsApp Inbox, Notification templates, Notification logs,
 5. **Notification templates → Send to Meta** for each template you will use. Meta must approve each one (minutes to a day). **Refresh from Meta** reads the verdicts. Rewording an approved template makes it a new one that must be approved again.
 
 ## Decisions to make
-- **One webhook per Meta app.** The website's Gia assistant currently answers WhatsApp through its own webhook. Pointing Meta at the CRM instead moves answering to the CRM chatbot (commands above, then a person). To keep Gia, keep the website as the receiver and the CRM inbox stays empty until the website forwards messages to it — not built.
+- **One webhook per Meta app.** The website's Ria assistant currently answers WhatsApp through its own webhook. Pointing Meta at the CRM instead moves answering to the CRM chatbot (commands above, then a person). To keep Ria, keep the website as the receiver and the CRM inbox stays empty until the website forwards messages to it — not built.
 - **Customer messages are off by default** (Settings → WhatsApp). Turn on only once customers have consented — the enquiry form does not yet carry a WhatsApp consent line.
-- **Documents sent by customers** (PDF, JPG, PNG, WebP, HEIC, up to 15 MB) are downloaded from Meta, checked by their contents, kept in the private storage bucket and listed under "Files received" on the lead, with a download button. Nothing is read out of them. Voice notes and videos cannot be opened; Gia says so kindly and carries on.
+- **Documents sent by customers** (PDF, JPG, PNG, WebP, HEIC, up to 15 MB) are downloaded from Meta, checked by their contents, kept in the private storage bucket and listed under "Files received" on the lead, with a download button. Nothing is read out of them. Voice notes and videos cannot be opened; Ria says so kindly and carries on.
 
 ## Not built
 Callbacks module, Telegram, "Sales Agent" knowledge base, attaching documents by WhatsApp, and webhook forwarding from the website.
@@ -32,5 +32,5 @@ number or text is stored (as `lp-…` answers on the lead, shown with the lead's
 
 - WhatsApp: the customer types **apply**; **stop** pauses (answers stay saved), **apply** resumes where they left off.
 - Telecaller / staff: `GET /leads/:id/loan-profile` (progress, next question, answers) and `POST /leads/:id/loan-profile/answer` `{ reply, key? }`.
-- Website assistant (Gia): `GET /public/loan-profile/schema`, `GET /public/loan-profile/:leadId/next?token=…`, `POST /public/loan-profile/:leadId/answer` `{ reply, token }` using the lead's follow-up token.
+- Website assistant (Ria): `GET /public/loan-profile/schema`, `GET /public/loan-profile/:leadId/next?token=…`, `POST /public/loan-profile/:leadId/answer` `{ reply, token }` using the lead's follow-up token.
 - Needs `OPENAI_API_KEY` only for the friendlier wording and for reading loosely written replies; without it the plain wording and reader are used.

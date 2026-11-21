@@ -1,5 +1,5 @@
 // The Customer Loan Profile: the one list of questions that the WhatsApp assistant, the AI telecaller, the
-// website assistant (Gia) and staff all work from. The AI may word a question however suits the person, but what
+// website assistant (Ria) and staff all work from. The AI may word a question however suits the person, but what
 // is stored is fixed here: every answer is turned into one of these allowed values (or a clean number/text) before
 // it is kept. Change a question or an option here and every channel follows.
 

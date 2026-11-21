@@ -14,7 +14,7 @@ class AnswerDto {
   @IsOptional() @IsString() @Length(1, 400) token?: string;
 }
 
-/** The whole form, for anything that wants to show or ask it (the telecaller's script, Gia). */
+/** The whole form, for anything that wants to show or ask it (the telecaller's script, Ria). */
 const schema = () => {
   const all = fieldsFor({}); // the unconditional questions; branches appear as answers come in
   return all.map((f) => ({ key: f.id, num: f.num, section: f.section, label: f.label, ask: f.ask, kind: f.kind, options: f.options ?? null }));
@@ -69,7 +69,7 @@ export class PublicLoanProfileController {
     return { key: q?.key ?? null, question: q?.text ?? null, progress: (await this.profile.view(id)).progress };
   }
 
-  /** Gia sends what the visitor wrote; the profile reads it and returns what to ask next. */
+  /** Ria sends what the visitor wrote; the profile reads it and returns what to ask next. */
   @Public()
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Post(":id/answer")

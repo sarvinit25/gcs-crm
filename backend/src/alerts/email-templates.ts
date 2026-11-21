@@ -168,7 +168,7 @@ export function signInCode(org: Org, firstName: string, code: string, validMinut
     org,
     `Your ${org.name} code is ${code}`,
     `<h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:${NAVY};">Hi ${esc(firstName)}, here is your code</h1>
-<p style="margin:0 0 18px 0;font-size:15px;line-height:1.6;">Type this code in the chat window to start talking to Gia, our assistant.</p>
+<p style="margin:0 0 18px 0;font-size:15px;line-height:1.6;">Type this code in the chat window to start talking to Ria, our assistant.</p>
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px 0;"><tr><td style="background:${PALE};border:1px solid ${GOLD};border-radius:12px;padding:16px 28px;font-size:34px;font-weight:700;letter-spacing:10px;color:${NAVY};">${esc(code)}</td></tr></table>
 <p style="margin:0 0 8px 0;font-size:13px;line-height:1.6;color:${MUTED};">It works for ${validMinutes} minutes. Please do not share it with anyone. If you did not ask for it, you can ignore this email.</p>`,
   );

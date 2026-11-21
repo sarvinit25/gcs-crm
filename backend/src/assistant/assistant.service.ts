@@ -240,7 +240,7 @@ export class AssistantService {
   }
 
   private async complete(messages: ModelMessage[]): Promise<{ content: string | null; tool_calls?: ToolCall[] }> {
-    // The same two settings the website chat (Gia) uses, so one key and one model name serve both.
+    // The same two settings the website chat (Ria) uses, so one key and one model name serve both.
     const model = this.config.get<string>("OPENAI_MODEL")?.trim() || this.config.get<string>("AI_MODEL")?.trim() || "gpt-5-nano";
     let res: Response;
     try {

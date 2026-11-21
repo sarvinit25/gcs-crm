@@ -1,6 +1,6 @@
-// A trial run of Gia on WhatsApp, on this machine only. A pretend customer (played by OpenAI) chats with Gia through the
+// A trial run of Ria on WhatsApp, on this machine only. A pretend customer (played by OpenAI) chats with Ria through the
 // CRM's own message handling, using the sandbox WhatsApp provider, so nothing reaches Meta or a real phone. At the end it
-// prints what Gia wrote onto the lead. Needs a local database and OPENAI_API_KEY in backend/.env.
+// prints what Ria wrote onto the lead. Needs a local database and OPENAI_API_KEY in backend/.env.
 //
 //   npx ts-node --compiler-options '{"module":"commonjs"}' prisma/whatsapp-intake-demo.ts [persona number 0-2]
 import "reflect-metadata";
@@ -102,7 +102,7 @@ async function main() {
     await inbound.idle();
     const sent = provider.sent.slice(before);
     if (!sent.length) {
-      console.log("GIA: (no reply: a person takes over)");
+      console.log("RIA: (no reply: a person takes over)");
       break;
     }
     offered = [];
@@ -116,7 +116,7 @@ async function main() {
       } else if (m.kind === "text") lines.push(m.body ?? "");
     }
     const reply = lines.join("\n");
-    console.log(`GIA: ${reply}`);
+    console.log(`RIA: ${reply}`);
     transcript.push({ who: "gia", text: reply.split("\n")[0] ?? reply });
     if (!offered.length && /expert .*(contact|call|reach)|team member will|विशेषज्ञ|तज्ञ|एक्सपर्ट/i.test(reply) && turn > 5) break;
     customerSays = await pretendCustomer(persona.about, transcript, offered.map((o) => o.title));
@@ -124,7 +124,7 @@ async function main() {
 
   const lead = await db.lead.findFirst({ where: { phone: persona.phone }, include: { loanProduct: true, answers: { orderBy: { createdAt: "asc" } } } });
   const convo = await db.whatsAppConversation.findUnique({ where: { phone: persona.phone } });
-  console.log("\n================ WHAT GIA WROTE ON THE LEAD ================");
+  console.log("\n================ WHAT RIA WROTE ON THE LEAD ================");
   console.log({ name: lead?.name, city: lead?.city, loan: lead?.loanProduct?.name, amount: lead?.amount?.toString(), needsHuman: convo?.needsHuman });
   console.log(`${lead?.answers.length ?? 0} answers saved:`);
   for (const a of lead?.answers ?? []) console.log(`  - ${a.label}: ${a.value}`);

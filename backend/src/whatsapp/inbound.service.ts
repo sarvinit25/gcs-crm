@@ -292,7 +292,7 @@ export class InboundService {
     const wantsProfile = /^(apply|start|continue|resume|loan details|my details|loan profile|apply for (a )?loan)$/.test(text);
     const inProfile = conversation.profileState === "active" && m.type === "text";
 
-    // Gia, when switched on, takes the conversation: she asks the website's questions and saves the answers on the lead.
+    // Ria, when switched on, takes the conversation: she asks the website's questions and saves the answers on the lead.
     // "status" and a request for a person still work as before. If she cannot answer, the lines below take over.
     const wantsPerson = /^(agent|human|person|callback|call me|talk to)\b/.test(text);
     const typedOrTapped = m.type === "text" || (m.type === "interactive" && Boolean(m.replyId));
@@ -308,7 +308,7 @@ export class InboundService {
         return;
       }
     }
-    // A file, photo or voice note: Gia says kindly she cannot open it and carries on, instead of going quiet.
+    // A file, photo or voice note: Ria says kindly she cannot open it and carries on, instead of going quiet.
     if (["document", "image", "video", "audio", "sticker"].includes(m.type) && !wantsPerson && !inProfile && !wantsProfile && this.intake.enabled()) {
       void this.provider.showTyping(m.id);
       // Everything they send is kept on the lead (above). Nothing is read out of it here.

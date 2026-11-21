@@ -50,8 +50,8 @@ export const SETTINGS: SettingDef[] = [
   {
     key: "whatsapp.aiIntake",
     group: "WhatsApp",
-    label: "Gia collects details from new customers",
-    help: "Off by default. When on, a customer who writes in on WhatsApp is answered by Gia, who asks the same questions as the website's forms (one or two at a time) and saves each answer on the lead. It never asks for OTPs, passwords or PAN, Aadhaar and bank numbers, and it hands over to a person on request. Needs the OpenAI key on the server.",
+    label: "Ria collects details from new customers",
+    help: "Off by default. When on, a customer who writes in on WhatsApp is answered by Ria, who asks the same questions as the website's forms (one or two at a time) and saves each answer on the lead. It never asks for OTPs, passwords or PAN, Aadhaar and bank numbers, and it hands over to a person on request. Needs the OpenAI key on the server.",
     type: "boolean",
     default: false,
   },

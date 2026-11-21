@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * How Gia looks right now. The glowing ring around the "AI" changes with what the chat is doing:
+ * How Ria looks right now. The glowing ring around the "AI" changes with what the chat is doing:
  *  idle      a calm, slow swirl
  *  thinking  a quick, bright swirl while it works out an answer
  *  speaking  a steady, breathing pulse while it writes the reply
@@ -126,7 +126,7 @@ void main(){
 `;
 
 /**
- * Gia's 3D symbol, the same as on the website: the GCS logo on a small white disc, with a ring of blue and gold light swirling
+ * Ria's 3D symbol, the same as on the website: the GCS logo on a small white disc, with a ring of blue and gold light swirling
  * around it, drawn with three.js straight onto the dark button it sits on. Until the 3D code has loaded
  * (it waits for the page to settle), and for visitors who prefer reduced motion or whose browser
  * cannot do WebGL, just the logo shows.

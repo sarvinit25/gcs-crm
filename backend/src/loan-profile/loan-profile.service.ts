@@ -32,7 +32,7 @@ export type StepResult = {
 const label = (f: Field) => `Loan profile ${f.num} · ${f.label}`;
 
 /**
- * One interview, many channels. WhatsApp, the AI telecaller, Gia and staff all call step(): it reads the reply
+ * One interview, many channels. WhatsApp, the AI telecaller, Ria and staff all call step(): it reads the reply
  * against the current question, stores the allowed value, and hands back the next question.
  */
 @Injectable()
