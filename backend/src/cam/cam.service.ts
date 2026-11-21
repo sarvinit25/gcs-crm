@@ -1,3 +1,4 @@
+import { prefillFromAnswers } from "./cam-from-chat";
 import { EventsService } from "../events/events.service";
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { AuditAction, AuditActorType, Prisma, Role } from "@prisma/client";
@@ -52,16 +53,18 @@ const LEAD_SELECT = {
   assignedOfficerId: true,
   loanProductId: true,
   loanProduct: { select: { id: true, slug: true, name: true } },
+  // what the customer said on WhatsApp or in the website's second form: lays out the CAM so nobody is asked twice
+  answers: { select: { label: true, value: true }, take: 120 },
 } satisfies Prisma.LeadSelect;
 type LeadRow = Prisma.LeadGetPayload<{ select: typeof LEAD_SELECT }>;
 
 const blank = (v: unknown) => v === null || v === undefined || v === "" || (Array.isArray(v) && v.length === 0);
 
 /** What the lead already knows, laid out as CAM answers, so nobody is asked twice. */
-export function prefillFromLead(l: LeadRow): CamData {
+export function prefillFromLead(l: Omit<LeadRow, "answers"> & { answers?: { label: string; value: string }[] }): CamData {
   const profile = l.employmentType === "SALARIED" ? "Salaried" : l.employmentType === "PROFESSIONAL" ? "Self-employed professional" : l.employmentType === "BUSINESS" || l.employmentType === "SELF_EMPLOYED" ? "Self-employed business" : null;
   const dob = l.dateOfBirth ? l.dateOfBirth.toISOString().slice(0, 10) : null;
-  return {
+  const own: CamData = {
     applicant: { fullName: l.name, mobile: l.phone, altMobile: l.secondaryPhone, email: l.email, city: l.city, pan: l.pan, dob, address: l.address, pincode: l.pincode },
     loanRequest: { amount: l.amount ? Number(l.amount) : null },
     income: {
@@ -73,6 +76,8 @@ export function prefillFromLead(l: LeadRow): CamData {
       totalExperience: l.experienceYears ? Number(l.experienceYears) : null,
     },
   };
+  // The lead's own details win; what the customer said in a chat or form fills only what is still blank.
+  return withPrefill(prefillFromAnswers(l.answers ?? []), own);
 }
 
 /** Stored answers win; the lead's own details fill only what is still blank. */

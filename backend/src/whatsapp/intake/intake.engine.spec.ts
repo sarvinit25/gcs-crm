@@ -182,3 +182,17 @@ describe("what the answers say about the lead", () => {
     expect(checklistUrl("https://x.in", "nonsense", null)).toBeNull();
   });
 });
+
+describe("what carries over to a second loan", () => {
+  const { sharedAnswers } = jest.requireActual("./intake.engine");
+  it("carries answers about the person, not about the first product", () => {
+    const got = sharedAnswers("personal-loan", "new-car-loan", { employerType: "Listed or MNC company", netSalary: "₹90,000", hasLoans: "No", purpose: "Wedding" });
+    const labels = got.map((a: { label: string }) => a.label);
+    expect(labels).toEqual(expect.arrayContaining(["Where do you work?", "Monthly take-home salary", "Do you have any running loans or credit cards?"]));
+    expect(labels).not.toContain("Type of loan");
+  });
+  it("skips answers that were not given and loans that have no form", () => {
+    expect(sharedAnswers("personal-loan", "new-car-loan", { employerType: "Not sure (the expert will confirm)" })).toEqual([]);
+    expect(sharedAnswers("personal-loan", "nonsense", { employerType: "x" })).toEqual([]);
+  });
+});

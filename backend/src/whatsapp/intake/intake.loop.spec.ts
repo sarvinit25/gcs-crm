@@ -5,15 +5,16 @@ import { answerKey, loanFor, nextQuestions, type Answers } from "./intake.engine
 // The chat that went wrong: the customer answered "Rent" to a question that needs an amount, and was asked it three more times.
 const SLUG = "balance-transfer";
 
-function setup(userSays: () => string, aiValue: () => string = userSays, lastOnly = false, firstMessage = false) {
+function setup(userSays: () => string, aiValue: () => string = userSays, lastOnly = false, firstMessage = false, done = false) {
   const loan = loanFor(SLUG)!;
   // everything before "other monthly income" is already answered
   const answers: Answers = {};
   let openKey = "otherIncome";
   for (;;) {
     const q = nextQuestions(SLUG, answers, 1);
-    const f = q.fields[0]!;
-    if (lastOnly ? q.remaining <= 1 : f.key === "otherIncome") { openKey = f.key; break; }
+    const f = q.fields[0];
+    if (!f) break; // everything answered
+    if (!done && (lastOnly ? q.remaining <= 1 : f.key === "otherIncome")) { openKey = f.key; break; }
     answers[f.key] = f.kind === "choice" ? f.options![0]! : f.kind === "amount" ? "₹100000" : f.kind === "percent" ? "10%" : "x";
   }
   const rows = new Map<string, { key: string; label: string; value: string }>();
@@ -35,6 +36,7 @@ function setup(userSays: () => string, aiValue: () => string = userSays, lastOnl
       upsert: async ({ create }: { create: { key: string; label: string; value: string } }) => { rows.set(create.key, create); return create; },
       findUnique: async ({ where }: { where: { leadId_key: { key: string } } }) => rows.get(where.leadId_key.key) ?? null,
     },
+    whatsAppConversation: { update: jest.fn(async () => ({})) },
     whatsAppMessage: {
       findMany: async () => (firstMessage ? [{ direction: WhatsAppDirection.IN, type: "text", body: userSays() }] : [{ direction: WhatsAppDirection.OUT, type: "text", body: "Other regular monthly income?" }, { direction: WhatsAppDirection.IN, type: "text", body: userSays() }].reverse()),
       findFirst: async () => ({ body: userSays() }),
@@ -45,6 +47,7 @@ function setup(userSays: () => string, aiValue: () => string = userSays, lastOnl
   (global as { fetch: unknown }).fetch = jest.fn(async (_url: string, init: { body: string }) => {
     const body = JSON.parse(init.body) as { messages: { role: string; content: string }[]; response_format?: unknown };
     const system = body.messages[0]!.content;
+    if (system.startsWith("You decide whether")) return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify({ slug: "new-car-loan" }) } }] }) };
     const reading = system.startsWith("You read a customer's");
     if (!reading) tasks.push(body.messages[body.messages.length - 1]!.content);
     const content = reading ? JSON.stringify({ answers: [{ key: answerKeyWanted, value: aiValue() }] }) : body.response_format ? JSON.stringify({ body: "Next question.", option_titles: [], menu_label: "Choose" }) : "Reply text.";
@@ -52,8 +55,9 @@ function setup(userSays: () => string, aiValue: () => string = userSays, lastOnl
   });
   const settings = { get: (k: string) => (k === "whatsapp.aiIntake" ? true : "Growth Capital Services") };
   const config = { get: () => "key" };
-  const svc = new IntakeService(prisma as never, settings as never, config as never);
-  return { svc, rows, tasks, updates };
+  const leads = { startAnotherEnquiry: jest.fn(async () => ({ id: "l2", leadNo: 2 })), refreshSegment: async () => undefined };
+  const svc = new IntakeService(prisma as never, settings as never, config as never, leads as never);
+  return { svc, rows, tasks, updates, leads, prisma };
 }
 
 describe("a question the customer keeps answering without a usable figure", () => {
@@ -157,5 +161,21 @@ describe("the way Ria speaks", () => {
     await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
     expect(tasks.at(-1)).toMatch(/starts a new part of the form/);
     expect(tasks.at(-1)).toMatch(/Now, let's understand/);
+  });
+});
+
+describe("a second loan for the same customer", () => {
+  it("starts a separate enquiry that carries what we know, and the chat moves to it", async () => {
+    const { svc, leads, prisma, tasks } = setup(() => "I also need a car loan", () => "x", false, false, true);
+    await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
+    expect(leads.startAnotherEnquiry).toHaveBeenCalledWith("l", "new-car-loan", expect.any(Array));
+    expect(prisma.whatsAppConversation.update).toHaveBeenCalledWith({ where: { id: "c" }, data: { leadId: "l2" } });
+    expect(tasks.at(-1)).toMatch(/separate enquiry has been started/);
+  });
+  it("does nothing for a message that is not asking for another loan", async () => {
+    // the mocked AI would answer "car loan" to anything it is asked, so only the guard on the message keeps this out
+    const { svc, leads } = setup(() => "please call me tomorrow evening", () => "x", false, false, true);
+    await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
+    expect(leads.startAnotherEnquiry).not.toHaveBeenCalled();
   });
 });

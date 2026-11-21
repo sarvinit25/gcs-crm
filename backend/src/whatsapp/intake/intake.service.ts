@@ -5,7 +5,7 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { SettingsService } from "../../settings/settings.service";
 import type { Interactive } from "../whatsapp.provider";
 import { LeadsService } from "../../leads/leads.service";
-import { answerKey, answersByKey, checkAnswer, checklistUrl, hasFigure, leadFacts, loanChoices, loanFor, loanGroups, nextQuestions, otherToSpecify, parseMoney, reviewReasons, resolveField, rupees, withSeeds, type Answers } from "./intake.engine";
+import { answerKey, answersByKey, checkAnswer, checklistUrl, hasFigure, leadFacts, loanChoices, loanFor, loanGroups, nextQuestions, otherToSpecify, parseMoney, reviewReasons, sharedAnswers, resolveField, rupees, withSeeds, type Answers } from "./intake.engine";
 import { LANGUAGE_NAME, detectLanguage } from "./intake.language";
 import { YOU_ARE, groupLoanOptions, groupOptions, optionsFor, parseTap, shorten, type OptionSet, type Tap } from "./intake.options";
 
@@ -109,12 +109,18 @@ export class IntakeService {
   }
 
   /** The reply to send to the customer, or null if the assistant has nothing to say (a person takes over). */
-  async reply(conversation: ConversationRef, replyId?: string, media?: string): Promise<IntakeReply> {
+  async reply(conversation: ConversationRef, replyId?: string, media?: string, opts: { another?: string } = {}): Promise<IntakeReply> {
     if (!conversation.leadId) return { text: null, handoff: false };
     const leadId = conversation.leadId;
     const turns = await this.history(conversation.id);
     if (!turns.length && !media) return { text: null, handoff: false };
     const lastTyped = [...turns].reverse().find((t) => t.role === "user" && !t.content.startsWith("(tapped)"))?.content ?? "";
+
+    // A customer whose enquiry is complete asks for a different loan: a separate lead is started for it, and the chat moves there.
+    if (!opts.another && !replyId && !media && lastTyped) {
+      const switched = await this.maybeStartAnother(conversation, leadId, lastTyped);
+      if (switched) return this.reply({ ...conversation, leadId: switched.leadId }, replyId, media, { another: switched.loan });
+    }
 
     // 1. What did the customer say? A tap is exact; typed words are read by the AI.
     let before = await this.snapshot(leadId);
@@ -244,7 +250,7 @@ export class IntakeService {
     }
 
     // 3. Word the reply.
-    const written = await this.write(turns, plan, extracted, saved, after, options, tap ? [] : figures, { retry, skipped, late, returning, resumed: resume, newSection: plan.kind === "ask" && plan.ask[0]?.section && plan.ask[0].section !== asked[0]?.section ? plan.ask[0].section : null, summary: justFinished && !late ? this.summaryOf(after) : null, checklist: justFinished && !late ? checklistUrl(this.siteUrl(), after.loanSlug, after.applicant) : null, loanHelp: Boolean(!tap && !media && !firstMessage && plan.kind === "ask" && plan.ask[0]?.key === "loan_slug" && lastTyped.trim().length > 12) });
+    const written = await this.write(turns, plan, extracted, saved, after, options, tap ? [] : figures, { retry, skipped, late, returning, another: opts.another ?? null, resumed: resume, newSection: plan.kind === "ask" && plan.ask[0]?.section && plan.ask[0].section !== asked[0]?.section ? plan.ask[0].section : null, summary: justFinished && !late ? this.summaryOf(after) : null, checklist: justFinished && !late ? checklistUrl(this.siteUrl(), after.loanSlug, after.applicant) : null, loanHelp: Boolean(!tap && !media && !firstMessage && plan.kind === "ask" && plan.ask[0]?.key === "loan_slug" && lastTyped.trim().length > 12) });
     if (!written) return { text: null, handoff: plan.kind === "handoff" };
     return { text: written.text, handoff: plan.kind === "handoff", ...(written.options ? { options: written.options } : {}) };
   }
@@ -500,6 +506,40 @@ Rules:
     }
   }
 
+  /**
+   * After an enquiry is complete, a message that asks for a different loan starts a separate lead for it. Costs one small AI call,
+   * and only when the message sounds like it names a loan. Returns the new lead, or null when this is not such a message.
+   */
+  private async maybeStartAnother(conversation: ConversationRef, leadId: string, text: string): Promise<{ leadId: string; loan: string } | null> {
+    try {
+      if (!this.leads || text.trim().length < 6 || JUST_THANKS.test(text) || STOP_ASKING.test(text) || RESUME_ASKING.test(text)) return null;
+      if (!/\b(loan|lap|mortgage|overdraft|cash credit|finance|financing|guarantee|credit|home|car|vehicle|education|business|personal|machine|bill discounting)\b/i.test(text)) return null;
+      const snap = await this.snapshot(leadId);
+      if (!snap.basicsDone || !snap.loanSlug || this.toAsk(snap).length > 0) return null;
+      const list = loanChoices().map((l) => `${l.slug} = ${l.title}`).join("\n");
+      const raw = await this.complete(
+        [
+          { role: "system", content: `You decide whether a customer is asking for a DIFFERENT loan from the one they already enquired about (${snap.loanSlug}). Loans:\n${list}\nReply with ONE JSON object: {"slug": string|null}. Give the slug only if they clearly ask for another loan product on its own. Return null if they only mention the same loan, ask a question, correct a detail, or say thanks.` },
+          { role: "user", content: text },
+        ],
+        { json: true, maxTokens: 60 },
+      );
+      const slug = raw ? (JSON.parse(raw) as { slug?: string | null }).slug : null;
+      if (!slug || slug === snap.loanSlug || !loanFor(slug)) return null;
+      const carry = sharedAnswers(snap.loanSlug, slug, snap.answers).map((a) => ({ key: answerKey(a.label), label: a.label.slice(0, 80), value: a.value.slice(0, 500) }));
+      for (const label of [ROW_YOU_ARE, ROW_MORE, "Consent to be contacted"]) {
+        const row = await this.prisma.leadAnswer.findUnique({ where: { leadId_key: { leadId, key: answerKey(label) } }, select: { value: true } });
+        if (row) carry.push({ key: answerKey(label), label, value: label === ROW_MORE ? "Yes" : row.value });
+      }
+      const created = await this.leads.startAnotherEnquiry(leadId, slug, carry);
+      await this.prisma.whatsAppConversation.update({ where: { id: conversation.id }, data: { leadId: created.id } });
+      return { leadId: created.id, loan: loanFor(slug)!.title };
+    } catch (error) {
+      this.log.warn(`Could not start a second enquiry: ${(error as Error).message.slice(0, 200)}`);
+      return null;
+    }
+  }
+
   /** Is a loan question open right now? Then a reply is most likely its answer. */
   async isMidForm(leadId: string): Promise<boolean> {
     const snap = await this.snapshot(leadId);
@@ -545,7 +585,7 @@ Rules:
 
   // -- job 2: word the reply --------------------------------------------------------------------
 
-  private async write(turns: Turn[], plan: Plan, x: Extracted, saved: string[], snap: Snapshot, options: OptionSet | null, figures: string[], extra: { retry: string | null; skipped: boolean; late: boolean; returning: boolean; resumed: boolean; newSection: string | null; summary: string | null; checklist: string | null; loanHelp: boolean }): Promise<{ text: string; options?: Interactive } | null> {
+  private async write(turns: Turn[], plan: Plan, x: Extracted, saved: string[], snap: Snapshot, options: OptionSet | null, figures: string[], extra: { retry: string | null; skipped: boolean; late: boolean; returning: boolean; another: string | null; resumed: boolean; newSection: string | null; summary: string | null; checklist: string | null; loanHelp: boolean }): Promise<{ text: string; options?: Interactive } | null> {
     const company = this.settings.get<string>("org.name") || "Growth Capital Services";
     const system = `You are Ria, the WhatsApp assistant of ${company}, a loan consultant (a DSA) in Mumbai that helps people compare loan options from 75+ banks and NBFCs, free of charge to the customer. You are NOT the lender.
 
@@ -607,7 +647,8 @@ After that, ask your first question. If your first question is which loan they n
     if (extra.retry) lines.push(`Their last reply could not be used (${extra.retry}). Do NOT repeat the question in the same words. In one short sentence say exactly what you need and give a concrete example answer (for an amount: the number, for example 55,000 per month, or 0 if there is none). Then stop.`);
     else if (extra.skipped) lines.push("The previous question could not be answered here. Begin with: \"No problem, our expert can take that on the call.\" Then ask the question below. Do not mention it again.");
     else if (!saved.length && plan.kind === "ask" && !x.typing && !x.sent_file && !first && !extra.late && !extra.resumed) lines.push("They did not answer the last question. Ask it once more in plain words.");
-    if (extra.newSection && !extra.retry && !extra.returning) lines.push(`This question starts a new part of the form, called "${extra.newSection}". Begin with one short, professional lead-in that says what you are about to understand, in the style "Now, let's understand ..." (for example "Now, let's understand the property offered as security." or "Thank you. Let's understand your existing loan facility so that we can explore suitable options."). Do not quote the part's title word for word, and keep the lead-in to one sentence. Then ask the question.`);
+    if (extra.newSection && !extra.retry && !extra.returning && !extra.another) lines.push(`This question starts a new part of the form, called "${extra.newSection}". Begin with one short, professional lead-in that says what you are about to understand, in the style "Now, let's understand ..." (for example "Now, let's understand the property offered as security." or "Thank you. Let's understand your existing loan facility so that we can explore suitable options."). Do not quote the part's title word for word, and keep the lead-in to one sentence. Then ask the question.`);
+    if (extra.another) lines.push(`They have just asked for another loan: ${extra.another}. A separate enquiry has been started for it, using the details they already gave, so do not ask those again. Begin with one short sentence saying so (for example: "Noted. I have started a separate enquiry for your ${extra.another}, using the details you have already shared."). Then ask the question below.`);
     if (extra.returning && plan.kind === "ask") lines.push("They are back after a break, part way through. Begin with one short line welcoming them back and saying you will carry on from where you stopped. Then ask the question below.");
     if (extra.loanHelp) lines.push("They described what they need but the loan type is not settled yet. In one or two short plain sentences explain the closest options without recommending any bank or rate (for example: a one-time loan against a property, versus an overdraft limit against a property that you draw as needed and pay interest on only what you use). Then ask which suits them, and show the list.");
     if (extra.late) lines.push("They added a detail after the questions were over. It has been noted for the expert: say exactly that in one short line (\"Noted, I have added that for our expert.\").");

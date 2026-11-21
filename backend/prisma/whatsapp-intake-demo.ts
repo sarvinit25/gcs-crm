@@ -134,6 +134,17 @@ async function main() {
     customerSays = await pretendCustomer(persona.about, transcript, offered.map((o) => o.title));
   }
 
+  // DEMO_ALSO="I also need a car loan": after the first enquiry is complete, the customer asks for a second loan.
+  if (process.env.DEMO_ALSO) {
+    console.log(`
+CUSTOMER: ${process.env.DEMO_ALSO}`);
+    const before = provider.sent.length;
+    inbound.accept({ entry: [{ changes: [{ value: { metadata: { phone_number_id: "demo-number" }, contacts: [{ wa_id: `91${persona.phone}`, profile: { name: "" } }], messages: [{ id: `demo.also.${Date.now()}`, from: `91${persona.phone}`, type: "text", timestamp: String(Math.floor(Date.now() / 1000)), text: { body: process.env.DEMO_ALSO } }] } }] }] });
+    await inbound.idle();
+    for (const m of provider.sent.slice(before)) console.log(`RIA: ${m.kind === "interactive" && m.interactive ? m.interactive.body : (m.body ?? "")}`);
+    const all = await db.lead.findMany({ where: { phone: persona.phone }, include: { loanProduct: true, answers: true }, orderBy: { leadNo: "asc" } });
+    console.log("LEADS FOR THIS PHONE:", all.map((l) => `#${l.leadNo} ${l.loanProduct?.name ?? "no loan"} (${l.answers.length} answers)`).join(" | "));
+  }
   const lead = await db.lead.findFirst({ where: { phone: persona.phone }, include: { loanProduct: true, answers: { orderBy: { createdAt: "asc" } } } });
   const convo = await db.whatsAppConversation.findUnique({ where: { phone: persona.phone } });
   console.log("\n================ WHAT RIA WROTE ON THE LEAD ================");
@@ -144,7 +155,7 @@ async function main() {
   console.log(`\nidentity numbers stored in answers: ${identity.length} (must be 0)`);
 
   if (process.argv.includes("--keep") === false && lead) {
-    await db.lead.delete({ where: { id: lead.id } });
+    await db.lead.deleteMany({ where: { phone: persona.phone } });
     if (convo) await db.whatsAppConversation.delete({ where: { id: convo.id } });
     console.log("(test lead and chat removed from the local database)");
   }

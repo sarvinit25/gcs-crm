@@ -239,3 +239,24 @@ export function checklistUrl(site: string, loanSlug: string | null | undefined, 
   if (loanSlug === "home-loan") file = CHECKLIST_OF[applicant ?? ""] ?? (applicant && SELF_EMPLOYED_WORDS.includes(applicant.toLowerCase()) ? "home-loan-self-employed" : "home-loan");
   return `${site.replace(/\/+$/, "")}/checklists/${file}-checklist.pdf`;
 }
+
+/** The parts of every form that ask about the person, not the product: these answers carry over to a second loan. */
+const PROFILE_SECTIONS = ["Your work and income", "Your existing loans and credit", "More about your finances"];
+
+/**
+ * What a customer already told us that still holds for another loan: only questions about the person (work, income, running
+ * loans, credit, other property), and only where the other loan's form asks the very same question.
+ */
+export function sharedAnswers(fromSlug: string | null | undefined, toSlug: string, answers: Answers): { label: string; value: string }[] {
+  const from = loanFor(fromSlug);
+  const to = loanFor(toSlug);
+  if (!from || !to) return [];
+  const out: { label: string; value: string }[] = [];
+  for (const f of from.fields) {
+    if (!f.section || !PROFILE_SECTIONS.includes(f.section)) continue;
+    const v = (answers[f.key] ?? "").trim();
+    if (!v || /^Not (sure|given)/.test(v)) continue;
+    if (to.fields.some((t) => t.key === f.key && t.label === f.label && t.section === f.section)) out.push({ label: f.label, value: v });
+  }
+  return out;
+}
