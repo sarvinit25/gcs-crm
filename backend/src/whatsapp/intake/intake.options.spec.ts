@@ -34,3 +34,23 @@ describe("tap-to-choose options", () => {
     expect(shorten("Ready-to-move flat or house", 24)).toBe("Ready-to-move flat or…");
   });
 });
+
+describe("reaching every one of the 28 loans by tap", () => {
+  const { loanGroups } = jest.requireActual("./intake.engine");
+  const { parseTap, groupOptions, groupLoanOptions, optionsFor } = jest.requireActual("./intake.options");
+  it("offers 'More loan types' on the first list and the groups after it", () => {
+    expect(optionsFor("loan_slug").choices.at(-1).id).toBe("loan|more");
+    expect(parseTap("loan|more")).toEqual({ kind: "loan-more" });
+    expect(groupOptions().choices.length).toBeLessThanOrEqual(10);
+  });
+  it("every loan sits in one group list that fits WhatsApp's 10 rows", () => {
+    const groups = loanGroups();
+    expect(groups.reduce((n: number, g: { loans: unknown[] }) => n + g.loans.length, 0)).toBe(28);
+    groups.forEach((g: { loans: { slug: string }[] }, i: number) => {
+      const o = groupLoanOptions(i);
+      expect(o.choices.length).toBeLessThanOrEqual(10);
+      for (const l of g.loans) expect(o.choices.some((c: { id: string }) => c.id === `loan|${l.slug}`)).toBe(true);
+      expect(parseTap(`loan|g|${i}`)).toEqual({ kind: "loan-group", index: i });
+    });
+  });
+});

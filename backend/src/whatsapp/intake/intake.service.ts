@@ -4,9 +4,9 @@ import { Prisma, WhatsAppDirection } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import { SettingsService } from "../../settings/settings.service";
 import type { Interactive } from "../whatsapp.provider";
-import { answerKey, answersByKey, checkAnswer, loanChoices, loanFor, nextQuestions, parseMoney, resolveField, rupees, withSeeds, type Answers } from "./intake.engine";
+import { answerKey, answersByKey, checkAnswer, hasFigure, loanChoices, loanFor, loanGroups, nextQuestions, otherToSpecify, parseMoney, resolveField, rupees, withSeeds, type Answers } from "./intake.engine";
 import { LANGUAGE_NAME, detectLanguage } from "./intake.language";
-import { YOU_ARE, optionsFor, parseTap, shorten, type OptionSet, type Tap } from "./intake.options";
+import { YOU_ARE, groupLoanOptions, groupOptions, optionsFor, parseTap, shorten, type OptionSet, type Tap } from "./intake.options";
 
 type Turn = { role: "user" | "assistant"; content: string };
 type Chat = { role: "system" | "user" | "assistant"; content: string };
@@ -30,6 +30,8 @@ type Extracted = {
   amount_range_label?: string | null;
   /** The customer chose to type the loan or the amount themselves. */
   typing?: "loan" | "amount" | null;
+  /** The customer asked to see more loan types: the groups, or the loans inside one group. */
+  browse?: { step: "groups" } | { step: "group"; index: number } | null;
   /** They sent a file, photo, video or voice note instead of text: its kind. */
   sent_file?: string | null;
 };
@@ -58,6 +60,8 @@ const JUST_THANKS = /^\s*(ok|okay|k|thanks?|thank you|thanks a lot|thx|ty|great|
 export const STOP_ASKING = /\b(on (the )?(call|phone)|during (the )?call|call (par|pe|mein|me)|no more questions|stop asking|enough questions|don'?t ask|do not ask|dont ask|that'?s all|thats all|nothing more|rest (later|on)|baaki (call|baad)|bas (ab|itna|itne)|ab nahi|nahi batana)\b|कॉल पर|कॉल में|बाद में बताऊंगा|बस इतना/i;
 /** After "not now", only these words bring the questions back. Writing again, even "hi", does not. */
 export const RESUME_ASKING = /\b(continue|go ahead|go on|ask (me|away)|more questions|ask now|chalo|haan|haa|yes|sure|ok ask)\b|चलो|हाँ|हां|होय/i;
+/** "I do not know" in the languages we write in: the question is left for the expert, never pressed. */
+export const NOT_SURE = /^\s*(not sure|i('| a)?m not sure|don'?t know|do not know|dont know|no idea|not known|i don'?t have (this|that|the) (info|information)|i need (some )?(help|assistance)|need (help|assistance)|will confirm( it)? later|confirm later|skip( it| this)?|pass|nahi pata|pata nahi|maloom nahi|मुझे नहीं पता|पता नहीं|माहित नाही|माहीत नाही)[\s.!]*$/i;
 /** Words that mean "let me talk to a person" or "I am unhappy". The AI's own judgement is not enough to hand a chat over. */
 const WANTS_PERSON = /\b(agent|human|person|real person|representative|executive|manager|call me|call back|callback|talk to|speak to|complaint|complain|fraud|cheat|cheated|useless|worst)\b|बात करनी|बात करना|कॉल करो|phone karo|call karo|baat karni|baat karna/i;
 /** A question about rates, approval, documents or charges: only then does the reply answer one. */
@@ -122,8 +126,21 @@ export class IntakeService {
       before = await this.snapshot(leadId);
     }
     const asked = this.focus(before).ask;
+    // "Not sure" or "skip" on a question the form allows to skip: noted for the expert, and the chat moves on without pressing.
+    let notSure = false;
+    const open = asked[0];
+    const basicKeys = ["name", "city", "loan_slug", "loan_amount", "applicant", "more_details"];
+    if (!tap && !media && open && !basicKeys.includes(open.key) && NOT_SURE.test(lastTyped)) {
+      const real = open.key.endsWith("__other") ? open.key.replace(/__other$/, "") : open.key;
+      const field = before.loanSlug ? loanFor(before.loanSlug)?.fields.find((f) => f.key === real) : undefined;
+      if (field) {
+        await this.writeAnswer(leadId, field.label, open.key.endsWith("__other") ? "Other (not specified)" : "Not sure (the expert will confirm)");
+        notSure = true;
+        before = await this.snapshot(leadId);
+      }
+    }
     // A file, photo or voice note cannot be read here: nothing is learned from it, and the same question is asked again.
-    const extracted: Extracted | null = media ? { sent_file: media } : tap ? this.fromTap(tap, before) : await this.extract(turns, asked, before);
+    const extracted: Extracted | null = media ? { sent_file: media } : tap ? this.fromTap(tap, before) : notSure ? {} : await this.extract(turns, asked, before);
     if (!extracted) return { text: null, handoff: true };
     if (media && media.startsWith("not_saved")) await this.writeAnswer(leadId, "Tried to send a file on WhatsApp", `${media.replace(/_/g, " ")} (not kept: ask for it on the call)`);
     // These are decided on the customer's LATEST typed message only, in code, so an old message cannot keep raising them.
@@ -142,8 +159,9 @@ export class IntakeService {
     // price or an EMI mentioned in passing is never taken for the loan amount.
     const firstMessage = !turns.some((t) => t.role === "assistant");
     const allowed = new Set(tap?.kind === "answer" ? [tap.key] : asked.map((a) => a.key));
+    for (const a of asked) if (a.key.endsWith("__other")) allowed.add(a.key.replace(/__other$/, ""));
     if (firstMessage) ["loan_slug", "loan_amount", "name", "city", "applicant"].forEach((k) => allowed.add(k));
-    const { saved, figures, rejected } = await this.apply(leadId, extracted, allowed);
+    const { saved, figures, rejected } = await this.apply(leadId, extracted, allowed, tap || media ? "" : lastTyped);
 
     // everything is in and they have been told an expert will call: a bare "thanks" needs no answer
     let after = await this.snapshot(leadId);
@@ -151,11 +169,11 @@ export class IntakeService {
 
     // A question that did not get a usable answer: say once exactly what is needed, then move on instead of asking a third time.
     let retry: string | null = null;
-    let skipped = false;
+    let skipped = notSure;
     let giveUp = false;
     const openKey = asked[0]?.key;
     const stillOpen = Boolean(openKey) && this.toAsk(after)[0]?.key === openKey;
-    const noAnswer = !tap && !media && !extracted.typing && !extracted.their_question && !extracted.wants_person && !firstMessage;
+    const noAnswer = !tap && !media && !notSure && !extracted.browse && !extracted.typing && !extracted.their_question && !extracted.wants_person && !firstMessage;
     if (openKey && stillOpen && noAnswer) {
       const tryKey = `${leadId}:${openKey}`;
       const n = (this.tries.get(tryKey) ?? 0) + 1;
@@ -193,12 +211,15 @@ export class IntakeService {
         const f = this.focus(after);
         const first = f.ask[0]!;
         const typeIt = (extracted.typing === "loan" && first.key === "loan_slug") || (extracted.typing === "amount" && first.key === "loan_amount");
-        options = typeIt ? null : f.options;
+        options = typeIt ? null : extracted.browse ? (extracted.browse.step === "groups" ? groupOptions() : groupLoanOptions(extracted.browse.index)) : f.options;
         const left = after.loanSlug && after.more === "Yes" ? nextQuestions(after.loanSlug, after.answers, 1).remaining : 0;
         plan = { kind: "ask", ask: f.ask, left };
       }
     }
     if (process.env.WHATSAPP_AI_DEBUG) this.log.warn(`read ${JSON.stringify(extracted)} | saved ${JSON.stringify(saved)} | next ${plan.kind}${options ? ` with ${options.kind}` : ""}`);
+
+    // The questions have just ended (this reply is the first to find nothing left to ask): show what was noted.
+    const justFinished = plan.kind === "wrap" && !plan.declined && asked.length > 0;
 
     // Something the customer adds after the questions are over (a figure, a correction) is kept for the expert, never lost.
     let late = false;
@@ -208,7 +229,7 @@ export class IntakeService {
     }
 
     // 3. Word the reply.
-    const written = await this.write(turns, plan, extracted, saved, after, options, tap ? [] : figures, { retry, skipped, late });
+    const written = await this.write(turns, plan, extracted, saved, after, options, tap ? [] : figures, { retry, skipped, late, summary: justFinished && !late ? this.summaryOf(after) : null });
     if (!written) return { text: null, handoff: plan.kind === "handoff" };
     return { text: written.text, handoff: plan.kind === "handoff", ...(written.options ? { options: written.options } : {}) };
   }
@@ -232,6 +253,7 @@ export class IntakeService {
     const answers = answersByKey(loanSlug, rows);
     const applicant = rows.find((r) => r.key === answerKey(ROW_YOU_ARE))?.value ?? null;
     const more = (rows.find((r) => r.key === answerKey(ROW_MORE))?.value as "Yes" | "No" | undefined) ?? undefined;
+    const rangeLabel = rows.find((r) => r.key === answerKey("Loan amount asked (range chosen)"))?.value ?? null;
     // Part 1, in this order: the loan and the amount as tap lists, then who they are
     const missing: string[] = [];
     if (!loanSlug) missing.push("loan_slug");
@@ -239,7 +261,7 @@ export class IntakeService {
     if (!lead || GENERIC_NAME.test(lead.name)) missing.push("name");
     if (!lead?.city) missing.push("city");
     if (!applicant) missing.push("applicant");
-    return { lead, loanSlug, loanName: lead?.loanProduct?.name ?? null, answers, applicant, more, missing, basicsDone: missing.length === 0 };
+    return { lead, loanSlug, loanName: lead?.loanProduct?.name ?? null, answers, applicant, more, rangeLabel, missing, basicsDone: missing.length === 0 };
   }
 
   /** What to ask next: ONE thing. Part 1's basics, then whether to go on, then (if they agreed) the loan's own questions. */
@@ -259,6 +281,8 @@ export class IntakeService {
       return [{ key: "more_details", question: "Whether they are happy to answer a few more questions so the experts can find better offers", type: "choice", choices: ["Yes", "No"] }];
     }
     if (snap.more === "No" || !snap.loanSlug) return [];
+    const unclear = otherToSpecify(snap.loanSlug, snap.answers);
+    if (unclear) return [{ key: `${unclear.key}__other`, question: `You chose "Other" for "${unclear.label}". Ask what it is, in a few words`, type: "text" }];
     const { fields } = nextQuestions(snap.loanSlug, snap.answers, 1);
     return fields.map((f) => ({ key: f.key, question: f.label, type: f.kind, ...(f.options ? { choices: f.options } : {}), ...(f.help ? { help: f.help } : {}), ...(f.allowZero ? { allowZero: true } : {}) }));
   }
@@ -284,6 +308,8 @@ export class IntakeService {
   private fromTap(tap: Tap, snap: Snapshot): Extracted {
     if (tap.kind === "loan") return { loan_slug: tap.slug };
     if (tap.kind === "loan-other") return { typing: "loan" };
+    if (tap.kind === "loan-more") return { browse: { step: "groups" } };
+    if (tap.kind === "loan-group") return { browse: { step: "group", index: tap.index } };
     if (tap.kind === "amount") return { loan_amount: tap.value, amount_range_label: tap.label };
     if (tap.kind === "amount-type") return { typing: "amount" };
     if (tap.kind === "you") return { applicant: YOU_ARE[tap.index] ?? null };
@@ -327,7 +353,7 @@ Rules:
   }
 
   /** Saves what was read. Returns the plain names of what was saved. */
-  private async apply(leadId: string, x: Extracted, allowed: Set<string>) {
+  private async apply(leadId: string, x: Extracted, allowed: Set<string>, typed = "") {
     const saved: string[] = [];
     /** The last answer that was read but could not be used, with what was wrong with it. */
     let rejected: { key: string; label: string; hint: string } | null = null;
@@ -347,7 +373,7 @@ Rules:
       data.city = city;
       saved.push("city");
     }
-    const amount = allowed.has("loan_amount") && x.loan_amount !== null && x.loan_amount !== undefined ? parseMoney(String(x.loan_amount)) : null;
+    const amount = allowed.has("loan_amount") && x.loan_amount !== null && x.loan_amount !== undefined && (!typed || hasFigure(typed)) ? parseMoney(String(x.loan_amount)) : null;
     if (amount && amount > 0) {
       data.amount = amount;
       saved.push("loan amount");
@@ -379,8 +405,25 @@ Rules:
     if (!loan || !snap.loanSlug) return { saved, figures, rejected };
     const answers: Answers = { ...snap.answers };
     for (const a of Array.isArray(x.answers) ? x.answers : []) {
+      if (String(a?.key ?? "").endsWith("__other")) {
+        const base = String(a.key).replace(/__other$/, "");
+        const parent = loan.fields.find((f) => f.key === base);
+        const said = String(a?.value ?? "").trim().replace(/\s+/g, " ").slice(0, 120);
+        if (parent && allowed.has(parent.key) && said && !/^other$/i.test(said)) {
+          const value = `Other (${said})`;
+          await this.writeAnswer(leadId, parent.label, value);
+          answers[parent.key] = value;
+          saved.push(parent.label);
+        }
+        continue;
+      }
       const field = resolveField(snap.loanSlug, answers, String(a?.key ?? ""), String(a?.value ?? ""));
       if (!field || !allowed.has(field.key)) continue; // only what was actually asked
+      // an amount or a rate must come from a figure the customer actually wrote: never from the AI's guess
+      if (typed && (field.kind === "amount" || field.kind === "percent") && !hasFigure(typed)) {
+        rejected = { key: field.key, label: field.label, hint: field.kind === "amount" ? "They did not give a figure. Give the amount in rupees as a number" : "They did not give a figure. Give the rate as a number" };
+        continue;
+      }
       const checked = checkAnswer(field, String(a?.value ?? ""));
       if (!checked.ok) {
         rejected = { key: field.key, label: field.label, hint: checked.hint };
@@ -404,6 +447,20 @@ Rules:
     return { saved, figures, rejected };
   }
 
+  /** What has been noted, in plain facts the writer repeats back to the customer. */
+  private summaryOf(snap: Snapshot): string {
+    const bits = [
+      snap.loanName ? `loan: ${snap.loanName}` : null,
+      snap.rangeLabel ? `amount wanted (the range chosen): ${snap.rangeLabel}` : snap.lead?.amount ? `amount: ${rupees(Number(snap.lead.amount))}` : null,
+      snap.lead?.city ? `city: ${snap.lead.city}` : null,
+      snap.applicant ? `applicant: ${snap.applicant}` : null,
+    ].filter(Boolean) as string[];
+    const loan = loanFor(snap.loanSlug);
+    const filled = loan ? loan.fields.filter((f) => (snap.answers[f.key] ?? "").trim() !== "" && !/^Not (sure|given)/.test(snap.answers[f.key] ?? "")).length : 0;
+    if (filled) bits.push(`${filled} more details about the loan, property, income and existing loans`);
+    return bits.join("; ");
+  }
+
   /** Adds a late message to the one note the expert reads, without losing what was added before. */
   private async addLate(leadId: string, text: string) {
     const key = answerKey(LATE_NOTE);
@@ -422,7 +479,7 @@ Rules:
 
   // -- job 2: word the reply --------------------------------------------------------------------
 
-  private async write(turns: Turn[], plan: Plan, x: Extracted, saved: string[], snap: Snapshot, options: OptionSet | null, figures: string[], extra: { retry: string | null; skipped: boolean; late: boolean }): Promise<{ text: string; options?: Interactive } | null> {
+  private async write(turns: Turn[], plan: Plan, x: Extracted, saved: string[], snap: Snapshot, options: OptionSet | null, figures: string[], extra: { retry: string | null; skipped: boolean; late: boolean; summary: string | null }): Promise<{ text: string; options?: Interactive } | null> {
     const company = this.settings.get<string>("org.name") || "Growth Capital Services";
     const system = `You are Ria, the WhatsApp assistant of ${company}, a loan consultant (a DSA) in Mumbai that helps people compare loan options from 75+ banks and NBFCs, free of charge to the customer. You are NOT the lender.
 
@@ -447,7 +504,9 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
 - Hindi in Devanagari: reply in Devanagari, polite "आप". Example: "नमस्ते! मैं रिया हूँ, ग्रोथ कैपिटल सर्विसेज़ से। आपको कौन-सा लोन चाहिए?"
 - Marathi in Devanagari: reply in Marathi, polite "तुम्ही / तुमचे". Example: "नमस्कार! मी रिया, ग्रोथ कॅपिटल सर्विसेसमधून. तुम्हाला कोणते कर्ज हवे आहे?"`;
 
-    const known = [snap.lead && !GENERIC_NAME.test(snap.lead.name) ? `first name ${snap.lead.name.trim().split(/\s+/)[0]}` : null, snap.lead?.city ? `city ${snap.lead.city}` : null, snap.loanName ? `loan ${snap.loanName}` : null, snap.applicant ? `they are: ${snap.applicant}` : null].filter(Boolean).join(", ");
+    // the name is given to the writer only where it belongs: the bridge to the longer questions and the closing message
+    const useName = plan.kind === "wrap" || (plan.kind === "ask" && plan.ask[0]?.key === "more_details") || turns.filter((t) => t.role === "assistant").length === 0;
+    const known = [useName && snap.lead && !GENERIC_NAME.test(snap.lead.name) ? `first name ${snap.lead.name.trim().split(/\s+/)[0]}` : null, snap.lead?.city ? `city ${snap.lead.city}` : null, snap.loanName ? `loan ${snap.loanName}` : null, snap.applicant ? `they are: ${snap.applicant}` : null].filter(Boolean).join(", ");
     const lines: string[] = [`LANGUAGE FOR THIS MESSAGE (decided from what the customer typed): ${LANGUAGE_NAME[detectLanguage(turns)]}. Write the whole message, and any option titles, in it. Do not drift into another language, including in a thank-you or goodbye.`];
     const first = turns.filter((t) => t.role === "assistant").length === 0;
     if (first) {
@@ -471,7 +530,8 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
     else if (extra.skipped) lines.push("The previous question could not be answered here. Begin with: \"No problem, our expert can take that on the call.\" Then ask the question below. Do not mention it again.");
     else if (!saved.length && plan.kind === "ask" && !x.typing && !x.sent_file && !first && !extra.late) lines.push("They did not answer the last question. Ask it once more in plain words.");
     if (extra.late) lines.push("They added a detail after the questions were over. It has been noted for the expert: say exactly that in one short line (\"Noted, I have added that for our expert.\").");
-    if (figures.length) lines.push(`They typed an amount in their own words. Repeat it back once, briefly and naturally, in digits, so they can correct it if it is wrong. Use exactly these figures: ${figures.join("; ")}.`);
+    if (figures.length) lines.push(`They typed an amount in their own words. Repeat it back once, briefly, as a plain statement (never as a question, and do not ask "is that correct"), in digits, so they can correct it if it is wrong; then ask your question. Use exactly these figures: ${figures.join("; ")}.`);
+    if (x.browse) lines.push(x.browse.step === "groups" ? "They want to see more loan types. Ask which group of loans they are looking for. Keep it to one short line." : `They chose the group "${loanGroups()[x.browse.index]?.name ?? ""}". Ask which loan in it they need. Keep it to one short line.`);
     if (x.typing === "loan") lines.push("They chose to type which loan they need. Ask them to type it in their own words.");
     if (x.typing === "amount") lines.push("They chose to type the amount. Ask them to type about how much they need, for example 25 lakh.");
 
@@ -499,7 +559,7 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
       lines.push(
         plan.declined
           ? "They would rather not answer more questions now. Say that is fine, an expert from our team will contact them soon with what they have shared, and they can message here any time to add more details. If they only said hello or something small, welcome them back in one short line and say that if they wish to carry on with the questions they can just say continue. Do not ask any question."
-          : "You have what is needed. Thank them warmly by first name and say an expert from our team will contact them soon and will go through anything else. Do not ask any more questions. If one of your earlier messages already said an expert will contact them, do NOT say it again: reply with one short friendly closing line only.",
+          : `You have what is needed.${extra.summary ? ` First give a short confirmation of what has been noted, using EXACTLY these facts and no others (one fact per line is fine here): ${extra.summary}. Then say that if anything is wrong they can simply reply with the correction, and an expert from our team will contact them soon and go through anything else. Thank them by first name.` : " Thank them by first name and say an expert from our team will contact them soon and will go through anything else."} Do not ask any more questions. If one of your earlier messages already said an expert will contact them, do NOT say it again: reply with one short friendly closing line only.`,
       );
     } else {
       lines.push("They want a person. Say a team member will message them here soon. Do not ask any questions.");
@@ -532,14 +592,20 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
       body = raw.trim();
     }
     if (!body) return null;
+    // two choices must never show the same title (a long name cut short can look identical to another)
+    const shown = options.choices.map((c, i) => shorten(titles.length === options.choices.length && titles[i] ? titles[i]! : c.english, limit));
+    const clash = shown.some((t, i) => shown.indexOf(t) !== i);
     const rows = options.choices.map((c, i) => {
-      const title = shorten(titles.length === options.choices.length && titles[i] ? titles[i]! : c.english, limit);
+      const title = clash ? shorten(`${i + 1}. ${shown[i]!.replace(/…$/, "")}`, limit) : shown[i]!;
       // a list row can carry a longer line under its title: use it when the title had to be short
       const full = options.kind === "list" && c.english.length > title.length && c.english.length <= 72 ? { description: c.english } : {};
       return { id: c.id, title, ...full };
     });
-    const content: Interactive = options.kind === "buttons" ? { kind: "buttons", body, buttons: rows } : { kind: "list", body, button: menu, rows };
-    return { text: body, options: content };
+    // when titles had to be shortened, the full names go in the message so none is ever unclear
+    const cut = options.choices.some((c, i) => rows[i]!.title !== c.english);
+    const full = cut && options.kind === "list" ? `${body}\n\n${options.choices.map((c, i) => `${i + 1}. ${c.english}`).join("\n")}`.slice(0, 1000) : body;
+    const content: Interactive = options.kind === "buttons" ? { kind: "buttons", body, buttons: rows } : { kind: "list", body: full, button: menu, rows };
+    return { text: full, options: content };
   }
 
   // -- OpenAI -----------------------------------------------------------------------------------

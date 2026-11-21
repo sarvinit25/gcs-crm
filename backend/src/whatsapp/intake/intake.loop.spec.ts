@@ -5,7 +5,7 @@ import { answerKey, loanFor, nextQuestions, type Answers } from "./intake.engine
 // The chat that went wrong: the customer answered "Rent" to a question that needs an amount, and was asked it three more times.
 const SLUG = "balance-transfer";
 
-function setup(userSays: () => string) {
+function setup(userSays: () => string, aiValue: () => string = userSays) {
   const loan = loanFor(SLUG)!;
   // everything before "other monthly income" is already answered
   const answers: Answers = {};
@@ -44,7 +44,7 @@ function setup(userSays: () => string) {
     const system = body.messages[0]!.content;
     const reading = system.startsWith("You read a customer's");
     if (!reading) tasks.push(body.messages[body.messages.length - 1]!.content);
-    const content = reading ? JSON.stringify({ answers: [{ key: answerKeyWanted, value: userSays() }] }) : body.response_format ? JSON.stringify({ body: "Next question.", option_titles: [], menu_label: "Choose" }) : "Reply text.";
+    const content = reading ? JSON.stringify({ answers: [{ key: answerKeyWanted, value: aiValue() }] }) : body.response_format ? JSON.stringify({ body: "Next question.", option_titles: [], menu_label: "Choose" }) : "Reply text.";
     return { ok: true, json: async () => ({ choices: [{ message: { content } }] }) };
   });
   const settings = { get: (k: string) => (k === "whatsapp.aiIntake" ? true : "Growth Capital Services") };
@@ -83,5 +83,29 @@ describe("a question the customer keeps answering without a usable figure", () =
     await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
     expect(tasks.at(-1)).not.toMatch(/expert from our team will contact them soon/);
     expect(tasks.at(-1)).toMatch(/Ask exactly this ONE question/);
+  });
+});
+
+describe("saying 'not sure'", () => {
+  it("is noted for the expert and the chat moves on without pressing", async () => {
+    const { svc, rows, tasks } = setup(() => "not sure");
+    await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
+    expect(rows.get(answerKey("Other regular monthly income (rent, interest, etc.)"))?.value).toMatch(/Not sure/);
+    expect(tasks.at(-1)).toMatch(/our expert can take that on the call/);
+    expect(tasks.at(-1)).not.toMatch(/could not be used/);
+  });
+});
+
+describe("the AI must not invent a figure", () => {
+  it("'Rent' with no number is not turned into 0: the customer is asked for the figure", async () => {
+    const { svc, rows, tasks } = setup(() => "Rent", () => "0");
+    await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
+    expect(rows.has(answerKey("Other regular monthly income (rent, interest, etc.)"))).toBe(false);
+    expect(tasks.at(-1)).toMatch(/could not be used/);
+  });
+  it("a real 'none' is still taken as 0", async () => {
+    const { svc, rows } = setup(() => "none", () => "0");
+    await svc.reply({ id: "c", leadId: "l", name: "Mahesh" });
+    expect(rows.get(answerKey("Other regular monthly income (rent, interest, etc.)"))?.value).toBe("₹0");
   });
 });

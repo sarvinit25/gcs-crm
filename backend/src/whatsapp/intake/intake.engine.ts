@@ -10,6 +10,17 @@ export type Answers = Record<string, string>;
 
 export const loanFor = (loanSlug: string | null | undefined): IntakeLoan | null => (loanSlug ? (INTAKE_GUIDE[loanSlug] ?? null) : null);
 
+/** The loans grouped as the website groups them (Property Finance, Business Growth ...), so every one of the 28 can be picked by tap. */
+export function loanGroups(): { name: string; loans: { slug: string; title: string }[] }[] {
+  const groups: { name: string; loans: { slug: string; title: string }[] }[] = [];
+  for (const [slug, l] of Object.entries(INTAKE_GUIDE)) {
+    let g = groups.find((x) => x.name === l.group);
+    if (!g) groups.push((g = { name: l.group, loans: [] }));
+    g.loans.push({ slug, title: l.title });
+  }
+  return groups;
+}
+
 /** The loans the assistant can talk about: what to show a customer who has not said which one. */
 export const loanChoices = () => Object.entries(INTAKE_GUIDE).map(([loanSlug, l]) => ({ slug: loanSlug, title: l.title }));
 
@@ -39,6 +50,17 @@ function coveredByOther(loan: IntakeLoan, field: IntakeField, answers: Answers) 
   return Boolean(controller && field.kind === "text" && (answers[controller.key] ?? "").startsWith("Other ("));
 }
 
+/**
+ * A choice answered with just "Other" says nothing yet: the first such question that is showing, so the assistant can ask
+ * what it is ("Other" on a property type is not enough for a lender).
+ */
+export function otherToSpecify(loanSlug: string, answers: Answers): IntakeField | null {
+  const loan = loanFor(loanSlug);
+  if (!loan) return null;
+  const all = withSeeds(loan, answers);
+  return loan.fields.find((f) => f.kind === "choice" && f.options?.includes("Other") && all[f.key] === "Other" && showing(loan, f, all)) ?? null;
+}
+
 /** The questions still to ask, in the form's order, and how many are left in all. */
 export function nextQuestions(loanSlug: string, answers: Answers, limit = 2) {
   const loan = loanFor(loanSlug);
@@ -65,6 +87,18 @@ export function parseMoney(raw: string): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
+/** An amount inside a sentence ("about 1.5 lakh a month"): used only when the sentence holds exactly one figure. */
+function looseMoney(raw: string): number | null {
+  const found = [...raw.matchAll(/(\d[\d,]*(?:\.\d+)?)\s*(crore|crores|cr|lakh|lakhs|lac|lacs|l|k|thousand)?(?![a-z])/gi)];
+  if (found.length !== 1) return null;
+  return parseMoney(`${found[0]![1]}${found[0]![2] ?? ""}`);
+}
+
+/** Does the customer's own message carry a figure (digits, or a number word in English, Hindi or Marathi)? The AI must never turn "Rent" into 0. */
+export function hasFigure(text: string): boolean {
+  return /[\d०-९]/.test(text) || /\b(zero|nil|none|nothing|no|not any|nahi|nahin|nahi hai|ek|do|teen|char|paanch|panch|chhe|saat|aath|nau|das|sau|hazaar|hajar|lakh|lac|crore|karod|thousand|hundred|million)\b|शून्य|नहीं|नही|नाही|एक|दो|तीन|चार|पाच|पांच|दस|सौ|हज़ार|हजार|लाख|करोड/i.test(text);
+}
+
 /** Indian digit grouping: 4000000 -> "40,00,000". */
 export const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
@@ -75,14 +109,16 @@ export function checkAnswer(field: IntakeField, raw: string): Checked {
   const text = String(raw ?? "").trim();
   if (!text) return { ok: false, hint: "The answer is empty." };
   if (field.kind === "amount") {
-    const n = parseMoney(text);
+    const n = parseMoney(text) ?? looseMoney(text);
     if (n === null) return { ok: false, hint: "Give the amount in rupees as a number, for example 4000000." };
     if (n === 0 && !field.allowZero) return { ok: false, hint: "The amount cannot be zero." };
     if (n > 100 * crore * 10) return { ok: false, hint: "That amount looks too large. Ask the customer to confirm it." };
     return { ok: true, value: rupees(n) };
   }
   if (field.kind === "percent") {
-    const n = Number(text.replace(/%/g, ""));
+    // "11 percent floating" or "around 11%" carry one number: take it; two numbers ("9 to 10") are not an answer
+    const found = text.match(/\d+(?:\.\d+)?/g) ?? [];
+    const n = found.length === 1 ? Number(found[0]) : NaN;
     if (!Number.isFinite(n) || n < 0 || n > 100) return { ok: false, hint: "Give a percentage between 0 and 100." };
     return { ok: true, value: `${n}%` };
   }

@@ -1252,6 +1252,132 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     }
    },
    {
+    "key": "odSanctioned",
+    "label": "Original sanctioned limit",
+    "kind": "amount",
+    "showWhen": {
+     "key": "loanType",
+     "values": [
+      "Drop-Line Overdraft Balance Transfer"
+     ]
+    }
+   },
+   {
+    "key": "odCurrentLimit",
+    "label": "Current sanctioned limit, after any reductions",
+    "kind": "amount",
+    "showWhen": {
+     "key": "loanType",
+     "values": [
+      "Drop-Line Overdraft Balance Transfer"
+     ]
+    }
+   },
+   {
+    "key": "odDrawing",
+    "label": "Drawing power or unused limit available today",
+    "kind": "amount",
+    "showWhen": {
+     "key": "loanType",
+     "values": [
+      "Drop-Line Overdraft Balance Transfer"
+     ]
+    },
+    "allowZero": true
+   },
+   {
+    "key": "odRateType",
+    "label": "Is the interest rate fixed or floating?",
+    "kind": "choice",
+    "options": [
+     "Floating",
+     "Fixed",
+     "Not sure"
+    ],
+    "showWhen": {
+     "key": "loanType",
+     "values": [
+      "Drop-Line Overdraft Balance Transfer"
+     ]
+    }
+   },
+   {
+    "key": "odRepayment",
+    "label": "How is your monthly payment structured?",
+    "kind": "choice",
+    "options": [
+     "Interest plus principal",
+     "Interest only",
+     "Not sure"
+    ],
+    "showWhen": {
+     "key": "loanType",
+     "values": [
+      "Drop-Line Overdraft Balance Transfer"
+     ]
+    }
+   },
+   {
+    "key": "odInterestDebit",
+    "label": "Interest debited to the account each month",
+    "kind": "amount",
+    "showWhen": {
+     "key": "loanType",
+     "values": [
+      "Drop-Line Overdraft Balance Transfer"
+     ]
+    },
+    "allowZero": true
+   },
+   {
+    "key": "odReduction",
+    "label": "How does the limit come down?",
+    "kind": "text",
+    "showWhen": {
+     "key": "loanType",
+     "values": [
+      "Drop-Line Overdraft Balance Transfer"
+     ]
+    }
+   },
+   {
+    "key": "odRenewal",
+    "label": "Renewal or maturity date of the facility",
+    "kind": "text",
+    "showWhen": {
+     "key": "loanType",
+     "values": [
+      "Drop-Line Overdraft Balance Transfer"
+     ]
+    }
+   },
+   {
+    "key": "odOverdue",
+    "label": "Is any amount overdue right now?",
+    "kind": "choice",
+    "options": [
+     "No",
+     "Yes"
+    ],
+    "showWhen": {
+     "key": "loanType",
+     "values": [
+      "Drop-Line Overdraft Balance Transfer"
+     ]
+    }
+   },
+   {
+    "key": "odOverdueAmount",
+    "label": "How much is overdue?",
+    "kind": "amount",
+    "showWhen": {
+     "key": "odOverdue",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
     "key": "topUp",
     "label": "Top-up amount you need",
     "kind": "amount",
@@ -1327,6 +1453,34 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
      "Jointly with spouse or family",
      "A parent or family member",
      "My company or firm"
+    ]
+   },
+   {
+    "key": "ownerSign",
+    "label": "Will the property owner(s) sign the application and the mortgage papers?",
+    "kind": "choice",
+    "options": [
+     "Yes",
+     "No",
+     "Not sure"
+    ],
+    "showWhen": {
+     "key": "ownership",
+     "values": [
+      "Jointly with spouse or family",
+      "A parent or family member",
+      "My company or firm"
+     ]
+    }
+   },
+   {
+    "key": "docsReady",
+    "label": "Do you have the latest loan statement and the sanction letter?",
+    "kind": "choice",
+    "options": [
+     "Yes, both",
+     "Only one of them",
+     "Not yet"
     ]
    },
    {
@@ -5092,6 +5246,59 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btRate",
     "label": "Interest rate you pay now",
     "kind": "percent",
+    "showWhen": {
+     "key": "requirement",
+     "values": [
+      "Move my present overdraft or loan",
+      "Move it and add more funding"
+     ]
+    }
+   },
+   {
+    "key": "btSanctioned",
+    "label": "Current sanctioned limit",
+    "kind": "amount",
+    "showWhen": {
+     "key": "requirement",
+     "values": [
+      "Move my present overdraft or loan",
+      "Move it and add more funding"
+     ]
+    }
+   },
+   {
+    "key": "btDrawing",
+    "label": "Unused limit or drawing power available today",
+    "kind": "amount",
+    "showWhen": {
+     "key": "requirement",
+     "values": [
+      "Move my present overdraft or loan",
+      "Move it and add more funding"
+     ]
+    },
+    "allowZero": true
+   },
+   {
+    "key": "btRenewal",
+    "label": "Renewal or maturity date of the present facility",
+    "kind": "text",
+    "showWhen": {
+     "key": "requirement",
+     "values": [
+      "Move my present overdraft or loan",
+      "Move it and add more funding"
+     ]
+    }
+   },
+   {
+    "key": "btOverdue",
+    "label": "Is any amount overdue on it right now?",
+    "kind": "choice",
+    "options": [
+     "No",
+     "Yes"
+    ],
     "showWhen": {
      "key": "requirement",
      "values": [
@@ -15318,6 +15525,59 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "key": "btRate",
     "label": "Interest rate you pay now",
     "kind": "percent",
+    "showWhen": {
+     "key": "requirement",
+     "values": [
+      "Move my present overdraft or loan",
+      "Move it and add more funding"
+     ]
+    }
+   },
+   {
+    "key": "btSanctioned",
+    "label": "Current sanctioned limit",
+    "kind": "amount",
+    "showWhen": {
+     "key": "requirement",
+     "values": [
+      "Move my present overdraft or loan",
+      "Move it and add more funding"
+     ]
+    }
+   },
+   {
+    "key": "btDrawing",
+    "label": "Unused limit or drawing power available today",
+    "kind": "amount",
+    "showWhen": {
+     "key": "requirement",
+     "values": [
+      "Move my present overdraft or loan",
+      "Move it and add more funding"
+     ]
+    },
+    "allowZero": true
+   },
+   {
+    "key": "btRenewal",
+    "label": "Renewal or maturity date of the present facility",
+    "kind": "text",
+    "showWhen": {
+     "key": "requirement",
+     "values": [
+      "Move my present overdraft or loan",
+      "Move it and add more funding"
+     ]
+    }
+   },
+   {
+    "key": "btOverdue",
+    "label": "Is any amount overdue on it right now?",
+    "kind": "choice",
+    "options": [
+     "No",
+     "Yes"
+    ],
     "showWhen": {
      "key": "requirement",
      "values": [

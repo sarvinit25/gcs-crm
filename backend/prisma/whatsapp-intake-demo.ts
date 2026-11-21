@@ -50,6 +50,12 @@ const PERSONAS = [
     about:
       "You are Rohan Mehta in Mumbai, who wants a new car loan. When you are offered amount choices, pick 'Type the exact amount' and then type the amount in Hindi words exactly like: chabbis lakh. The car is a Kia with an on-road price of 43 lakh and you can put in about 17 lakh. You are salaried, take-home 65000. Reply briefly in English or Hinglish and tap options when they fit.",
   },
+  {
+    phone: "9000000017",
+    opening: "Hi",
+    about:
+      "You are Mahesh, a proprietor in Chembur, Mumbai. You want to move your drop-line overdraft from L&T Finance: original sanctioned limit 2 crore, still to repay 1.60 crore, rate 11 percent floating, about 1,55,000 a month, 10 to 15 years left, repaying for 1 to 2 years, a few delays because your customers paid late (nothing overdue now). The property is in Vikhroli, worth about 6 crore, in your parents' name, and they will sign. When asked for its type pick Other (it is a mixed-use building). You also want a top-up. A rent of 55,000 a month comes in. IMPORTANT: when you are first asked about other monthly income, answer only the single word Rent with no number, like a hurried customer; if the assistant asks again giving an example, then give the number. If asked something you do not know (for example the drawing power), say: not sure. Your address on the loan papers and all other answers are small sensible figures.",
+  },
 ] as const;
 
 async function pretendCustomer(persona: string, transcript: { who: "gia" | "me"; text: string }[], offered: string[]) {
@@ -118,7 +124,7 @@ async function main() {
     const reply = lines.join("\n");
     console.log(`RIA: ${reply}`);
     transcript.push({ who: "gia", text: reply.split("\n")[0] ?? reply });
-    if (!offered.length && /expert .*(contact|call|reach)|team member will|विशेषज्ञ|तज्ञ|एक्सपर्ट/i.test(reply) && turn > 5) break;
+    if (!offered.length && /expert from our team will|team member will|will contact (you|them)|will get in touch|विशेषज्ञ|तज्ञ|एक्सपर्ट/i.test(reply) && turn > 5) break;
     customerSays = await pretendCustomer(persona.about, transcript, offered.map((o) => o.title));
   }
 

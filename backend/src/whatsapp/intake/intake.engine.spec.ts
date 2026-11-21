@@ -111,3 +111,48 @@ describe("answersByKey", () => {
     expect(answersByKey(null, rows)).toEqual({});
   });
 });
+
+describe("a choice answered with just 'Other'", () => {
+  const { otherToSpecify } = jest.requireActual("./intake.engine");
+  it("is picked up so the assistant can ask what it is", () => {
+    expect(otherToSpecify("balance-transfer", { loanType: "Drop-Line Overdraft Balance Transfer", propertyKind: "Other" })?.key).toBe("propertyKind");
+  });
+  it("is left alone once the customer has said what it is, or chose something else", () => {
+    expect(otherToSpecify("balance-transfer", { loanType: "Drop-Line Overdraft Balance Transfer", propertyKind: "Other (a godown)" })).toBeNull();
+    expect(otherToSpecify("balance-transfer", { loanType: "Drop-Line Overdraft Balance Transfer", propertyKind: "Commercial" })).toBeNull();
+  });
+});
+
+describe("the new overdraft questions", () => {
+  const { nextQuestions } = jest.requireActual("./intake.engine");
+  it("a drop-line overdraft transfer is asked about limit, drawing power, reduction, renewal and overdue", () => {
+    const keys = nextQuestions("balance-transfer", { loanType: "Drop-Line Overdraft Balance Transfer" }, 60).fields.map((f: { key: string }) => f.key);
+    for (const k of ["odSanctioned", "odCurrentLimit", "odDrawing", "odRateType", "odRepayment", "odInterestDebit", "odReduction", "odRenewal", "odOverdue"]) expect(keys).toContain(k);
+  });
+  it("a home loan transfer is not asked about overdraft limits", () => {
+    const keys = nextQuestions("balance-transfer", { loanType: "Home Loan Balance Transfer" }, 60).fields.map((f: { key: string }) => f.key);
+    expect(keys).not.toContain("odSanctioned");
+  });
+  it("the amount overdue is only asked when something is overdue", () => {
+    const has = (a: Record<string, string>) => nextQuestions("balance-transfer", { loanType: "Drop-Line Overdraft Balance Transfer", ...a }, 60).fields.some((f: { key: string }) => f.key === "odOverdueAmount");
+    expect(has({ odOverdue: "No" })).toBe(false);
+    expect(has({ odOverdue: "Yes" })).toBe(true);
+  });
+});
+
+describe("reading a figure out of a sentence", () => {
+  const { checkAnswer } = jest.requireActual("./intake.engine");
+  const pct = { key: "r", label: "Rate", kind: "percent" };
+  const amt = { key: "a", label: "Amount", kind: "amount" };
+  it("takes the one rate in 'about 11 percent floating'", () => {
+    expect(checkAnswer(pct, "11 percent floating")).toEqual({ ok: true, value: "11%" });
+    expect(checkAnswer(pct, "9.75%")).toEqual({ ok: true, value: "9.75%" });
+    expect(checkAnswer(pct, "9 to 10").ok).toBe(false);
+  });
+  it("takes the one amount in a sentence, and refuses two", () => {
+    expect(checkAnswer(amt, "around 1.5 lakh a month")).toEqual({ ok: true, value: "₹1,50,000" });
+    expect(checkAnswer(amt, "1.60 CR")).toEqual({ ok: true, value: "₹1,60,00,000" });
+    expect(checkAnswer(amt, "between 5 and 10 lakh").ok).toBe(false);
+    expect(checkAnswer(amt, "Rent").ok).toBe(false);
+  });
+});
