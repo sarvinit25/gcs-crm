@@ -17,6 +17,8 @@ type Result = {
   reasons: Reason[];
   checks: string[];
   policyNeedsReview: boolean;
+  /** Each of the lender's named programs judged on its own rules (older saved runs do not have it). */
+  programFit?: { name: string; verdict: "FITS" | "MAYBE" | "MISSES"; ok: string[]; gaps: string[]; needs: string[]; unconfirmed: string[] }[];
   policyVersion: number | null;
   exceptions: { scenario: string; requiredApproval: string | null; expertNote: string | null }[];
   /** What a person should read beside the score. Older saved runs do not have it. */
@@ -226,6 +228,27 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
                       </li>
                     ))}
                   </ul>
+                  {r.programFit && r.programFit.length > 0 && (
+                    <div className="mt-2 space-y-1.5 rounded-md border border-line px-3 py-2 text-[12px]">
+                      <p className="font-semibold text-navy">Which of this lender's programs fits</p>
+                      {r.programFit.map((f) => (
+                        <details key={f.name} className="rounded bg-bg-light/60 px-2 py-1.5" open={f.verdict === "FITS"}>
+                          <summary className="flex cursor-pointer flex-wrap items-center gap-2">
+                            <span className={clsx("rounded-full px-2 py-0.5 text-[10px] font-bold", f.verdict === "FITS" ? "bg-emerald-50 text-emerald-700" : f.verdict === "MAYBE" ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700")}>
+                              {f.verdict === "FITS" ? "Fits" : f.verdict === "MAYBE" ? "Possible, needs checking" : "Misses a rule"}
+                            </span>
+                            <span className="font-semibold text-navy">{f.name}</span>
+                            {f.unconfirmed.length > 0 && <span className="text-[11px] text-amber-700">not confirmed with the lender: {f.unconfirmed.join(", ")}</span>}
+                          </summary>
+                          <ul className="mt-1.5 space-y-0.5">
+                            {f.ok.map((x, i) => <li key={`o${i}`} className="flex items-start gap-1.5 text-emerald-800"><Check className="mt-0.5 h-3 w-3 shrink-0" />{x}</li>)}
+                            {f.gaps.map((x, i) => <li key={`g${i}`} className="flex items-start gap-1.5 text-red-700"><X className="mt-0.5 h-3 w-3 shrink-0" />{x}</li>)}
+                            {f.needs.map((x, i) => <li key={`n${i}`} className="flex items-start gap-1.5 text-amber-800"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />Find out: {x}</li>)}
+                          </ul>
+                        </details>
+                      ))}
+                    </div>
+                  )}
                   {r.exceptions.length > 0 && (
                     <div className="mt-2 rounded-md bg-bg-light px-3 py-2 text-[12px] text-muted">
                       <p className="font-semibold text-navy">Known exceptions</p>

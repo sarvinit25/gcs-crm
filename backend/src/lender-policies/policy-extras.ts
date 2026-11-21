@@ -6,6 +6,15 @@
 // Both are cleaned here, so a bad or invented value from a flyer is dropped before a person sees it, and both merge by only
 // ever adding: what a person already entered is never replaced.
 
+/** Whether a rule has been confirmed with the lender. Unconfirmed rules are never passed off as approved policy. */
+export type RuleStatus = "CONFIRMED" | "PENDING" | "NOT_APPLICABLE";
+export const RULE_STATUSES: RuleStatus[] = ["CONFIRMED", "PENDING", "NOT_APPLICABLE"];
+/** A rule one lender has and others do not (industry margins, MOB multipliers, funding formula ...), with its own status. */
+export type ProgramRule = { label: string; value: string; status: RuleStatus };
+/** The structured numbers the matcher can test, so each can carry its own status. */
+export const CORE_RULES = ["maxFoirPct", "maxLtvPct", "abbMultiple", "minBusinessVintageMonths", "minCreditScore"] as const;
+export type CoreRule = (typeof CORE_RULES)[number];
+
 export type Program = {
   name: string;
   minAmount: number | null;
@@ -24,6 +33,22 @@ export type Program = {
   /** Everything else the flyer says about this program. */
   conditions: string | null;
   fee: string | null;
+  /** The lender's own limits for this program, as numbers the matcher can test. */
+  maxFoirPct: number | null;
+  maxLtvPct: number | null;
+  /** The least average bank balance, as a multiple of the EMI. */
+  abbMultiple: number | null;
+  minBusinessVintageMonths: number | null;
+  minCreditScore: number | null;
+  /** SALARIED and/or SELF_EMPLOYED; blank means not stated. */
+  employmentTypes: string[];
+  propertyTypes: string[];
+  /** For example "Self-occupied". */
+  occupancy: string | null;
+  /** Any extra rule this lender has for the program. */
+  rules: ProgramRule[];
+  /** Confirmed, pending or not applicable, for each structured number above; missing means not stated. */
+  status: Partial<Record<CoreRule, RuleStatus>>;
 };
 
 export type ConditionType = "text" | "longtext" | "number" | "percent";
@@ -85,6 +110,17 @@ export function cleanProgram(raw: unknown): Program | null {
   const [minTenureMonths, maxTenureMonths] = ordered(whole(r.minTenureMonths, 1, 600), whole(r.maxTenureMonths, 1, 600));
   const [minAge, maxAge] = ordered(whole(r.minAge, 18, 100), whole(r.maxAge, 18, 100));
   const ltv = text(r.ltv, 120);
+  const status: Partial<Record<CoreRule, RuleStatus>> = {};
+  const rawStatus = (r.status && typeof r.status === "object" && !Array.isArray(r.status) ? r.status : {}) as Record<string, unknown>;
+  for (const k of CORE_RULES) if (RULE_STATUSES.includes(rawStatus[k] as RuleStatus)) status[k] = rawStatus[k] as RuleStatus;
+  const rules: ProgramRule[] = [];
+  for (const x of Array.isArray(r.rules) ? r.rules : []) {
+    const o = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
+    const label = text(o.label, 80);
+    const value = text(o.value, 200);
+    if (label && value && rules.length < 20) rules.push({ label, value, status: RULE_STATUSES.includes(o.status as RuleStatus) ? (o.status as RuleStatus) : "PENDING" });
+  }
+  const list = (v: unknown, allowed?: string[]) => (Array.isArray(v) ? v : []).map((x) => text(x, 60)).filter((x): x is string => Boolean(x) && (!allowed || allowed.includes(x as string))).slice(0, 10);
   return {
     name, minAmount, maxAmount, minRate, maxRate, minTenureMonths, maxTenureMonths,
     ltv: ltv && /\d\s*%/.test(ltv) ? ltv : null,
@@ -93,6 +129,16 @@ export function cleanProgram(raw: unknown): Program | null {
     documents: (Array.isArray(r.documents) ? r.documents : []).map((d) => text(d, 120)).filter((d): d is string => Boolean(d)).slice(0, 12),
     conditions: text(r.conditions, 500),
     fee: text(r.fee, 120),
+    maxFoirPct: num(r.maxFoirPct, 1, 100),
+    maxLtvPct: num(r.maxLtvPct, 1, 100),
+    abbMultiple: num(r.abbMultiple, 0.1, 50),
+    minBusinessVintageMonths: whole(r.minBusinessVintageMonths, 1, 600),
+    minCreditScore: whole(r.minCreditScore, 300, 900),
+    employmentTypes: list(r.employmentTypes, ["SALARIED", "SELF_EMPLOYED"]),
+    propertyTypes: list(r.propertyTypes),
+    occupancy: text(r.occupancy, 80),
+    rules,
+    status,
   };
 }
 
@@ -112,7 +158,8 @@ export function cleanPrograms(raw: unknown): Program[] {
 }
 
 const squash = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-const blank = (v: unknown) => v === null || v === undefined || v === "" || (Array.isArray(v) && v.length === 0);
+const blank = (v: unknown) =>
+  v === null || v === undefined || v === "" || (Array.isArray(v) && v.length === 0) || (typeof v === "object" && !Array.isArray(v) && Object.keys(v as object).length === 0);
 
 /** Adds programs that are new and fills only the blanks of ones already held; nothing is replaced. */
 export function mergePrograms(existing: Program[], incoming: Program[]): { programs: Program[]; added: string[]; filled: string[] } {

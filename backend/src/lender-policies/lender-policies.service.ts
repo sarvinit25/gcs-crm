@@ -79,6 +79,7 @@ export function toRule(p: PolicyRow): PolicyRule {
     acceptedPropertyTypes: p.acceptedPropertyTypes,
     allIndia: p.allIndia,
     cities: p.cities,
+    programs: cleanPrograms(p.programs),
   };
 }
 
