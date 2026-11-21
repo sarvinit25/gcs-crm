@@ -12,7 +12,7 @@ type Turn = { role: "user" | "assistant"; content: string };
 type Chat = { role: "system" | "user" | "assistant"; content: string };
 
 /** One thing to ask, or to look for in the customer's reply. */
-type Ask = { key: string; question: string; type: string; choices?: string[]; help?: string };
+type Ask = { key: string; question: string; type: string; choices?: string[]; help?: string; allowZero?: boolean };
 
 type Extracted = {
   name?: string | null;
@@ -40,8 +40,14 @@ type Plan = { kind: "ask"; ask: Ask[]; left: number } | { kind: "wrap"; declined
 export type IntakeReply = { text: string | null; handoff: boolean; options?: Interactive; /** Nothing to say, and nobody needs to take over (the customer only said thanks). */ silent?: boolean };
 
 const MAX_HISTORY = 16;
-/** After they agree to more questions, the assistant still stops after this many answers: the expert covers the rest on the call. */
-const ENOUGH_ANSWERS = 20;
+/**
+ * After they agree to more questions the assistant carries on through the whole of the loan's second form, so nothing is
+ * left out. This is only a safety stop for a runaway chat; the customer can always stop sooner ("rest on the call").
+ */
+const ENOUGH_ANSWERS = 90;
+/** A question the customer has not answered usefully is explained once, then skipped for the expert to cover on the call. */
+const MAX_TRIES = 2;
+const LATE_NOTE = "Added later on WhatsApp";
 const GENERIC_NAME = /^(whatsapp enquiry|unknown)$/i;
 /** The answer rows that record the short first part and the choice to go on. */
 const ROW_YOU_ARE = "You are";
@@ -81,6 +87,8 @@ export function scrub(text: string): string {
 @Injectable()
 export class IntakeService {
   private readonly log = new Logger("WhatsAppIntake");
+  /** How many times in a row one question has gone unanswered, per chat. Kept in memory: a restart only gives a question a fresh chance. */
+  private readonly tries = new Map<string, number>();
 
   constructor(
     private prisma: PrismaService,
@@ -135,16 +143,47 @@ export class IntakeService {
     const firstMessage = !turns.some((t) => t.role === "assistant");
     const allowed = new Set(tap?.kind === "answer" ? [tap.key] : asked.map((a) => a.key));
     if (firstMessage) ["loan_slug", "loan_amount", "name", "city", "applicant"].forEach((k) => allowed.add(k));
-    const { saved, figures } = await this.apply(leadId, extracted, allowed);
+    const { saved, figures, rejected } = await this.apply(leadId, extracted, allowed);
 
     // everything is in and they have been told an expert will call: a bare "thanks" needs no answer
-    const after = await this.snapshot(leadId);
+    let after = await this.snapshot(leadId);
     if (!tap && JUST_THANKS.test(lastTyped) && this.toAsk(after).length === 0) return { text: null, handoff: false, silent: true };
+
+    // A question that did not get a usable answer: say once exactly what is needed, then move on instead of asking a third time.
+    let retry: string | null = null;
+    let skipped = false;
+    let giveUp = false;
+    const openKey = asked[0]?.key;
+    const stillOpen = Boolean(openKey) && this.toAsk(after)[0]?.key === openKey;
+    const noAnswer = !tap && !media && !extracted.typing && !extracted.their_question && !extracted.wants_person && !firstMessage;
+    if (openKey && stillOpen && noAnswer) {
+      const tryKey = `${leadId}:${openKey}`;
+      const n = (this.tries.get(tryKey) ?? 0) + 1;
+      this.tries.set(tryKey, n);
+      const field = after.loanSlug ? loanFor(after.loanSlug)?.fields.find((f) => f.key === openKey) : undefined;
+      if (n >= MAX_TRIES && field) {
+        await this.writeAnswer(leadId, field.label, "Not given on WhatsApp (for the expert to ask on the call)");
+        this.tries.delete(tryKey);
+        skipped = true;
+        after = await this.snapshot(leadId);
+      } else if (n >= MAX_TRIES + 1) {
+        // one of the basics, or the "more questions" choice, still unanswered: stop asking
+        this.tries.delete(tryKey);
+        if (openKey === "more_details") {
+          await this.writeAnswer(leadId, ROW_MORE, "No");
+          after = await this.snapshot(leadId);
+        } else giveUp = true;
+      } else {
+        retry = rejected?.hint ?? "Their reply did not answer the question.";
+      }
+    } else if (openKey && !stillOpen) {
+      this.tries.delete(`${leadId}:${openKey}`);
+    }
 
     // 2. Decide, in code, what to do next.
     let plan: Plan;
     let options: OptionSet | null = null;
-    if (extracted.wants_person) plan = { kind: "handoff" };
+    if (extracted.wants_person || giveUp) plan = { kind: "handoff" };
     else {
       const next = this.toAsk(after);
       const answeredLoanQuestions = Object.keys(after.answers).length;
@@ -161,8 +200,15 @@ export class IntakeService {
     }
     if (process.env.WHATSAPP_AI_DEBUG) this.log.warn(`read ${JSON.stringify(extracted)} | saved ${JSON.stringify(saved)} | next ${plan.kind}${options ? ` with ${options.kind}` : ""}`);
 
+    // Something the customer adds after the questions are over (a figure, a correction) is kept for the expert, never lost.
+    let late = false;
+    if (plan.kind === "wrap" && !plan.declined && !tap && !media && after.basicsDone && !extracted.wants_person && !extracted.their_question && !JUST_THANKS.test(lastTyped) && !STOP_ASKING.test(lastTyped) && !RESUME_ASKING.test(lastTyped) && (/\d/.test(lastTyped) || lastTyped.trim().length >= 25)) {
+      await this.addLate(leadId, lastTyped);
+      late = true;
+    }
+
     // 3. Word the reply.
-    const written = await this.write(turns, plan, extracted, saved, after, options, tap ? [] : figures);
+    const written = await this.write(turns, plan, extracted, saved, after, options, tap ? [] : figures, { retry, skipped, late });
     if (!written) return { text: null, handoff: plan.kind === "handoff" };
     return { text: written.text, handoff: plan.kind === "handoff", ...(written.options ? { options: written.options } : {}) };
   }
@@ -214,7 +260,7 @@ export class IntakeService {
     }
     if (snap.more === "No" || !snap.loanSlug) return [];
     const { fields } = nextQuestions(snap.loanSlug, snap.answers, 1);
-    return fields.map((f) => ({ key: f.key, question: f.label, type: f.kind, ...(f.options ? { choices: f.options } : {}), ...(f.help ? { help: f.help } : {}) }));
+    return fields.map((f) => ({ key: f.key, question: f.label, type: f.kind, ...(f.options ? { choices: f.options } : {}), ...(f.help ? { help: f.help } : {}), ...(f.allowZero ? { allowZero: true } : {}) }));
   }
 
   private async history(conversationId: string): Promise<Turn[]> {
@@ -283,6 +329,8 @@ Rules:
   /** Saves what was read. Returns the plain names of what was saved. */
   private async apply(leadId: string, x: Extracted, allowed: Set<string>) {
     const saved: string[] = [];
+    /** The last answer that was read but could not be used, with what was wrong with it. */
+    let rejected: { key: string; label: string; hint: string } | null = null;
     /** Amounts as they were read, so they can be repeated back to the customer for a check. */
     const figures: string[] = [];
     const data: Prisma.LeadUpdateInput = {};
@@ -328,13 +376,16 @@ Rules:
 
     const snap = await this.snapshot(leadId);
     const loan = loanFor(snap.loanSlug);
-    if (!loan || !snap.loanSlug) return { saved, figures };
+    if (!loan || !snap.loanSlug) return { saved, figures, rejected };
     const answers: Answers = { ...snap.answers };
     for (const a of Array.isArray(x.answers) ? x.answers : []) {
       const field = resolveField(snap.loanSlug, answers, String(a?.key ?? ""), String(a?.value ?? ""));
       if (!field || !allowed.has(field.key)) continue; // only what was actually asked
       const checked = checkAnswer(field, String(a?.value ?? ""));
-      if (!checked.ok) continue;
+      if (!checked.ok) {
+        rejected = { key: field.key, label: field.label, hint: checked.hint };
+        continue;
+      }
       await this.writeAnswer(leadId, field.label, checked.value);
       answers[field.key] = checked.value;
       saved.push(field.label);
@@ -350,7 +401,14 @@ Rules:
         }
       }
     }
-    return { saved, figures };
+    return { saved, figures, rejected };
+  }
+
+  /** Adds a late message to the one note the expert reads, without losing what was added before. */
+  private async addLate(leadId: string, text: string) {
+    const key = answerKey(LATE_NOTE);
+    const have = await this.prisma.leadAnswer.findUnique({ where: { leadId_key: { leadId, key } }, select: { value: true } });
+    await this.writeAnswer(leadId, LATE_NOTE, [have?.value, text.trim().replace(/\s+/g, " ")].filter(Boolean).join(" | ").slice(-480));
   }
 
   private writeAnswer(leadId: string, label: string, value: string) {
@@ -364,17 +422,19 @@ Rules:
 
   // -- job 2: word the reply --------------------------------------------------------------------
 
-  private async write(turns: Turn[], plan: Plan, x: Extracted, saved: string[], snap: Snapshot, options: OptionSet | null, figures: string[]): Promise<{ text: string; options?: Interactive } | null> {
+  private async write(turns: Turn[], plan: Plan, x: Extracted, saved: string[], snap: Snapshot, options: OptionSet | null, figures: string[], extra: { retry: string | null; skipped: boolean; late: boolean }): Promise<{ text: string; options?: Interactive } | null> {
     const company = this.settings.get<string>("org.name") || "Growth Capital Services";
     const system = `You are Gia, the WhatsApp assistant of ${company}, a loan consultant (a DSA) in Mumbai that helps people compare loan options from 75+ banks and NBFCs, free of charge to the customer. You are NOT the lender.
 
-YOUR PERSONALITY
-You are like a friendly, sharp young person at a good financial firm who genuinely enjoys helping and chats naturally: warm, upbeat, curious, never stiff, never pushy. You are having a conversation, not filling in a form.
-- React to what they just told you, in a few natural words that show you listened ("A school building, that is a lovely project", "Kia, nice choice", "Thane is a great area"). Make the reaction specific to THEIR answer. Never just say "Thanks" or "Noted".
-- Vary how you start. NEVER open a message with "Thanks", "Thank you" or "Great": open with a reaction to what they said, or a friendly link to the next question. Say their FIRST name only (never the full name), and rarely: in most messages do not use their name at all (about one message in four).
-- Link to the next question the way a person would ("And on the money side...", "Next up", "One more thing"), so each question flows from the last. Only say "almost there", "nearly done" or "last one" when your task says so.
-- Keep it light and short. 1 to 3 short sentences. At most one emoji, and only now and then. No bullet points, no bold, no headings.
-- Ask ONLY what your task says, ONE question at a time. Never invent questions, and never mention keys, tools, forms or "saving".
+YOUR MANNER: PROFESSIONAL, BRIEF, TO THE POINT
+You are a courteous, efficient professional collecting details for an expert. You are not chatting and not selling. Polite and respectful, never casual, never gushing.
+- Begin each message with a very short neutral acknowledgment, then the next question. Use plain ones and vary them: "Noted.", "Understood.", "Got it.", "Thank you.". Do NOT compliment or comment on anything the customer said.
+- NEVER give an opinion or a judgement on their answers: not on a place ("nice area"), not on a rate ("standard rate", "good rate"), not on an amount, a tenure, a delay or a bounce ("can happen, no worries"), not on their choice of loan. No praise, no reassurance, no "great choice", no "solid amount".
+- Ask ONLY what your task says, ONE question at a time, in clear simple words. Never invent questions. Never mention keys, tools, forms or "saving".
+- 1 or 2 short sentences. No emoji (except one in the very first welcome). No bullet points, no bold, no headings.
+- Use their first name only in the welcome and the closing message, not in between.
+- If a figure is unclear, say exactly what you need and give one example of how to write it.
+- Do not announce how many questions are left except when your task says so.
 
 SAFETY
 - Never promise anything about rates, approval, amounts or timelines: say it depends on the bank or NBFC and their profile, and an expert will confirm.
@@ -407,7 +467,10 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
     else if (x.sent_file) lines.push("They sent something that cannot be opened here. Kindly say so and ask them to type or tap an option instead. Then ask the question again.");
     if (x.shared_private_number) lines.push("They sent a private number (it was hidden from you). Tell them kindly not to share such numbers here.");
     if (x.their_question) lines.push(`They asked: "${x.their_question}". Answer in one or two safe sentences (no promises), then continue.`);
-    if (!saved.length && plan.kind === "ask" && !x.typing && !x.sent_file && !first) lines.push("They did not answer the last question. Ask it again in simpler words, in a friendly way.");
+    if (extra.retry) lines.push(`Their last reply could not be used (${extra.retry}). Do NOT repeat the question in the same words. In one short sentence say exactly what you need and give a concrete example answer (for an amount: the number, for example 55,000 per month, or 0 if there is none). Then stop.`);
+    else if (extra.skipped) lines.push("The previous question could not be answered here. Begin with: \"No problem, our expert can take that on the call.\" Then ask the question below. Do not mention it again.");
+    else if (!saved.length && plan.kind === "ask" && !x.typing && !x.sent_file && !first && !extra.late) lines.push("They did not answer the last question. Ask it once more in plain words.");
+    if (extra.late) lines.push("They added a detail after the questions were over. It has been noted for the expert: say exactly that in one short line (\"Noted, I have added that for our expert.\").");
     if (figures.length) lines.push(`They typed an amount in their own words. Repeat it back once, briefly and naturally, in digits, so they can correct it if it is wrong. Use exactly these figures: ${figures.join("; ")}.`);
     if (x.typing === "loan") lines.push("They chose to type which loan they need. Ask them to type it in their own words.");
     if (x.typing === "amount") lines.push("They chose to type the amount. Ask them to type about how much they need, for example 25 lakh.");
@@ -419,7 +482,8 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
           `This is the BRIDGE between the short first part and the longer second part. They have answered the quick questions. Warmly thank them by first name and tell them an expert can already call them with what they have shared. Then, in a friendly way, say that if they have two minutes, a few more questions will help our experts shortlist the best banks and offers for them, and ask if they would like to continue now. The customer will tap Yes or Not now. Do NOT ask any other question.`,
         );
       } else {
-        lines.push(`Ask exactly this ONE question:\n${a.question}${!options && a.choices ? (a.choices.length > 6 ? ` [there are many possible answers; do NOT list them: just ask openly, you may give two or three examples such as ${a.choices.slice(0, 3).join(", ")}]` : ` [choices: ${a.choices.join(" | ")}]`) : ""}${a.help ? ` (${a.help})` : ""}`);
+        const amountNote = a.type === "amount" ? ` [this needs an amount in rupees as a number: say so briefly with an example such as 55,000${a.allowZero ? ", and that they can type 0 if there is none" : ""}]` : "";
+        lines.push(`Ask exactly this ONE question:\n${a.question}${amountNote}${!options && a.choices ? (a.choices.length > 6 ? ` [there are many possible answers; do NOT list them: just ask openly, you may give two or three examples such as ${a.choices.slice(0, 3).join(", ")}]` : ` [choices: ${a.choices.join(" | ")}]`) : ""}${a.help ? ` (${a.help})` : ""}`);
         if (snap.more === "Yes" && plan.left > 0) {
           lines.push(
             plan.left === 1
@@ -434,7 +498,7 @@ LANGUAGE AND STYLE: write in the language the customer TYPED, not the language o
     } else if (plan.kind === "wrap") {
       lines.push(
         plan.declined
-          ? "They would rather not answer more questions now. Say that is perfectly fine, an expert from our team will contact them soon with what they have shared, and they can message here any time to add more details. If they only said hello or something small, welcome them back in one short line and say that if they wish to carry on with the questions they can just say continue. Do not ask any question."
+          ? "They would rather not answer more questions now. Say that is fine, an expert from our team will contact them soon with what they have shared, and they can message here any time to add more details. If they only said hello or something small, welcome them back in one short line and say that if they wish to carry on with the questions they can just say continue. Do not ask any question."
           : "You have what is needed. Thank them warmly by first name and say an expert from our team will contact them soon and will go through anything else. Do not ask any more questions. If one of your earlier messages already said an expert will contact them, do NOT say it again: reply with one short friendly closing line only.",
       );
     } else {
