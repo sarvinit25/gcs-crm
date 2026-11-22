@@ -68,12 +68,28 @@ describe("matchOne data-quality gates", () => {
     expect(matchOne(customer, policy({ effectiveTo: daysAgo(1) }), NOW).status).toBe("EXCLUDED");
     expect(matchOne(customer, policy({ effectiveFrom: new Date("2027-01-01") }), NOW).status).toBe("EXCLUDED");
   });
-  it("sends a stale or never-verified policy to a human and does not score it", () => {
+  it("never recommends a stale or never-verified policy, but still shows how well it fits", () => {
+    const verified = matchOne(customer, policy(), NOW);
+    expect(["STRONG", "POSSIBLE"]).toContain(verified.status);
+
     const stale = matchOne(customer, policy({ lastVerifiedAt: daysAgo(120) }), NOW);
-    expect(stale.status).toBe("EXPERT_REVIEW");
-    expect(stale.score).toBeNull();
+    expect(stale.status).toBe("EXPERT_REVIEW"); // never Strong or Possible on rules nobody has confirmed
+    expect(stale.score).toBe(verified.score); // but the analysis is not thrown away
     expect(stale.policyNeedsReview).toBe(true);
-    expect(matchOne(customer, policy({ lastVerifiedAt: null }), NOW).policyNeedsReview).toBe(true);
+    expect(stale.reasons.some((r) => r.code === "POLICY_STALE")).toBe(true);
+    expect(stale.checks.join(" ")).toMatch(/Confirm this lender's current rules/);
+
+    const never = matchOne(customer, policy({ lastVerifiedAt: null }), NOW);
+    expect(never.status).toBe("EXPERT_REVIEW");
+    expect(never.policyNeedsReview).toBe(true);
+    expect(never.reasons.find((r) => r.code === "POLICY_STALE")?.text).toMatch(/never been verified/);
+  });
+  it("does not rule a lender out on rules nobody has verified: it asks a person instead", () => {
+    const tooBig = matchOne({ ...customer, amount: 900_000_000 }, policy({ lastVerifiedAt: null }), NOW);
+    expect(tooBig.status).toBe("EXPERT_REVIEW");
+    expect(tooBig.reasons.some((r) => /above this lender's maximum/.test(r.text))).toBe(true);
+    // the same miss on a verified policy does rule the lender out
+    expect(matchOne({ ...customer, amount: 900_000_000 }, policy(), NOW).status).toBe("EXCLUDED");
   });
 });
 

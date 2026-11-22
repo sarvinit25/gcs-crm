@@ -133,11 +133,14 @@ export function matchOne(profile: Profile, p: PolicyRule, now: Date = new Date()
   const reasons: Reason[] = [];
   const checks: string[] = [];
   const base = { policyId: p.id, lenderId: p.lenderId, lenderName: p.lenderName, reasons, checks };
+  // Rules that were never verified, or not recently, are still worked through so staff can see how the lender fits and why,
+  // but such a lender is never shown as a Strong or Possible match and is never ruled out on rules nobody has confirmed.
+  let unverified = false;
   const out = (status: MatchStatus, score: number | null, policyNeedsReview = false): MatchResult => ({
     ...base,
-    status,
+    status: unverified && status === "EXCLUDED" ? "EXPERT_REVIEW" : status,
     score,
-    policyNeedsReview,
+    policyNeedsReview: unverified || policyNeedsReview,
   });
   const note = (code: string, ok: boolean, text: string) => reasons.push({ code, ok, text });
 
@@ -148,15 +151,15 @@ export function matchOne(profile: Profile, p: PolicyRule, now: Date = new Date()
   }
   const verifiedAgeDays = p.lastVerifiedAt ? (now.getTime() - p.lastVerifiedAt.getTime()) / DAY : Infinity;
   if (verifiedAgeDays > p.reviewEveryDays) {
+    unverified = true;
     note(
       "POLICY_STALE",
       false,
       p.lastVerifiedAt
-        ? `Rules were last verified ${Math.floor(verifiedAgeDays)} days ago (review every ${p.reviewEveryDays}).`
-        : "Rules have never been verified.",
+        ? `Rules were last verified ${Math.floor(verifiedAgeDays)} days ago (review every ${p.reviewEveryDays}). Treat this match as a guide only.`
+        : "Rules have never been verified, so this match is a guide only and must be confirmed with the lender.",
     );
     checks.push("Confirm this lender's current rules, then mark the policy verified.");
-    return out("EXPERT_REVIEW", null, true);
   }
 
   // ── hard filters ──
@@ -317,13 +320,14 @@ export function matchOne(profile: Profile, p: PolicyRule, now: Date = new Date()
     { w: WEIGHTS.credit, c: credit },
     { w: WEIGHTS.collateral, c: collateral },
   ];
-  return finish(base, parts);
+  return finish(base, parts, unverified);
 }
 
 /** Turns component scores into a score and a status. Pricing is added later, across lenders. */
 function finish(
   base: Pick<MatchResult, "policyId" | "lenderId" | "lenderName" | "reasons" | "checks">,
   parts: { w: number; c: Component }[],
+  unverified = false,
 ): MatchResult {
   const known = parts.filter((x) => x.c.score !== null);
   const knownWeight = known.reduce((s, x) => s + x.w, 0);
@@ -343,7 +347,9 @@ function finish(
   } else {
     status = "EXPERT_REVIEW";
   }
-  return { ...base, status, score, policyNeedsReview: false };
+  // Rules nobody has confirmed never earn a Strong or Possible label.
+  if (unverified && (status === "STRONG" || status === "POSSIBLE")) status = "EXPERT_REVIEW";
+  return { ...base, status, score, policyNeedsReview: unverified };
 }
 
 const RANK: Record<MatchStatus, number> = { STRONG: 0, POSSIBLE: 1, EXPERT_REVIEW: 2, EXCLUDED: 3 };
