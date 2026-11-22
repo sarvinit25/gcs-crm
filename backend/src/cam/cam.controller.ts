@@ -49,6 +49,12 @@ export class CamController {
     return this.cam.readStatement(id, file, user);
   }
 
+  /** The lenders that may fit this customer, from the saved CAM and the lender rules. Nothing is saved. */
+  @Get("match")
+  match(@Param("leadId") id: string, @CurrentUser() user: AuthUser) {
+    return this.cam.matchForScreen(id, user);
+  }
+
   @Get("export")
   @Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
   async export(@Param("leadId") id: string, @CurrentUser() user: AuthUser) {
