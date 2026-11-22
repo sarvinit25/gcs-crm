@@ -79,6 +79,14 @@ export type MatchStatus = "STRONG" | "POSSIBLE" | "EXPERT_REVIEW" | "EXCLUDED";
 
 export type Reason = { code: string; ok: boolean; text: string };
 
+/**
+ * The three answers a customer-facing list needs (the longer status above stays for staff):
+ *  ELIGIBLE: every criterion that could be checked is met, on rules someone has confirmed.
+ *  CONDITIONAL: could suit, but something must be cleared first: a rule not confirmed, a detail missing or close to a limit.
+ *  NOT_MATCHED: a criterion on confirmed rules is not met.
+ */
+export type MatchCategory = "ELIGIBLE" | "CONDITIONAL" | "NOT_MATCHED";
+
 export type MatchResult = {
   policyId: string;
   lenderId: string;
@@ -93,7 +101,20 @@ export type MatchResult = {
   policyNeedsReview: boolean;
   /** Each named program of the lender judged on its own rules: for a person to read, never part of the score. */
   programFit?: ProgramFit[];
+  /** True when something about the lender is unknown (where it serves is not recorded), so it is not ruled out or called eligible. */
+  capped?: boolean;
+  category?: MatchCategory;
 };
+
+/** Eligible / Conditional / Not matched, from a result. A failed criterion only rules a lender out when its rules are confirmed. */
+export function categoryOf(r: Pick<MatchResult, "status" | "reasons" | "checks" | "policyNeedsReview" | "capped">): MatchCategory {
+  // The price comparison is a nudge between lenders, never a criterion the customer fails.
+  const failed = r.reasons.some((x) => !x.ok && x.code !== "PRICING");
+  if (r.status === "EXCLUDED") return "NOT_MATCHED";
+  if (failed && !r.policyNeedsReview && !r.capped) return "NOT_MATCHED";
+  if (r.status === "STRONG" && r.checks.length === 0) return "ELIGIBLE";
+  return "CONDITIONAL";
+}
 
 /** Suggested starting weights (they add up to 100). */
 export const WEIGHTS = {
@@ -144,6 +165,7 @@ export function matchOne(profile: Profile, p: PolicyRule, now: Date = new Date()
     status: (unverified || capped) && status === "EXCLUDED" ? "EXPERT_REVIEW" : status,
     score,
     policyNeedsReview: unverified || policyNeedsReview,
+    capped,
   });
   const note = (code: string, ok: boolean, text: string) => reasons.push({ code, ok, text });
 
@@ -353,7 +375,7 @@ function finish(
   }
   // Rules nobody has confirmed never earn a Strong or Possible label.
   if (capped && (status === "STRONG" || status === "POSSIBLE")) status = "EXPERT_REVIEW";
-  return { ...base, status, score, policyNeedsReview: unverified };
+  return { ...base, status, score, policyNeedsReview: unverified, capped };
 }
 
 const RANK: Record<MatchStatus, number> = { STRONG: 0, POSSIBLE: 1, EXPERT_REVIEW: 2, EXCLUDED: 3 };
@@ -388,5 +410,6 @@ export function matchAll(profile: Profile, policies: PolicyRule[], now: Date = n
     }
   }
 
+  for (const r of results) r.category = categoryOf(r);
   return results.sort((a, b) => RANK[a.status] - RANK[b.status] || (b.score ?? -1) - (a.score ?? -1));
 }

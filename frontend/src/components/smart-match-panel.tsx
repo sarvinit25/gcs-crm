@@ -17,6 +17,9 @@ type Result = {
   reasons: Reason[];
   checks: string[];
   policyNeedsReview: boolean;
+  capped?: boolean;
+  /** Eligible, Conditional or Not matched. Older saved runs do not have it, so it is worked out the same way here. */
+  category?: "ELIGIBLE" | "CONDITIONAL" | "NOT_MATCHED";
   /** Each of the lender's named programs judged on its own rules (older saved runs do not have it). */
   programFit?: { name: string; verdict: "FITS" | "MAYBE" | "MISSES"; ok: string[]; gaps: string[]; needs: string[]; unconfirmed: string[]; indicative?: { amount: number | null; parts: { label: string; amount: number }[]; note: string } | null }[];
   policyVersion: number | null;
@@ -36,6 +39,18 @@ const STATUS: Record<Result["status"], { label: string; cls: string }> = {
   POSSIBLE: { label: "Possible match", cls: "bg-sky-50 text-sky-700" },
   EXPERT_REVIEW: { label: "Expert review", cls: "bg-amber-50 text-amber-700" },
   EXCLUDED: { label: "Not a fit", cls: "bg-gray-100 text-gray-600" },
+};
+
+const CATEGORY = {
+  ELIGIBLE: { label: "Eligible", cls: "bg-emerald-50 text-emerald-700", help: "Everything we could check is met, on rules your team has confirmed." },
+  CONDITIONAL: { label: "Conditional", cls: "bg-amber-50 text-amber-700", help: "Could suit, but something must be cleared first: a rule not yet confirmed, a missing detail, or a policy exception." },
+  NOT_MATCHED: { label: "Not matched", cls: "bg-gray-100 text-gray-600", help: "A criterion on confirmed rules is not met." },
+} as const;
+const categoryOf = (r: Result): keyof typeof CATEGORY => {
+  if (r.category) return r.category;
+  if (r.status === "EXCLUDED") return "NOT_MATCHED";
+  if (r.reasons.some((x) => !x.ok && x.code !== "PRICING") && !r.policyNeedsReview && !r.capped) return "NOT_MATCHED";
+  return r.status === "STRONG" && r.checks.length === 0 ? "ELIGIBLE" : "CONDITIONAL";
 };
 
 /** Words the website advisor wrote in the lead's notes → fields the matcher understands. */
@@ -196,8 +211,14 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
     },
   });
 
-  const shown = useMemo(() => (run?.results ?? []).filter((r) => r.status !== "EXCLUDED"), [run]);
-  const hidden = (run?.results.length ?? 0) - shown.length;
+  const [showNot, setShowNot] = useState(false);
+  const counts = useMemo(() => {
+    const c = { ELIGIBLE: 0, CONDITIONAL: 0, NOT_MATCHED: 0 };
+    for (const r of run?.results ?? []) c[categoryOf(r)]++;
+    return c;
+  }, [run]);
+  const shown = useMemo(() => (run?.results ?? []).filter((r) => showNot || categoryOf(r) !== "NOT_MATCHED"), [run, showNot]);
+  const hidden = (run?.results.length ?? 0) - (run?.results ?? []).filter((r) => categoryOf(r) !== "NOT_MATCHED").length;
 
   return (
     <section className="card p-5">
@@ -247,13 +268,23 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
           {run && (
             <div className="mt-5 space-y-3">
               {run.noPolicies && <p className="rounded-md bg-amber-50 px-3 py-2 text-[13px] text-amber-800">No lender has rules recorded for this loan product yet. Add them under Lender policies.</p>}
+              {run.results.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  {(Object.keys(CATEGORY) as (keyof typeof CATEGORY)[]).map((k) => (
+                    <div key={k} title={CATEGORY[k].help} className={clsx("rounded-lg px-2 py-2", CATEGORY[k].cls)}>
+                      <p className="text-lg font-extrabold">{counts[k]}</p>
+                      <p className="text-[11px] font-bold">{CATEGORY[k].label}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
               {shown.map((r) => (
                 <article key={r.policyId} className="rounded-lg border border-line p-3.5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="text-[14px] font-bold text-navy">{r.lenderName}</h3>
                     <span className="flex items-center gap-2">
                       {r.score !== null && <span className="text-[13px] font-bold text-navy">{r.score}/100</span>}
-                      <span className={clsx("rounded-full px-2 py-0.5 text-[11px] font-bold", STATUS[r.status].cls)}>{STATUS[r.status].label}</span>
+                      <span title={CATEGORY[categoryOf(r)].help} className={clsx("rounded-full px-2 py-0.5 text-[11px] font-bold", CATEGORY[categoryOf(r)].cls)}>{CATEGORY[categoryOf(r)].label}</span>
                     </span>
                   </div>
                   <ul className="mt-2 space-y-1 text-[13px]">
@@ -336,7 +367,11 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
                   <p className="mt-2 text-[11px] text-muted">Based on policy version {r.policyVersion ?? "—"}.</p>
                 </article>
               ))}
-              {hidden > 0 && <p className="text-[12px] text-muted">{hidden} {hidden === 1 ? "lender was" : "lenders were"} ruled out (location, amount, age or product limits).</p>}
+              {hidden > 0 && (
+                <button type="button" onClick={() => setShowNot(!showNot)} className="text-[12px] font-semibold text-gold-dark">
+                  {showNot ? "Hide" : "Show"} the {hidden} {hidden === 1 ? "lender" : "lenders"} not matched, with the reason
+                </button>
+              )}
               <p className="text-[12px] text-muted">A shortlist from recorded rules, not an approval. A lender decides after its own checks.</p>
               <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
                 <span className="text-[12px] font-semibold text-navy">Customer display: {run.reviewStatus === "APPROVED" ? "approved" : run.reviewStatus === "REJECTED" ? "not approved" : "waiting for review"}</span>

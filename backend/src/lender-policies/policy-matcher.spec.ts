@@ -183,3 +183,22 @@ describe("matchAll", () => {
     expect(list[0]!.policyId).toBe("cheap");
   });
 });
+
+describe("Eligible, Conditional and Not matched", () => {
+  const { categoryOf } = jest.requireActual("./policy-matcher");
+  const ok = { code: "A", ok: true, text: "fine" };
+  const bad = { code: "B", ok: false, text: "not met" };
+  it("calls a lender Eligible only when everything checked is met on confirmed rules", () => {
+    expect(categoryOf({ status: "STRONG", reasons: [ok], checks: [], policyNeedsReview: false })).toBe("ELIGIBLE");
+    expect(categoryOf({ status: "STRONG", reasons: [ok], checks: ["close to the limit"], policyNeedsReview: false })).toBe("CONDITIONAL");
+  });
+  it("rules a lender out only on a failed criterion of confirmed rules", () => {
+    expect(categoryOf({ status: "EXPERT_REVIEW", reasons: [ok, bad], checks: [], policyNeedsReview: false })).toBe("NOT_MATCHED");
+    expect(categoryOf({ status: "EXPERT_REVIEW", reasons: [ok, bad], checks: [], policyNeedsReview: true })).toBe("CONDITIONAL");
+    expect(categoryOf({ status: "EXPERT_REVIEW", reasons: [ok, bad], checks: [], policyNeedsReview: false, capped: true })).toBe("CONDITIONAL");
+    expect(categoryOf({ status: "EXCLUDED", reasons: [], checks: [], policyNeedsReview: false })).toBe("NOT_MATCHED");
+  });
+  it("does not count the price comparison as a failure", () => {
+    expect(categoryOf({ status: "POSSIBLE", reasons: [ok, { code: "PRICING", ok: false, text: "higher" }], checks: [], policyNeedsReview: false })).toBe("CONDITIONAL");
+  });
+});
