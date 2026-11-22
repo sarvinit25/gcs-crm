@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Check, Loader2, Sparkles, X } from "lucide-react";
 import clsx from "clsx";
@@ -126,6 +126,7 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
   const [run, setRun] = useState<Run | null>(null);
   const [open, setOpen] = useState(false);
   const [flyer, setFlyer] = useState<string | null>(null);
+  const autoRun = useRef(false);
 
   const productId = lead.loanProduct?.id;
   const history = useQuery({
@@ -164,6 +165,28 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
       void queryClient.invalidateQueries({ queryKey: ["match-runs", lead.id] });
     },
   });
+
+  // What is already known about the lead (its own details, and what the customer said in the chat or the form) fills the blanks,
+  // and the first time the panel opens the match runs by itself so the lenders show straight away.
+  const known = useQuery({
+    queryKey: ["match-profile", lead.id],
+    queryFn: () => api<Record<string, string | number | boolean>>(`/lender-policies/match/profile?leadId=${lead.id}`),
+    enabled: open && Boolean(productId),
+  });
+  useEffect(() => {
+    if (!known.data || autoRun.current) return;
+    autoRun.current = true;
+    setForm((f) => {
+      const next = { ...f } as Record<string, string>;
+      for (const [k, v] of Object.entries(known.data)) if (k in next && (next[k] ?? "") === "" && v !== undefined && v !== null) next[k] = String(v);
+      return next as typeof f;
+    });
+  }, [known.data]);
+  useEffect(() => {
+    // runs once, after the filled-in form has been applied
+    if (autoRun.current && known.data && !run && !go.isPending && !go.isError) go.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, known.data]);
 
   const review = useMutation({
     mutationFn: ({ id, status }: { id: string; status: "APPROVED" | "REJECTED" }) => api(`/lender-policies/match/runs/${id}/review`, { method: "PATCH", body: JSON.stringify({ status }) }),

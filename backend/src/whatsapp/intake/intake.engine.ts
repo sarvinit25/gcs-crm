@@ -112,6 +112,8 @@ export function checkAnswer(field: IntakeField, raw: string): Checked {
     const n = parseMoney(text) ?? looseMoney(text);
     if (n === null) return { ok: false, hint: "Give the amount in rupees as a number, for example 4000000." };
     if (n === 0 && !field.allowZero) return { ok: false, hint: "The amount cannot be zero." };
+    // a bare "1" or "50" is almost never a rupee amount: it is usually lakh or crore without the unit
+    if (n > 0 && n < 1000) return { ok: false, hint: "That looks too small to be an amount in rupees. Ask whether they meant lakh or crore, and ask them to write it with the unit, for example 1 crore or 25 lakh." };
     if (n > 100 * crore * 10) return { ok: false, hint: "That amount looks too large. Ask the customer to confirm it." };
     return { ok: true, value: rupees(n) };
   }
@@ -259,4 +261,29 @@ export function sharedAnswers(fromSlug: string | null | undefined, toSlug: strin
     if (to.fields.some((t) => t.key === f.key && t.label === f.label && t.section === f.section)) out.push({ label: f.label, value: v });
   }
   return out;
+}
+
+/** Lower case, with punctuation and spacing flattened, so words quoted from a message can be found in it. */
+const flat = (t: string) => t.toLowerCase().replace(/[\s"'\u201c\u201d\u2018\u2019.,!?;:()\-\u2013\u2014]+/g, " ").trim();
+
+/**
+ * Did the customer really say this? The AI must quote the words that give an answer; if the quote is not in the customer's
+ * message the answer is dropped. This stops a message that is a question, a complaint or a correction from being taken as
+ * the answer to whatever happens to be open ("not ₹2 crore" must never become "Not sure").
+ */
+export function supportedBy(message: string, evidence: unknown): boolean {
+  if (typeof evidence !== "string") return false;
+  const e = flat(evidence);
+  return e.length >= 2 && flat(message).includes(e);
+}
+
+const LABEL_STOP = new Set(["your", "what", "have", "does", "with", "that", "this", "there", "from", "every", "month", "monthly", "amount", "approximate", "exact", "currently", "still", "roughly", "about", "give", "tell", "please", "many", "much", "long", "been", "into", "they", "them", "their", "where", "which", "when", "anything", "know", "like"]);
+
+/** Does the message use a key word of the question? A fact volunteered out of turn is only taken when it clearly belongs to that question. */
+export function sharesWordWith(label: string, message: string): boolean {
+  const m = flat(message);
+  return flat(label)
+    .split(" ")
+    .filter((w) => w.length >= 4 && !LABEL_STOP.has(w))
+    .some((w) => m.includes(w.slice(0, Math.max(4, w.length - 2))));
 }

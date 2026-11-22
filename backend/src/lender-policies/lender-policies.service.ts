@@ -1,10 +1,11 @@
 import { cleanConditions, cleanPrograms } from "./policy-extras";
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { AuditAction, Prisma } from "@prisma/client";
+import { AuditAction, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { matchAll, type Band, type PolicyRule, type Profile } from "./policy-matcher";
+import { profileFromLead } from "./profile-from-lead";
 import { cleanSheet, SHEET_FIELDS } from "./policy-sheet-schema";
 import type {
   BulkPolicyDto,
@@ -283,12 +284,25 @@ export class LenderPoliciesService {
   }
 
   // ─── matching ────────────────────────────────────────────────────────────
+  /** What is already known about a lead, as a match profile: its own fields plus what the customer said in the chat or the form. */
+  async profileForLead(leadId: string, actor: AuthUser): Promise<Profile> {
+    const lead = await this.prisma.lead.findFirst({
+      where: { id: leadId, ...(actor.role === Role.ADVISOR ? { assignedOfficerId: actor.id } : {}) },
+      select: { amount: true, city: true, employmentType: true, monthlyIncome: true, answers: { select: { label: true, value: true }, take: 150 } },
+    });
+    if (!lead) throw new NotFoundException("Lead not found");
+    return profileFromLead(lead);
+  }
+
   async runMatch(dto: RunMatchDto, actor: AuthUser) {
+    // What the person typed wins; whatever they left blank is filled from what is known about the lead.
+    const typed = Object.fromEntries(Object.entries(dto.profile ?? {}).filter(([, v]) => v !== undefined && v !== null && v !== "" && !(typeof v === "number" && Number.isNaN(v)))) as Profile;
+    const profile: Profile = { ...(dto.leadId ? await this.profileForLead(dto.leadId, actor) : {}), ...typed };
     const policies = await this.prisma.lenderPolicy.findMany({
       where: { loanProductId: dto.loanProductId },
       include: { lender: true, loanProduct: true },
     });
-    const results = matchAll(dto.profile, policies.map(toRule));
+    const results = matchAll(profile, policies.map(toRule));
     const exceptions = await this.prisma.policyException.findMany({
       where: { policyId: { in: policies.map((p) => p.id) }, active: true },
       select: { policyId: true, scenario: true, requiredApproval: true, expertNote: true },
@@ -321,7 +335,7 @@ export class LenderPoliciesService {
     const run = await this.prisma.matchRun.create({
       data: {
         leadId: dto.leadId ?? null,
-        profile: json({ ...dto.profile, loanProductId: dto.loanProductId }),
+        profile: json({ ...profile, loanProductId: dto.loanProductId }),
         results: json(withNotes),
         createdById: actor.id,
         createdByName: actor.name,
