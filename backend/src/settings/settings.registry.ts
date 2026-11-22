@@ -50,8 +50,8 @@ export const SETTINGS: SettingDef[] = [
   {
     key: "whatsapp.aiIntake",
     group: "WhatsApp",
-    label: "Gia collects details from new customers",
-    help: "Off by default. When on, a customer who writes in on WhatsApp is answered by Gia, who asks the same questions as the website's forms (one or two at a time) and saves each answer on the lead. It never asks for OTPs, passwords or PAN, Aadhaar and bank numbers, and it hands over to a person on request. Needs the OpenAI key on the server.",
+    label: "Ria collects details from new customers",
+    help: "Off by default. When on, a customer who writes in on WhatsApp is answered by Ria, who asks the same questions as the website's forms (one or two at a time) and saves each answer on the lead. It never asks for OTPs, passwords or PAN, Aadhaar and bank numbers, and it hands over to a person on request. Needs the OpenAI key on the server.",
     type: "boolean",
     default: false,
   },
@@ -112,6 +112,14 @@ export const SETTINGS: SettingDef[] = [
     help: "India time.",
     type: "time",
     default: "18:30",
+  },
+  {
+    key: "whatsapp.nudgeUnfinished",
+    group: "WhatsApp",
+    label: "Ria sends one reminder to a customer who goes quiet part way through the questions",
+    help: "Off by default. When on, a customer who stopped answering for a few hours gets one polite message (only between 9 am and 8 pm India time, only within WhatsApp's 24-hour window, never twice, never after a person has taken over or after the customer said not now). They reply continue and Ria carries on. Needs Ria switched on above.",
+    type: "boolean",
+    default: false,
   },
   {
     key: "whatsapp.briefRecipients",

@@ -111,3 +111,88 @@ describe("answersByKey", () => {
     expect(answersByKey(null, rows)).toEqual({});
   });
 });
+
+describe("a choice answered with just 'Other'", () => {
+  const { otherToSpecify } = jest.requireActual("./intake.engine");
+  it("is picked up so the assistant can ask what it is", () => {
+    expect(otherToSpecify("balance-transfer", { loanType: "Drop-Line Overdraft Balance Transfer", propertyKind: "Other" })?.key).toBe("propertyKind");
+  });
+  it("is left alone once the customer has said what it is, or chose something else", () => {
+    expect(otherToSpecify("balance-transfer", { loanType: "Drop-Line Overdraft Balance Transfer", propertyKind: "Other (a godown)" })).toBeNull();
+    expect(otherToSpecify("balance-transfer", { loanType: "Drop-Line Overdraft Balance Transfer", propertyKind: "Commercial" })).toBeNull();
+  });
+});
+
+describe("the new overdraft questions", () => {
+  const { nextQuestions } = jest.requireActual("./intake.engine");
+  it("a drop-line overdraft transfer is asked about limit, drawing power, reduction, renewal and overdue", () => {
+    const keys = nextQuestions("balance-transfer", { loanType: "Drop-Line Overdraft Balance Transfer" }, 60).fields.map((f: { key: string }) => f.key);
+    for (const k of ["odSanctioned", "odCurrentLimit", "odDrawing", "odRateType", "odRepayment", "odInterestDebit", "odReduction", "odRenewal", "odOverdue"]) expect(keys).toContain(k);
+  });
+  it("a home loan transfer is not asked about overdraft limits", () => {
+    const keys = nextQuestions("balance-transfer", { loanType: "Home Loan Balance Transfer" }, 60).fields.map((f: { key: string }) => f.key);
+    expect(keys).not.toContain("odSanctioned");
+  });
+  it("the amount overdue is only asked when something is overdue", () => {
+    const has = (a: Record<string, string>) => nextQuestions("balance-transfer", { loanType: "Drop-Line Overdraft Balance Transfer", ...a }, 60).fields.some((f: { key: string }) => f.key === "odOverdueAmount");
+    expect(has({ odOverdue: "No" })).toBe(false);
+    expect(has({ odOverdue: "Yes" })).toBe(true);
+  });
+});
+
+describe("reading a figure out of a sentence", () => {
+  const { checkAnswer } = jest.requireActual("./intake.engine");
+  const pct = { key: "r", label: "Rate", kind: "percent" };
+  const amt = { key: "a", label: "Amount", kind: "amount" };
+  it("takes the one rate in 'about 11 percent floating'", () => {
+    expect(checkAnswer(pct, "11 percent floating")).toEqual({ ok: true, value: "11%" });
+    expect(checkAnswer(pct, "9.75%")).toEqual({ ok: true, value: "9.75%" });
+    expect(checkAnswer(pct, "9 to 10").ok).toBe(false);
+  });
+  it("takes the one amount in a sentence, and refuses two", () => {
+    expect(checkAnswer(amt, "around 1.5 lakh a month")).toEqual({ ok: true, value: "₹1,50,000" });
+    expect(checkAnswer(amt, "1.60 CR")).toEqual({ ok: true, value: "₹1,60,00,000" });
+    expect(checkAnswer(amt, "between 5 and 10 lakh").ok).toBe(false);
+    expect(checkAnswer(amt, "Rent").ok).toBe(false);
+  });
+});
+
+describe("what the answers say about the lead", () => {
+  const { leadFacts, reviewReasons, checklistUrl } = jest.requireActual("./intake.engine");
+  it("sets salaried or self-employed and the salary, the way the website's form does", () => {
+    expect(leadFacts("personal-loan", { netSalary: "₹85,000" }, "Salaried")).toEqual({ employmentType: "SALARIED", monthlyIncome: 85000 });
+    expect(leadFacts("business-loan", {}, "Proprietor")).toEqual({ employmentType: "SELF_EMPLOYED", monthlyIncome: null });
+    expect(leadFacts("home-loan", {}, "NRI")).toEqual({ employmentType: null, monthlyIncome: null });
+  });
+  it("flags what an expert must look at, and never says to turn the customer away", () => {
+    const r = reviewReasons("balance-transfer", { loanType: "Drop-Line Overdraft Balance Transfer", track: "A few delays or bounces", ownership: "A parent or family member", odOverdue: "Yes" });
+    expect(r).toEqual(expect.arrayContaining(["Delays or bounces on the present loan", "The property is not in the applicant's own name", "An amount is overdue on the present facility"]));
+    expect(r.join(" ")).not.toMatch(/reject|decline the customer/i);
+    expect(reviewReasons("balance-transfer", { track: "Every EMI on time", ownership: "My own name" })).toEqual([]);
+    expect(reviewReasons("private-funding", {})).toEqual(["Private funding always needs an expert's review"]);
+  });
+  it("does not count a skipped answer as a problem", () => {
+    expect(reviewReasons("balance-transfer", { track: "Not sure (the expert will confirm)" })).toEqual([]);
+  });
+  it("links the website's document checklist for the loan", () => {
+    expect(checklistUrl("https://growthcapitalservices.in/", "balance-transfer", "Proprietor")).toBe("https://growthcapitalservices.in/checklists/balance-transfer-checklist.pdf");
+    expect(checklistUrl("https://x.in", "home-loan", "Salaried")).toBe("https://x.in/checklists/home-loan-salaried-checklist.pdf");
+    expect(checklistUrl("https://x.in", "home-loan", "Proprietor")).toBe("https://x.in/checklists/home-loan-self-employed-checklist.pdf");
+    expect(checklistUrl("https://x.in", "home-loan", "NRI")).toBe("https://x.in/checklists/home-loan-nri-checklist.pdf");
+    expect(checklistUrl("https://x.in", "nonsense", null)).toBeNull();
+  });
+});
+
+describe("what carries over to a second loan", () => {
+  const { sharedAnswers } = jest.requireActual("./intake.engine");
+  it("carries answers about the person, not about the first product", () => {
+    const got = sharedAnswers("personal-loan", "new-car-loan", { employerType: "Listed or MNC company", netSalary: "₹90,000", hasLoans: "No", purpose: "Wedding" });
+    const labels = got.map((a: { label: string }) => a.label);
+    expect(labels).toEqual(expect.arrayContaining(["Where do you work?", "Monthly take-home salary", "Do you have any running loans or credit cards?"]));
+    expect(labels).not.toContain("Type of loan");
+  });
+  it("skips answers that were not given and loans that have no form", () => {
+    expect(sharedAnswers("personal-loan", "new-car-loan", { employerType: "Not sure (the expert will confirm)" })).toEqual([]);
+    expect(sharedAnswers("personal-loan", "nonsense", { employerType: "x" })).toEqual([]);
+  });
+});

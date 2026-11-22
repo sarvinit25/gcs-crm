@@ -383,6 +383,43 @@ export class LeadsService implements OnApplicationBootstrap {
     return { ok: true };
   }
 
+  /**
+   * A customer already on file asks for another product. Their enquiries stay apart (one lead per product, so each has its own
+   * form, CAM and lenders) but the second starts with what we already know, and each lead notes the other.
+   */
+  async startAnotherEnquiry(fromLeadId: string, productSlug: string, carry: { key: string; label: string; value: string }[]) {
+    const from = await this.prisma.lead.findUnique({
+      where: { id: fromLeadId },
+      select: { id: true, leadNo: true, name: true, phone: true, email: true, city: true, source: true, channel: true, notes: true, assignedOfficerId: true, assignedManagerId: true, employmentType: true, monthlyIncome: true, employerName: true },
+    });
+    if (!from) throw new NotFoundException("Lead not found");
+    const product = await this.prisma.loanProduct.findUnique({ where: { slug: productSlug }, select: { id: true, name: true } });
+    if (!product) throw new BadRequestException("Unknown loan product");
+    const created = await this.prisma.lead.create({
+      data: {
+        name: from.name,
+        phone: from.phone,
+        email: from.email,
+        city: from.city,
+        source: from.source,
+        channel: from.channel,
+        loanProductId: product.id,
+        employmentType: from.employmentType,
+        monthlyIncome: from.monthlyIncome,
+        employerName: from.employerName,
+        assignedOfficerId: from.assignedOfficerId,
+        assignedManagerId: from.assignedManagerId,
+        notes: `Second enquiry from the same customer on WhatsApp (the first is lead #${from.leadNo}). Started with what they had already shared.`,
+      },
+      select: { id: true, leadNo: true },
+    });
+    await this.saveAnswers(this.prisma, created.id, "whatsapp", carry);
+    await this.prisma.lead.update({ where: { id: from.id }, data: { notes: [from.notes, `They also asked for a ${product.name} (lead #${created.leadNo}).`].filter(Boolean).join("\n") } });
+    await this.refreshSegment(created.id);
+    this.events.emit("LEAD_CREATED", { leadId: created.id });
+    return { id: created.id, leadNo: created.leadNo };
+  }
+
   async create(dto: CreateLeadDto, user: AuthUser) {
     const creatorOwns = user.role === Role.ADVISOR && this.settings.get<boolean>("pipeline.autoAssignToCreator");
     const officerId =

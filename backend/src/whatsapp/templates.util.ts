@@ -21,6 +21,12 @@ export const TRIGGERS: Record<NotificationTrigger, TriggerInfo> = {
     recipients: ["CUSTOMER", "EMPLOYEE"],
     variables: [V("name", "Customer name", "Rahul Mehta"), V("phone", "Customer phone", "9820592765"), V("loanType", "Loan type", "Home Loan"), V("source", "Where it came from", "website"), company],
   },
+  DOCS_PENDING: {
+    label: "Documents still pending",
+    description: "A lead has been waiting for documents with no change for a few days. The customer is reminded once, with the document checklist.",
+    recipients: ["CUSTOMER"],
+    variables: [V("name", "Customer name", "Rahul Mehta"), V("loanType", "Loan type", "Home Loan"), V("checklist", "Link to the document checklist", "https://growthcapitalservices.in/checklists/home-loan-checklist.pdf"), company],
+  },
   FILE_STAGE_CHANGED: {
     label: "File stage changed",
     description: "A loan file moves to a new stage (submitted, bank login, under review, …).",
@@ -131,6 +137,7 @@ export const metaName = (value: string) =>
 type Default = { code: string; name: string; trigger: NotificationTrigger; recipient: NotificationRecipient; body: string };
 
 export const DEFAULT_TEMPLATES: Default[] = [
+  { code: "docs_pending_customer_wa", name: "Documents still pending (customer)", trigger: "DOCS_PENDING", recipient: "CUSTOMER", body: "Hello {{name}}, we are still waiting for the documents for your {{loanType}} with {{company}}. The list of documents is here: {{checklist}}. Reply here if you need any help." },
   { code: "lead_created_customer_wa", name: "Enquiry received (customer)", trigger: "LEAD_CREATED", recipient: "CUSTOMER", body: "Hello {{name}}, thank you for contacting {{company}} about your {{loanType}}. Our team will call you shortly. You can reply here with any question." },
   { code: "lead_created_employee_wa", name: "New lead assigned (employee)", trigger: "LEAD_CREATED", recipient: "EMPLOYEE", body: "New lead for you: {{name}}, {{phone}}, interested in {{loanType}}, from {{source}}. Please call them today." },
   { code: "file_stage_changed_customer_wa", name: "File stage update (customer)", trigger: "FILE_STAGE_CHANGED", recipient: "CUSTOMER", body: "Hello {{name}}, your {{loanType}} file {{applicationNo}} is now: {{stage}}. We will keep you posted at every step. — {{company}}." },

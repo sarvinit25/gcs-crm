@@ -74,27 +74,27 @@ export function AskAi() {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label={open ? "Close the assistant" : "Ask the assistant"}
-        className="no-print fixed right-4 bottom-4 z-40 flex h-[72px] items-center gap-2.5 rounded-full bg-navy px-2 pr-5 text-white shadow-lg ring-1 ring-gold/50 transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+        className="no-print fixed right-4 bottom-4 z-40 flex h-[60px] items-center gap-2.5 rounded-full bg-navy px-2 pr-5 text-white shadow-lg ring-1 ring-gold/50 transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
       >
         {open ? (
-          <span className="grid h-16 w-16 place-items-center">
+          <span className="grid h-[52px] w-[52px] place-items-center">
             <X className="h-5 w-5" />
           </span>
         ) : (
-          <GiaOrb mood={mood} tone="dark" className="h-16 w-16" />
+          <GiaOrb mood={mood} tone="dark" className="h-[52px] w-[52px]" />
         )}
         <span className="text-left">
-          <span className="block text-sm leading-tight font-bold">{open ? "Close" : "Ask Gia"}</span>
+          <span className="block text-sm leading-tight font-bold">{open ? "Close" : "Ask Ria"}</span>
           <span className="block text-[10px] text-white/70">{open ? "the assistant" : "AI assistant"}</span>
         </span>
       </button>
 
       {open && (
-        <div className="no-print card pop-enter fixed right-4 bottom-[6.25rem] z-40 flex h-[32rem] max-h-[calc(100vh-8rem)] w-[24rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden shadow-xl">
+        <div className="no-print card pop-enter fixed right-4 bottom-[5.25rem] z-40 flex h-[32rem] max-h-[calc(100vh-8rem)] w-[24rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden shadow-xl">
           <div className="flex items-center gap-3 bg-navy px-4 py-3 text-white">
             <GiaOrb mood={mood} tone="dark" className="h-[52px] w-[52px]" />
             <div className="min-w-0">
-              <p className="text-[14px] leading-tight font-bold">Gia</p>
+              <p className="text-[14px] leading-tight font-bold">Ria</p>
               <p className="mt-0.5 text-[11px] text-white/70">Ask about a client or your pipeline. It only reads.</p>
             </div>
           </div>

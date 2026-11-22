@@ -53,7 +53,8 @@ export type Trigger =
   | "SANCTION_APPROVED"
   | "DISBURSAL_COMPLETED"
   | "MORNING_BRIEF"
-  | "EVENING_BRIEF";
+  | "EVENING_BRIEF"
+  | "DOCS_PENDING";
 
 export type Recipient = "CUSTOMER" | "EMPLOYEE";
 
@@ -153,6 +154,7 @@ export const TRIGGER_LABEL: Record<Trigger, string> = {
   DISBURSAL_COMPLETED: "Disbursal completed",
   MORNING_BRIEF: "Morning brief",
   EVENING_BRIEF: "Evening brief",
+  DOCS_PENDING: "Documents still pending",
 };
 
 export const SENDER_LABEL: Record<Sender, string> = {

@@ -8,7 +8,7 @@ const API = "/crm/api";
 process.env["CHAT_OTP_TEST_PHONES"] = "9888800002";
 process.env["CHAT_OTP_TEST_CODE"] = "246810";
 
-/** The website assistant (Gia) fills the loan profile on the visitor's own lead, through their chat pass. */
+/** The website assistant (Ria) fills the loan profile on the visitor's own lead, through their chat pass. */
 describe("loan profile through the website chat", () => {
   let app: INestApplication;
   let http: ReturnType<typeof request>;
@@ -20,7 +20,7 @@ describe("loan profile through the website chat", () => {
     app = await createTestApp();
     http = request(app.getHttpServer()) as never;
     prisma = app.get(PrismaService);
-    await post("/public/chat-auth/send", { name: "Gia Profile Tester", phone: "9888800002" });
+    await post("/public/chat-auth/send", { name: "Ria Profile Tester", phone: "9888800002" });
     token = (await post("/public/chat-auth/verify", { phone: "9888800002", code: "246810" })).body.token;
   });
   afterAll(async () => {

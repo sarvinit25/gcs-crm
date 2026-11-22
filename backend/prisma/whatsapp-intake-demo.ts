@@ -1,6 +1,6 @@
-// A trial run of Gia on WhatsApp, on this machine only. A pretend customer (played by OpenAI) chats with Gia through the
+// A trial run of Ria on WhatsApp, on this machine only. A pretend customer (played by OpenAI) chats with Ria through the
 // CRM's own message handling, using the sandbox WhatsApp provider, so nothing reaches Meta or a real phone. At the end it
-// prints what Gia wrote onto the lead. Needs a local database and OPENAI_API_KEY in backend/.env.
+// prints what Ria wrote onto the lead. Needs a local database and OPENAI_API_KEY in backend/.env.
 //
 //   npx ts-node --compiler-options '{"module":"commonjs"}' prisma/whatsapp-intake-demo.ts [persona number 0-2]
 import "reflect-metadata";
@@ -49,6 +49,18 @@ const PERSONAS = [
     opening: "hi",
     about:
       "You are Rohan Mehta in Mumbai, who wants a new car loan. When you are offered amount choices, pick 'Type the exact amount' and then type the amount in Hindi words exactly like: chabbis lakh. The car is a Kia with an on-road price of 43 lakh and you can put in about 17 lakh. You are salaried, take-home 65000. Reply briefly in English or Hinglish and tap options when they fit.",
+  },
+  {
+    phone: "9000000017",
+    opening: "Hi",
+    about:
+      "You are Mahesh, a proprietor in Chembur, Mumbai. You want to move your drop-line overdraft from L&T Finance: original sanctioned limit 2 crore, still to repay 1.60 crore, rate 11 percent floating, about 1,55,000 a month, 10 to 15 years left, repaying for 1 to 2 years, a few delays because your customers paid late (nothing overdue now). The property is in Vikhroli, worth about 6 crore, in your parents' name, and they will sign. When asked for its type pick Other (it is a mixed-use building). You also want a top-up. A rent of 55,000 a month comes in. IMPORTANT: when you are first asked about other monthly income, answer only the single word Rent with no number, like a hurried customer; if the assistant asks again giving an example, then give the number. If asked something you do not know (for example the drawing power), say: not sure. Your address on the loan papers and all other answers are small sensible figures.",
+  },
+  {
+    phone: "9000000018",
+    opening: "I have a property and need 1 crore for my business, but I do not want a regular EMI",
+    about:
+      "You are Sanjay Kulkarni, who owns a printing press in Thane (name: Sanjay). You do not know loan names. You own a commercial shop in Thane worth about 3 crore in your own name, with no loan on it. You need about 1 crore as working money and like the idea of paying interest only on what you use. Business turnover about 4 crore a year, 7 years old, proprietorship, GST registered, ITR filed 3 years, CIBIL 760. When shown a list, pick what fits best. Answer other things with small sensible figures.",
   },
 ] as const;
 
@@ -102,7 +114,7 @@ async function main() {
     await inbound.idle();
     const sent = provider.sent.slice(before);
     if (!sent.length) {
-      console.log("GIA: (no reply: a person takes over)");
+      console.log("RIA: (no reply: a person takes over)");
       break;
     }
     offered = [];
@@ -116,15 +128,26 @@ async function main() {
       } else if (m.kind === "text") lines.push(m.body ?? "");
     }
     const reply = lines.join("\n");
-    console.log(`GIA: ${reply}`);
+    console.log(`RIA: ${reply}`);
     transcript.push({ who: "gia", text: reply.split("\n")[0] ?? reply });
-    if (!offered.length && /expert .*(contact|call|reach)|team member will|विशेषज्ञ|तज्ञ|एक्सपर्ट/i.test(reply) && turn > 5) break;
+    if (!offered.length && /expert from our team will|team member will|will contact (you|them)|will get in touch|विशेषज्ञ|तज्ञ|एक्सपर्ट/i.test(reply) && turn > 5) break;
     customerSays = await pretendCustomer(persona.about, transcript, offered.map((o) => o.title));
   }
 
+  // DEMO_ALSO="I also need a car loan": after the first enquiry is complete, the customer asks for a second loan.
+  if (process.env.DEMO_ALSO) {
+    console.log(`
+CUSTOMER: ${process.env.DEMO_ALSO}`);
+    const before = provider.sent.length;
+    inbound.accept({ entry: [{ changes: [{ value: { metadata: { phone_number_id: "demo-number" }, contacts: [{ wa_id: `91${persona.phone}`, profile: { name: "" } }], messages: [{ id: `demo.also.${Date.now()}`, from: `91${persona.phone}`, type: "text", timestamp: String(Math.floor(Date.now() / 1000)), text: { body: process.env.DEMO_ALSO } }] } }] }] });
+    await inbound.idle();
+    for (const m of provider.sent.slice(before)) console.log(`RIA: ${m.kind === "interactive" && m.interactive ? m.interactive.body : (m.body ?? "")}`);
+    const all = await db.lead.findMany({ where: { phone: persona.phone }, include: { loanProduct: true, answers: true }, orderBy: { leadNo: "asc" } });
+    console.log("LEADS FOR THIS PHONE:", all.map((l) => `#${l.leadNo} ${l.loanProduct?.name ?? "no loan"} (${l.answers.length} answers)`).join(" | "));
+  }
   const lead = await db.lead.findFirst({ where: { phone: persona.phone }, include: { loanProduct: true, answers: { orderBy: { createdAt: "asc" } } } });
   const convo = await db.whatsAppConversation.findUnique({ where: { phone: persona.phone } });
-  console.log("\n================ WHAT GIA WROTE ON THE LEAD ================");
+  console.log("\n================ WHAT RIA WROTE ON THE LEAD ================");
   console.log({ name: lead?.name, city: lead?.city, loan: lead?.loanProduct?.name, amount: lead?.amount?.toString(), needsHuman: convo?.needsHuman });
   console.log(`${lead?.answers.length ?? 0} answers saved:`);
   for (const a of lead?.answers ?? []) console.log(`  - ${a.label}: ${a.value}`);
@@ -132,7 +155,7 @@ async function main() {
   console.log(`\nidentity numbers stored in answers: ${identity.length} (must be 0)`);
 
   if (process.argv.includes("--keep") === false && lead) {
-    await db.lead.delete({ where: { id: lead.id } });
+    await db.lead.deleteMany({ where: { phone: persona.phone } });
     if (convo) await db.whatsAppConversation.delete({ where: { id: convo.id } });
     console.log("(test lead and chat removed from the local database)");
   }

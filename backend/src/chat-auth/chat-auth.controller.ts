@@ -55,7 +55,7 @@ export class ChatAuthController {
     return this.auth.end(dto.token);
   }
 
-  // The Customer Loan Profile through the chat assistant. Gia asks in her own words; what the visitor says is read
+  // The Customer Loan Profile through the chat assistant. Ria asks in her own words; what the visitor says is read
   // by the same form as on WhatsApp and the phone, so only a valid value is ever stored on their lead.
   @Public()
   @Throttle({ default: { limit: 60, ttl: 60_000 } })

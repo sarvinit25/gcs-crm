@@ -3,7 +3,7 @@
 // characters, or up to 10 list rows of up to 24.
 
 import type { IntakeField } from "./intake-guide";
-import { rupees } from "./intake.engine";
+import { loanGroups, rupees } from "./intake.engine";
 
 export type Choice = { id: string; value: string; english: string };
 export type OptionSet = { kind: "buttons" | "list"; choices: Choice[]; titleLimit: number };
@@ -45,6 +45,8 @@ export const AMOUNT_RANGES: { value: number; label: string }[] = [
 export type Tap =
   | { kind: "loan"; slug: string }
   | { kind: "loan-other" }
+  | { kind: "loan-more" }
+  | { kind: "loan-group"; index: number }
   | { kind: "amount"; value: number; label: string }
   | { kind: "amount-type" }
   | { kind: "you"; index: number }
@@ -55,6 +57,8 @@ export function parseTap(id: string | undefined): Tap | null {
   if (!id) return null;
   const [kind, a, b] = id.split("|");
   if (kind === "loan" && a === "other") return { kind: "loan-other" };
+  if (kind === "loan" && a === "more") return { kind: "loan-more" };
+  if (kind === "loan" && a === "g" && b !== undefined && Number.isInteger(Number(b)) && Number(b) >= 0 && Number(b) < loanGroups().length) return { kind: "loan-group", index: Number(b) };
   if (kind === "loan" && a) return { kind: "loan", slug: a };
   if (kind === "amt" && a === "type") return { kind: "amount-type" };
   if (kind === "amt" && a) {
@@ -77,6 +81,29 @@ export function shorten(text: string, limit: number): string {
   return `${(space > limit * 0.5 ? cut.slice(0, space) : cut).trim()}…`;
 }
 
+/** The four groups of loans, for a customer whose loan is not in the first list. */
+export function groupOptions(): OptionSet {
+  return {
+    kind: "list",
+    titleLimit: 24,
+    choices: [
+      ...loanGroups().map((g, i) => ({ id: `loan|g|${i}`, value: g.name, english: g.name })),
+      { id: "loan|other", value: "other", english: "Type it myself" },
+    ],
+  };
+}
+
+/** Every loan in one group, to pick from. */
+export function groupLoanOptions(index: number): OptionSet | null {
+  const g = loanGroups()[index];
+  if (!g) return null;
+  return {
+    kind: "list",
+    titleLimit: 24,
+    choices: [...g.loans.map((l) => ({ id: `loan|${l.slug}`, value: l.slug, english: l.title })), { id: "loan|other", value: "other", english: "Type it myself" }].slice(0, 10),
+  };
+}
+
 /** The choices to show for a question, or null when it is answered by typing. */
 export function optionsFor(key: string, field?: Pick<IntakeField, "kind" | "options">): OptionSet | null {
   if (key === "loan_slug") {
@@ -85,7 +112,7 @@ export function optionsFor(key: string, field?: Pick<IntakeField, "kind" | "opti
       titleLimit: 24,
       choices: [
         ...MAIN_LOANS.map((l) => ({ id: `loan|${l.slug}`, value: l.slug, english: l.title })),
-        { id: "loan|other", value: "other", english: "Something else" },
+        { id: "loan|more", value: "more", english: "More loan types" },
       ],
     };
   }

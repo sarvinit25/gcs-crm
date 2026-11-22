@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit } from "@nestjs/common";
 import { EventsService } from "../events/events.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { SettingsService } from "../settings/settings.service";
+import { checklistUrl } from "../whatsapp/intake/intake.engine";
 import { AlertsService } from "./alerts.service";
 
 const rupees = (n: unknown) => `Rs. ${Number(n ?? 0).toLocaleString("en-IN")}`;
@@ -35,7 +36,7 @@ export class StepAlertsService implements OnModuleInit {
   }
 
   private async followUp(p: Record<string, unknown>) {
-    const l = await this.prisma.lead.findUnique({ where: { id: String(p.leadId) }, select: { id: true, leadNo: true, name: true, phone: true, city: true, amount: true, assignedOfficer: { select: { name: true, email: true } } } });
+    const l = await this.prisma.lead.findUnique({ where: { id: String(p.leadId) }, select: { id: true, leadNo: true, name: true, phone: true, city: true, amount: true, loanProduct: { select: { slug: true } }, assignedOfficer: { select: { name: true, email: true } } } });
     if (!l) return;
     const why = String(p.why ?? "");
     const reason: Record<string, string> = {
@@ -44,6 +45,7 @@ export class StepAlertsService implements OnModuleInit {
       "ca-legal": "The caller asked about CA or legal services",
       "details-collected": "The phone assistant took the details; a team member should call to take it forward",
       "follow-up": "A follow-up was logged in the CRM",
+      "documents-pending": "The lead is waiting for documents and nothing has moved for a few days",
     };
     const when = p.dueAt ? new Date(String(p.dueAt)).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" }) + " (India time)" : String(p.callbackTime ?? "");
     const rows: [string, string][] = [
@@ -56,6 +58,7 @@ export class StepAlertsService implements OnModuleInit {
       ["Note", String(p.note ?? "").slice(0, 400)],
       ["Logged by", String(p.by ?? "")],
       ["Handled by", l.assignedOfficer?.name ?? "Not assigned"],
+      ...(why === "documents-pending" ? ([["Document checklist to send", checklistUrl(process.env.PUBLIC_SITE_URL?.trim() || "https://growthcapitalservices.in", l.loanProduct?.slug, null) ?? ""]] as [string, string][]) : []),
     ];
     await this.alerts.stepChanged("followUp", `Follow-up needed: ${l.name} (lead #${l.leadNo})`, rows, `/leads/${l.id}`, { alsoTo: l.assignedOfficer?.email ? [l.assignedOfficer.email] : [], button: "Open the lead" });
   }
