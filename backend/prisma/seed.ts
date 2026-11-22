@@ -28,6 +28,7 @@ const PRODUCTS: [slug: string, name: string, category: string][] = [
   ["bill-discounting", "Bill Discounting", "Cash Flow & Trade"],
   ["unsecured-dod", "Unsecured DOD", "Business Growth"],
   ["personal-loan", "Personal Loan", "Personal, Education, Vehicle & Other Loans"],
+  ["loan-consolidation", "Loan Consolidation", "Personal, Education, Vehicle & Other Loans"],
   ["education-loan", "Education Loan", "Personal, Education, Vehicle & Other Loans"],
   ["education-infrastructure-loan", "Education Infrastructure Loan", "Personal, Education, Vehicle & Other Loans"],
   ["new-car-loan", "New Car Loan", "Personal, Education, Vehicle & Other Loans"],

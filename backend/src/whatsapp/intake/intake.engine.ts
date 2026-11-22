@@ -235,11 +235,9 @@ export function reviewReasons(loanSlug: string | null | undefined, answers: Answ
 const CHECKLIST_OF: Record<string, string> = { Salaried: "home-loan-salaried", NRI: "home-loan-nri" };
 
 /** The website's document checklist (a PDF) for a loan. Home loans have one each for salaried, self-employed and NRI. */
-export function checklistUrl(site: string, loanSlug: string | null | undefined, applicant: string | null, loanKind?: string | null): string | null {
+export function checklistUrl(site: string, loanSlug: string | null | undefined, applicant: string | null): string | null {
   if (!loanSlug || !loanFor(loanSlug)) return null;
   let file = loanSlug;
-  // Loan Consolidation is a kind of personal loan with a checklist of its own.
-  if (loanSlug === "personal-loan" && /consolidation/i.test(loanKind ?? "")) file = "loan-consolidation";
   if (loanSlug === "home-loan") file = CHECKLIST_OF[applicant ?? ""] ?? (applicant && SELF_EMPLOYED_WORDS.includes(applicant.toLowerCase()) ? "home-loan-self-employed" : "home-loan");
   return `${site.replace(/\/+$/, "")}/checklists/${file}-checklist.pdf`;
 }

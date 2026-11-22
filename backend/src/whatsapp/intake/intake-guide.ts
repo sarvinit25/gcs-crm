@@ -7626,7 +7626,6 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    "Travel Loan",
    "Medical Loan",
    "Home Renovation Loan",
-   "Loan Consolidation",
    "Personal Loan Balance Transfer"
   ],
   "kindSeeds": {
@@ -7641,9 +7640,6 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    },
    "Home Renovation Loan": {
     "purpose": "Home renovation"
-   },
-   "Loan Consolidation": {
-    "purpose": "Repaying other loans"
    }
   },
   "fields": [
@@ -7658,7 +7654,6 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
      "Travel Loan",
      "Medical Loan",
      "Home Renovation Loan",
-     "Loan Consolidation",
      "Personal Loan Balance Transfer"
     ],
     "required": true
@@ -7984,18 +7979,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "options": [
      "Yes",
      "No"
-    ],
-    "showWhen": {
-     "key": "loanKind",
-     "values": [
-      "Personal Loan",
-      "Wedding Loan",
-      "Travel Loan",
-      "Medical Loan",
-      "Home Renovation Loan",
-      "Personal Loan Balance Transfer"
-     ]
-    }
+    ]
    },
    {
     "key": "existingEmi",
@@ -8326,6 +8310,459 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     }
    },
    {
+    "key": "ownsOtherProperty",
+    "label": "Do you own any property today?",
+    "kind": "choice",
+    "section": "More about your finances",
+    "options": [
+     "Yes",
+     "No"
+    ]
+   },
+   {
+    "key": "otherPropertyType",
+    "label": "What kind of property is it?",
+    "kind": "choice",
+    "section": "More about your finances",
+    "options": [
+     "Residential flat",
+     "Shop",
+     "Office",
+     "Commercial",
+     "Industrial",
+     "Other"
+    ],
+    "showWhen": {
+     "key": "ownsOtherProperty",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "otherPropertyLocation",
+    "label": "Where is it?",
+    "kind": "text",
+    "section": "More about your finances",
+    "showWhen": {
+     "key": "ownsOtherProperty",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "otherPropertyUse",
+    "label": "Who uses it?",
+    "kind": "choice",
+    "section": "More about your finances",
+    "options": [
+     "I live in it",
+     "It is rented out",
+     "It is empty"
+    ],
+    "showWhen": {
+     "key": "ownsOtherProperty",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "hasRentalIncome",
+    "label": "Do you receive any rent?",
+    "kind": "choice",
+    "section": "More about your finances",
+    "options": [
+     "Yes",
+     "No"
+    ]
+   },
+   {
+    "key": "rentalProperty",
+    "label": "Is the rent from a property you already own, or one you plan to buy?",
+    "kind": "choice",
+    "section": "More about your finances",
+    "options": [
+     "One I already own",
+     "One I plan to buy"
+    ],
+    "showWhen": {
+     "key": "hasRentalIncome",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "rentalMonthly",
+    "label": "Rent you receive every month",
+    "kind": "amount",
+    "section": "More about your finances",
+    "showWhen": {
+     "key": "hasRentalIncome",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "extraEarner",
+    "label": "Is there another earning member whose income should be counted?",
+    "kind": "choice",
+    "section": "More about your finances",
+    "options": [
+     "Yes",
+     "No"
+    ]
+   },
+   {
+    "key": "extraEarnerRelation",
+    "label": "How are they related to you?",
+    "kind": "choice",
+    "section": "More about your finances",
+    "options": [
+     "Spouse",
+     "Father",
+     "Mother",
+     "Son",
+     "Daughter",
+     "Other"
+    ],
+    "showWhen": {
+     "key": "extraEarner",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "extraEarnerAge",
+    "label": "Their age",
+    "kind": "text",
+    "section": "More about your finances",
+    "showWhen": {
+     "key": "extraEarner",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "extraEarnerWork",
+    "label": "Are they salaried or self-employed?",
+    "kind": "choice",
+    "section": "More about your finances",
+    "options": [
+     "Salaried",
+     "Self-employed"
+    ],
+    "showWhen": {
+     "key": "extraEarner",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "extraEarnerEmployer",
+    "label": "Their company, or business name",
+    "kind": "text",
+    "section": "More about your finances",
+    "showWhen": {
+     "key": "extraEarner",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "extraEarnerIncome",
+    "label": "Their monthly income, or net profit if they run a business",
+    "kind": "amount",
+    "section": "More about your finances",
+    "showWhen": {
+     "key": "extraEarner",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "employerName",
+    "label": "Name of your employer or business",
+    "kind": "text",
+    "section": "A few last details"
+   },
+   {
+    "key": "callTime",
+    "label": "Best time for our expert to call you",
+    "kind": "choice",
+    "section": "A few last details",
+    "options": [
+     "Morning (9 am to 12 noon)",
+     "Afternoon (12 noon to 4 pm)",
+     "Evening (4 pm to 8 pm)",
+     "Any time"
+    ]
+   }
+  ]
+ },
+ "loan-consolidation": {
+  "title": "Loan Consolidation",
+  "group": "Business Growth",
+  "kinds": [],
+  "kindSeeds": {},
+  "fields": [
+   {
+    "key": "age",
+    "label": "Your age",
+    "kind": "choice",
+    "section": "About you",
+    "options": [
+     "Below 21",
+     "21 to 35",
+     "36 to 50",
+     "51 to 60",
+     "Above 60"
+    ],
+    "help": "Lenders for this loan usually take applicants between about 21 and 60."
+   },
+   {
+    "key": "location",
+    "label": "Location",
+    "kind": "text",
+    "section": "About you",
+    "required": true,
+    "help": "The area or locality you live or work in."
+   },
+   {
+    "key": "residence",
+    "label": "Where do you live?",
+    "kind": "choice",
+    "section": "About you",
+    "options": [
+     "In my own house",
+     "In a rented house",
+     "With my parents",
+     "In company accommodation"
+    ]
+   },
+   {
+    "key": "applicantType",
+    "label": "Type of income (salaried or self-employed)",
+    "kind": "choice",
+    "section": "Your work and income",
+    "options": [
+     "Salaried",
+     "Self-Employed"
+    ],
+    "required": true
+   },
+   {
+    "key": "employerType",
+    "label": "Where do you work?",
+    "kind": "choice",
+    "section": "Your work and income",
+    "options": [
+     "Government / PSU",
+     "Listed or MNC company",
+     "Private limited company",
+     "Small firm / proprietorship",
+     "Other"
+    ],
+    "showWhen": {
+     "key": "applicantType",
+     "values": [
+      "Salaried"
+     ]
+    }
+   },
+   {
+    "key": "yearsInJob",
+    "label": "Time with the current employer",
+    "kind": "choice",
+    "section": "Your work and income",
+    "options": [
+     "Less than 1 year",
+     "1 to 3 years",
+     "3 to 5 years",
+     "More than 5 years"
+    ],
+    "showWhen": {
+     "key": "applicantType",
+     "values": [
+      "Salaried"
+     ]
+    }
+   },
+   {
+    "key": "totalExperience",
+    "label": "Total work experience so far",
+    "kind": "choice",
+    "section": "Your work and income",
+    "options": [
+     "Less than 1 year",
+     "1 to 3 years",
+     "3 to 5 years",
+     "More than 5 years"
+    ],
+    "showWhen": {
+     "key": "yearsInJob",
+     "values": [
+      "Less than 1 year"
+     ]
+    }
+   },
+   {
+    "key": "netSalary",
+    "label": "Monthly take-home salary",
+    "kind": "amount",
+    "section": "Your work and income",
+    "showWhen": {
+     "key": "applicantType",
+     "values": [
+      "Salaried"
+     ]
+    }
+   },
+   {
+    "key": "salaryMode",
+    "label": "How is the salary paid?",
+    "kind": "choice",
+    "section": "Your work and income",
+    "options": [
+     "Credited to a bank account",
+     "Partly cash",
+     "Cash"
+    ],
+    "showWhen": {
+     "key": "employerType",
+     "values": [
+      "Private limited company",
+      "Small firm / proprietorship",
+      "Other"
+     ]
+    },
+    "help": "Cash salary is accepted by some lenders, so say it as it is."
+   },
+   {
+    "key": "businessType",
+    "label": "Your business or profession",
+    "kind": "text",
+    "section": "Your work and income",
+    "showWhen": {
+     "key": "applicantType",
+     "values": [
+      "Self-Employed"
+     ]
+    }
+   },
+   {
+    "key": "yearsInBusiness",
+    "label": "Years in the business or profession",
+    "kind": "choice",
+    "section": "Your work and income",
+    "options": [
+     "Less than 2 years",
+     "2 to 3 years",
+     "3 to 5 years",
+     "More than 5 years"
+    ],
+    "showWhen": {
+     "key": "applicantType",
+     "values": [
+      "Self-Employed"
+     ]
+    }
+   },
+   {
+    "key": "gstRegistered",
+    "label": "Is your business registered under GST?",
+    "kind": "choice",
+    "section": "Your work and income",
+    "options": [
+     "Yes, and returns are filed regularly",
+     "Yes, but returns are irregular",
+     "No, GST does not apply to me"
+    ],
+    "showWhen": {
+     "key": "applicantType",
+     "values": [
+      "Self-Employed"
+     ]
+    }
+   },
+   {
+    "key": "itrYears",
+    "label": "ITR filed for how many years?",
+    "kind": "choice",
+    "section": "Your work and income",
+    "options": [
+     "None",
+     "1 year",
+     "2 years",
+     "3 years or more"
+    ],
+    "showWhen": {
+     "key": "applicantType",
+     "values": [
+      "Self-Employed"
+     ]
+    }
+   },
+   {
+    "key": "bankStatements",
+    "label": "Do you have 12 months of business bank statements?",
+    "kind": "choice",
+    "section": "Your work and income",
+    "options": [
+     "Yes",
+     "No"
+    ],
+    "showWhen": {
+     "key": "itrYears",
+     "values": [
+      "None"
+     ]
+    },
+    "help": "Without ITR, lenders go by your bank statements instead."
+   },
+   {
+    "key": "annualTurnover",
+    "label": "Annual turnover (last financial year)",
+    "kind": "amount",
+    "section": "Your work and income",
+    "showWhen": {
+     "key": "applicantType",
+     "values": [
+      "Self-Employed"
+     ]
+    }
+   },
+   {
+    "key": "annualProfit",
+    "label": "Net profit as shown in the ITR (last financial year)",
+    "kind": "amount",
+    "section": "Your work and income",
+    "showWhen": {
+     "key": "itrYears",
+     "values": [
+      "1 year",
+      "2 years",
+      "3 years or more"
+     ]
+    },
+    "allowZero": true
+   },
+   {
+    "key": "otherIncome",
+    "label": "Other regular monthly income (rent, interest, etc.)",
+    "kind": "amount",
+    "section": "Your work and income",
+    "allowZero": true
+   },
+   {
     "key": "consolLoanCount",
     "label": "How many active loans do you have?",
     "kind": "choice",
@@ -8336,37 +8773,19 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
      "3",
      "4",
      "5 or more"
-    ],
-    "showWhen": {
-     "key": "loanKind",
-     "values": [
-      "Loan Consolidation"
-     ]
-    }
+    ]
    },
    {
     "key": "consolOutstanding",
     "label": "Total outstanding on all these loans",
     "kind": "amount",
-    "section": "Your loans and cards to consolidate",
-    "showWhen": {
-     "key": "loanKind",
-     "values": [
-      "Loan Consolidation"
-     ]
-    }
+    "section": "Your loans and cards to consolidate"
    },
    {
     "key": "consolEmi",
     "label": "What is your total existing EMI every month?",
     "kind": "amount",
     "section": "Your loans and cards to consolidate",
-    "showWhen": {
-     "key": "loanKind",
-     "values": [
-      "Loan Consolidation"
-     ]
-    },
     "allowZero": true,
     "help": "Add up the EMIs of every loan. Leave out credit cards, they come next."
    },
@@ -8381,13 +8800,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
      "16% to 20%",
      "Above 20%",
      "Not sure"
-    ],
-    "showWhen": {
-     "key": "loanKind",
-     "values": [
-      "Loan Consolidation"
-     ]
-    }
+    ]
    },
    {
     "key": "consolRemaining",
@@ -8401,13 +8814,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
      "3 to 5 years",
      "More than 5 years",
      "Not sure"
-    ],
-    "showWhen": {
-     "key": "loanKind",
-     "values": [
-      "Loan Consolidation"
-     ]
-    }
+    ]
    },
    {
     "key": "consolForeclosure",
@@ -8418,13 +8825,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
      "Yes",
      "No",
      "Not sure"
-    ],
-    "showWhen": {
-     "key": "loanKind",
-     "values": [
-      "Loan Consolidation"
-     ]
-    }
+    ]
    },
    {
     "key": "consolCards",
@@ -8434,13 +8835,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "options": [
      "Yes",
      "No"
-    ],
-    "showWhen": {
-     "key": "loanKind",
-     "values": [
-      "Loan Consolidation"
-     ]
-    }
+    ]
    },
    {
     "key": "consolCardCount",
@@ -8509,13 +8904,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "options": [
      "Yes",
      "No"
-    ],
-    "showWhen": {
-     "key": "loanKind",
-     "values": [
-      "Loan Consolidation"
-     ]
-    }
+    ]
    },
    {
     "key": "consolSettled",
@@ -8526,12 +8915,6 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
      "Yes",
      "No"
     ],
-    "showWhen": {
-     "key": "loanKind",
-     "values": [
-      "Loan Consolidation"
-     ]
-    },
     "help": "Please answer honestly: it changes which lenders can look at your case."
    },
    {
@@ -8545,13 +8928,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
      "Lower the interest rate",
      "Clear credit-card dues",
      "Other"
-    ],
-    "showWhen": {
-     "key": "loanKind",
-     "values": [
-      "Loan Consolidation"
-     ]
-    }
+    ]
    },
    {
     "key": "consolExtraFunds",
@@ -8561,13 +8938,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "options": [
      "Yes",
      "No"
-    ],
-    "showWhen": {
-     "key": "loanKind",
-     "values": [
-      "Loan Consolidation"
-     ]
-    }
+    ]
    },
    {
     "key": "consolExtraAmount",
@@ -8580,6 +8951,31 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
       "Yes"
      ]
     }
+   },
+   {
+    "key": "tenure",
+    "label": "Preferred repayment period",
+    "kind": "choice",
+    "section": "Your repayment plan",
+    "options": [
+     "Up to 1 year",
+     "1 to 2 years",
+     "2 to 3 years",
+     "3 to 5 years",
+     "Not sure"
+    ]
+   },
+   {
+    "key": "timeline",
+    "label": "When do you need the money?",
+    "kind": "choice",
+    "section": "Your repayment plan",
+    "options": [
+     "Immediately",
+     "Within a month",
+     "In 1 to 3 months",
+     "Just exploring"
+    ]
    },
    {
     "key": "ownsOtherProperty",

@@ -180,6 +180,7 @@ export function loanSlug(...texts: (string | null | undefined)[]): string | null
     [/used\s*car|second[-\s]?hand\s*car/, "used-car-loan"],
     [/car\s*refinance/, "car-refinance"],
     [/car\s*loan|new\s*car|\bcar\b/, "new-car-loan"],
+    [/consolidat|combine\s+(?:my\s+)?(?:loans|emis?)/, "loan-consolidation"],
     [/personal/, "personal-loan"],
     [/working\s*capital|cash\s*credit|overdraft/, "working-capital-term-loan"],
     [/business|msme|shop\s*loan|\bmudra\b/, "business-loan"],
