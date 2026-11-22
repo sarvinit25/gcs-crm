@@ -99,6 +99,20 @@ describe("matchOne hard filters", () => {
     expect(matchOne(customer, p, NOW).status).toBe("EXCLUDED");
     expect(matchOne({ ...customer, city: "pune" }, p, NOW).status).not.toBe("EXCLUDED");
   });
+  it("still scores a lender whose service area is not recorded, but never calls it Strong or Possible", () => {
+    const r = matchOne(customer, policy({ allIndia: false, cities: [] }), NOW);
+    expect(r.status).toBe("EXPERT_REVIEW");
+    expect(r.score).not.toBeNull();
+    expect(r.reasons.some((x) => x.code === "LOCATION_UNKNOWN")).toBe(true);
+    expect(r.checks.join(" ")).toMatch(/serves the customer's location/);
+  });
+  it("puts the better-fitting of two unverified lenders first", () => {
+    const fits = policy({ lenderId: "a", lenderName: "Fits", lastVerifiedAt: null, id: "a" });
+    const misses = policy({ lenderId: "b", lenderName: "Misses", lastVerifiedAt: null, id: "b", minCreditScore: 900 });
+    const ranked = matchAll(customer, [misses, fits], NOW);
+    expect(ranked.every((r) => r.status === "EXPERT_REVIEW")).toBe(true);
+    expect(ranked[0]!.lenderName).toBe("Fits");
+  });
   it("routes to a human when serviceability is not recorded at all", () => {
     expect(matchOne(customer, policy({ allIndia: false, cities: [] }), NOW).status).toBe("EXPERT_REVIEW");
   });

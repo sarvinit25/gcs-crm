@@ -136,9 +136,12 @@ export function matchOne(profile: Profile, p: PolicyRule, now: Date = new Date()
   // Rules that were never verified, or not recently, are still worked through so staff can see how the lender fits and why,
   // but such a lender is never shown as a Strong or Possible match and is never ruled out on rules nobody has confirmed.
   let unverified = false;
+  // Something unknown about the lender (rules not verified, where it serves not recorded): the analysis is still shown, but the
+  // lender is never labelled Strong or Possible.
+  let capped = false;
   const out = (status: MatchStatus, score: number | null, policyNeedsReview = false): MatchResult => ({
     ...base,
-    status: unverified && status === "EXCLUDED" ? "EXPERT_REVIEW" : status,
+    status: (unverified || capped) && status === "EXCLUDED" ? "EXPERT_REVIEW" : status,
     score,
     policyNeedsReview: unverified || policyNeedsReview,
   });
@@ -152,6 +155,7 @@ export function matchOne(profile: Profile, p: PolicyRule, now: Date = new Date()
   const verifiedAgeDays = p.lastVerifiedAt ? (now.getTime() - p.lastVerifiedAt.getTime()) / DAY : Infinity;
   if (verifiedAgeDays > p.reviewEveryDays) {
     unverified = true;
+    capped = true;
     note(
       "POLICY_STALE",
       false,
@@ -165,11 +169,10 @@ export function matchOne(profile: Profile, p: PolicyRule, now: Date = new Date()
   // ── hard filters ──
   if (!p.allIndia) {
     if (p.cities.length === 0) {
+      capped = true;
       note("LOCATION_UNKNOWN", false, "Where this lender serves is not recorded.");
       checks.push("Confirm the lender serves the customer's location.");
-      return out("EXPERT_REVIEW", null);
-    }
-    if (!profile.city) {
+    } else if (!profile.city) {
       checks.push("Customer's city is needed to confirm serviceability.");
     } else if (!inList(p.cities, profile.city)) {
       note("LOCATION", false, `Not recorded as serving ${profile.city}.`);
@@ -320,7 +323,7 @@ export function matchOne(profile: Profile, p: PolicyRule, now: Date = new Date()
     { w: WEIGHTS.credit, c: credit },
     { w: WEIGHTS.collateral, c: collateral },
   ];
-  return finish(base, parts, unverified);
+  return finish(base, parts, unverified, capped);
 }
 
 /** Turns component scores into a score and a status. Pricing is added later, across lenders. */
@@ -328,6 +331,7 @@ function finish(
   base: Pick<MatchResult, "policyId" | "lenderId" | "lenderName" | "reasons" | "checks">,
   parts: { w: number; c: Component }[],
   unverified = false,
+  capped = false,
 ): MatchResult {
   const known = parts.filter((x) => x.c.score !== null);
   const knownWeight = known.reduce((s, x) => s + x.w, 0);
@@ -348,7 +352,7 @@ function finish(
     status = "EXPERT_REVIEW";
   }
   // Rules nobody has confirmed never earn a Strong or Possible label.
-  if (unverified && (status === "STRONG" || status === "POSSIBLE")) status = "EXPERT_REVIEW";
+  if (capped && (status === "STRONG" || status === "POSSIBLE")) status = "EXPERT_REVIEW";
   return { ...base, status, score, policyNeedsReview: unverified };
 }
 
