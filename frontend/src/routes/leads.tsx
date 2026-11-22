@@ -24,7 +24,7 @@ import { LeadStatusBadge, SegmentBadge } from "../components/status-badge";
 import { PRIORITY_META } from "../lib/priority";
 import { ChannelInput, useChannels } from "../components/channel-field";
 import { Modal } from "../components/modal";
-import { DeleteConfirm } from "../components/delete-confirm";
+import { LeadDeleteDialog } from "../components/lead-delete";
 import { ArchivedLeads } from "../components/archived-leads";
 import { LeadImportModal } from "../components/lead-import-modal";
 import { DEFAULT_LEAD_SORT, LEAD_SORTS, sortParam, type LeadSortValue } from "../lib/lead-sort";
@@ -765,20 +765,11 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
         </div>
 
         {toDelete && (
-          <DeleteConfirm
-            title={`Delete lead #${toDelete.leadNo}?`}
-            onDelete={() => api(`/leads/${toDelete.id}`, { method: "DELETE" })}
+          <LeadDeleteDialog
+            lead={toDelete}
             onDone={() => void queryClient.invalidateQueries({ queryKey: ["leads"] })}
             onClose={() => setToDelete(null)}
-          >
-            <p>
-              <span className="font-semibold text-navy">
-                #{toDelete.leadNo} {toDelete.name}
-              </span>{" "}
-              will be deleted for good, together with its follow-ups, answers and uploaded files.
-            </p>
-            <p className="text-muted">A lead that already has a loan file can’t be deleted. Archive it instead.</p>
-          </DeleteConfirm>
+          />
         )}
 
         {query.data && query.data.total > query.data.pageSize && (

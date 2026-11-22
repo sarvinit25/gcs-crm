@@ -26,7 +26,7 @@ import { LeadStatusBadge, SegmentBadge } from "../components/status-badge";
 import { NewApplicationWizard } from "../components/new-application-wizard";
 import { ChannelInput } from "../components/channel-field";
 import { Modal } from "../components/modal";
-import { DeleteConfirm } from "../components/delete-confirm";
+import { LeadDeleteDialog } from "../components/lead-delete";
 import { LeadSecondForm } from "../components/lead-second-form";
 import { LoanProfilePanel } from "../components/loan-profile-panel";
 import { LeadDocuments } from "../components/lead-documents";
@@ -388,10 +388,10 @@ export function LeadDetailPage() {
               closed={lead.status === "CONVERTED" || lead.status === "LOST"}
               refresh={[["lead", leadId], ["leads"]]}
             />
-            {user?.role === "ADMIN" && !lead.application && (
+            {user?.role === "ADMIN" && (
               <button
                 className="btn-ghost text-red-700"
-                title="Delete this lead for good (only for junk or test leads)"
+                title="Delete this lead for good"
                 onClick={() => setConfirmingDelete(true)}
               >
                 <Trash2 className="h-4 w-4" /> Delete
@@ -809,22 +809,14 @@ export function LeadDetailPage() {
         </div>
       </div>
       {confirmingDelete && (
-        <DeleteConfirm
-          title={`Delete lead #${lead.leadNo}?`}
-          onDelete={() => api(`/leads/${leadId}`, { method: "DELETE" })}
+        <LeadDeleteDialog
+          lead={lead}
           onDone={() => {
             void queryClient.invalidateQueries({ queryKey: ["leads"] });
             void navigate({ to: "/leads" });
           }}
           onClose={() => setConfirmingDelete(false)}
-        >
-          <p>
-            <span className="font-semibold text-navy">
-              #{lead.leadNo} {lead.name}
-            </span>{" "}
-            will be deleted for good, together with its follow-ups, answers and uploaded files.
-          </p>
-        </DeleteConfirm>
+        />
       )}
     </>
   );
