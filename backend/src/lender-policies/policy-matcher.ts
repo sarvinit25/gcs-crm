@@ -66,6 +66,13 @@ export type Profile = {
   annualProfit?: number;
   gstRegistered?: boolean;
   tenureMonths?: number;
+  /** For a program that works out its own amount: rent and other income a month, average monthly bank balance, the agreement value and stamp duty of a purchase, and the kind of business. */
+  rentalIncome?: number;
+  otherIncome?: number;
+  abb?: number;
+  agreementValue?: number;
+  stampDuty?: number;
+  industry?: string;
 };
 
 export type MatchStatus = "STRONG" | "POSSIBLE" | "EXPERT_REVIEW" | "EXCLUDED";

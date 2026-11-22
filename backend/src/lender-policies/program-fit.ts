@@ -5,6 +5,7 @@
 
 import type { Program, RuleStatus } from "./policy-extras";
 import { emi, type Profile } from "./policy-matcher";
+import { indicativeAmount, type Indicative } from "./program-eligibility";
 
 export type ProgramFit = {
   name: string;
@@ -18,6 +19,8 @@ export type ProgramFit = {
   needs: string[];
   /** Rules of this program the lender has not confirmed yet. */
   unconfirmed: string[];
+  /** An indicative loan amount from this program's own method, when it has one. */
+  indicative: Indicative | null;
 };
 
 const rupee = (n: number) => (n >= 1e7 ? `₹${+(n / 1e7).toFixed(2)} Cr` : n >= 1e5 ? `₹${+(n / 1e5).toFixed(2)} L` : `₹${Math.round(n).toLocaleString("en-IN")}`);
@@ -97,7 +100,7 @@ export function fitProgram(profile: Profile, p: Program, fallback: { rate: numbe
   for (const [k, st] of Object.entries(p.status) as [string, RuleStatus][]) if (st === "PENDING") unconfirmed.push(CORE_LABEL[k] ?? k);
   for (const r of p.rules) if (r.status === "PENDING") unconfirmed.push(r.label);
 
-  return { name: p.name, verdict: gaps.length ? "MISSES" : needs.length ? "MAYBE" : "FITS", ok, gaps, needs, unconfirmed };
+  return { name: p.name, verdict: gaps.length ? "MISSES" : needs.length ? "MAYBE" : "FITS", ok, gaps, needs, unconfirmed, indicative: indicativeAmount(profile, p, fallback) };
 }
 
 const ORDER = { FITS: 0, MAYBE: 1, MISSES: 2 } as const;

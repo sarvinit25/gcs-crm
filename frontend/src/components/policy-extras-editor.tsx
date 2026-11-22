@@ -27,6 +27,8 @@ export type Program = {
   occupancy: string | null;
   rules: ProgramRule[];
   status: Partial<Record<CoreRule, RuleStatus>>;
+  /** How the loan amount is worked out for this program. Set by the developer for now; kept as it is when the program is edited. */
+  calc?: { method: string; [k: string]: unknown } | null;
 };
 export type RuleStatus = "CONFIRMED" | "PENDING" | "NOT_APPLICABLE";
 export type ProgramRule = { label: string; value: string; status: RuleStatus };

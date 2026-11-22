@@ -119,6 +119,12 @@ export class MatchProfileDto {
   @IsOptional() @IsNumber() @Min(0) annualProfit?: number;
   @IsOptional() @IsBoolean() gstRegistered?: boolean;
   @IsOptional() @IsInt() @Min(1) @Max(600) tenureMonths?: number;
+  @IsOptional() @IsNumber() @Min(0) rentalIncome?: number;
+  @IsOptional() @IsNumber() @Min(0) otherIncome?: number;
+  @IsOptional() @IsNumber() @Min(0) abb?: number;
+  @IsOptional() @IsNumber() @Min(0) agreementValue?: number;
+  @IsOptional() @IsNumber() @Min(0) stampDuty?: number;
+  @IsOptional() @IsString() @Length(0, 40) industry?: string;
 }
 
 export class RunMatchDto {

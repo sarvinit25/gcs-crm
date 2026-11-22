@@ -18,7 +18,7 @@ type Result = {
   checks: string[];
   policyNeedsReview: boolean;
   /** Each of the lender's named programs judged on its own rules (older saved runs do not have it). */
-  programFit?: { name: string; verdict: "FITS" | "MAYBE" | "MISSES"; ok: string[]; gaps: string[]; needs: string[]; unconfirmed: string[] }[];
+  programFit?: { name: string; verdict: "FITS" | "MAYBE" | "MISSES"; ok: string[]; gaps: string[]; needs: string[]; unconfirmed: string[]; indicative?: { amount: number | null; parts: { label: string; amount: number }[]; note: string } | null }[];
   policyVersion: number | null;
   exceptions: { scenario: string; requiredApproval: string | null; expertNote: string | null }[];
   /** What a person should read beside the score. Older saved runs do not have it. */
@@ -48,6 +48,7 @@ function fromNotes(notes: string | null): Record<string, string> {
   }
   return out;
 }
+const inr = (n: number) => (n >= 1e7 ? `₹${+(n / 1e7).toFixed(2)} Cr` : n >= 1e5 ? `₹${+(n / 1e5).toFixed(2)} L` : `₹${Math.round(n).toLocaleString("en-IN")}`);
 const digits = (v?: string) => (v ? v.replace(/[^\d]/g, "") : "");
 
 function prefill(lead: Lead) {
@@ -82,6 +83,12 @@ function prefill(lead: Lead) {
     constitution: n["business type"] ?? "",
     annualTurnover: digits(n["annual turnover"]),
     annualProfit: digits(n["annual net profit"]),
+    rentalIncome: "",
+    otherIncome: "",
+    abb: "",
+    agreementValue: "",
+    stampDuty: "",
+    industry: "",
   };
 }
 
@@ -98,6 +105,12 @@ const FIELDS: { key: keyof ReturnType<typeof prefill>; label: string; type?: "se
   { key: "constitution", label: "Business type" },
   { key: "annualTurnover", label: "Yearly turnover (₹)" },
   { key: "annualProfit", label: "Yearly profit (₹)" },
+  { key: "rentalIncome", label: "Rent received (₹/month)" },
+  { key: "otherIncome", label: "Other income (₹/month)" },
+  { key: "abb", label: "Average bank balance (₹/month)" },
+  { key: "agreementValue", label: "Agreement value, if buying (₹)" },
+  { key: "stampDuty", label: "Stamp duty, if buying (₹)" },
+  { key: "industry", label: "Business: service, manufacturing or trading" },
 ];
 
 /**
@@ -137,6 +150,12 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
         constitution: form.constitution.trim() || undefined,
         annualTurnover: num(form.annualTurnover),
         annualProfit: num(form.annualProfit),
+        rentalIncome: num(form.rentalIncome),
+        otherIncome: num(form.otherIncome),
+        abb: num(form.abb),
+        agreementValue: num(form.agreementValue),
+        stampDuty: num(form.stampDuty),
+        industry: form.industry.trim() || undefined,
       };
       return api<Run>("/lender-policies/match", { method: "POST", body: JSON.stringify({ loanProductId: productId, leadId: lead.id, profile }) });
     },
@@ -240,6 +259,14 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
                             <span className="font-semibold text-navy">{f.name}</span>
                             {f.unconfirmed.length > 0 && <span className="text-[11px] text-amber-700">not confirmed with the lender: {f.unconfirmed.join(", ")}</span>}
                           </summary>
+                          {f.indicative && (
+                            <div className="mt-1.5 rounded bg-white px-2 py-1.5">
+                              {f.indicative.amount !== null ? (
+                                <p className="font-semibold text-navy">Indicative amount: about {inr(f.indicative.amount)}, the lowest of: {f.indicative.parts.map((x) => `${x.label} ${inr(x.amount)}`).join("; ")}</p>
+                              ) : null}
+                              <p className="text-muted">{f.indicative.note} Indicative only, to check with the lender.</p>
+                            </div>
+                          )}
                           <ul className="mt-1.5 space-y-0.5">
                             {f.ok.map((x, i) => <li key={`o${i}`} className="flex items-start gap-1.5 text-emerald-800"><Check className="mt-0.5 h-3 w-3 shrink-0" />{x}</li>)}
                             {f.gaps.map((x, i) => <li key={`g${i}`} className="flex items-start gap-1.5 text-red-700"><X className="mt-0.5 h-3 w-3 shrink-0" />{x}</li>)}
