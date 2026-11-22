@@ -61,7 +61,7 @@ export function profileFromLead(lead: LeadForProfile): Profile {
   const income = num(lead.monthlyIncome);
   if (income) p.monthlyIncome = income;
 
-  const emi = money("Total EMIs you pay every month", "Total repayments the business makes every month");
+  const emi = money("Total EMIs you pay every month", "What is your total existing EMI", "Total repayments the business makes every month");
   if (emi) p.existingEmi = emi;
 
   const cibil = get("Roughly what is your CIBIL");

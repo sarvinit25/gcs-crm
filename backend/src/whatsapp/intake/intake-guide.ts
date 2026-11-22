@@ -7626,7 +7626,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    "Travel Loan",
    "Medical Loan",
    "Home Renovation Loan",
-   "Debt Consolidation Loan",
+   "Loan Consolidation",
    "Personal Loan Balance Transfer"
   ],
   "kindSeeds": {
@@ -7642,7 +7642,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
    "Home Renovation Loan": {
     "purpose": "Home renovation"
    },
-   "Debt Consolidation Loan": {
+   "Loan Consolidation": {
     "purpose": "Repaying other loans"
    }
   },
@@ -7658,7 +7658,7 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
      "Travel Loan",
      "Medical Loan",
      "Home Renovation Loan",
-     "Debt Consolidation Loan",
+     "Loan Consolidation",
      "Personal Loan Balance Transfer"
     ],
     "required": true
@@ -7984,7 +7984,18 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "options": [
      "Yes",
      "No"
-    ]
+    ],
+    "showWhen": {
+     "key": "loanKind",
+     "values": [
+      "Personal Loan",
+      "Wedding Loan",
+      "Travel Loan",
+      "Medical Loan",
+      "Home Renovation Loan",
+      "Personal Loan Balance Transfer"
+     ]
+    }
    },
    {
     "key": "existingEmi",
@@ -8309,6 +8320,262 @@ export const INTAKE_GUIDE: Record<string, IntakeLoan> = {
     "section": "Your existing loans and credit",
     "showWhen": {
      "key": "pastRejection",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "consolLoanCount",
+    "label": "How many active loans do you have?",
+    "kind": "choice",
+    "section": "Your loans and cards to consolidate",
+    "options": [
+     "1",
+     "2",
+     "3",
+     "4",
+     "5 or more"
+    ],
+    "showWhen": {
+     "key": "loanKind",
+     "values": [
+      "Loan Consolidation"
+     ]
+    }
+   },
+   {
+    "key": "consolOutstanding",
+    "label": "Total outstanding on all these loans",
+    "kind": "amount",
+    "section": "Your loans and cards to consolidate",
+    "showWhen": {
+     "key": "loanKind",
+     "values": [
+      "Loan Consolidation"
+     ]
+    }
+   },
+   {
+    "key": "consolEmi",
+    "label": "What is your total existing EMI every month?",
+    "kind": "amount",
+    "section": "Your loans and cards to consolidate",
+    "showWhen": {
+     "key": "loanKind",
+     "values": [
+      "Loan Consolidation"
+     ]
+    },
+    "allowZero": true,
+    "help": "Add up the EMIs of every loan. Leave out credit cards, they come next."
+   },
+   {
+    "key": "consolRate",
+    "label": "Roughly what interest rate are you paying now?",
+    "kind": "choice",
+    "section": "Your loans and cards to consolidate",
+    "options": [
+     "Below 12%",
+     "12% to 16%",
+     "16% to 20%",
+     "Above 20%",
+     "Not sure"
+    ],
+    "showWhen": {
+     "key": "loanKind",
+     "values": [
+      "Loan Consolidation"
+     ]
+    }
+   },
+   {
+    "key": "consolRemaining",
+    "label": "How much time is left on these loans?",
+    "kind": "choice",
+    "section": "Your loans and cards to consolidate",
+    "options": [
+     "Less than 1 year",
+     "1 to 2 years",
+     "2 to 3 years",
+     "3 to 5 years",
+     "More than 5 years",
+     "Not sure"
+    ],
+    "showWhen": {
+     "key": "loanKind",
+     "values": [
+      "Loan Consolidation"
+     ]
+    }
+   },
+   {
+    "key": "consolForeclosure",
+    "label": "Will the current lenders charge anything to close these loans early?",
+    "kind": "choice",
+    "section": "Your loans and cards to consolidate",
+    "options": [
+     "Yes",
+     "No",
+     "Not sure"
+    ],
+    "showWhen": {
+     "key": "loanKind",
+     "values": [
+      "Loan Consolidation"
+     ]
+    }
+   },
+   {
+    "key": "consolCards",
+    "label": "Do you have credit-card dues you want to include?",
+    "kind": "choice",
+    "section": "Your loans and cards to consolidate",
+    "options": [
+     "Yes",
+     "No"
+    ],
+    "showWhen": {
+     "key": "loanKind",
+     "values": [
+      "Loan Consolidation"
+     ]
+    }
+   },
+   {
+    "key": "consolCardCount",
+    "label": "How many credit cards have an outstanding amount?",
+    "kind": "choice",
+    "section": "Your loans and cards to consolidate",
+    "options": [
+     "1",
+     "2",
+     "3",
+     "4 or more"
+    ],
+    "showWhen": {
+     "key": "consolCards",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "consolCardOutstanding",
+    "label": "Total outstanding on these credit cards",
+    "kind": "amount",
+    "section": "Your loans and cards to consolidate",
+    "showWhen": {
+     "key": "consolCards",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "consolCardMinimum",
+    "label": "Total minimum payment due on these cards every month",
+    "kind": "amount",
+    "section": "Your loans and cards to consolidate",
+    "showWhen": {
+     "key": "consolCards",
+     "values": [
+      "Yes"
+     ]
+    },
+    "allowZero": true
+   },
+   {
+    "key": "consolMinimumOnly",
+    "label": "Are you paying only the minimum due on your credit cards?",
+    "kind": "choice",
+    "section": "Your loans and cards to consolidate",
+    "options": [
+     "Yes",
+     "No"
+    ],
+    "showWhen": {
+     "key": "consolCards",
+     "values": [
+      "Yes"
+     ]
+    }
+   },
+   {
+    "key": "consolOverdue",
+    "label": "Are any EMIs overdue?",
+    "kind": "choice",
+    "section": "Your loans and cards to consolidate",
+    "options": [
+     "Yes",
+     "No"
+    ],
+    "showWhen": {
+     "key": "loanKind",
+     "values": [
+      "Loan Consolidation"
+     ]
+    }
+   },
+   {
+    "key": "consolSettled",
+    "label": "Have you settled or restructured any loan?",
+    "kind": "choice",
+    "section": "Your loans and cards to consolidate",
+    "options": [
+     "Yes",
+     "No"
+    ],
+    "showWhen": {
+     "key": "loanKind",
+     "values": [
+      "Loan Consolidation"
+     ]
+    },
+    "help": "Please answer honestly: it changes which lenders can look at your case."
+   },
+   {
+    "key": "consolReason",
+    "label": "What is the reason for consolidation?",
+    "kind": "choice",
+    "section": "Your loans and cards to consolidate",
+    "options": [
+     "Too many EMIs to manage",
+     "Lower the monthly outgo",
+     "Lower the interest rate",
+     "Clear credit-card dues",
+     "Other"
+    ],
+    "showWhen": {
+     "key": "loanKind",
+     "values": [
+      "Loan Consolidation"
+     ]
+    }
+   },
+   {
+    "key": "consolExtraFunds",
+    "label": "Do you need additional funds as well?",
+    "kind": "choice",
+    "section": "Your loans and cards to consolidate",
+    "options": [
+     "Yes",
+     "No"
+    ],
+    "showWhen": {
+     "key": "loanKind",
+     "values": [
+      "Loan Consolidation"
+     ]
+    }
+   },
+   {
+    "key": "consolExtraAmount",
+    "label": "How much additional money do you need?",
+    "kind": "amount",
+    "section": "Your loans and cards to consolidate",
+    "showWhen": {
+     "key": "consolExtraFunds",
      "values": [
       "Yes"
      ]

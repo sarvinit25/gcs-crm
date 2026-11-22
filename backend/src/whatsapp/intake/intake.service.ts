@@ -294,7 +294,7 @@ export class IntakeService {
     }
 
     // 3. Word the reply.
-    const written = await this.write(turns, plan, extracted, saved, after, options, tap ? [] : figures, { retry, skipped, late, returning, corrected, noted, another: opts.another ?? null, resumed: resume, newSection: plan.kind === "ask" && plan.ask[0]?.section && plan.ask[0].section !== asked[0]?.section ? plan.ask[0].section : null, summary: justFinished && !late ? this.summaryOf(after) : null, checklist: justFinished && !late ? checklistUrl(this.siteUrl(), after.loanSlug, after.applicant) : null, loanHelp: Boolean(!tap && !media && !firstMessage && plan.kind === "ask" && plan.ask[0]?.key === "loan_slug" && lastTyped.trim().length > 12) });
+    const written = await this.write(turns, plan, extracted, saved, after, options, tap ? [] : figures, { retry, skipped, late, returning, corrected, noted, another: opts.another ?? null, resumed: resume, newSection: plan.kind === "ask" && plan.ask[0]?.section && plan.ask[0].section !== asked[0]?.section ? plan.ask[0].section : null, summary: justFinished && !late ? this.summaryOf(after) : null, checklist: justFinished && !late ? checklistUrl(this.siteUrl(), after.loanSlug, after.applicant, after.answers["loanKind"]) : null, loanHelp: Boolean(!tap && !media && !firstMessage && plan.kind === "ask" && plan.ask[0]?.key === "loan_slug" && lastTyped.trim().length > 12) });
     if (!written) return { text: null, handoff: plan.kind === "handoff" };
     return { text: written.text, handoff: plan.kind === "handoff", ...(written.options ? { options: written.options } : {}) };
   }

@@ -226,3 +226,12 @@ describe("backing an answer with the customer's own words", () => {
     expect(sharesWordWith("Roughly what is your CIBIL score?", "I earn 80000 every month")).toBe(false);
   });
 });
+
+describe("the checklist for a loan consolidation", () => {
+  const { checklistUrl } = jest.requireActual("./intake.engine");
+  it("is its own PDF, only for that kind of personal loan", () => {
+    expect(checklistUrl("https://x.in", "personal-loan", null, "Loan Consolidation")).toBe("https://x.in/checklists/loan-consolidation-checklist.pdf");
+    expect(checklistUrl("https://x.in", "personal-loan", null, "Wedding Loan")).toBe("https://x.in/checklists/personal-loan-checklist.pdf");
+    expect(checklistUrl("https://x.in", "personal-loan", null)).toBe("https://x.in/checklists/personal-loan-checklist.pdf");
+  });
+});
