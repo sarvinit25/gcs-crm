@@ -31,4 +31,17 @@ describe("lead list order", () => {
       expect(Object.keys(order[order.length - 1]!)).toEqual(["leadNo"]);
     }
   });
+
+  it("sorts every column both ways, (a blank owner or reference sorts last A to Z and first Z to A)", () => {
+    expect(leadOrderBy("name_az")[0]).toEqual({ name: "asc" });
+    expect(leadOrderBy("name_za")[0]).toEqual({ name: "desc" });
+    expect(leadOrderBy("product_az")[0]).toEqual({ loanProduct: { name: "asc" } });
+    expect(leadOrderBy("owner_az")[0]).toEqual({ assignedOfficer: { name: "asc" } });
+    expect(leadOrderBy("owner_za")[0]).toEqual({ assignedOfficer: { name: "desc" } });
+    expect(leadOrderBy("reference_za")[0]).toEqual({ sourcingPartner: { name: "desc" } });
+    expect(leadOrderBy("amount_low")[0]).toEqual({ amount: { sort: "asc", nulls: "last" } });
+    expect(leadOrderBy("followup_late")[0]).toEqual({ nextFollowUpAt: { sort: "desc", nulls: "last" } });
+    expect(leadOrderBy("contacts_most")[0]).toEqual({ followUps: { _count: "desc" } });
+    expect(leadOrderBy("status_flow")[0]).toEqual({ status: "asc" });
+  });
 });

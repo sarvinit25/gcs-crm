@@ -27,7 +27,7 @@ import { Modal } from "../components/modal";
 import { DeleteConfirm } from "../components/delete-confirm";
 import { ArchivedLeads } from "../components/archived-leads";
 import { LeadImportModal } from "../components/lead-import-modal";
-import { DEFAULT_LEAD_SORT, LEAD_SORTS, sortParam, type LeadSortValue } from "../lib/lead-sort";
+import { DEFAULT_LEAD_SORT, LEAD_SORTS, columnDirection, nextColumnSort, sortParam, type LeadSortValue } from "../lib/lead-sort";
 import type { LeadLinkFilter } from "../lib/lead-filters";
 import { PeriodSelect } from "../components/period-select";
 import { DatePicker } from "../components/date-picker";
@@ -652,17 +652,17 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
             <table className="w-full text-left text-[13px]">
               <thead className="border-b border-line bg-bg-light/60 text-[11px] tracking-wide text-muted uppercase">
                 <tr>
-                  <th className="px-4 py-2.5 font-bold">Lead</th>
-                  <th className="px-4 py-2.5 font-bold">Priority</th>
-                  <th className="px-4 py-2.5 font-bold">Product</th>
-                  <th className="px-4 py-2.5 font-bold">Amount</th>
-                  <th className="px-4 py-2.5 font-bold">Source</th>
-                  <th className="px-4 py-2.5 font-bold">Reference</th>
-                  <th className="px-4 py-2.5 font-bold">Chatbot</th>
-                  <th className="px-4 py-2.5 font-bold">Owner</th>
-                  <th className="px-4 py-2.5 font-bold">Last contact</th>
-                  <th className="px-4 py-2.5 font-bold">Follow-up</th>
-                  <th className="px-4 py-2.5 font-bold">Status</th>
+                  <SortHead label="Lead" column="lead" sort={sort} onSort={(v) => reset(() => setSort(v))} />
+                  <SortHead label="Priority" column="priority" sort={sort} onSort={(v) => reset(() => setSort(v))} />
+                  <SortHead label="Product" column="product" sort={sort} onSort={(v) => reset(() => setSort(v))} />
+                  <SortHead label="Amount" column="amount" sort={sort} onSort={(v) => reset(() => setSort(v))} />
+                  <SortHead label="Source" column="source" sort={sort} onSort={(v) => reset(() => setSort(v))} />
+                  <SortHead label="Reference" column="reference" sort={sort} onSort={(v) => reset(() => setSort(v))} />
+                  <SortHead label="Chatbot" column="chatbot" sort={sort} onSort={(v) => reset(() => setSort(v))} />
+                  <SortHead label="Owner" column="owner" sort={sort} onSort={(v) => reset(() => setSort(v))} />
+                  <SortHead label="Last contact" column="contacts" sort={sort} onSort={(v) => reset(() => setSort(v))} title="Sorts by how many times the lead has been contacted" />
+                  <SortHead label="Follow-up" column="followup" sort={sort} onSort={(v) => reset(() => setSort(v))} />
+                  <SortHead label="Status" column="status" sort={sort} onSort={(v) => reset(() => setSort(v))} />
                   {user?.role === "ADMIN" && <th className="w-10 px-2 py-2.5" aria-label="Delete" />}
                 </tr>
               </thead>
@@ -810,6 +810,20 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
 }
 
 /** The Leads page: the working list, and a separate Archived section for converted and lost leads moved out of it. */
+/** A column heading that sorts the whole list when clicked: one way, the other way, then back to the usual order. */
+function SortHead({ label, column, sort, onSort, title }: { label: string; column: string; sort: LeadSortValue; onSort: (v: LeadSortValue) => void; title?: string }) {
+  const dir = columnDirection(column, sort);
+  const active = dir !== null && !(column === "priority" && sort === DEFAULT_LEAD_SORT);
+  return (
+    <th className="px-4 py-2.5 font-bold" aria-sort={!active ? "none" : dir === "first" ? "ascending" : "descending"}>
+      <button type="button" onClick={() => onSort(nextColumnSort(column, sort))} title={title ?? `Sort by ${label.toLowerCase()}`} className={`inline-flex items-center gap-1 uppercase tracking-wide hover:text-navy ${active ? "text-navy" : ""}`}>
+        {label}
+        <span aria-hidden className="text-[10px]">{!active ? "↕" : dir === "first" ? "▲" : "▼"}</span>
+      </button>
+    </th>
+  );
+}
+
 export function LeadsPage() {
   const link = useSearch({ strict: false }) as LeadLinkFilter;
   const [view, setView] = useState<"active" | "archived">(link.view === "archived" ? "archived" : "active");
