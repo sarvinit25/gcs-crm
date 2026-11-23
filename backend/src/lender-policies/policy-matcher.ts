@@ -117,7 +117,7 @@ export type MatchResult = {
 export function categoryOf(r: Pick<MatchResult, "status" | "reasons" | "checks" | "policyNeedsReview" | "capped">): MatchCategory {
   // The price comparison is a nudge between lenders, never a criterion the customer fails.
   // "Where it serves is unknown" and "rules not re-verified" are caveats, not criteria the customer fails.
-  const failed = r.reasons.some((x) => !x.ok && !["PRICING", "LOCATION_UNKNOWN", "POLICY_STALE"].includes(x.code));
+  const failed = r.reasons.some((x) => !x.ok && !["PRICING", "LOCATION_UNKNOWN", "POLICY_STALE", "OBLIGATIONS_HIGH"].includes(x.code));
   if (r.status === "EXCLUDED") return "NOT_MATCHED";
   // A clearly failed rule rules a lender out even when its service area is unrecorded; only unconfirmed rules keep it open.
   if (failed && !r.policyNeedsReview) return "NOT_MATCHED";
@@ -154,6 +154,17 @@ export const takesEmployment = (list: string[], v: string): boolean => {
   const want = employmentGroup(v);
   return list.some((x) => (want !== null && employmentGroup(x) === want) || lower(x) === lower(v));
 };
+
+/** Plain-words warning when running EMIs are at or near the whole income; null when it cannot be told or is fine. */
+export function obligationsWarning(profile: Pick<Profile, "monthlyIncome" | "existingEmi">): string | null {
+  const income = profile.monthlyIncome;
+  const emis = profile.existingEmi;
+  if (!income || !emis || income <= 0) return null;
+  const pct = (emis / income) * 100;
+  if (pct < 80) return null;
+  const rs = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
+  return `Existing EMIs of ${rs(emis)} a month are ${Math.round(pct)}% of the monthly income of ${rs(income)}, before any new loan.`;
+}
 
 export const emi = (principal: number, annualRatePct: number, months: number): number => {
   if (months <= 0) return 0;
@@ -432,6 +443,18 @@ export function matchAll(profile: Profile, policies: PolicyRule[], now: Date = n
       const pricing = (hi - mid) / (hi - lo); // 1 = cheapest
       r.score = Math.round(r.score * (1 - WEIGHTS.pricing / 100) + pricing * 100 * (WEIGHTS.pricing / 100));
       r.reasons.push({ code: "PRICING", ok: pricing >= 0.5, text: pricing >= 0.5 ? "Recorded rate is on the lower side of the shortlist." : "Recorded rate is on the higher side of the shortlist." });
+    }
+  }
+
+  // A warning about the customer, not any one lender: the EMIs already running swallow the income before this loan is added.
+  // It never rules a lender out (a balance transfer or consolidation can clear those EMIs) but it is shown on every lender and
+  // stops any of them being called Eligible until someone has dealt with it.
+  const obligations = obligationsWarning(profile);
+  if (obligations) {
+    for (const r of results) {
+      if (r.status === "EXCLUDED") continue;
+      r.reasons.push({ code: "OBLIGATIONS_HIGH", ok: false, text: obligations });
+      r.checks.push("Existing EMIs already use most of the income: clear or consolidate some of them, or show more income, before applying.");
     }
   }
 

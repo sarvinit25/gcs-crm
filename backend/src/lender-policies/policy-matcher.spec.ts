@@ -225,3 +225,17 @@ describe("employment wording on lender records", () => {
     expect(matchAll({ ...customer, employmentType: "SALARIED" }, [policy({ employmentTypes: ["Self-employed"] })], NOW)[0].status).toBe("EXCLUDED");
   });
 });
+
+describe("existing EMIs against income", () => {
+  const heavy: Profile = { ...customer, monthlyIncome: 82_000, existingEmi: 167_000 };
+  it("warns on every lender but never rules one out or calls it Eligible", () => {
+    const r = matchAll(heavy, [policy()], NOW)[0];
+    expect(r.reasons.some((x) => x.code === "OBLIGATIONS_HIGH" && !x.ok)).toBe(true);
+    expect(r.category).not.toBe("ELIGIBLE");
+    expect(r.checks.join(" ")).toContain("Existing EMIs");
+  });
+  it("says nothing when the EMIs are comfortable or income is unknown", () => {
+    expect(matchAll(customer, [policy()], NOW)[0].reasons.some((x) => x.code === "OBLIGATIONS_HIGH")).toBe(false);
+    expect(matchAll({ ...customer, monthlyIncome: undefined }, [policy()], NOW)[0].reasons.some((x) => x.code === "OBLIGATIONS_HIGH")).toBe(false);
+  });
+});
