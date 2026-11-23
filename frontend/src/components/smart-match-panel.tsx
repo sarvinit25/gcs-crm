@@ -49,7 +49,7 @@ const CATEGORY = {
 const categoryOf = (r: Result): keyof typeof CATEGORY => {
   if (r.category) return r.category;
   if (r.status === "EXCLUDED") return "NOT_MATCHED";
-  if (r.reasons.some((x) => !x.ok && x.code !== "PRICING") && !r.policyNeedsReview && !r.capped) return "NOT_MATCHED";
+  if (r.reasons.some((x) => !x.ok && !["PRICING", "LOCATION_UNKNOWN", "POLICY_STALE"].includes(x.code)) && !r.policyNeedsReview) return "NOT_MATCHED";
   return r.status === "STRONG" && r.checks.length === 0 ? "ELIGIBLE" : "CONDITIONAL";
 };
 

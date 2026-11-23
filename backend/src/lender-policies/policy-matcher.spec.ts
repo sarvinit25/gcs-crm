@@ -195,10 +195,21 @@ describe("Eligible, Conditional and Not matched", () => {
   it("rules a lender out only on a failed criterion of confirmed rules", () => {
     expect(categoryOf({ status: "EXPERT_REVIEW", reasons: [ok, bad], checks: [], policyNeedsReview: false })).toBe("NOT_MATCHED");
     expect(categoryOf({ status: "EXPERT_REVIEW", reasons: [ok, bad], checks: [], policyNeedsReview: true })).toBe("CONDITIONAL");
-    expect(categoryOf({ status: "EXPERT_REVIEW", reasons: [ok, bad], checks: [], policyNeedsReview: false, capped: true })).toBe("CONDITIONAL");
+    expect(categoryOf({ status: "EXPERT_REVIEW", reasons: [ok, bad], checks: [], policyNeedsReview: false, capped: true })).toBe("NOT_MATCHED");
     expect(categoryOf({ status: "EXCLUDED", reasons: [], checks: [], policyNeedsReview: false })).toBe("NOT_MATCHED");
   });
   it("does not count the price comparison as a failure", () => {
     expect(categoryOf({ status: "POSSIBLE", reasons: [ok, { code: "PRICING", ok: false, text: "higher" }], checks: [], policyNeedsReview: false })).toBe("CONDITIONAL");
+  });
+});
+
+describe("category when the service area is not recorded", () => {
+  it("still rules a lender out when the customer clearly fails a confirmed rule", () => {
+    const r = matchAll({ ...customer, monthlyIncome: 40_000, existingEmi: 30_000 }, [policy({ allIndia: false, cities: [] })], NOW)[0];
+    expect(r.category).toBe("NOT_MATCHED");
+  });
+  it("keeps it Conditional when the only gap is the unrecorded service area", () => {
+    const r = matchAll(customer, [policy({ allIndia: false, cities: [] })], NOW)[0];
+    expect(r.category).toBe("CONDITIONAL");
   });
 });

@@ -109,9 +109,11 @@ export type MatchResult = {
 /** Eligible / Conditional / Not matched, from a result. A failed criterion only rules a lender out when its rules are confirmed. */
 export function categoryOf(r: Pick<MatchResult, "status" | "reasons" | "checks" | "policyNeedsReview" | "capped">): MatchCategory {
   // The price comparison is a nudge between lenders, never a criterion the customer fails.
-  const failed = r.reasons.some((x) => !x.ok && x.code !== "PRICING");
+  // "Where it serves is unknown" and "rules not re-verified" are caveats, not criteria the customer fails.
+  const failed = r.reasons.some((x) => !x.ok && !["PRICING", "LOCATION_UNKNOWN", "POLICY_STALE"].includes(x.code));
   if (r.status === "EXCLUDED") return "NOT_MATCHED";
-  if (failed && !r.policyNeedsReview && !r.capped) return "NOT_MATCHED";
+  // A clearly failed rule rules a lender out even when its service area is unrecorded; only unconfirmed rules keep it open.
+  if (failed && !r.policyNeedsReview) return "NOT_MATCHED";
   if (r.status === "STRONG" && r.checks.length === 0) return "ELIGIBLE";
   return "CONDITIONAL";
 }
