@@ -4,7 +4,7 @@
 // lender's score or status, and anything it cannot judge is said plainly instead of guessed.
 
 import type { Program, RuleStatus } from "./policy-extras";
-import { emi, type Profile } from "./policy-matcher";
+import { emi, takesEmployment, type Profile } from "./policy-matcher";
 import { indicativeAmount, type Indicative } from "./program-eligibility";
 
 export type ProgramFit = {
@@ -54,7 +54,7 @@ export function fitProgram(profile: Profile, p: Program, fallback: { rate: numbe
   }
   if (p.employmentTypes.length) {
     if (!profile.employmentType) needs.push("Whether the customer is salaried or self-employed.");
-    else if (!has(p.employmentTypes, profile.employmentType)) gaps.push(`This program is for ${p.employmentTypes.join(" / ").replace(/_/g, "-").toLowerCase()} applicants only.`);
+    else if (!takesEmployment(p.employmentTypes, profile.employmentType)) gaps.push(`This program is for ${p.employmentTypes.join(" / ").replace(/_/g, "-").toLowerCase()} applicants only.`);
     else ok.push("Applicant type is accepted.");
   }
   if (p.propertyTypes.length) {

@@ -140,6 +140,21 @@ const DAY = 86_400_000;
 const lower = (v: string) => v.trim().toLowerCase();
 const inList = (list: string[], v: string) => list.some((x) => lower(x) === lower(v));
 
+/**
+ * Lender records are typed by people ("Self-employed", "Professional", "Business", "Salaried") while a customer is SALARIED or
+ * SELF_EMPLOYED. Both are brought to the same two groups before comparing, so the wording never rules a lender out.
+ */
+export const employmentGroup = (v: string): "SALARIED" | "SELF_EMPLOYED" | null => {
+  const t = lower(v).replace(/[^a-z]/g, "");
+  if (t.includes("salar")) return "SALARIED";
+  if (/self|business|professional|proprietor|partner|consultant|trader/.test(t)) return "SELF_EMPLOYED";
+  return null;
+};
+export const takesEmployment = (list: string[], v: string): boolean => {
+  const want = employmentGroup(v);
+  return list.some((x) => (want !== null && employmentGroup(x) === want) || lower(x) === lower(v));
+};
+
 export const emi = (principal: number, annualRatePct: number, months: number): number => {
   if (months <= 0) return 0;
   const r = annualRatePct / 12 / 100;
@@ -248,7 +263,7 @@ export function matchOne(profile: Profile, p: PolicyRule, now: Date = new Date()
   }
 
   if (p.employmentTypes.length && profile.employmentType) {
-    if (!inList(p.employmentTypes, profile.employmentType)) {
+    if (!takesEmployment(p.employmentTypes, profile.employmentType)) {
       note("EMPLOYMENT", false, "This lender does not take this applicant type for the product.");
       return out("EXCLUDED", null);
     }

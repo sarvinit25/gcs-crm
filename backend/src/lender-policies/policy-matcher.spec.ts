@@ -213,3 +213,15 @@ describe("category when the service area is not recorded", () => {
     expect(r.category).toBe("CONDITIONAL");
   });
 });
+
+describe("employment wording on lender records", () => {
+  const selfEmployed: Profile = { ...customer, employmentType: "SELF_EMPLOYED" };
+  it.each([["Self-employed"], ["Self employed"], ["Professional"], ["Business"], ["SELF_EMPLOYED"]])("a self-employed customer fits a lender recorded as %s", (label) => {
+    const r = matchAll(selfEmployed, [policy({ employmentTypes: [label] })], NOW)[0];
+    expect(r.status).not.toBe("EXCLUDED");
+  });
+  it("still rules out a salaried-only lender", () => {
+    expect(matchAll(selfEmployed, [policy({ employmentTypes: ["Salaried"] })], NOW)[0].status).toBe("EXCLUDED");
+    expect(matchAll({ ...customer, employmentType: "SALARIED" }, [policy({ employmentTypes: ["Self-employed"] })], NOW)[0].status).toBe("EXCLUDED");
+  });
+});
