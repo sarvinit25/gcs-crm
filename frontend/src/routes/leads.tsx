@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Archive, ChevronDown, Loader2, Plus, Search, Trash2, Upload } from "lucide-react";
+import { AlertCircle, Archive, ChevronDown, Loader2, Plus, Search, SlidersHorizontal, Trash2, Upload } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
 import { ExportMenu } from "../components/export-menu";
@@ -29,6 +29,7 @@ import { ArchivedLeads } from "../components/archived-leads";
 import { LeadImportModal } from "../components/lead-import-modal";
 import { DEFAULT_LEAD_SORT, LEAD_SORTS, sortParam, type LeadSortValue } from "../lib/lead-sort";
 import type { LeadLinkFilter } from "../lib/lead-filters";
+import { ColumnFilter } from "../components/column-filter";
 import { PeriodSelect } from "../components/period-select";
 import { DatePicker } from "../components/date-picker";
 import { TableSkeleton } from "../components/skeleton";
@@ -361,6 +362,7 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
   const [page, setPage] = useState(1);
   const [showNewLead, setShowNewLead] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const products = useQuery({
     queryKey: ["loan-products"],
@@ -402,6 +404,44 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
     setPage(1);
   };
 
+  // Each active filter as a removable chip, so it is always clear why the list looks the way it does.
+  const nameOf = (list: { id: string; name: string }[] | undefined, id: string, none: string) => (id === "none" ? none : (list?.find((x) => x.id === id)?.name ?? "…"));
+  const chips = (
+    [
+      segment && { key: "segment", label: `Priority: ${PRIORITY_META[segment].label}`, clear: () => setSegment("") },
+      loanProductId && { key: "loan", label: `Loan: ${nameOf(products.data, loanProductId, "")}`, clear: () => setLoanProductId("") },
+      status && { key: "status", label: `Status: ${LEAD_STATUS_LABEL[status as keyof typeof LEAD_STATUS_LABEL] ?? status}`, clear: () => setStatus("") },
+      source && { key: "source", label: `Source: ${entryLabel(source)}`, clear: () => setSource("") },
+      ownerId && { key: "owner", label: `Owner: ${nameOf(staff.data, ownerId, "Unassigned")}`, clear: () => setOwnerId("") },
+      partnerId && { key: "partner", label: `Sourced by: ${nameOf(partners.data, partnerId, "Ourselves")}`, clear: () => setPartnerId("") },
+      channel && { key: "channel", label: `Channel: ${channel === "none" ? "Not tracked" : channel}`, clear: () => setChannel("") },
+      question && {
+        key: "question",
+        label: `Form: ${question}${answer ? ` = ${answer}` : ""}`,
+        clear: () => {
+          setQuestion("");
+          setAnswer("");
+        },
+      },
+      chatbot && { key: "chatbot", label: "Chatbot contacts", clear: () => setChatbot(false) },
+      dueOnly && { key: "due", label: "Follow-up due", clear: () => setDueOnly(false) },
+    ] as ({ key: string; label: string; clear: () => void } | "" | false)[]
+  ).filter((c): c is { key: string; label: string; clear: () => void } => Boolean(c));
+  const clearAll = () => {
+    setSegment("");
+    setLoanProductId("");
+    setStatus("");
+    setSource("");
+    setOwnerId("");
+    setPartnerId("");
+    setChannel("");
+    setQuestion("");
+    setAnswer("");
+    setChatbot(false);
+    setDueOnly(false);
+  };
+  const moreCount = [channel, partnerId, question].filter(Boolean).length;
+
   return (
     <>
       <PageHeader
@@ -440,10 +480,10 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
         />
       )}
 
-      <div className="px-6 py-5">
-        {/* Loan-type tabs with counts: the busiest few, the rest through the loan-type filter below. */}
+      <div className="space-y-4 px-6 py-5">
+        {/* Loan type: tabs with counts, the busiest few. */}
         {typeCounts.data && typeCounts.data.types.length > 0 && (
-          <div className="mb-4 flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Loan type">
+          <div className="flex flex-wrap items-center gap-x-1 gap-y-1 border-b border-line" role="tablist" aria-label="Loan type">
             {[{ loanProductId: "", name: "All leads", count: typeCounts.data.total }, ...typeCounts.data.types.slice(0, 6)].map((t) => {
               const on = loanProductId === t.loanProductId;
               return (
@@ -453,237 +493,191 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
                   aria-selected={on}
                   onClick={() => reset(() => setLoanProductId(t.loanProductId))}
                   className={clsx(
-                    "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-[13px] font-semibold transition",
-                    on ? "border-navy bg-navy text-white" : "border-line bg-white text-muted hover:border-navy/30 hover:text-navy",
+                    "-mb-px inline-flex items-center gap-2 border-b-2 px-3 py-2 text-[13px] font-semibold transition",
+                    on ? "border-navy text-navy" : "border-transparent text-muted hover:text-navy",
                   )}
                 >
                   {t.name}
-                  <span className={clsx("rounded-full px-1.5 text-[11px] font-bold", on ? "bg-white/20" : "bg-bg-light")}>{t.count}</span>
+                  <span className={clsx("rounded-full px-1.5 text-[11px] font-bold", on ? "bg-navy text-white" : "bg-bg-light text-muted")}>{t.count}</span>
                 </button>
               );
             })}
           </div>
         )}
 
-        {/* The four working segments, in priority order. Tap one to see only those leads. */}
-        <div className="mb-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-6">
+        {/* Priority at a glance: tap one to see only those leads. */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => reset(() => setSegment(""))}
-            className={clsx(
-              "rounded-xl border px-4 py-3 text-left transition-colors",
-              segment === "" ? "border-navy bg-navy text-white" : "border-line bg-white hover:border-navy/30",
-            )}
+            className={clsx("rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition", segment === "" ? "border-navy bg-navy text-white" : "border-line bg-white text-navy hover:border-navy/40")}
           >
-            <p className="text-[11px] font-bold tracking-wide uppercase opacity-70">All, by priority</p>
-            <p className="mt-0.5 text-xl font-bold">
-              {counts.data ? LEAD_SEGMENTS.reduce((n, k) => n + counts.data[k], 0) : "—"}
-            </p>
+            All <span className="ml-1 opacity-70">{counts.data ? LEAD_SEGMENTS.reduce((n, k) => n + counts.data[k], 0) : "—"}</span>
           </button>
           {LEAD_SEGMENTS.map((k) => (
             <button
               key={k}
               onClick={() => reset(() => setSegment(segment === k ? "" : k))}
               title={LEAD_SEGMENT_HINT[k]}
-              style={{ borderTopColor: PRIORITY_META[k].color }}
-              className={clsx(
-                "rounded-xl border border-t-[3px] px-4 py-3 text-left transition-colors",
-                segment === k ? "border-navy ring-2 ring-navy/20" : "border-line hover:border-navy/30",
-                "bg-white",
-              )}
+              className={clsx("inline-flex items-center gap-2 rounded-full border bg-white px-3.5 py-1.5 text-[13px] font-semibold text-navy transition", segment === k ? "border-navy ring-2 ring-navy/15" : "border-line hover:border-navy/40")}
             >
-              <SegmentBadge segment={k} />
-              <p className="mt-1 text-xl font-bold text-navy">{counts.data ? counts.data[k] : "—"}</p>
-              <p className="text-[11px] leading-snug text-muted">{LEAD_SEGMENT_HINT[k]}</p>
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PRIORITY_META[k].color }} />
+              {PRIORITY_META[k].label}
+              <span className="text-muted">{counts.data ? counts.data[k] : "—"}</span>
             </button>
           ))}
-          {/* People who signed in to the website chat with a mobile code, in any segment. */}
           <button
             onClick={() => reset(() => setChatbot(!chatbot))}
             title="People who confirmed their mobile number with a code to use the website chat"
-            className={clsx(
-              "rounded-xl border bg-white px-4 py-3 text-left transition-colors",
-              chatbot ? "border-navy ring-2 ring-navy/20" : "border-line hover:border-navy/30",
-            )}
+            className={clsx("inline-flex items-center gap-2 rounded-full border bg-white px-3.5 py-1.5 text-[13px] font-semibold text-navy transition", chatbot ? "border-navy ring-2 ring-navy/15" : "border-line hover:border-navy/40")}
           >
-            <span className="inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-700">
-              Chatbot contacts
-            </span>
-            <p className="mt-1 text-xl font-bold text-navy">{counts.data ? counts.data.chatbot : "—"}</p>
-            <p className="text-[11px] leading-snug text-muted">Verified by a code in the website chat</p>
+            <span className="h-2 w-2 rounded-full bg-violet-500" />
+            Chatbot contacts
+            <span className="text-muted">{counts.data ? counts.data.chatbot : "—"}</span>
           </button>
         </div>
 
-        {source && (
-          <div className="mb-3 flex flex-wrap items-center gap-2 text-[13px]">
-            <span className="text-muted">Showing leads from</span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-navy px-3 py-1 font-semibold text-white">
-              {source}
-              <button onClick={() => reset(() => setSource(""))} className="rounded-full px-1 text-white/70 hover:text-white" aria-label="Show every source">
-                ×
-              </button>
-            </span>
-          </div>
-        )}
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <div className="relative">
+        {/* Search and the few filters used most; the rest are in the column headings or under More filters. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[16rem] flex-1 sm:max-w-sm">
             <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted/60" />
-            <input
-              value={search}
-              onChange={(e) => reset(() => setSearch(e.target.value))}
-              placeholder="Name, phone or email"
-              className="field w-64 pl-9"
-            />
+            <input value={search} onChange={(e) => reset(() => setSearch(e.target.value))} placeholder="Search name, phone or email" className="field w-full pl-9" />
           </div>
-
-          <select
-            value={status}
-            onChange={(e) => reset(() => setStatus(e.target.value))}
-            className="field w-40"
-          >
-            <option value="">All statuses</option>
-            {LEAD_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {LEAD_STATUS_LABEL[s]}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={loanProductId}
-            onChange={(e) => reset(() => setLoanProductId(e.target.value))}
-            className="field w-44"
-          >
-            <option value="">All loan types</option>
-            {products.data?.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-
-          <select value={channel} onChange={(e) => reset(() => setChannel(e.target.value))} className="field w-48" aria-label="Channel">
-            <option value="">All channels</option>
-            <option value="none">Not tracked</option>
-            {(channels.data ?? []).map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-
-          {(questions.data?.length ?? 0) > 0 && (
-            <>
-              <select
-                value={question}
-                onChange={(e) => reset(() => { setQuestion(e.target.value); setAnswer(""); })}
-                className="field w-56"
-                aria-label="Form question"
-              >
-                <option value="">Form answer — any</option>
-                {questions.data?.map((q) => (
-                  <option key={q.question} value={q.question}>
-                    {q.question} ({q.count})
-                  </option>
-                ))}
-              </select>
-              {question && (
-                <input
-                  value={answer}
-                  onChange={(e) => reset(() => setAnswer(e.target.value))}
-                  placeholder="…answered (part of it)"
-                  className="field w-44"
-                  aria-label="Part of the answer"
-                />
-              )}
-            </>
-          )}
-
-          {canFilterOwner && (
-            <select value={ownerId} onChange={(e) => reset(() => setOwnerId(e.target.value))} className="field w-44" aria-label="Assigned to">
-              <option value="">Assigned to — all</option>
-              <option value="none">Unassigned</option>
-              {staff.data?.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
-          )}
-
-          <select value={partnerId} onChange={(e) => reset(() => setPartnerId(e.target.value))} className="field w-44" aria-label="Sourced by">
-            <option value="">Sourced by — all</option>
-            <option value="none">Ourselves</option>
-            {partners.data?.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-
-          <PeriodSelect value={timeRange} onChange={(v) => reset(() => setTimeRange(v))} className="field w-56" />
-          <select value={sort} onChange={(e) => reset(() => setSort(e.target.value as LeadSortValue))} className="field w-56" aria-label="Sort by" title="Sort the list">
+          <PeriodSelect value={timeRange} onChange={(v) => reset(() => setTimeRange(v))} className="field w-44" />
+          <button onClick={() => reset(() => setDueOnly(!dueOnly))} className={clsx("btn-ghost", dueOnly && "border-navy/40 bg-navy/5")}>
+            <AlertCircle className="h-4 w-4" />
+            Follow-up due
+          </button>
+          <button onClick={() => setMoreOpen(!moreOpen)} className={clsx("btn-ghost", (moreOpen || moreCount > 0) && "border-navy/40 bg-navy/5")}>
+            <SlidersHorizontal className="h-4 w-4" />
+            More filters
+            {moreCount > 0 && <span className="rounded-full bg-navy px-1.5 text-[11px] font-bold text-white">{moreCount}</span>}
+          </button>
+          <select value={sort} onChange={(e) => reset(() => setSort(e.target.value as LeadSortValue))} className="field ml-auto w-52" aria-label="Sort by" title="Sort the list">
             {LEAD_SORTS.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
             ))}
           </select>
-
-          <button
-            onClick={() => reset(() => setDueOnly(!dueOnly))}
-            className={clsx("btn-ghost", dueOnly && "border-navy/40 bg-navy/5")}
-          >
-            <AlertCircle className="h-4 w-4" />
-            Follow-up due
-          </button>
-
         </div>
+
+        {moreOpen && (
+          <div className="grid gap-3 rounded-xl border border-line bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
+            <label className={LABEL}>
+              Channel
+              <select value={channel} onChange={(e) => reset(() => setChannel(e.target.value))} className="field font-normal">
+                <option value="">All channels</option>
+                <option value="none">Not tracked</option>
+                {(channels.data ?? []).map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={LABEL}>
+              Sourced by
+              <select value={partnerId} onChange={(e) => reset(() => setPartnerId(e.target.value))} className="field font-normal">
+                <option value="">Everyone</option>
+                <option value="none">Ourselves</option>
+                {partners.data?.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {(questions.data?.length ?? 0) > 0 && (
+              <>
+                <label className={LABEL}>
+                  Form question
+                  <select value={question} onChange={(e) => reset(() => { setQuestion(e.target.value); setAnswer(""); })} className="field font-normal">
+                    <option value="">Any</option>
+                    {questions.data?.map((q) => (
+                      <option key={q.question} value={q.question}>
+                        {q.question} ({q.count})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {question && (
+                  <label className={LABEL}>
+                    Answer contains
+                    <input value={answer} onChange={(e) => reset(() => setAnswer(e.target.value))} placeholder="Part of the answer" className="field font-normal" />
+                  </label>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* What is filtering the list right now, each removable. */}
+        {chips.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 text-[12px]">
+            <span className="text-muted">Filtered by</span>
+            {chips.map((c) => (
+              <span key={c.key} className="inline-flex items-center gap-1.5 rounded-full bg-navy/10 px-3 py-1 font-semibold text-navy">
+                {c.label}
+                <button onClick={() => reset(c.clear)} className="rounded-full px-0.5 text-navy/60 hover:text-navy" aria-label={`Remove ${c.label}`}>
+                  ×
+                </button>
+              </span>
+            ))}
+            <button onClick={() => reset(clearAll)} className="font-semibold text-muted underline hover:text-navy">
+              Clear all
+            </button>
+          </div>
+        )}
 
         <div className="card overflow-x-auto">
           {query.isPending ? (
             <TableSkeleton />
           ) : query.isError ? (
-            <p className="py-16 text-center text-sm text-red-600">
-              {(query.error as Error).message}
-            </p>
+            <p className="py-16 text-center text-sm text-red-600">{(query.error as Error).message}</p>
           ) : !query.data.items.length ? (
             <p className="py-16 text-center text-sm text-muted">No leads match these filters.</p>
           ) : (
             <table className="w-full text-left text-[13px]">
-              <thead className="border-b border-line bg-bg-light/60 text-[11px] tracking-wide text-muted uppercase">
+              <thead className="border-b border-line text-[12px] text-muted">
                 <tr>
-                  <th className="px-4 py-2.5 font-bold">Lead</th>
-                  <th className="px-4 py-2.5 font-bold">Priority</th>
-                  <th className="px-4 py-2.5 font-bold">Product</th>
-                  <th className="px-4 py-2.5 font-bold">Amount</th>
-                  <th className="px-4 py-2.5 font-bold">Source</th>
-                  <th className="px-4 py-2.5 font-bold">Reference</th>
-                  <th className="px-4 py-2.5 font-bold">Chatbot</th>
-                  <th className="px-4 py-2.5 font-bold">Owner</th>
-                  <th className="px-4 py-2.5 font-bold">Last contact</th>
-                  <th className="px-4 py-2.5 font-bold">Follow-up</th>
-                  <th className="px-4 py-2.5 font-bold">Status</th>
-                  {user?.role === "ADMIN" && <th className="w-10 px-2 py-2.5" aria-label="Delete" />}
+                  <th className="px-5 py-3 font-semibold">Lead</th>
+                  <th className="px-4 py-3">
+                    <ColumnFilter label="Priority" value={segment} onChange={(v) => reset(() => setSegment(v as LeadSegment | ""))} options={LEAD_SEGMENTS.map((k) => ({ value: k, label: PRIORITY_META[k].label }))} />
+                  </th>
+                  <th className="px-4 py-3">
+                    <ColumnFilter label="Loan" value={loanProductId} onChange={(v) => reset(() => setLoanProductId(v))} allLabel="All loan types" options={(products.data ?? []).map((p) => ({ value: p.id, label: p.name }))} />
+                  </th>
+                  <th className="px-4 py-3">
+                    <ColumnFilter label="Source" value={source} onChange={(v) => reset(() => setSource(v))} allLabel="All sources" options={Object.entries(ENTRY_LABEL).map(([value, label]) => ({ value, label }))} />
+                  </th>
+                  <th className="px-4 py-3">
+                    {canFilterOwner ? (
+                      <ColumnFilter label="Owner" value={ownerId} onChange={(v) => reset(() => setOwnerId(v))} allLabel="Everyone" options={[{ value: "none", label: "Unassigned" }, ...(staff.data ?? []).map((u) => ({ value: u.id, label: u.name }))]} />
+                    ) : (
+                      <span className="font-semibold">Owner</span>
+                    )}
+                  </th>
+                  <th className="px-4 py-3 font-semibold">Contact</th>
+                  <th className="px-4 py-3">
+                    <ColumnFilter label="Status" value={status} onChange={(v) => reset(() => setStatus(v))} allLabel="All statuses" options={LEAD_STATUSES.map((s) => ({ value: s, label: LEAD_STATUS_LABEL[s] }))} />
+                  </th>
+                  {user?.role === "ADMIN" && <th className="w-10 px-2 py-3" aria-label="Delete" />}
                 </tr>
               </thead>
               <tbody>
                 {query.data.items.map((lead) => (
-                  <tr key={lead.id} className="border-b border-line/70 last:border-0 hover:bg-bg-light/70">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
+                  <tr key={lead.id} className="border-b border-line/60 align-top last:border-0 hover:bg-bg-light/60">
+                    <td className="px-5 py-4">
+                      <div className="flex items-start gap-3">
                         <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-navy/10 text-[12px] font-bold text-navy">
                           {initials(lead.name)}
                         </span>
-                        <div>
-                          <Link
-                            to="/leads/$leadId"
-                            params={{ leadId: lead.id }}
-                            className="font-semibold text-navy hover:text-gold-dark"
-                          >
+                        <div className="min-w-0">
+                          <Link to="/leads/$leadId" params={{ leadId: lead.id }} className="font-semibold text-navy hover:text-gold-dark">
                             {lead.name}
                           </Link>
                           {lead.archivedAt && <ArchivedBadge />}
-                          <p className="flex items-center text-[12px] text-muted">
+                          <p className="flex flex-wrap items-center text-[12px] text-muted">
                             <span>
                               #{lead.leadNo} · {lead.phone}
                               {lead.city && ` · ${lead.city}`}
@@ -693,60 +687,45 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-4">
                       <SegmentBadge segment={lead.segment} note={lead.segmentNote} />
                       {lead.segmentNote && lead.segment && (
-                        <p className="mt-0.5 max-w-[210px] truncate text-[11px] text-muted" title={lead.segmentNote}>
+                        <p className="mt-1 max-w-[200px] truncate text-[11px] text-muted" title={lead.segmentNote}>
                           {lead.segmentNote}
                         </p>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-muted">{lead.loanProduct?.name ?? "—"}</td>
-                    <td className="px-4 py-3 font-medium">{formatAmount(lead.amount)}</td>
-                    <td className="px-4 py-3 text-muted">
-                      <span className="font-medium text-navy">{entryLabel(lead.source)}</span>
-                      <p className="text-[11px]">{lead.channel ?? "—"}</p>
+                    <td className="px-4 py-4">
+                      <p className="font-semibold text-navy">{formatAmount(lead.amount)}</p>
+                      <p className="text-[12px] text-muted">{lead.loanProduct?.name ?? "—"}</p>
                     </td>
-                    <td className="px-4 py-3 text-muted">{lead.sourcingPartner?.name ?? "Self"}</td>
-                    <td className="px-4 py-3">
-                      {lead.chatVerifiedAt ? (
-                        <>
-                          <span className="inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-700">
-                            Verified on chat
-                          </span>
-                          <p className="mt-0.5 text-[11px] text-muted">{formatDate(lead.chatVerifiedAt)}</p>
-                        </>
-                      ) : (
-                        <span className="text-muted/60">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-muted">
-                      {lead.assignedOfficer?.name ?? (
-                        <span className="text-amber-600">Unassigned</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-muted">
-                      {lead.lastContactAt ? (
-                        <span title={`${lead.contactCount} call${lead.contactCount === 1 ? "" : "s"} or note${lead.contactCount === 1 ? "" : "s"} logged`}>
-                          {ago(lead.lastContactAt)}
+                    <td className="px-4 py-4">
+                      <p className="font-medium text-navy">{entryLabel(lead.source)}</p>
+                      <p className="text-[12px] text-muted">{[lead.channel, lead.sourcingPartner?.name ?? "Self"].filter(Boolean).join(" · ")}</p>
+                      {lead.chatVerifiedAt && (
+                        <span title={`Verified on chat ${formatDate(lead.chatVerifiedAt)}`} className="mt-1 inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-700">
+                          Chat verified
                         </span>
-                      ) : (
-                        <span className="text-muted/70">No contact yet</span>
                       )}
                     </td>
-                    <td
-                      className={clsx(
-                        "px-4 py-3",
-                        isOverdue(lead.nextFollowUpAt) ? "font-semibold text-red-600" : "text-muted",
+                    <td className="px-4 py-4 text-muted">{lead.assignedOfficer?.name ?? <span className="text-amber-600">Unassigned</span>}</td>
+                    <td className="px-4 py-4">
+                      <p className="text-muted">
+                        {lead.lastContactAt ? (
+                          <span title={`${lead.contactCount} call${lead.contactCount === 1 ? "" : "s"} or note${lead.contactCount === 1 ? "" : "s"} logged`}>Last: {ago(lead.lastContactAt)}</span>
+                        ) : (
+                          <span className="text-muted/70">No contact yet</span>
+                        )}
+                      </p>
+                      {lead.nextFollowUpAt && (
+                        <p className={clsx("text-[12px]", isOverdue(lead.nextFollowUpAt) ? "font-semibold text-red-600" : "text-muted")}>Follow-up {formatDate(lead.nextFollowUpAt)}</p>
                       )}
-                    >
-                      {formatDate(lead.nextFollowUpAt)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-4">
                       <LeadStatusBadge status={lead.status} />
                     </td>
                     {user?.role === "ADMIN" && (
-                      <td className="px-2 py-3 text-right">
+                      <td className="px-2 py-4 text-right">
                         <button
                           onClick={() => setToDelete(lead)}
                           title={`Delete lead #${lead.leadNo} permanently`}
