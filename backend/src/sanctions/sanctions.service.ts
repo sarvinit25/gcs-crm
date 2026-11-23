@@ -88,7 +88,7 @@ export class SanctionsService {
   async upsert(applicationId: string, dto: UpsertSanctionDto, user: AuthUser, ip?: string) {
     const application = await this.prisma.application.findFirst({
       where: { id: applicationId, ...this.scopeFor(user) },
-      select: { id: true, seq: true, createdAt: true, requestedAmount: true, status: true },
+      select: { id: true, seq: true, createdAt: true, requestedAmount: true, status: true, lenderId: true, loanProductId: true },
     });
     if (!application) throw new NotFoundException("Application not found");
 
@@ -111,7 +111,7 @@ export class SanctionsService {
     const tenure = dto.tenureMonths ?? before?.tenureMonths ?? undefined;
     const termsTouched =
       dto.sanctionedAmount !== undefined || dto.interestRate !== undefined || dto.tenureMonths !== undefined;
-    const computed: { emiAmount?: number; processingFee?: number } = {};
+    const computed: { emiAmount?: number; processingFee?: number; commissionPercent?: number } = {};
     if (dto.emiAmount === undefined && termsTouched) {
       const calculated = emi(amount, rate, tenure);
       if (calculated !== null) computed.emiAmount = calculated;
@@ -119,6 +119,16 @@ export class SanctionsService {
     if (dto.processingFee === undefined && dto.processingFeePercent !== undefined) {
       const fee = feeAmount(amount, dto.processingFeePercent, undefined);
       if (fee !== null) computed.processingFee = fee;
+    }
+    // Our payout from this lender on this loan type, when it is recorded on the lender's policy and nobody has typed one: it is a
+    // fact about the lender, so it should not be retyped on every file.
+    if (dto.commissionPercent === undefined && before?.commissionPercent == null && application.lenderId && user.role !== Role.ADVISOR) {
+      const policy = await this.prisma.lenderPolicy.findFirst({
+        where: { lenderId: application.lenderId, loanProductId: application.loanProductId, commissionPercent: { not: null } },
+        orderBy: { updatedAt: "desc" },
+        select: { commissionPercent: true },
+      });
+      if (policy?.commissionPercent != null) computed.commissionPercent = Number(policy.commissionPercent);
     }
     const data = { ...dto, ...computed };
     if (user.role === Role.ADVISOR) delete data.commissionPercent;
