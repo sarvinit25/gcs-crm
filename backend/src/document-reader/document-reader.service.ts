@@ -83,6 +83,49 @@ export class DocumentReaderService {
     }
   }
 
+  /**
+   * Reads the bank statements on an application with OUR OWN statement reader only: nothing is sent to an outside AI. Each
+   * one that reads is saved as a reading for staff to see. The one with the most months also goes into the lead's CAM, but only
+   * while the CAM has no bank months of its own yet, so it never overwrites what a person entered. Never throws.
+   */
+  async readStatementsOnServer(applicationId: string, user: AuthUser): Promise<{ read: number; appliedToCam: boolean }> {
+    let read = 0;
+    let appliedToCam = false;
+    try {
+      const app = await this.prisma.application.findUnique({ where: { id: applicationId }, select: { leadId: true } });
+      const docs = await this.prisma.document.findMany({ where: { applicationId, category: "Bank statement", reading: null }, orderBy: { createdAt: "asc" }, take: 12 });
+      let best: { documentId: string; fileName: string; months: number; fill: CamPatch } | null = null;
+      for (const d of docs) {
+        try {
+          const local = await this.tryStatement(await this.storage.get(d.objectKey), d.fileName);
+          if (!local) continue;
+          const summary = `Bank statement, ${local.analysis.monthsFound} month${local.analysis.monthsFound === 1 ? "" : "s"} read on our own server.`;
+          await this.prisma.documentReading.upsert({
+            where: { documentId: d.id },
+            create: { documentId: d.id, docType: "BANK_STATEMENT", method: "local", summary, fields: statementFields(local.analysis) as unknown as Prisma.InputJsonValue, cam: local.fill as unknown as Prisma.InputJsonValue, model: null },
+            update: {},
+          });
+          read++;
+          if (!best || local.analysis.monthsFound > best.months) best = { documentId: d.id, fileName: d.fileName, months: local.analysis.monthsFound, fill: local.fill as unknown as CamPatch };
+        } catch (e) {
+          this.log.warn(`Could not read the statement ${d.fileName} on our server: ${(e as Error).message}`);
+        }
+      }
+      if (best && app?.leadId) {
+        const cam = await this.prisma.camCase.findUnique({ where: { leadId: app.leadId }, select: { data: true } });
+        const banking = ((cam?.data ?? {}) as { banking?: { months?: unknown[] } }).banking;
+        if (!banking?.months?.length) {
+          await this.cam.save(app.leadId, { data: best.fill }, user);
+          await this.prisma.documentReading.update({ where: { documentId: best.documentId }, data: { appliedToCamAt: new Date() } });
+          appliedToCam = true;
+        }
+      }
+    } catch (e) {
+      this.log.warn(`Reading the statements of an application stopped: ${(e as Error).message}`);
+    }
+    return { read, appliedToCam };
+  }
+
   private async readDocument(doc: { id: string; category: string; fileName: string; objectKey: string; mimeType: string }) {
     const documentId = doc.id;
     if (NEVER_READ_CATEGORIES.includes(doc.category)) throw new BadRequestException("Identity papers (KYC) are not read by the AI. The customer types those numbers themselves.");
