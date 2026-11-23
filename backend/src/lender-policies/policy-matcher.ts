@@ -12,6 +12,7 @@
 //  - lender payout or commission is not an input, so it cannot influence a ranking.
 
 import type { Program } from "./policy-extras";
+import { applyCriteria, type Criteria, type FieldValues, type MatchFieldDef } from "./match-fields";
 import { fitPrograms, type ProgramFit } from "./program-fit";
 
 export type Band = { upTo: number | null; value: number };
@@ -48,6 +49,8 @@ export type PolicyRule = {
   cities: string[];
   /** The lender's named programs for this loan type, each judged on its own rules. */
   programs?: Program[];
+  /** Tests on staff-defined match fields (see match-fields.ts). */
+  criteria?: Criteria | null;
 };
 
 export type Profile = {
@@ -73,6 +76,10 @@ export type Profile = {
   agreementValue?: number;
   stampDuty?: number;
   industry?: string;
+  /** Answers to staff-defined match fields, by field key. */
+  fields?: FieldValues;
+  /** The loan product slug being matched, so a field can apply to some loan types only. */
+  product?: string;
 };
 
 export type MatchStatus = "STRONG" | "POSSIBLE" | "EXPERT_REVIEW" | "EXCLUDED";
@@ -383,9 +390,10 @@ function finish(
 const RANK: Record<MatchStatus, number> = { STRONG: 0, POSSIBLE: 1, EXPERT_REVIEW: 2, EXCLUDED: 3 };
 
 /** Runs the matcher across every policy and returns them best first. */
-export function matchAll(profile: Profile, policies: PolicyRule[], now: Date = new Date()): MatchResult[] {
+export function matchAll(profile: Profile, policies: PolicyRule[], now: Date = new Date(), fields: MatchFieldDef[] = []): MatchResult[] {
   const results = policies.map((p) => {
     const r = matchOne(profile, p, now);
+    if (r.status !== "EXCLUDED") applyCriteria(r, p.criteria, fields, profile.fields, { product: profile.product, employmentType: profile.employmentType });
     if (p.programs?.length && r.status !== "EXCLUDED") r.programFit = fitPrograms(profile, p.programs, { rate: p.maxRate ?? p.minRate, tenureMonths: p.maxTenureMonths });
     return r;
   });

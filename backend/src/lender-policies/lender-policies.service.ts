@@ -6,8 +6,10 @@ import { AuditService } from "../audit/audit.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { matchAll, type Band, type PolicyRule, type Profile } from "./policy-matcher";
 import { profileFromLead } from "./profile-from-lead";
+import { cleanCriteria, coerceValue, fieldKey, missingMandatory, type Criteria, type MatchFieldDef } from "./match-fields";
 import { cleanSheet, SHEET_FIELDS } from "./policy-sheet-schema";
 import type {
+  MatchFieldDto,
   BulkPolicyDto,
   CreatePolicyDto,
   ExceptionDto,
@@ -81,6 +83,7 @@ export function toRule(p: PolicyRow): PolicyRule {
     allIndia: p.allIndia,
     cities: p.cities,
     programs: cleanPrograms(p.programs),
+    criteria: (p.criteria as Criteria | null) ?? null,
   };
 }
 
@@ -122,8 +125,8 @@ export class LenderPoliciesService {
     return { ...p, freshness: freshness(p) };
   }
 
-  private data(dto: PolicyFieldsDto) {
-    const { foirBands, ltvBands, programs, conditions, effectiveFrom, effectiveTo, ...rest } = dto;
+  private data(dto: PolicyFieldsDto, fields: MatchFieldDef[]) {
+    const { foirBands, ltvBands, programs, conditions, criteria, effectiveFrom, effectiveTo, ...rest } = dto;
     if (dto.minAmount != null && dto.maxAmount != null && dto.minAmount > dto.maxAmount) {
       throw new BadRequestException("Minimum amount is above the maximum");
     }
@@ -144,6 +147,7 @@ export class LenderPoliciesService {
       ...(ltvBands !== undefined && { ltvBands: bands(ltvBands, 100) }),
       ...(programs !== undefined && { programs: programs === null || !cleanPrograms(programs).length ? Prisma.DbNull : json(cleanPrograms(programs)) }),
       ...(conditions !== undefined && { conditions: conditions === null || !Object.keys(cleanConditions(conditions)).length ? Prisma.DbNull : json(cleanConditions(conditions)) }),
+      ...(criteria !== undefined && { criteria: criteria === null || !Object.keys(cleanCriteria(criteria, fields)).length ? Prisma.DbNull : json(cleanCriteria(criteria, fields)) }),
       ...(effectiveFrom && { effectiveFrom: new Date(effectiveFrom) }),
       ...(effectiveTo !== undefined && { effectiveTo: effectiveTo ? new Date(effectiveTo) : null }),
     };
@@ -161,7 +165,7 @@ export class LenderPoliciesService {
     if (clash) throw new ConflictException(`${lender.name} already has a ${product.name} policy; edit that one`);
     const { lenderId, loanProductId, ...fields } = dto;
     const created = await this.prisma.lenderPolicy.create({
-      data: { lenderId, loanProductId, ...(this.data(fields) as Omit<Prisma.LenderPolicyUncheckedCreateInput, "lenderId" | "loanProductId">) },
+      data: { lenderId, loanProductId, ...(this.data(fields, await this.defs()) as Omit<Prisma.LenderPolicyUncheckedCreateInput, "lenderId" | "loanProductId">) },
     });
     await this.snapshot(created.id, actor, "Created");
     await this.audit.record({
@@ -209,7 +213,7 @@ export class LenderPoliciesService {
     await this.snapshot(id, actor, reason ?? "Rules edited");
     await this.prisma.lenderPolicy.update({
       where: { id },
-      data: { ...(this.data(fields) as Prisma.LenderPolicyUncheckedUpdateInput), version: { increment: 1 } },
+      data: { ...(this.data(fields, await this.defs()) as Prisma.LenderPolicyUncheckedUpdateInput), version: { increment: 1 } },
     });
     await this.audit.record({
       actor,
@@ -283,6 +287,64 @@ export class LenderPoliciesService {
     });
   }
 
+  // ─── match fields ────────────────────────────────────────────────────────
+  /** Active and inactive field definitions, in display order. */
+  listFields() {
+    return this.prisma.matchField.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+  }
+
+  /** The definitions in the shape the matcher uses. */
+  private async defs(onlyActive = false): Promise<MatchFieldDef[]> {
+    const rows = await this.prisma.matchField.findMany({ where: onlyActive ? { active: true } : {}, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+    return rows.map((r) => ({ key: r.key, label: r.label, type: r.type as MatchFieldDef["type"], options: r.options, unit: r.unit, products: r.products, applicants: r.applicants, mandatory: r.mandatory, minValue: r.minValue, maxValue: r.maxValue, active: r.active }));
+  }
+
+  async saveField(id: string | null, dto: MatchFieldDto) {
+    const options = [...new Set((dto.options ?? []).map((o) => o.trim()).filter(Boolean))];
+    if (dto.type === "CHOICE" && options.length < 2) throw new BadRequestException("A choice field needs at least two options");
+    if (dto.minValue != null && dto.maxValue != null && dto.minValue > dto.maxValue) throw new BadRequestException("The lowest allowed value is above the highest");
+    const data = {
+      label: dto.label.trim(),
+      type: dto.type,
+      options: dto.type === "CHOICE" ? options : [],
+      unit: dto.type === "NUMBER" ? dto.unit?.trim() || null : null,
+      hint: dto.hint?.trim() || null,
+      answerLabel: dto.answerLabel?.trim() || null,
+      products: dto.products ?? [],
+      applicants: (dto.applicants ?? []).filter((a) => a === "SALARIED" || a === "SELF_EMPLOYED"),
+      mandatory: dto.mandatory ?? false,
+      minValue: dto.type === "NUMBER" ? dto.minValue ?? null : null,
+      maxValue: dto.type === "NUMBER" ? dto.maxValue ?? null : null,
+      active: dto.active ?? true,
+      sortOrder: dto.sortOrder ?? 0,
+    };
+    if (id) {
+      const found = await this.prisma.matchField.findUnique({ where: { id } });
+      if (!found) throw new NotFoundException("Field not found");
+      // The key and type stay fixed once policies may test them.
+      return this.prisma.matchField.update({ where: { id }, data: { ...data, type: found.type, options: found.type === "CHOICE" ? options : [] } });
+    }
+    const key = fieldKey(dto.key || dto.label);
+    if (!key) throw new BadRequestException("The field needs a name");
+    if (await this.prisma.matchField.findUnique({ where: { key } })) throw new ConflictException("A field with this name already exists");
+    return this.prisma.matchField.create({ data: { ...data, key } });
+  }
+
+  /** Deleting a field also drops every policy test on it, so no policy keeps a rule nobody can see. */
+  async deleteField(id: string) {
+    const f = await this.prisma.matchField.findUnique({ where: { id } });
+    if (!f) throw new NotFoundException("Field not found");
+    const rows = await this.prisma.lenderPolicy.findMany({ where: { criteria: { not: Prisma.DbNull } }, select: { id: true, criteria: true } });
+    for (const r of rows) {
+      const c = { ...((r.criteria as Criteria) ?? {}) };
+      if (!(f.key in c)) continue;
+      delete c[f.key];
+      await this.prisma.lenderPolicy.update({ where: { id: r.id }, data: { criteria: Object.keys(c).length ? (c as unknown as Prisma.InputJsonValue) : Prisma.DbNull } });
+    }
+    await this.prisma.matchField.delete({ where: { id } });
+    return { ok: true };
+  }
+
   // ─── matching ────────────────────────────────────────────────────────────
   /** What is already known about a lead, as a match profile: its own fields plus what the customer said in the chat or the form. */
   async profileForLead(leadId: string, actor: AuthUser): Promise<Profile> {
@@ -291,18 +353,31 @@ export class LenderPoliciesService {
       select: { amount: true, city: true, employmentType: true, monthlyIncome: true, answers: { select: { label: true, value: true }, take: 150 } },
     });
     if (!lead) throw new NotFoundException("Lead not found");
-    return profileFromLead(lead);
+    const profile = profileFromLead(lead);
+    const defs = await this.defs(true);
+    const values: Record<string, string | number | boolean> = {};
+    const rows = await this.prisma.matchField.findMany({ where: { active: true, answerLabel: { not: null } }, select: { key: true, answerLabel: true } });
+    for (const r of rows) {
+      const def = defs.find((d) => d.key === r.key);
+      const hit = lead.answers.find((a) => a.label.trim().toLowerCase() === (r.answerLabel ?? "").trim().toLowerCase());
+      const v = def && hit ? coerceValue(def, hit.value) : undefined;
+      if (v !== undefined) values[r.key] = v;
+    }
+    return Object.keys(values).length ? { ...profile, fields: values } : profile;
   }
 
   async runMatch(dto: RunMatchDto, actor: AuthUser) {
     // What the person typed wins; whatever they left blank is filled from what is known about the lead.
     const typed = Object.fromEntries(Object.entries(dto.profile ?? {}).filter(([, v]) => v !== undefined && v !== null && v !== "" && !(typeof v === "number" && Number.isNaN(v)))) as Profile;
-    const profile: Profile = { ...(dto.leadId ? await this.profileForLead(dto.leadId, actor) : {}), ...typed };
+    const fromLead = dto.leadId ? await this.profileForLead(dto.leadId, actor) : {};
+    const product = await this.prisma.loanProduct.findUnique({ where: { id: dto.loanProductId }, select: { slug: true } });
+    const profile: Profile = { ...fromLead, ...typed, fields: { ...(fromLead.fields ?? {}), ...(typed.fields ?? {}) }, product: product?.slug };
+    const defs = await this.defs(true);
     const policies = await this.prisma.lenderPolicy.findMany({
       where: { loanProductId: dto.loanProductId },
       include: { lender: true, loanProduct: true },
     });
-    const results = matchAll(profile, policies.map(toRule));
+    const results = matchAll(profile, policies.map(toRule), new Date(), defs);
     const exceptions = await this.prisma.policyException.findMany({
       where: { policyId: { in: policies.map((p) => p.id) }, active: true },
       select: { policyId: true, scenario: true, requiredApproval: true, expertNote: true },
@@ -341,13 +416,13 @@ export class LenderPoliciesService {
         createdByName: actor.name,
       },
     });
-    return { id: run.id, reviewStatus: run.reviewStatus, noPolicies: policies.length === 0, results: withNotes };
+    return { id: run.id, reviewStatus: run.reviewStatus, noPolicies: policies.length === 0, results: withNotes, missingFields: missingMandatory(defs, profile.fields, { product: profile.product, employmentType: profile.employmentType }).map((f) => ({ key: f.key, label: f.label })) };
   }
 
   /** The same matching as runMatch, without saving a run: for a report that only needs to show the shortlist. */
   async previewMatch(loanProductId: string, profile: Profile) {
     const policies = await this.prisma.lenderPolicy.findMany({ where: { loanProductId }, include: { lender: true, loanProduct: true } });
-    return matchAll(profile, policies.map(toRule));
+    return matchAll(profile, policies.map(toRule), new Date(), await this.defs(true));
   }
 
   runs(leadId?: string) {

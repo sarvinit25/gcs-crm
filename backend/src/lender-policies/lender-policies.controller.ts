@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Ip, Param, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Ip, Param, Patch, Post, Query } from "@nestjs/common";
 import { Role } from "@prisma/client";
 import { CurrentUser, Roles, type AuthUser } from "../auth/auth.decorators";
 import { LenderPoliciesService } from "./lender-policies.service";
@@ -6,6 +6,7 @@ import {
   BulkPolicyDto,
   CreatePolicyDto,
   ExceptionDto,
+  MatchFieldDto,
   VerifyManyDto,
   OutcomeDto,
   ReviewMatchDto,
@@ -44,6 +45,30 @@ export class LenderPoliciesController {
   @Get("match/profile")
   matchProfile(@Query("leadId") leadId: string, @CurrentUser() user: AuthUser) {
     return this.policies.profileForLead(leadId, user);
+  }
+
+  // Staff-defined match fields (the questions a lender policy can test).
+  @Get("fields")
+  fields() {
+    return this.policies.listFields();
+  }
+
+  @Post("fields")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  createField(@Body() dto: MatchFieldDto) {
+    return this.policies.saveField(null, dto);
+  }
+
+  @Patch("fields/:id")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  updateField(@Param("id") id: string, @Body() dto: MatchFieldDto) {
+    return this.policies.saveField(id, dto);
+  }
+
+  @Delete("fields/:id")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  deleteField(@Param("id") id: string) {
+    return this.policies.deleteField(id);
   }
 
   @Post("match")

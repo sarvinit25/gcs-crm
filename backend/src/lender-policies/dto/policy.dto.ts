@@ -57,6 +57,8 @@ export class PolicyFieldsDto {
   @IsOptional() @IsArray() @ArrayMaxSize(12) programs?: unknown[] | null;
   /** Rules that are not amounts or rates; only known keys are kept. */
   @IsOptional() @IsObject() conditions?: Record<string, unknown> | null;
+  /** Tests on staff-defined match fields; cleaned against the defined fields on the way in. */
+  @IsOptional() @IsObject() criteria?: Record<string, unknown> | null;
   @apply(list()) acceptedPropertyTypes?: string[];
 
   @IsOptional() @IsBoolean() allIndia?: boolean;
@@ -125,6 +127,8 @@ export class MatchProfileDto {
   @IsOptional() @IsNumber() @Min(0) agreementValue?: number;
   @IsOptional() @IsNumber() @Min(0) stampDuty?: number;
   @IsOptional() @IsString() @Length(0, 40) industry?: string;
+  /** Answers to staff-defined match fields, by field key. */
+  @IsOptional() @IsObject() fields?: Record<string, string | number | boolean>;
 }
 
 export class RunMatchDto {
@@ -152,4 +156,21 @@ export class OutcomeDto {
   @IsOptional() @IsString() @Length(0, 300) rejectionReason?: string | null;
   @IsOptional() @IsBoolean() disbursed?: boolean;
   @IsOptional() @IsString() @Length(0, 500) notes?: string | null;
+}
+
+export class MatchFieldDto {
+  @IsOptional() @IsString() @Length(1, 40) key?: string;
+  @IsString() @Length(2, 120) label: string;
+  @IsIn(["NUMBER", "YESNO", "CHOICE", "TEXT"]) type: string;
+  @IsOptional() @IsArray() @ArrayMaxSize(30) options?: string[];
+  @IsOptional() @IsString() @Length(0, 20) unit?: string | null;
+  @IsOptional() @IsString() @Length(0, 200) hint?: string | null;
+  @IsOptional() @IsString() @Length(0, 120) answerLabel?: string | null;
+  @IsOptional() @IsArray() @ArrayMaxSize(40) products?: string[];
+  @IsOptional() @IsArray() applicants?: string[];
+  @IsOptional() @IsBoolean() mandatory?: boolean;
+  @IsOptional() @IsNumber() minValue?: number | null;
+  @IsOptional() @IsNumber() maxValue?: number | null;
+  @IsOptional() @IsBoolean() active?: boolean;
+  @IsOptional() @IsInt() sortOrder?: number;
 }

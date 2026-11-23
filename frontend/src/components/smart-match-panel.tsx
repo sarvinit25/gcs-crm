@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Check, Loader2, Sparkles, X } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
+import { FieldInputs } from "./match-fields-ui";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
 import type { Lead } from "../lib/types";
@@ -31,7 +32,7 @@ type Result = {
     flyer: { id: string; name: string; date: string; hasFile: boolean } | null;
   };
 };
-type Run = { id: string; reviewStatus: string; noPolicies?: boolean; results: Result[] };
+type Run = { id: string; reviewStatus: string; noPolicies?: boolean; results: Result[]; missingFields?: { key: string; label: string }[] };
 type SavedRun = { id: string; reviewStatus: string; reviewedByName: string | null; reviewNote: string | null; reviewedAt: string | null; createdAt: string; createdByName: string | null };
 
 const STATUS: Record<Result["status"], { label: string; cls: string }> = {
@@ -141,6 +142,7 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
   const [run, setRun] = useState<Run | null>(null);
   const [open, setOpen] = useState(false);
   const [flyer, setFlyer] = useState<string | null>(null);
+  const [extra, setExtra] = useState<Record<string, string>>({});
   const autoRun = useRef(false);
 
   const productId = lead.loanProduct?.id;
@@ -172,6 +174,7 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
         agreementValue: num(form.agreementValue),
         stampDuty: num(form.stampDuty),
         industry: form.industry.trim() || undefined,
+        fields: Object.fromEntries(Object.entries(extra).filter(([, v]) => v.trim() !== "")),
       };
       return api<Run>("/lender-policies/match", { method: "POST", body: JSON.stringify({ loanProductId: productId, leadId: lead.id, profile }) });
     },
@@ -185,12 +188,14 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
   // and the first time the panel opens the match runs by itself so the lenders show straight away.
   const known = useQuery({
     queryKey: ["match-profile", lead.id],
-    queryFn: () => api<Record<string, string | number | boolean>>(`/lender-policies/match/profile?leadId=${lead.id}`),
+    queryFn: () => api<Record<string, unknown>>(`/lender-policies/match/profile?leadId=${lead.id}`),
     enabled: open && Boolean(productId),
   });
   useEffect(() => {
     if (!known.data || autoRun.current) return;
     autoRun.current = true;
+    const answered = (known.data as { fields?: Record<string, unknown> }).fields;
+    if (answered) setExtra(Object.fromEntries(Object.entries(answered).map(([k, v]) => [k, v === true ? "Yes" : v === false ? "No" : String(v)])));
     setForm((f) => {
       const next = { ...f } as Record<string, string>;
       for (const [k, v] of Object.entries(known.data)) if (k in next && (next[k] ?? "") === "" && v !== undefined && v !== null) next[k] = String(v);
@@ -255,6 +260,7 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
                     )}
                   </label>
                 ))}
+                <FieldInputs values={extra} onChange={setExtra} product={lead.loanProduct?.slug} employmentType={form.employmentType || undefined} />
                 <div className="col-span-2 sm:col-span-3">
                   <button className="btn-primary" disabled={go.isPending}>
                     {go.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Run match
@@ -267,6 +273,7 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
 
           {run && (
             <div className="mt-5 space-y-3">
+              {!!run.missingFields?.length && <p className="rounded-md bg-amber-50 px-3 py-2 text-[13px] text-amber-800">Still needed before a lender can be called Eligible: {run.missingFields.map((f) => f.label).join(", ")}. Fill it in above and run the match again.</p>}
               {run.noPolicies && <p className="rounded-md bg-amber-50 px-3 py-2 text-[13px] text-amber-800">No lender has rules recorded for this loan product yet. Add them under Lender policies.</p>}
               {run.results.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 text-center">
