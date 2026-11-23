@@ -29,6 +29,7 @@ import {
 import { EventsService } from "../events/events.service";
 import { StorageService } from "../documents/storage.service";
 import { detectFile, safeFileName } from "../documents/file-sniff";
+import { classifyDocument } from "../documents/document-kinds";
 import { randomUUID } from "crypto";
 import { answersByKey, checkAnswer, loanFor } from "../whatsapp/intake/intake.engine";
 
@@ -687,7 +688,10 @@ export class LeadsService implements OnApplicationBootstrap {
       select: { id: true, fileName: true, mimeType: true, sizeBytes: true, source: true, caption: true, createdAt: true },
     });
     await this.audit.record({ actor: user, action: AuditAction.CREATE, entity: "LeadFile", entityId: created.id, entityLabel: `${lead.name}: ${fileName}` });
-    return created;
+    // The first document in moves "Not received" to "Some received" by itself; staff still decide when it is complete.
+    const moved = await this.prisma.lead.updateMany({ where: { id, documentsStatus: "NONE" }, data: { documentsStatus: "PARTIAL" } });
+    if (moved.count) await this.refreshSegment(id);
+    return { ...created, category: classifyDocument(created.fileName, created.caption) };
   }
 
   /**
@@ -779,9 +783,11 @@ export class LeadsService implements OnApplicationBootstrap {
     });
     if (!lead) throw new NotFoundException("Lead not found");
 
-    const { application, ...rest } = lead;
+    const { application, files, ...rest } = lead;
     return {
       ...rest,
+      // Each file filed under the checklist's categories (KYC, Income proof, Bank statement ...), from its name and caption.
+      files: files.map((f) => ({ ...f, category: classifyDocument(f.fileName, f.caption) })),
       missingForMeeting: missingForMeeting(lead),
       application: application && {
         id: application.id,

@@ -37,6 +37,8 @@ export class MediaService {
       await this.prisma.leadFile.create({
         data: { leadId: input.leadId, fileName, objectKey, mimeType: detected.mime, sizeBytes: stored?.size ?? data.length, source: "whatsapp", caption: input.caption?.slice(0, 500) || null },
       });
+      // A customer sending a document moves "Not received" to "Some received"; staff still decide when it is complete.
+      await this.prisma.lead.updateMany({ where: { id: input.leadId, documentsStatus: "NONE" }, data: { documentsStatus: "PARTIAL" } });
       return { saved: true, fileName };
     } catch (err) {
       this.log.error(`Could not save a WhatsApp file: ${(err as Error).message}`);

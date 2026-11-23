@@ -319,3 +319,14 @@ describe("what the lender-style sheets add", () => {
     expect(formulas).toBeGreaterThan(5);
   });
 });
+
+describe("a balance that has run down", () => {
+  it("is flagged and drives the EMI cover, instead of being averaged away", () => {
+    const months = [524, 3604, 8315, 28315, 267358, 744618, 601408, 481394, 489799, 155872, 22219].map((b) => ({ credits: 10_000, debits: 10_000, avgBalance: b, returns: 0 }));
+    const a = analyse("LAP", { income: { profile: "Self-employed business" }, loanRequest: { amount: 3_000_000, tenureYears: 10 }, banking: { months } } as never, new Date("2026-11-10T00:00:00Z"));
+    expect(a.banking.recentAvgBalance).toBe(4_148);
+    expect(a.banking.avgBalance).toBeGreaterThan(250_000);
+    expect(a.flags.some((f) => /run down/.test(f.text) && f.level === "risk")).toBe(true);
+    expect(a.banking.abbToEmi).toBeLessThan(0.2);
+  });
+});
