@@ -8,6 +8,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { compressFile } from "./file-compress";
 
 /**
  * Object storage for KYC and loan files. Backblaze B2 in production, MinIO
@@ -47,15 +48,23 @@ export class StorageService implements OnModuleInit {
     }
   }
 
-  async put(key: string, body: Buffer, contentType: string) {
+  /**
+   * Stores a file. Photos, scans and PDFs are first shrunk to the smallest size that is still clear (see file-compress.ts), so
+   * every route into the CRM gets it. Returns what was really stored, so the caller records the right size and type.
+   * Pass `{ compress: false }` for pictures that must stay exactly as made (website and advert artwork).
+   */
+  async put(key: string, body: Buffer, contentType: string, opts: { compress?: boolean } = {}): Promise<{ size: number; contentType: string; originalSize: number }> {
+    const out = opts.compress === false ? { body, contentType, originalBytes: body.length, compressed: false } : await compressFile(body, contentType);
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
         Key: key,
-        Body: body,
-        ContentType: contentType,
+        Body: out.body,
+        ContentType: out.contentType,
       }),
     );
+    if (out.compressed) this.logger.log(`Stored ${key}: ${Math.round(out.originalBytes / 1024)} KB -> ${Math.round(out.body.length / 1024)} KB`);
+    return { size: out.body.length, contentType: out.contentType, originalSize: out.originalBytes };
   }
 
   async get(key: string): Promise<Buffer> {

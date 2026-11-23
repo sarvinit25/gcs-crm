@@ -681,9 +681,9 @@ export class LeadsService implements OnApplicationBootstrap {
 
     const fileName = safeFileName(file.originalname, detected.extension);
     const objectKey = `leads/${id}/${randomUUID()}${detected.extension}`;
-    await this.storage.put(objectKey, file.buffer, detected.mime);
+    const stored = await this.storage.put(objectKey, file.buffer, detected.mime);
     const created = await this.prisma.leadFile.create({
-      data: { leadId: id, fileName, objectKey, mimeType: detected.mime, sizeBytes: file.size, source: "staff", caption: caption?.trim().slice(0, 500) || null },
+      data: { leadId: id, fileName, objectKey, mimeType: detected.mime, sizeBytes: stored?.size ?? file.size, source: "staff", caption: caption?.trim().slice(0, 500) || null },
       select: { id: true, fileName: true, mimeType: true, sizeBytes: true, source: true, caption: true, createdAt: true },
     });
     await this.audit.record({ actor: user, action: AuditAction.CREATE, entity: "LeadFile", entityId: created.id, entityLabel: `${lead.name}: ${fileName}` });

@@ -102,14 +102,15 @@ export class LenderOffersService {
       if (extracted.lenderName) previous = extracted;
       // The original is kept so a person can look at what was read; failing to keep it does not lose the reading.
       let objectKey: string | null = null;
+      let stored: { size: number } | undefined;
       try {
         objectKey = `lender-offers/${randomUUID()}${detected.extension}`;
-        await this.storage.put(objectKey, file.buffer, detected.mime);
+        stored = await this.storage.put(objectKey, file.buffer, detected.mime);
       } catch (err) {
         this.log.error(`Could not keep the original of ${file.originalname}: ${(err as Error).message}`);
         objectKey = null;
       }
-      const id = await this.save({ source: "upload", fileName: safeFileName(file.originalname, detected.extension), objectKey, mimeType: detected.mime, sizeBytes: file.size, extracted, contentHash }, actor);
+      const id = await this.save({ source: "upload", fileName: safeFileName(file.originalname, detected.extension), objectKey, mimeType: detected.mime, sizeBytes: stored?.size ?? file.size, extracted, contentHash }, actor);
       await this.autoAdd(id, actor);
       made.push({ id });
     }

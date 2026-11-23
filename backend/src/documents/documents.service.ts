@@ -98,7 +98,7 @@ export class DocumentsService {
     const objectKey = `applications/${applicationId}/${randomUUID()}${detected.extension}`;
     const fileName = safeFileName(file.originalname, detected.extension);
 
-    await this.storage.put(objectKey, file.buffer, detected.mime);
+    const stored = await this.storage.put(objectKey, file.buffer, detected.mime);
 
     return this.prisma.document.create({
       data: {
@@ -107,7 +107,7 @@ export class DocumentsService {
         fileName,
         objectKey,
         mimeType: detected.mime,
-        sizeBytes: file.size,
+        sizeBytes: stored?.size ?? file.size,
         uploadedById: by.uploadedById,
         inviteId: by.inviteId,
       },
