@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Loader2, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Check, ChevronDown, Loader2, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
 import { PageHeader } from "../components/app-shell";
@@ -50,7 +50,7 @@ function SettingRow({
   const dirty = JSON.stringify(draft) !== JSON.stringify(setting.value);
 
   return (
-    <div id={`setting-${setting.key}`} className="border-b border-line py-4 last:border-0">
+    <div id={`setting-${setting.key}`} className="scroll-mt-24 border-b border-line py-5 first:pt-1 last:border-0 last:pb-1">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-[13px] font-semibold text-navy">
@@ -61,7 +61,7 @@ function SettingRow({
               </span>
             )}
             {!setting.isDefault && (
-              <span className="ml-2 text-[10px] font-bold text-muted">CHANGED</span>
+              <span className="ml-2 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">CHANGED</span>
             )}
           </p>
           {setting.help && <p className="mt-0.5 text-[12px] text-muted">{setting.help}</p>}
@@ -502,6 +502,8 @@ function RateCards() {
 export function SettingsPage() {
   const queryClient = useQueryClient();
   const [group, setGroup] = useState("Organisation");
+  const [find, setFind] = useState("");
+  const [shut, setShut] = useState<string[]>([]);
   const hash = useRouterState({ select: (s) => s.location.hash });
 
   const query = useQuery({
@@ -558,8 +560,17 @@ export function SettingsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["settings"] }),
   });
 
-  const masters = ["Website checklists", "Home page", "About page", "Contact page", "Services page", "CIBIL page", "Why Us page", "CA & Legal page", "Partner page", "Track Application page", "Builder Partner page", "Freelancer Partner page", "Credit Score Estimator page", "Insights page", "Case Studies page", "Interest Rates page", "Calculators page", "Loan Expert page", "CIBIL Advisory page", "City pages", "Loan pages", "Case study pages", "CA & legal service pages", "Header & footer", "Website content", "Commission rate cards"];
-  const preferences = [...(query.data?.groups ?? []), "Archive"];
+  const pagesList = ["Home page", "About page", "Contact page", "Services page", "CIBIL page", "Why Us page", "CA & Legal page", "Partner page", "Track Application page", "Builder Partner page", "Freelancer Partner page", "Credit Score Estimator page", "Insights page", "Case Studies page", "Interest Rates page", "Calculators page", "Loan Expert page", "CIBIL Advisory page"];
+  const sectionsList = ["Header & footer", "City pages", "Loan pages", "Case study pages", "CA & legal service pages", "Website content", "Website checklists"];
+  const categories: { name: string; hint: string; items: string[] }[] = [
+    { name: "CRM preferences", hint: "How the CRM itself behaves", items: [...(query.data?.groups ?? []), "Archive"] },
+    { name: "Website pages", hint: "The words on each page of the public site", items: pagesList },
+    { name: "Website sections", hint: "Header, footer, shared lists and downloads", items: sectionsList },
+    { name: "Money", hint: "Commission and payouts", items: ["Commission rate cards"] },
+  ];
+  const needle = find.trim().toLowerCase();
+  // Searching also looks inside the CRM preferences, by the name of each setting.
+  const matchingSettings = needle ? (query.data?.settings ?? []).filter((x) => x.label.toLowerCase().includes(needle)).slice(0, 8) : [];
   const inGroup = (query.data?.settings ?? []).filter((s) => s.group === group);
   const changed = (query.data?.settings ?? []).filter((s) => !s.isDefault).length;
 
@@ -572,36 +583,69 @@ export function SettingsPage() {
         }
       />
 
-      <div className="px-6 py-5">
+      <div className="grid gap-6 px-6 py-5 lg:grid-cols-[16rem_minmax(0,1fr)]">
+        <aside className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto">
+          <div className="relative mb-3">
+            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted/60" />
+            <input value={find} onChange={(e) => setFind(e.target.value)} placeholder="Find a setting or page" className="field w-full pl-9" aria-label="Find a setting or page" />
+          </div>
+          {needle && matchingSettings.length > 0 && (
+            <div className="mb-3 rounded-xl border border-line bg-white p-1.5">
+              <p className="px-2 pt-1 pb-1 text-[11px] font-semibold text-muted">Settings</p>
+              {matchingSettings.map((m) => (
+                <button key={m.key} onClick={() => { setGroup(m.group); setFind(""); }} className="block w-full rounded-lg px-2.5 py-1.5 text-left text-[13px] text-navy hover:bg-bg-light">
+                  {m.label}
+                  <span className="block text-[11px] text-muted">{m.group}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          <nav className="space-y-3" aria-label="Settings sections">
+            {categories.map((cat) => {
+              const items = needle ? cat.items.filter((g) => g.toLowerCase().includes(needle)) : cat.items;
+              if (!items.length) return null;
+              const closed = !needle && shut.includes(cat.name) && !cat.items.includes(group);
+              return (
+                <div key={cat.name} className="rounded-xl border border-line bg-white">
+                  <button onClick={() => setShut(closed ? shut.filter((n) => n !== cat.name) : [...shut, cat.name])} className="flex w-full items-center justify-between px-3.5 py-2.5 text-left" aria-expanded={!closed}>
+                    <span>
+                      <span className="block text-[13px] font-bold text-navy">{cat.name}</span>
+                      <span className="block text-[11px] text-muted">{cat.hint}</span>
+                    </span>
+                    <ChevronDown className={clsx("h-4 w-4 text-muted transition", closed && "-rotate-90")} />
+                  </button>
+                  {!closed && (
+                    <ul className="border-t border-line p-1.5">
+                      {items.map((g) => (
+                        <li key={g}>
+                          <button
+                            onClick={() => setGroup(g)}
+                            aria-current={group === g ? "page" : undefined}
+                            className={clsx("w-full rounded-lg px-2.5 py-1.5 text-left text-[13px] transition", group === g ? "bg-navy font-semibold text-white" : "text-slate-700 hover:bg-bg-light hover:text-navy")}
+                          >
+                            {g}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+            {needle && !categories.some((c) => c.items.some((g) => g.toLowerCase().includes(needle))) && matchingSettings.length === 0 && <p className="px-1 text-[13px] text-muted">Nothing matches "{find}".</p>}
+          </nav>
+        </aside>
+
+        <div className="min-w-0">
         {save.isError && (
           <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">
             {(save.error as Error).message}
           </p>
         )}
-
-        {([
-          ["Preferences", preferences],
-          ["Masters — lists that rarely change", masters],
-        ] as const).map(([caption, list]) => (
-          <div key={caption} className="mb-3">
-            <p className="mb-1.5 text-[10px] font-bold tracking-[0.14em] text-muted uppercase">{caption}</p>
-            <div className="flex flex-wrap gap-1">
-              {list.map((g) => (
-                <button
-                  key={g}
-                  onClick={() => setGroup(g)}
-                  className={
-                    group === g
-                      ? "rounded-md bg-navy px-3 py-1.5 text-[13px] font-semibold text-white"
-                      : "rounded-md border border-line bg-white px-3 py-1.5 text-[13px] font-semibold text-muted hover:text-navy"
-                  }
-                >
-                  {g}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+        <div className="mb-3">
+          <h2 className="text-lg font-bold text-navy">{group}</h2>
+          <p className="text-[12px] text-muted">{categories.find((c) => c.items.includes(group))?.hint}</p>
+        </div>
 
         <div key={group} className="card fade-enter p-5">
           {group === "Archive" ? (
@@ -692,6 +736,7 @@ export function SettingsPage() {
             change is recorded in the audit log.
           </p>
         )}
+        </div>
       </div>
     </>
   );
