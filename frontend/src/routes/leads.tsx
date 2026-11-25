@@ -27,7 +27,7 @@ import { Modal } from "../components/modal";
 import { LeadDeleteDialog } from "../components/lead-delete";
 import { ArchivedLeads } from "../components/archived-leads";
 import { LeadImportModal } from "../components/lead-import-modal";
-import { DEFAULT_LEAD_SORT, LEAD_SORTS, sortParam, type LeadSortValue } from "../lib/lead-sort";
+import { DEFAULT_LEAD_SORT, LEAD_SORTS, columnDirection, nextColumnSort, sortParam, type LeadSortValue } from "../lib/lead-sort";
 import type { LeadLinkFilter } from "../lib/lead-filters";
 import { ColumnFilter } from "../components/column-filter";
 import { PeriodSelect } from "../components/period-select";
@@ -399,6 +399,7 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
   // The export follows the list: same search, status, segment, loan type, source, owner, partner, period and archive view.
   const exportFilters = { q: search, status, segment, loanProductId, channel, ownerId, partnerId, range: timeRange, archived: "false" };
 
+  const sortBy = (v: LeadSortValue) => reset(() => setSort(v));
   const reset = (fn: () => void) => {
     fn();
     setPage(1);
@@ -640,15 +641,20 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
             <table className="w-full text-left text-[13px]">
               <thead className="border-b border-line text-[12px] text-muted">
                 <tr>
-                  <th className="px-5 py-3 font-semibold">Lead</th>
+                  <th className="px-5 py-3 font-semibold">
+                    <span className="inline-flex items-center gap-1.5">Lead <SortArrow label="name" column="lead" sort={sort} onSort={sortBy} /></span>
+                  </th>
                   <th className="px-4 py-3">
                     <ColumnFilter label="Priority" value={segment} onChange={(v) => reset(() => setSegment(v as LeadSegment | ""))} options={LEAD_SEGMENTS.map((k) => ({ value: k, label: PRIORITY_META[k].label }))} />
+                    <SortArrow label="priority" column="priority" sort={sort} onSort={sortBy} />
                   </th>
                   <th className="px-4 py-3">
                     <ColumnFilter label="Loan" value={loanProductId} onChange={(v) => reset(() => setLoanProductId(v))} allLabel="All loan types" options={(products.data ?? []).map((p) => ({ value: p.id, label: p.name }))} />
+                    <SortArrow label="amount" column="amount" sort={sort} onSort={sortBy} />
                   </th>
                   <th className="px-4 py-3">
                     <ColumnFilter label="Source" value={source} onChange={(v) => reset(() => setSource(v))} allLabel="All sources" options={Object.entries(ENTRY_LABEL).map(([value, label]) => ({ value, label }))} />
+                    <SortArrow label="source" column="source" sort={sort} onSort={sortBy} />
                   </th>
                   <th className="px-4 py-3">
                     {canFilterOwner ? (
@@ -656,10 +662,14 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
                     ) : (
                       <span className="font-semibold">Owner</span>
                     )}
+                    <SortArrow label="owner" column="owner" sort={sort} onSort={sortBy} />
                   </th>
-                  <th className="px-4 py-3 font-semibold">Contact</th>
+                  <th className="px-4 py-3 font-semibold">
+                    <span className="inline-flex items-center gap-1.5">Contact <SortArrow label="follow-up date" column="followup" sort={sort} onSort={sortBy} /></span>
+                  </th>
                   <th className="px-4 py-3">
                     <ColumnFilter label="Status" value={status} onChange={(v) => reset(() => setStatus(v))} allLabel="All statuses" options={LEAD_STATUSES.map((s) => ({ value: s, label: LEAD_STATUS_LABEL[s] }))} />
+                    <SortArrow label="status" column="status" sort={sort} onSort={sortBy} />
                   </th>
                   {user?.role === "ADMIN" && <th className="w-10 px-2 py-3" aria-label="Delete" />}
                 </tr>
@@ -776,6 +786,25 @@ function ActiveLeadsPage({ onOpenArchive }: { onOpenArchive: () => void }) {
         )}
       </div>
     </>
+  );
+}
+
+/** The small arrow beside a column heading: sorts the whole list one way, the other way, then back to the usual order. */
+function SortArrow({ label, column, sort, onSort }: { label: string; column: string; sort: LeadSortValue; onSort: (v: LeadSortValue) => void }) {
+  const dir = columnDirection(column, sort);
+  // The usual list order is by priority, so that heading is not shown as picked until the other way is chosen.
+  const active = dir !== null && !(column === "priority" && sort === DEFAULT_LEAD_SORT);
+  return (
+    <button
+      type="button"
+      onClick={() => onSort(nextColumnSort(column, sort))}
+      title={`Sort by ${label}`}
+      aria-label={`Sort by ${label}`}
+      aria-pressed={active}
+      className={clsx("ml-1.5 rounded px-1 py-0.5 text-[10px] transition hover:bg-navy/5 hover:text-navy", active ? "text-navy" : "text-muted/60")}
+    >
+      {!active ? "↕" : dir === "first" ? "▲" : "▼"}
+    </button>
   );
 }
 
