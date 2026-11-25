@@ -48,19 +48,22 @@ export function ltvFrom(text: string): number | null {
   const found: number[] = [];
   for (const m of all(text, /\bLTV\b[^|;.\n]{0,40}?(\d{2})\s?%([^|;\n]{0,40})/gi)) {
     if (/turnover|rent|land value|\bgross\b/i.test(`${m[0]}`)) continue;
+    // "Low LTV" names a special program with its own, tighter share.
+    if (/low\s*$/i.test(text.slice(Math.max(0, m.index - 6), m.index))) continue;
     found.push(Number(m[1]));
   }
   for (const m of all(text, /(\d{2})\s?%\s*(?:LTV\b|of (?:the )?(?:property|market|agreement) value)/gi)) found.push(Number(m[1]));
-  const ok = within(found, 30, 90);
+  // Below 50% is a special program or a land or industrial case, not the lender's usual share.
+  const ok = within(found, 50, 90);
   return ok.length ? Math.max(...ok) : null;
 }
 
-/** The share of income that may go to EMIs. Figures over 100% (a lender's special programs) are not the usual rule. */
+/** The share of income that may go to EMIs. Figures over 80% belong to special programs (banking, bureau), not the usual rule. */
 export function foirFrom(text: string): number | null {
   const found: number[] = [];
   for (const m of all(text, /\b(?:FOIR|DBR)\b[^|;.\n\d]{0,30}(\d{2,3})\s?%(?:\s*(?:-|–|to)\s*(\d{2,3})\s?%)?/gi)) found.push(Number(m[1]), Number(m[2] ?? m[1]));
   for (const m of all(text, /(\d{2,3})\s?%\s*(?:FOIR|DBR)\b/gi)) found.push(Number(m[1]));
-  const ok = within(found, 40, 100);
+  const ok = within(found, 40, 80);
   return ok.length ? Math.max(...ok) : null;
 }
 
