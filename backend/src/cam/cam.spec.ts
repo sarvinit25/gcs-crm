@@ -182,7 +182,7 @@ describe("the Excel CAM", () => {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(buf as unknown as ArrayBuffer);
     const names = wb.worksheets.map((w) => w.name);
-    expect(names).toEqual(["Summary", "Applicant", "Income", "Income programs", "Obligations", "Eligibility", "Banking", "Property", "Assets & net worth", "Scorecard", "Checks & documents", "Lender match", "Risks & recommendation", "Missing information"]);
+    expect(names).toEqual(["Summary", "Applicant", "Income", "Income programs", "Obligations", "Eligibility", "Banking", "Property", "Assets & net worth", "Scorecard", "Checks & documents", "Repayment track", "Repayment schedule", "Lender match", "Risks & recommendation", "Missing information"]);
     expect(names).not.toContain("Education");
     const elig = wb.getWorksheet("Eligibility")!;
     const formulas: string[] = [];
