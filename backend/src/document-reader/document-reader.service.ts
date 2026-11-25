@@ -1,4 +1,7 @@
-import { BadGatewayException, BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { BadGatewayException, BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit, Optional } from "@nestjs/common";
+import { EventsService } from "../events/events.service";
+import { classifyDocument } from "../documents/document-kinds";
+import { onlyBlanks } from "./cam-fill";
 import { ConfigService } from "@nestjs/config";
 import { AuditAction, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
@@ -17,10 +20,10 @@ const AI_MIMES = new Set(["application/pdf", "image/jpeg", "image/png", "image/w
 /**
  * Reads the documents on an application. A statement that is a text PDF, Excel or CSV is read on our own server first (free,
  * exact). Anything else, scans and photos included, goes to the AI. Identity papers (the "KYC" category) are never read.
- * Staff look at what was found and press a button to put it in the CAM; nothing goes in on its own.
+ * A file uploaded to a lead is read straight away and its figures fill the CAM boxes that are still blank.
  */
 @Injectable()
-export class DocumentReaderService {
+export class DocumentReaderService implements OnModuleInit {
   private readonly log = new Logger("DocumentReader");
 
   constructor(
@@ -29,7 +32,57 @@ export class DocumentReaderService {
     private storage: StorageService,
     private cam: CamService,
     private config: ConfigService,
+    @Optional() private events?: EventsService,
   ) {}
+
+  /** One lead's files are read one after another, so two readings never write the CAM over each other. */
+  private queue = new Map<string, Promise<unknown>>();
+  private inTurn<T>(leadId: string, job: () => Promise<T>): Promise<T> {
+    const next = (this.queue.get(leadId) ?? Promise.resolve()).catch(() => undefined).then(job);
+    this.queue.set(leadId, next);
+    void next.finally(() => this.queue.get(leadId) === next && this.queue.delete(leadId)).catch(() => undefined);
+    return next;
+  }
+
+  onModuleInit() {
+    this.events?.on("LEAD_FILE_ADDED", async (p) => {
+      const user = await this.prisma.user.findUnique({ where: { id: String(p.userId) }, select: { id: true, name: true, email: true, role: true } });
+      if (user) await this.inTurn(String(p.leadId), () => this.readLeadFile(String(p.leadId), String(p.fileId), user as unknown as AuthUser));
+    });
+  }
+
+  /** Reads one file on a lead and fills the blank CAM boxes from it. Identity papers are never read. */
+  async readLeadFile(leadId: string, fileId: string, user: AuthUser): Promise<{ fileName: string; filled: string[]; skipped?: string }> {
+    const file = await this.prisma.leadFile.findFirst({ where: { id: fileId, leadId } });
+    if (!file) throw new NotFoundException("File not found");
+    const skip = (skipped: string) => ({ fileName: file.fileName, filled: [] as string[], skipped });
+    if (NEVER_READ_CATEGORIES.includes(classifyDocument(file.fileName, file.caption))) return skip("Identity papers are not read");
+    const buffer = await this.storage.get(file.objectKey);
+    const local = await this.tryStatement(buffer, file.fileName);
+    let patch: CamPatch | null = local ? (local.fill as unknown as CamPatch) : null;
+    if (!local) {
+      if (!this.aiEnabled) return skip("The reader is switched off");
+      patch = (await this.readWithAi(buffer, file.mimeType, file.fileName)).reading.cam;
+    }
+    if (!patch) return skip("Nothing on it goes into the CAM");
+    const current = await this.prisma.camCase.findUnique({ where: { leadId }, select: { data: true } });
+    const fill = onlyBlanks(current?.data, patch);
+    if (!fill.filled.length) return skip("The CAM already has these figures");
+    await this.cam.save(leadId, { data: fill.patch }, user);
+    await this.audit.record({ actor: user, action: AuditAction.UPDATE, entity: "Lead", entityId: leadId, entityLabel: `CAM filled from ${file.fileName}: ${fill.filled.join(", ")}`.slice(0, 190) });
+    return { fileName: file.fileName, filled: fill.filled };
+  }
+
+  /** "Read documents into CAM": every file on the lead, in the background, so the screen is not kept waiting. */
+  async readLeadIntoCam(leadId: string, user: AuthUser): Promise<{ started: number }> {
+    const lead = await this.prisma.lead.findFirst({ where: { id: leadId, ...(user.role === Role.ADVISOR ? { assignedOfficerId: user.id } : {}) }, select: { id: true } });
+    if (!lead) throw new NotFoundException("Lead not found");
+    const all = await this.prisma.leadFile.findMany({ where: { leadId }, orderBy: { createdAt: "asc" }, take: 40, select: { id: true, fileName: true, caption: true } });
+    const files = all.filter((f) => !NEVER_READ_CATEGORIES.includes(classifyDocument(f.fileName, f.caption)));
+    for (const f of files)
+      void this.inTurn(leadId, () => this.readLeadFile(leadId, f.id, user)).catch((e: Error) => this.log.warn(`Could not read ${f.fileName} into the CAM: ${e.message}`));
+    return { started: files.length };
+  }
 
   get aiEnabled() {
     return Boolean((this.config.get<string>("OPENAI_API_KEY") ?? "").trim());

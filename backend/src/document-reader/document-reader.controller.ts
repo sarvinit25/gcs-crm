@@ -3,6 +3,18 @@ import { Throttle } from "@nestjs/throttler";
 import { CurrentUser, type AuthUser } from "../auth/auth.decorators";
 import { DocumentReaderService } from "./document-reader.service";
 
+/** Reads every document on a lead into its CAM (blank boxes only). */
+@Controller("leads/:leadId/read-documents")
+export class LeadDocumentReaderController {
+  constructor(private reader: DocumentReaderService) {}
+
+  @Throttle({ default: { limit: 4, ttl: 60_000 } })
+  @Post()
+  read(@Param("leadId") id: string, @CurrentUser() user: AuthUser) {
+    return this.reader.readLeadIntoCam(id, user);
+  }
+}
+
 /** What the documents on an application say, read by our statement reader or the AI, for staff to check. */
 @Controller("applications/:applicationId/document-readings")
 export class DocumentReaderController {

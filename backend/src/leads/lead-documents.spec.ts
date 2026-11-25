@@ -15,7 +15,7 @@ function build(found = true) {
   const storage = { put: jest.fn(), remove: jest.fn() };
   const audit = { record: jest.fn() };
   const settings = { get: jest.fn().mockReturnValue(15) };
-  const service = new LeadsService(prisma as never, audit as never, settings as never, {} as never, {} as never, {} as never, {} as never, storage as never);
+  const service = new LeadsService(prisma as never, audit as never, settings as never, {} as never, {} as never, {} as never, { emit: jest.fn() } as never, storage as never);
   jest.spyOn(service as never, "scopeFor").mockReturnValue({} as never);
   return { service, prisma, storage, audit };
 }

@@ -34,6 +34,13 @@ export class LenderPoliciesController {
     return this.policies.create(dto, user, ip);
   }
 
+  /** Fills blank lender rules from the flyers already recorded. */
+  @Post("fill-from-flyers")
+  @Roles(Role.ADMIN, Role.MANAGER)
+  fillFromFlyers(@CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.policies.fillFromFlyers(user, ip);
+  }
+
   @Post("bulk")
   @Roles(Role.ADMIN, Role.MANAGER)
   createMany(@Body() dto: BulkPolicyDto, @CurrentUser() user: AuthUser, @Ip() ip: string) {

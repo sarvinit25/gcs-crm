@@ -63,6 +63,9 @@ export function fillProfileFromCam(profile: Profile, cam: unknown, today: Date =
   set("businessVintageMonths", years !== undefined ? Math.round(years * 12) : undefined);
   const turnover = Array.isArray(data.income?.financials) ? num((data.income!.financials as Record<string, unknown>[])[0]?.turnover) : undefined;
   set("annualTurnover", turnover);
+  // A co-applicant's income is added to the main income for repayment capacity, as lenders do; it never stands in for it.
+  const extra = num(data.loanRequest?.coApplicantIncome);
+  if (extra !== undefined && out.monthlyIncome !== undefined) out.monthlyIncome = out.monthlyIncome + extra;
   return out;
 }
 

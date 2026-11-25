@@ -117,7 +117,7 @@ export type MatchResult = {
 export function categoryOf(r: Pick<MatchResult, "status" | "reasons" | "checks" | "policyNeedsReview" | "capped">): MatchCategory {
   // The price comparison is a nudge between lenders, never a criterion the customer fails.
   // "Where it serves is unknown" and "rules not re-verified" are caveats, not criteria the customer fails.
-  const failed = r.reasons.some((x) => !x.ok && !["PRICING", "LOCATION_UNKNOWN", "POLICY_STALE", "OBLIGATIONS_HIGH"].includes(x.code));
+  const failed = r.reasons.some((x) => !x.ok && !["PRICING", "LOCATION_UNKNOWN", "POLICY_STALE", "OBLIGATIONS_HIGH", "FOIR_TYPICAL", "LTV_TYPICAL"].includes(x.code));
   if (r.status === "EXCLUDED") return "NOT_MATCHED";
   // A clearly failed rule rules a lender out even when its service area is unrecorded; only unconfirmed rules keep it open.
   if (failed && !r.policyNeedsReview) return "NOT_MATCHED";
@@ -169,6 +169,9 @@ export function obligationsWarning(profile: Pick<Profile, "monthlyIncome" | "exi
 /** Towns of the Mumbai Metropolitan Region that lenders who list "Mumbai" usually serve. */
 const MUMBAI_REGION = /^(navi mumbai|thane|kalyan|dombivli|dombivali|mira road|mira[- ]bhayandar|bhayandar|vasai|virar|vasai[- ]virar|nalasopara|panvel|ulhasnagar|ambernath|badlapur|diva|mumbra|bhiwandi|kharghar|airoli|vashi|belapur|nerul|ghansoli)\b/i;
 export const inMumbaiRegion = (city: string) => MUMBAI_REGION.test(city.trim());
+
+/** The usual market ceiling for all EMIs as a share of income, used only as a guide when a lender's own is not recorded. */
+export const typicalFoir = (employmentType?: string) => (employmentType === "SELF_EMPLOYED" ? 65 : 60);
 
 export const emi = (principal: number, annualRatePct: number, months: number): number => {
   if (months <= 0) return 0;
@@ -329,8 +332,16 @@ export function matchOne(profile: Profile, p: PolicyRule, now: Date = new Date()
     const band = pickBand(p.foirBands, profile.monthlyIncome);
     const rate = p.maxRate ?? p.minRate;
     const months = profile.tenureMonths ?? p.maxTenureMonths;
-    if (!band || rate === null || !months) {
-      checks.push("FOIR could not be checked (lender's FOIR, rate or tenure not recorded).");
+    if (!band) {
+      // The lender's own limit is not on file: the usual market limit is shown as a guide, never as this lender's rule.
+      const typical = typicalFoir(profile.employmentType);
+      const guess = ((profile.existingEmi ?? 0) + emi(profile.amount, rate ?? 11, months || 180)) / profile.monthlyIncome * 100;
+      note("FOIR_TYPICAL", guess <= typical, `EMIs would be about ${guess.toFixed(0)}% of income; lenders usually allow up to ${typical}% (this lender's own limit is not recorded).`);
+      checks.push("This lender's income-to-EMI limit is not recorded: confirm it.");
+      return unknown;
+    }
+    if (rate === null || !months) {
+      checks.push("FOIR could not be checked (lender's rate or tenure not recorded).");
       return unknown;
     }
     const foir = ((profile.existingEmi ?? 0) + emi(profile.amount, rate, months)) / profile.monthlyIncome * 100;
@@ -364,7 +375,14 @@ export function matchOne(profile: Profile, p: PolicyRule, now: Date = new Date()
     if (profile.propertyValue === undefined || profile.amount === undefined) return unknown;
     const band = pickBand(p.ltvBands, profile.propertyValue);
     if (!band) {
-      if (p.ltvBands === null) return unknown;
+      if (p.ltvBands === null) {
+        // A guide from the usual market limits, never presented as this lender's rule.
+        const typical = profile.product === "home-loan" ? 80 : 70;
+        const share = (profile.amount / profile.propertyValue) * 100;
+        note("LTV_TYPICAL", share <= typical, `Loan is ${share.toFixed(0)}% of the property value; lenders usually allow up to ${typical}% (this lender's own limit is not recorded).`);
+        checks.push("This lender's loan-to-value limit is not recorded: confirm it.");
+        return unknown;
+      }
       checks.push("LTV band for this property value is not recorded.");
       return unknown;
     }

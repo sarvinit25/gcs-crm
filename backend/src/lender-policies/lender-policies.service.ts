@@ -6,6 +6,7 @@ import { AuditService } from "../audit/audit.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { matchAll, type Band, type PolicyRule, type Profile } from "./policy-matcher";
 import { fillProfileFromCam, profileFromLead } from "./profile-from-lead";
+import { rulesFromFlyers } from "./flyer-fill";
 import { cleanCriteria, coerceValue, fieldKey, missingMandatory, type Criteria, type MatchFieldDef } from "./match-fields";
 import { cleanSheet, SHEET_FIELDS } from "./policy-sheet-schema";
 import type {
@@ -180,6 +181,30 @@ export class LenderPoliciesService {
   }
 
   /** The same terms for one loan type on many lenders: creates what is missing, reports what already existed. */
+  /**
+   * Fills the blank rules of every policy from the lender's flyers (rate sheet and flyer notes). Only blanks are filled, each
+   * change is recorded on the policy's history, and "last verified" is left alone: filling is not checking.
+   */
+  async fillFromFlyers(actor: AuthUser, ip?: string) {
+    const policies = await this.prisma.lenderPolicy.findMany({ include: { lender: { select: { name: true } }, loanProduct: { select: { slug: true } } } });
+    const sheets = await this.prisma.lenderPolicySheet.findMany({ select: { lenderId: true, data: true } });
+    const counts: Record<string, number> = {};
+    let updated = 0;
+    for (const p of policies) {
+      const n = (v: unknown) => (v === null || v === undefined ? null : Number(v));
+      const { patch, filled } = rulesFromFlyers(
+        { product: p.loanProduct.slug, notes: p.notes, specialScheme: p.specialScheme, sheet: (sheets.find((s) => s.lenderId === p.lenderId)?.data ?? null) as Record<string, unknown> | null },
+        { minAmount: n(p.minAmount), maxAmount: n(p.maxAmount), minRate: n(p.minRate), maxRate: n(p.maxRate), maxTenureMonths: p.maxTenureMonths, minCreditScore: p.minCreditScore, minAge: p.minAge, maxAgeAtMaturity: p.maxAgeAtMaturity, foirBands: p.foirBands, ltvBands: p.ltvBands },
+      );
+      if (!filled.length) continue;
+      await this.prisma.lenderPolicy.update({ where: { id: p.id }, data: { ...(patch as unknown as Prisma.LenderPolicyUncheckedUpdateInput), version: { increment: 1 } } });
+      await this.audit.record({ actor, action: AuditAction.UPDATE, entity: "LenderPolicy", entityId: p.id, entityLabel: `${p.lender.name}: filled from flyers (${filled.join(", ")})`.slice(0, 190), ip });
+      for (const f of filled) counts[f] = (counts[f] ?? 0) + 1;
+      updated++;
+    }
+    return { policies: policies.length, updated, filled: counts };
+  }
+
   async createMany(dto: BulkPolicyDto, actor: AuthUser, ip?: string) {
     const { lenderIds, loanProductId, maxFoirPercent, ...fields } = dto;
     const ids = [...new Set(lenderIds)];

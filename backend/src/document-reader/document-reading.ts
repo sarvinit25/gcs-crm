@@ -1,8 +1,9 @@
 // Reading the documents a customer sends: what kind of document it is, the figures on it, and what could go into the
-// CAM. The AI only reads; everything it returns is cleaned here before a person sees it, and nothing goes into the CAM
-// until a person presses the button.
+// CAM. The AI only reads; everything it returns is cleaned here and in cam-fill.ts before it is used, and it only ever
+// fills CAM boxes that are still blank.
 
 import type { StatementAnalysis } from "../cam/statement-analyse";
+import { camFromExtraction } from "./cam-fill";
 
 /** Identity papers (Aadhaar, PAN, passport) are never sent to the AI. The customer types those numbers themselves. */
 export const NEVER_READ_CATEGORIES = ["KYC"];
@@ -34,8 +35,14 @@ export function readingPrompt(): string {
  "docType": one of ${DOC_TYPES.map((d) => `"${d}"`).join(" | ")} | "IDENTITY_DOCUMENT",
  "summary": one plain sentence on what the document is and whose it is,
  "fields": [ { "label": "...", "value": "..." } ],
- "salary": { "employer": text or null, "designation": text or null, "grossMonthly": number or null, "netMonthly": number or null }
+ "salary": { "employer": text or null, "designation": text or null, "grossMonthly": number or null, "netMonthly": number or null },
+ "business": { "businessName": text, "constitution": "Proprietorship" | "Partnership" | "Private Limited" | "LLP" | "Other", "gstin": text, "udyam": text },
+ "financials": [ { "year": "2024-25", "turnover": number, "grossProfit": number, "netProfit": number, "depreciation": number, "interestPaid": number, "remuneration": number, "tax": number } ],
+ "property": { "agreementValue": number, "marketValue": number, "address": text, "builderName": text, "areaSqft": number, "ownerName": text },
+ "loans": [ { "lender": text, "type": "Home loan" | "Loan against property" | "Car loan" | "Personal loan" | "Business loan" | "Gold loan" | "Education loan" | "Two-wheeler / consumer" | "Other", "sanctioned": number, "outstanding": number, "emi": number, "monthsLeft": number } ]
 }
+
+Leave out any of "business", "financials", "property" and "loans" that the document does not state. "year" is the financial year (the year before the assessment year). "netProfit" is the business profit; use a negative number for a loss.
 
 Rules:
 - If the document is an Aadhaar card, PAN card, passport, voter ID or driving licence: set docType to "IDENTITY_DOCUMENT", fields to [] and do not copy any number from it.
@@ -61,7 +68,16 @@ const money = (v: unknown): number | null => {
 /** Anything that looks like a long account, card or Aadhaar number is cut to its last four digits. */
 export const maskLongNumbers = (s: string) => s.replace(/\b\d[\d -]{8,}\d\b/g, (m) => `XXXX${m.replace(/\D/g, "").slice(-4)}`);
 
-/** The AI's answer, cleaned: a known type, short readable fields, and a CAM patch only from a salary slip. */
+/** Which structured parts each kind of document may fill: a bank statement or an unknown paper fills nothing this way. */
+const MAY_FILL: Partial<Record<DocType, string[]>> = {
+  ITR: ["business", "financials"],
+  GST_RETURN: ["business"],
+  BUSINESS_PROOF: ["business"],
+  PROPERTY_PAPER: ["property"],
+  LOAN_STATEMENT: ["loans"],
+};
+
+/** The AI's answer, cleaned: a known type, short readable fields, and a CAM patch limited to what that kind of document proves. */
 export function normaliseReading(raw: unknown): Reading {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const type = typeof r.docType === "string" ? r.docType.toUpperCase() : "";
@@ -91,6 +107,8 @@ export function normaliseReading(raw: unknown): Reading {
     if (net) income.netMonthly = net;
     if (Object.keys(income).length) cam = { income };
   }
+  const parts = MAY_FILL[docType] ?? [];
+  if (parts.length) cam = camFromExtraction(Object.fromEntries(parts.map((k) => [k, r[k]])));
   return { docType, summary: clean(r.summary, 300), fields, cam };
 }
 

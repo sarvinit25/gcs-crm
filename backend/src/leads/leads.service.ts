@@ -691,6 +691,8 @@ export class LeadsService implements OnApplicationBootstrap {
     // The first document in moves "Not received" to "Some received" by itself; staff still decide when it is complete.
     const moved = await this.prisma.lead.updateMany({ where: { id, documentsStatus: "NONE" }, data: { documentsStatus: "PARTIAL" } });
     if (moved.count) await this.refreshSegment(id);
+    // The document reader picks this up and fills the blank CAM boxes from it, in the background.
+    this.events?.emit("LEAD_FILE_ADDED", { leadId: id, fileId: created.id, userId: user.id });
     return { ...created, category: classifyDocument(created.fileName, created.caption) };
   }
 
