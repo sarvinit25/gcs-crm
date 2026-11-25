@@ -177,7 +177,7 @@ function methodsSheet(wb: ExcelJS.Workbook, kit: Kit, family: Family, data: CamD
     cell(ws, `B${r}`, fx(basis), "money");
     cell(ws, `C${r}`, emiFormula ? fx(emiFormula) : null, "money");
     cell(ws, `D${r}`, fx(loanFormula ?? `IFERROR(PV(${k.rate}/1200,${k.n},-C${r}),0)`), "money", { bold: true });
-    cell(ws, `E${r}`, fx(`IF(${k.ask}=0,"-",IF(D${r}>=${k.ask},"Covers it","Short by "&TEXT(${k.ask}-D${r},"#,##0")))`));
+    cell(ws, `E${r}`, fx(`IF(N(D${r})=0,"Figures missing or condition not met",IF(${k.ask}=0,"-",IF(D${r}>=${k.ask},"Covers it","Short by "&TEXT(${k.ask}-D${r},"#,##0"))))`));
     r += 1;
   };
   const byIncome = () => `MAX(0,B${r}*${k.foir}/100-${k.emi})`;
@@ -380,12 +380,13 @@ function checksSheet(wb: ExcelJS.Workbook, kit: Kit, family: Family, data: CamDa
     check("Current ratio", ratio("Current ratio"), "ratio", "at least", 1.17);
     check("Debt to equity", ratio("Debt to equity"), "ratio", "at most", 3);
     check("Total outside liabilities / net worth", ratio("Total outside liabilities / net worth"), "ratio", "at most", 3);
-    check("Debtor days", ratio("Debtor days"), "number", "at most", 120);
+    // A blank figure is unknown, not zero.
+    check("Debtor days", fx(`IF(COUNT(Ratios!B${at.debtors})=0,"-",IFERROR(Ratios!B${at["Debtor days"]},"-"))`), "number", "at most", 120);
     check("Turnover change on the year before (%)", ratio("Turnover growth over the year before"), "number", "at least", -10);
     const B = `Ratios!B${at.netProfit}`;
     check("Cash profit change on the year before (%)", fx(`IFERROR(((Ratios!B${at.netProfit}+Ratios!B${at.depreciation})/(Ratios!C${at.netProfit}+Ratios!C${at.depreciation})-1)*100,"-")`), "number", "at least", -5);
     const yearly = (a.existingEmi + (a.proposedEmi ?? 0)) * 12;
-    check("Debt service cover (cash profit + interest) / yearly EMIs", yearly > 0 ? fx(`IFERROR((${B}+Ratios!B${at.depreciation}+Ratios!B${at.interestPaid})/${Math.round(yearly)},"-")`) : null, "ratio", "at least", 1.25);
+    check("Debt service cover (cash profit + interest) / yearly EMIs", yearly > 0 ? fx(`IF(COUNT(${B})=0,"-",IFERROR((${B}+Ratios!B${at.depreciation}+Ratios!B${at.interestPaid})/${Math.round(yearly)},"-"))`) : null, "ratio", "at least", 1.25);
   }
   const last = r - 1;
   r += 1;
