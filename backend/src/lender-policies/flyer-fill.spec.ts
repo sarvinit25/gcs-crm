@@ -47,3 +47,11 @@ describe("rulesFromFlyers", () => {
     expect(r.patch).toEqual({ minAmount: null });
   });
 });
+
+describe("special-program figures are left alone", () => {
+  it("ignores a Low LTV program, a very low share and an income share above 80%", () => {
+    expect(ltvFrom("Low LTV 60% program")).toBeNull();
+    expect(ltvFrom("LTV 45% Industrial")).toBeNull();
+    expect(foirFrom("FOIR upto 100% in Banking")).toBeNull();
+  });
+});
