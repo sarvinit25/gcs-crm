@@ -6,7 +6,10 @@ import { SettingsService } from "../../settings/settings.service";
 import type { Interactive } from "../whatsapp.provider";
 import { LeadsService } from "../../leads/leads.service";
 import { answerKey, answersByKey, checkAnswer, checklistUrl, hasFigure, leadFacts, loanChoices, loanFor, loanGroups, nextQuestions, otherToSpecify, parseMoney, reviewReasons, sharedAnswers, sharesWordWith, supportedBy, resolveField, rupees, withSeeds, type Answers } from "./intake.engine";
-import { LANGUAGE_NAME, detectLanguage } from "./intake.language";
+import { LANGUAGE_NAME, detectLanguage, type Language } from "./intake.language";
+import { bestNeed, loanPurposes } from "./intake.need";
+import { isReference, resolveReply } from "./intake.refs";
+import { foir, ltv } from "../../credit-evaluation/credit-calcs";
 import { YOU_ARE, groupLoanOptions, groupOptions, optionsFor, parseTap, shorten, type OptionSet, type Tap } from "./intake.options";
 
 type Turn = { role: "user" | "assistant"; content: string };
@@ -56,7 +59,7 @@ const MAX_TRIES = 2;
 const aboutKey = (key: string): string | undefined =>
   key !== "coApplicant" && /^coApplicant/.test(key) ? "the co-applicant, the person applying with the customer" : key !== "extraEarner" && /^extraEarner/.test(key) ? "the other earning member of the family whose income is counted" : undefined;
 /** Words that say an earlier answer is being changed. Without them nothing is ever treated as a correction. */
-const CORRECTION_WORDS = /\b(correct|correction|actually|i meant|i mean|instead|wrong|mistake|sorry|change|changed|update|rather|galat|sahi nahi)\b|\bnot\b.{0,40}\b(but|it is|its|it's)\b/i;
+const CORRECTION_WORDS = /\b(correct|correction|actually|i meant|i mean|instead|wrong|mistake|sorry|change|changed|update|updated|rather|galat|sahi nahi|badal|badlo|badla|make it|should be|is now|are now|has changed|have changed)\b|\bnot\b.{0,40}\b(but|it is|its|it's)\b/i;
 /** After a break this long the customer is welcomed back before the next question. */
 const RETURN_AFTER_MS = 6 * 60 * 60 * 1000;
 const LATE_NOTE = "Added later on WhatsApp";
@@ -133,6 +136,7 @@ export class IntakeService {
 
     // 1. What did the customer say? A tap is exact; typed words are read by the AI.
     let before = await this.snapshot(leadId);
+    await this.recordLanguage(leadId, turns);
     const tap = parseTap(replyId);
     // Someone who said "not now" stays at "not now" until they clearly ask to go on; just writing again does not restart the questions.
     if (!tap && !media && before.more === "No" && before.basicsDone && RESUME_ASKING.test(lastTyped)) {
@@ -196,8 +200,11 @@ export class IntakeService {
       const field = before.loanSlug ? loanFor(before.loanSlug)?.fields.find((f) => f.key === asked[0]!.key) : undefined;
       const msg = lastTyped.trim();
       if (field?.kind === "text" && msg.length >= 2 && msg.split(/\s+/).length <= 8 && !msg.includes("?") && !JUST_THANKS.test(msg) && !NOT_SURE.test(msg) && !STOP_ASKING.test(msg) && !RESUME_ASKING.test(msg)) {
-        await this.writeAnswer(leadId, field.label, msg.slice(0, 300));
-        saved.push(field.label);
+        const reading = resolveReply(field, msg, before.rows, before.loanSlug, before.lead?.city);
+        if (reading.value) {
+          await this.writeAnswer(leadId, field.label, reading.value.slice(0, 300));
+          saved.push(field.label);
+        }
       }
     }
 
@@ -299,6 +306,20 @@ export class IntakeService {
     return { text: written.text, handoff: plan.kind === "handoff", ...(written.options ? { options: written.options } : {}) };
   }
 
+  /** The language the customer writes in, kept on the lead so staff know which language to call in. A short English reply never undoes Hindi or Marathi. */
+  private async recordLanguage(leadId: string, turns: Turn[]) {
+    try {
+      const names: Record<Language, string> = { en: "English", hinglish: "Hindi (written in English letters)", hi: "Hindi", mr: "Marathi", "mr-roman": "Marathi (written in English letters)" };
+      const language = detectLanguage(turns);
+      const key = answerKey("Preferred language");
+      const have = await this.prisma.leadAnswer.findUnique({ where: { leadId_key: { leadId, key } }, select: { value: true } });
+      if (have?.value === names[language] || (have && language === "en")) return;
+      await this.writeAnswer(leadId, "Preferred language", names[language]);
+    } catch (error) {
+      this.log.warn(`Could not note the language: ${(error as Error).message.slice(0, 200)}`);
+    }
+  }
+
   /** What is asked of the customer next, and the tap-to-choose options for it. The same call decides what the AI may fill in. */
   private focus(snap: Snapshot): { ask: Ask[]; options: OptionSet | null } {
     const first = this.toAsk(snap)[0];
@@ -311,7 +332,7 @@ export class IntakeService {
   private async snapshot(leadId: string) {
     const lead = await this.prisma.lead.findUnique({
       where: { id: leadId },
-      select: { name: true, city: true, amount: true, loanProduct: { select: { slug: true, name: true } }, answers: { select: { key: true, value: true } } },
+      select: { name: true, city: true, amount: true, loanProduct: { select: { slug: true, name: true } }, answers: { select: { key: true, value: true }, orderBy: { createdAt: "asc" } } },
     });
     const rows = lead?.answers ?? [];
     const loanSlug = lead?.loanProduct?.slug ?? null;
@@ -326,7 +347,7 @@ export class IntakeService {
     if (!lead || GENERIC_NAME.test(lead.name)) missing.push("name");
     if (!lead?.city) missing.push("city");
     if (!applicant) missing.push("applicant");
-    return { lead, loanSlug, loanName: lead?.loanProduct?.name ?? null, answers, applicant, more, rangeLabel, missing, basicsDone: missing.length === 0 };
+    return { lead, loanSlug, loanName: lead?.loanProduct?.name ?? null, answers, rows, applicant, more, rangeLabel, missing, basicsDone: missing.length === 0 };
   }
 
   /** What to ask next: ONE thing. Part 1's basics, then whether to go on, then (if they agreed) the loan's own questions. */
@@ -392,11 +413,15 @@ export class IntakeService {
   }
 
   private async extract(turns: Turn[], asked: Ask[], snap: Snapshot, catchUp = false): Promise<Extracted | null> {
-    const loans = snap.loanSlug
-      ? ""
-      : `\nLoans (for loan_slug use the left part):\n${loanChoices()
-          .map((l) => `${l.slug} = ${l.title}`)
-          .join("\n")}`;
+    const loans = snap.loanSlug ? "" : `\nLoans, as slug = title: what it is for (for loan_slug use the slug):\n${loanPurposes((slug) => loanFor(slug)?.title ?? slug)}`;
+    // Everything already told, so nothing is asked twice and a changed detail can be spotted.
+    const known = {
+      ...(snap.lead && !GENERIC_NAME.test(snap.lead.name) ? { name: snap.lead.name } : {}),
+      ...(snap.lead?.city ? { city: snap.lead.city } : {}),
+      ...(snap.loanName ? { loan: snap.loanName } : {}),
+      ...(snap.lead?.amount ? { loan_amount: rupees(Number(snap.lead.amount)) } : {}),
+      ...(snap.applicant ? { applicant: snap.applicant } : {}),
+    };
     const system = `You read a customer's WhatsApp messages to a loan company and pull out facts. Reply with ONE JSON object only.
 
 Question that was just asked:
@@ -408,6 +433,9 @@ ${JSON.stringify(this.openAhead(snap, asked).map((f) => ({ key: f.key, label: f.
 Answers already given (for corrections only):
 ${JSON.stringify((loanFor(snap.loanSlug)?.fields ?? []).filter((f) => (snap.answers[f.key] ?? "").trim() !== "").slice(0, 70).map((f) => ({ key: f.key, label: f.label, value: snap.answers[f.key] })))}
 
+Already known about the customer (never ask for these again; the customer may change them):
+${JSON.stringify(known)}
+
 Return: {"name": string|null, "city": string|null, "loan_slug": string|null, "loan_amount": number|null, "applicant": string|null, "more_details": boolean|null, "answers": [{"key": string, "value": string, "evidence": string}], "corrections": [{"key": string, "value": string, "evidence": string}], "wants_person": boolean, "shared_private_number": boolean, "their_question": string|null}
 Rules:
 ${catchUp ? "- THIS IS A CATCH-UP: no question was just asked. Read ALL the customer's messages so far, not only the latest, and fill any open question they have already clearly answered. Quote their exact words as evidence.\n" : ""}- Fill only what the customer clearly said in their LATEST message(s) since the assistant last spoke, in answer to the question above. Never guess and never infer from context: if their words do not state it, leave it out. Use null or [] otherwise.
@@ -416,22 +444,30 @@ ${catchUp ? "- THIS IS A CATCH-UP: no question was just asked. Read ALL the cust
 - applicant: only if asked, and one of: Salaried, Proprietor, Partner, Director, Professional, NRI, Other (a shop or business owner on their own = Proprietor; a doctor, CA or similar = Professional).
 - more_details: only if asked. true if they agree to go on ("yes", "ok", "sure", "haan", "chalo", "होय"), false if they decline ("not now", "later", "no", "nahi").
 - Messages marked "(tapped)" are the customer's pick from a list we showed; the text after it is the option's title.
-- loan_slug: only if they clearly name a loan, or what it is for matches one loan; otherwise null. When they describe a need without naming a loan: money against a property that they want to draw as needed and pay interest on only what they use, with no fixed EMI = "dlod"; a one-time lump sum against a property = "loan-against-property"; taking over an existing loan from another bank = "balance-transfer"; if it is still unclear, null.
+- loan_slug: the loan whose purpose (listed above) matches what the customer says they need, even if they never name a loan: "I want to buy a flat" = home-loan, "money against my shop" = loan-against-property, "my daughter's masters abroad" = education-loan, "need to buy a truck" = commercial-vehicle. Match by meaning, in English, Hindi or Marathi. If two loans fit about equally, or it is not clear what they need, null: they will be asked.
 - wants_person: true if they ask for a person or a call, or are upset.
 - shared_private_number: true if they sent a PAN, Aadhaar, OTP, password, card or bank account number (these appear as [... removed]).
 - "evidence": copy the EXACT words from the customer's latest message that state the answer. Do not paraphrase. If you cannot quote words that state it, do not give that answer at all. A message that is a question, a complaint or a correction is NOT an answer to the question just asked: leave "answers" empty for it.
-- "corrections": only when the customer clearly says an earlier answer was wrong or changes it ("correction", "not X but Y", "actually", "I meant"). "key" must be one of the answers already given; "value" is the new value, in the same form as an answer; "evidence" is their exact words.
+- "corrections": only when the customer clearly says an earlier answer was wrong or changes it ("correction", "not X but Y", "actually", "I meant"). "key" must be one of the answers already given, or one of name, city, loan_amount, applicant (for those, "value" is the new name or city as plain text, or the amount as a rupee number); "value" is the new value, in the same form as an answer; "evidence" is their exact words.
 - city: write the full name of the city ("mum" or "bom" means Mumbai, "blr" Bengaluru, "del" or "ndls" Delhi, "hyd" Hyderabad).
-- If they say "same" or "same as above" for a place, give the city they named earlier${snap.lead?.city ? ` (${snap.lead.city})` : ""}.
+- A reply such as "same", "same as above" or "wahi" points back at something they said before. Never give the word "same" as a value: give the earlier value itself (for a place, the place they named earlier${snap.lead?.city ? `, for example ${snap.lead.city}` : ""}), or leave it out if you cannot tell which.
 - their_question: a question asked in their LATEST message only (rates, approval, documents...) in a few words, else null. Do not repeat a question from an earlier message.`;
     const raw = await this.complete([{ role: "system", content: system }, ...turns], { json: true, maxTokens: 500 });
     if (raw === null) return null;
+    let x: Extracted;
     try {
-      return JSON.parse(raw) as Extracted;
+      x = JSON.parse(raw) as Extracted;
     } catch {
       this.log.error("The model's reading of a message was not valid JSON");
-      return {};
+      x = {};
     }
+    // The loan from what they need: if the AI hesitated but their words clearly point to one loan, take it.
+    if (!snap.loanSlug && !(typeof x.loan_slug === "string" && loanFor(x.loan_slug))) {
+      const said = turns.filter((t) => t.role === "user" && !t.content.startsWith("(tapped)")).map((t) => t.content).join(" . ");
+      const guess = bestNeed(said);
+      if (guess && loanFor(guess)) x.loan_slug = guess;
+    }
+    return x;
   }
 
   /** Saves what was read. Returns the plain names of what was saved. */
@@ -444,7 +480,7 @@ ${catchUp ? "- THIS IS A CATCH-UP: no question was just asked. Read ALL the cust
     /** Amounts as they were read, so they can be repeated back to the customer for a check. */
     const figures: string[] = [];
     const data: Prisma.LeadUpdateInput = {};
-    const current = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { name: true, city: true } });
+    const current = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { name: true, city: true, amount: true } });
 
     const name = typeof x.name === "string" ? x.name.trim().slice(0, 120) : "";
     if (name.length >= 2 && current && GENERIC_NAME.test(current.name)) {
@@ -453,7 +489,7 @@ ${catchUp ? "- THIS IS A CATCH-UP: no question was just asked. Read ALL the cust
     }
     // a city that was just given is welcome even when something else was asked, but it is not changed once it is set
     const city = typeof x.city === "string" ? x.city.trim().slice(0, 80) : "";
-    if (city.length >= 2 && (allowed.has("city") || !current?.city)) {
+    if (city.length >= 2 && !isReference(city) && (allowed.has("city") || !current?.city)) {
       data.city = city;
       saved.push("city");
     }
@@ -482,6 +518,38 @@ ${catchUp ? "- THIS IS A CATCH-UP: no question was just asked. Read ALL the cust
     if (allowed.has("more_details") && typeof x.more_details === "boolean") {
       await this.writeAnswer(leadId, ROW_MORE, x.more_details ? "Yes" : "No");
       saved.push("more details");
+    }
+
+    // The customer changes something they told us before (their name, city, amount or what they are): it changes on the lead at
+    // once, with their own words as proof. A change is only taken when they say it is one ("actually", "change it to", "should be").
+    for (const c of Array.isArray(x.corrections) ? x.corrections : []) {
+      const key = String(c?.key ?? "");
+      if (!["name", "city", "loan_amount", "applicant"].includes(key) || !typed || !CORRECTION_WORDS.test(typed) || !supportedBy(typed, c?.evidence)) continue;
+      const value = String(c?.value ?? "").trim();
+      if (key === "name" && value.length >= 2 && !/\d/.test(value) && !isReference(value) && value !== current?.name) {
+        await this.prisma.lead.update({ where: { id: leadId }, data: { name: value.slice(0, 120) } });
+        saved.push("name");
+        corrected.push(`name: ${value.slice(0, 120)}`);
+      } else if (key === "city" && value.length >= 2 && !/\d/.test(value) && !isReference(value) && value.toLowerCase() !== (current?.city ?? "").toLowerCase()) {
+        await this.prisma.lead.update({ where: { id: leadId }, data: { city: value.slice(0, 80) } });
+        saved.push("city");
+        corrected.push(`city: ${value.slice(0, 80)}`);
+      } else if (key === "loan_amount" && hasFigure(typed)) {
+        const n = parseMoney(value);
+        if (n && n >= 1000 && n !== Number(current?.amount ?? 0)) {
+          await this.prisma.lead.update({ where: { id: leadId }, data: { amount: n } });
+          saved.push("loan amount");
+          figures.push(`loan amount ${rupees(n)}`);
+          corrected.push(`loan amount: ${rupees(n)}`);
+        }
+      } else if (key === "applicant") {
+        const who = YOU_ARE.find((v) => v.toLowerCase() === value.toLowerCase());
+        if (who) {
+          await this.writeAnswer(leadId, ROW_YOU_ARE, who);
+          saved.push("you are");
+          corrected.push(`you are: ${who}`);
+        }
+      }
     }
 
     const snap = await this.snapshot(leadId);
@@ -514,8 +582,15 @@ ${catchUp ? "- THIS IS A CATCH-UP: no question was just asked. Read ALL the cust
         continue;
       }
       let said = String(a?.value ?? "");
-      // "same" for a place means the city they gave
-      if (field.kind === "text" && /^\s*(same|same as above|same as city|same place|yahi|wahi)\s*[.!]?\s*$/i.test(said) && snap.lead?.city) said = `${snap.lead.city} (same as the city)`;
+      // "same", "same as above", "wahi" points back at an earlier answer: the earlier value goes in, never the word itself.
+      if (isReference(said) || (field.kind === "text" && isReference(typed))) {
+        const earlier = field.kind === "text" ? resolveReply(field, "same", snap.rows, snap.loanSlug, snap.lead?.city) : { value: null };
+        if (earlier.value === null) {
+          if (asked) rejected = { key: field.key, label: field.label, hint: "They pointed back at an earlier answer (\"same\") but nothing earlier fits this question. Ask them to write the actual answer" };
+          continue;
+        }
+        said = earlier.value;
+      }
       const checked = checkAnswer(field, said);
       if (!checked.ok) {
         if (asked) rejected = { key: field.key, label: field.label, hint: checked.hint };
@@ -576,6 +651,7 @@ ${catchUp ? "- THIS IS A CATCH-UP: no question was just asked. Read ALL the cust
       if (lead && !lead.employmentType && facts.employmentType) data.employmentType = facts.employmentType;
       if (lead && !lead.monthlyIncome && facts.monthlyIncome) data.monthlyIncome = facts.monthlyIncome;
       if (Object.keys(data).length) await this.prisma.lead.update({ where: { id: leadId }, data });
+      await this.ratios(leadId, snap, facts.monthlyIncome);
       const reasons = reviewReasons(snap.loanSlug, snap.answers);
       if (reasons.length) {
         const key = answerKey("Needs an expert's review");
@@ -587,6 +663,28 @@ ${catchUp ? "- THIS IS A CATCH-UP: no question was just asked. Read ALL the cust
     } catch (error) {
       this.log.warn(`Could not update the lead from the chat: ${(error as Error).message.slice(0, 200)}`);
     }
+  }
+
+  /**
+   * Ratios worked out in code from what the customer said, so staff see them without a calculator: the loan against the value of
+   * the property or vehicle, and the EMIs already being paid against income. Indicative, from the customer's own figures; the CAM
+   * has the full set. A figure that is missing or was skipped gives no ratio, and a ratio that no longer holds is rewritten.
+   */
+  private async ratios(leadId: string, snap: Snapshot, income: number | null) {
+    const loan = Number(snap.lead?.amount ?? 0);
+    const valueKey = ["propertyValue", "agreementValue", "lrdPropertyValue", "securityValue", "collateralValue", "carValue"].find((k) => (parseMoney(snap.answers[k] ?? "") ?? 0) > 0);
+    const value = valueKey ? (parseMoney(snap.answers[valueKey] ?? "") ?? 0) : 0;
+    const share = ltv(loan, value);
+    if (share !== null) await this.writeIfChanged(leadId, "Loan to value (worked out)", `${(Math.round(share * 10) / 10).toString()}% (loan ${rupees(loan)} on a value of ${rupees(value)}, as the customer said)`);
+    const emis = parseMoney(snap.answers["existingEmi"] ?? "");
+    const burden = income && emis ? foir(emis, 0, income) : null;
+    if (burden !== null) await this.writeIfChanged(leadId, "Existing EMIs against income (worked out)", `${(Math.round(burden * 10) / 10).toString()}% (${rupees(emis!)} a month on an income of ${rupees(income!)})`);
+  }
+
+  private async writeIfChanged(leadId: string, label: string, value: string) {
+    const key = answerKey(label);
+    const have = await this.prisma.leadAnswer.findUnique({ where: { leadId_key: { leadId, key } }, select: { value: true } });
+    if (have?.value !== value) await this.writeAnswer(leadId, label, value);
   }
 
   /**

@@ -230,10 +230,26 @@ describe("listening to what the customer actually says", () => {
     expect(rows.has(answerKey("Roughly what is your CIBIL score?"))).toBe(false);
   });
 
-  it("reads 'same' for a place as the city the customer gave", async () => {
+  it("turns 'same' for a place into the place they gave before, never the word itself", async () => {
     const { svc, rows } = setup(() => "same", undefined, false, false, false, { stopAt: "propertyArea", extraction: () => ({ answers: [{ key: "propertyArea", value: "same", evidence: "same" }] }) });
+    rows.set(answerKey("Location"), { key: answerKey("Location"), label: "Location", value: "Andheri West" });
     await svc.reply(chat);
-    expect(rows.get(answerKey("Location of the property"))?.value).toBe("Mumbai (same as the city)");
+    expect(rows.get(answerKey("Location of the property"))?.value).toBe("Andheri West");
+  });
+
+  it("falls back to the city when no other place was given, and still never writes 'same'", async () => {
+    const { svc, rows } = setup(() => "Same as above", undefined, false, false, false, { stopAt: "propertyArea", extraction: () => ({ answers: [{ key: "propertyArea", value: "Same as above", evidence: "Same as above" }] }) });
+    // the earlier place question was skipped, so there is no place to point at: the city they gave is the nearest thing
+    rows.set(answerKey("Location"), { key: answerKey("Location"), label: "Location", value: "Not sure (the expert will confirm)" });
+    await svc.reply(chat);
+    expect(rows.get(answerKey("Location of the property"))?.value).toBe("Mumbai");
+  });
+
+  it("does the same when the AI hands nothing back and the short reply is taken as the answer", async () => {
+    const { svc, rows } = setup(() => "same", undefined, false, false, false, { stopAt: "propertyArea", extraction: () => ({ answers: [] }) });
+    rows.set(answerKey("Location"), { key: answerKey("Location"), label: "Location", value: "Powai" });
+    await svc.reply(chat);
+    expect(rows.get(answerKey("Location of the property"))?.value).toBe("Powai");
   });
 
   it("notes a question like 'which bank is best' for the expert and does not answer it", async () => {
