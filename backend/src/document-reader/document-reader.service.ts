@@ -1,7 +1,7 @@
 import { BadGatewayException, BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit, Optional } from "@nestjs/common";
 import { EventsService } from "../events/events.service";
 import { classifyDocument } from "../documents/document-kinds";
-import { belongsToApplicant, isNewLoanPaper, onlyBlanks } from "./cam-fill";
+import { belongsToApplicant, isNewLoanPaper, limitToFileKind, onlyBlanks } from "./cam-fill";
 import { ConfigService } from "@nestjs/config";
 import { AuditAction, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
@@ -63,7 +63,7 @@ export class DocumentReaderService implements OnModuleInit {
     if (!local) {
       if (!this.aiEnabled) return skip("The reader is switched off");
       const reading = (await this.readWithAi(buffer, file.mimeType, file.fileName)).reading;
-      patch = reading.cam;
+      patch = reading.cam ? limitToFileKind(reading.cam, classifyDocument(file.fileName, file.caption)) : null;
       // A letter about the loan being given is not a running loan, whatever the reader called it.
       if (patch?.obligations && isNewLoanPaper(file.fileName)) delete patch.obligations;
       // A co-applicant's income, business or loans are never entered as the applicant's own.

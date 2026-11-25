@@ -1,4 +1,4 @@
-import { belongsToApplicant, camFromExtraction, isNewLoanPaper, onlyBlanks } from "./cam-fill";
+import { belongsToApplicant, camFromExtraction, isNewLoanPaper, limitToFileKind, onlyBlanks } from "./cam-fill";
 import { normaliseReading } from "./document-reading";
 
 describe("camFromExtraction", () => {
@@ -68,5 +68,17 @@ describe("registration numbers", () => {
   it("drops values that are not a GSTIN or Udyam number", () => {
     expect(camFromExtraction({ business: { gstin: "No", udyam: "registered" } })).toBeNull();
     expect(camFromExtraction({ business: { udyam: "UDYAM-MH-33-0689325" } })!.income!.udyam).toBe("UDYAM-MH-33-0689325");
+  });
+});
+
+describe("what a file's own kind allows", () => {
+  const patch = { income: { gstin: "x", financials: [{ year: "2024-25" }], netMonthly: 5 }, property: { areaSqft: 1 }, obligations: { loans: [] } };
+  it("lets a property paper fill only the property", () => {
+    expect(limitToFileKind(patch, "Property papers")).toEqual({ property: { areaSqft: 1 } });
+  });
+  it("takes yearly figures only from income proof", () => {
+    expect(limitToFileKind(patch, "Income proof").income).toHaveProperty("financials");
+    expect(limitToFileKind(patch, "Business proof").income).not.toHaveProperty("financials");
+    expect(limitToFileKind(patch, "Other").income).toEqual({ netMonthly: 5 });
   });
 });

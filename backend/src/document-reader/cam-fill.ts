@@ -90,6 +90,25 @@ export function belongsToApplicant(person: string | null | undefined, applicantN
   });
 }
 
+/**
+ * What a file may fill, judged by its own name as well as by what the reader called it: a builder's receipt filed with the
+ * property papers must not give the applicant a GST number, whatever is printed on it.
+ */
+export function limitToFileKind(patch: CamPatch, category: string): CamPatch {
+  const out: CamPatch = {};
+  if (patch.property && category === "Property papers") out.property = patch.property;
+  if (patch.obligations && category !== "Property papers" && category !== "Business proof") out.obligations = patch.obligations;
+  if (patch.income && ["Income proof", "Business proof", "Other"].includes(category)) {
+    const income = { ...patch.income };
+    if (category !== "Income proof") delete income.financials;
+    if (category === "Other") for (const k of ["businessName", "constitution", "gstin", "udyam"]) delete income[k];
+    if (Object.keys(income).length) out.income = income;
+  }
+  if (patch.banking) out.banking = patch.banking;
+  if (patch.bankingDetail) out.bankingDetail = patch.bankingDetail;
+  return out;
+}
+
 const blank = (v: unknown) => v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0);
 const same = (a: unknown, b: unknown) => String(a ?? "").trim().toLowerCase() === String(b ?? "").trim().toLowerCase();
 
