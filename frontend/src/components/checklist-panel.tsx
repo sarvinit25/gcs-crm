@@ -1,23 +1,32 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Circle, Loader2 } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
+import { groupChecklist, withMark } from "../lib/checklist";
 import type { ApplicationChecklist } from "../lib/types";
 
-/** Groups a flat checklist into category buckets, in first-seen order. */
-function groupByCategory(items: ApplicationChecklist["items"]) {
-  const groups = new Map<string, ApplicationChecklist["items"]>();
-  for (const item of items) {
-    if (!groups.has(item.category)) groups.set(item.category, []);
-    groups.get(item.category)!.push(item);
-  }
-  return [...groups.entries()];
-}
-
 export function ChecklistPanel({ applicationId }: { applicationId: string }) {
+  const queryClient = useQueryClient();
+  const key = ["checklist", applicationId];
   const query = useQuery({
-    queryKey: ["checklist", applicationId],
+    queryKey: key,
     queryFn: () => api<ApplicationChecklist>(`/applications/${applicationId}/checklist`),
+  });
+
+  // Ticking a line changes the screen at once; if the server refuses, the line goes back and the reason is shown.
+  const mark = useMutation({
+    mutationFn: ({ id, given }: { id: string; given: boolean }) =>
+      api<ApplicationChecklist>(`/applications/${applicationId}/checklist/${id}`, { method: "PUT", body: JSON.stringify({ given }) }),
+    onMutate: async ({ id, given }) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const before = queryClient.getQueryData<ApplicationChecklist>(key);
+      if (before) queryClient.setQueryData(key, withMark(before, id, given));
+      return { before };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.before) queryClient.setQueryData(key, ctx.before);
+    },
+    onSuccess: (list) => queryClient.setQueryData(key, list),
   });
 
   return (
@@ -51,33 +60,43 @@ export function ChecklistPanel({ applicationId }: { applicationId: string }) {
             </p>
           )}
           <div className="space-y-4">
-            {groupByCategory(query.data.items).map(([category, items]) => (
+            {groupChecklist(query.data.items).map(([category, items]) => (
               <div key={category}>
                 <p className="mb-1.5 text-[11px] font-bold tracking-wide text-muted uppercase">
                   {category}
                 </p>
                 <ul className="space-y-1">
-                  {items.map((item) => (
-                    <li key={item.id} className="flex items-start gap-2 text-[13px]">
-                      {item.status === "GIVEN" ? (
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                      ) : (
-                        <Circle className="mt-0.5 h-4 w-4 shrink-0 text-muted/50" />
-                      )}
-                      <span>
-                        <span className={clsx(item.status === "GIVEN" && "text-muted line-through")}>
-                          {item.label}
-                        </span>
-                        {item.description && (
-                          <span className="block text-[12px] text-muted">{item.description}</span>
-                        )}
-                      </span>
-                    </li>
-                  ))}
+                  {items.map((item) => {
+                    const given = item.status === "GIVEN";
+                    return (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          role="checkbox"
+                          aria-checked={given}
+                          onClick={() => mark.mutate({ id: item.id, given: !given })}
+                          className="flex w-full items-start gap-2 rounded-md px-1 py-0.5 text-left text-[13px] transition-colors hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-emerald-600"
+                        >
+                          {given ? (
+                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                          ) : (
+                            <Circle className="mt-0.5 h-4 w-4 shrink-0 text-muted/50" />
+                          )}
+                          <span>
+                            <span className={clsx(given && "text-muted line-through")}>{item.label}</span>
+                            {item.description && (
+                              <span className="block text-[12px] text-muted">{item.description}</span>
+                            )}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             ))}
           </div>
+          {mark.isError && <p className="mt-3 text-[12px] text-red-600">{(mark.error as Error).message}</p>}
         </>
       )}
     </section>

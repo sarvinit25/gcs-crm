@@ -320,6 +320,70 @@ describe("what the lender-style sheets add", () => {
   });
 });
 
+describe("credit enquiries, the search report and the repayment structure", () => {
+  const field = (section: string, key: string) => SECTION_BY_ID.get(section)!.fields.find((f) => f.key === key)!;
+  const NEW = [["checks", "enquiries6m"], ["valuation", "ecYears"], ["valuation", "ecCharges"], ["valuation", "ecDetails"], ["remarks", "repaymentStructure"], ["remarks", "moratoriumMonths"], ["remarks", "structureNote"]] as const;
+
+  it("keeps all of them staff-only and optional, so the customer's form and the missing list are unchanged", () => {
+    for (const [s, k] of NEW) {
+      expect(SECTION_BY_ID.get(s)!.customer).toBe(false);
+      expect(field(s, k).core).toBeFalsy();
+    }
+    const customerKeys = sectionsFor("LAP", true).flatMap((s) => s.fields.map((f) => `${s.id}.${f.key}`));
+    for (const [s, k] of NEW) expect(customerKeys).not.toContain(`${s}.${k}`);
+    expect(missingCore("LAP", {}).some((m) => /enquir|search report|structure/i.test(m.label))).toBe(false);
+  });
+
+  it("asks for the search report only on home and property loans, and shows the details only when something is found", () => {
+    expect(sectionsFor("HOME").map((s) => s.id)).toContain("valuation");
+    expect(sectionsFor("EDUCATION").map((s) => s.id)).not.toContain("valuation");
+    expect(visible(field("valuation", "ecDetails").show, { valuation: { ecCharges: "Yes" } })).toBe(true);
+    expect(visible(field("valuation", "ecDetails").show, { valuation: { ecCharges: "No" } })).toBe(false);
+    expect(visible(field("valuation", "ecDetails").show, {})).toBe(false);
+  });
+
+  it("shows the moratorium and the notes only for a structure that needs them", () => {
+    const show = (key: string, structure?: string) => visible(field("remarks", key).show, structure ? { remarks: { repaymentStructure: structure } } : {});
+    expect(show("moratoriumMonths", "Moratorium, then EMI")).toBe(true);
+    expect(show("moratoriumMonths", "Step-up EMI (smaller EMIs first)")).toBe(false);
+    expect(show("structureNote", "Balloon / bullet payment at the end")).toBe(true);
+    expect(show("structureNote", "Regular EMI")).toBe(false);
+    expect(show("structureNote")).toBe(false);
+  });
+
+  it("cleans the new answers like any other", () => {
+    expect(cleanSectionPatch(SECTION_BY_ID.get("checks")!, { enquiries6m: "4" }).enquiries6m).toBe(4);
+    expect(cleanSectionPatch(SECTION_BY_ID.get("valuation")!, { ecCharges: "Yes", ecYears: "13" })).toMatchObject({ ecCharges: "Yes", ecYears: 13 });
+    expect(cleanSectionPatch(SECTION_BY_ID.get("remarks")!, { repaymentStructure: "Weekly sweets" }).repaymentStructure).toBeNull();
+    expect(cleanSectionPatch(SECTION_BY_ID.get("remarks")!, { repaymentStructure: "Moratorium, then EMI", moratoriumMonths: 6 })).toMatchObject({ repaymentStructure: "Moratorium, then EMI", moratoriumMonths: 6 });
+  });
+
+  it("writes them in the Excel CAM without changing a single figure or flag", async () => {
+    const extra: CamData = {
+      ...full,
+      checks: { ...full.checks, enquiries6m: 7 },
+      valuation: { ...full.valuation, ecYears: 13, ecCharges: "Yes", ecDetails: "Earlier mortgage to ABC Bank, released 2019" },
+      remarks: { ...full.remarks, repaymentStructure: "Moratorium, then EMI", moratoriumMonths: 6, structureNote: "Rent starts after fit-out" },
+    };
+    const today = new Date("2026-11-10T00:00:00Z");
+    const before = analyse("LAP", full, today);
+    const after = analyse("LAP", extra, today);
+    expect(after).toEqual(before);
+    const buf = await buildCamWorkbook({
+      lead: { leadNo: 11, name: "Test Customer", phone: "9876543210", email: null, city: "Mumbai", productName: "Loan Against Property", source: null },
+      family: "LAP", data: extra, analysis: after, match: null, matchNote: "none", company: { name: "GCS", phone: "", email: "" }, generatedBy: "x", generatedAt: "now", customerSubmittedAt: null,
+    });
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf as unknown as ArrayBuffer);
+    const text = (name: string) => { const out: string[] = []; wb.getWorksheet(name)!.eachRow((row) => row.eachCell((c) => out.push(String(c.value)))); return out.join("|"); };
+    expect(text("Checks & documents")).toContain("Credit enquiries in the last 6 months");
+    expect(text("Property")).toContain("Earlier mortgage to ABC Bank, released 2019");
+    expect(text("Property")).toContain("Encumbrance / search report: years covered");
+    expect(text("Risks & recommendation")).toContain("Moratorium, then EMI");
+    expect(text("Risks & recommendation")).toContain("Rent starts after fit-out");
+  });
+});
+
 describe("a balance that has run down", () => {
   it("is flagged and drives the EMI cover, instead of being averaged away", () => {
     const months = [524, 3604, 8315, 28315, 267358, 744618, 601408, 481394, 489799, 155872, 22219].map((b) => ({ credits: 10_000, debits: 10_000, avgBalance: b, returns: 0 }));

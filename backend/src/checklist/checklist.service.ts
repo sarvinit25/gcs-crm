@@ -43,6 +43,20 @@ export function resolveChecklistBucket(applicant: ApplicantProfile | undefined |
   return null;
 }
 
+/**
+ * Whether a line of the list counts as received. What staff ticked (or un-ticked) wins; a line nobody has touched keeps the
+ * old guess: some uploaded file sits in the same category.
+ */
+export function statusFor(
+  item: { id: string; category: string },
+  marks: ReadonlyMap<string, boolean>,
+  uploadedCategories: ReadonlySet<string>,
+): "GIVEN" | "PENDING" {
+  const marked = marks.get(item.id);
+  if (marked !== undefined) return marked ? "GIVEN" : "PENDING";
+  return uploadedCategories.has(item.category) ? "GIVEN" : "PENDING";
+}
+
 @Injectable()
 export class ChecklistService {
   constructor(private prisma: PrismaService) {}
@@ -74,12 +88,14 @@ export class ChecklistService {
         loanProductId: true,
         applicants: { where: { isPrimary: true }, take: 1 },
         documents: { select: { category: true } },
+        checklistMarks: { select: { documentTypeId: true, given: true } },
       },
     });
     if (!application) throw new NotFoundException("Application not found");
 
     const bucket = resolveChecklistBucket(application.applicants[0]);
     const uploadedCategories = new Set(application.documents.map((d) => d.category));
+    const marks = new Map(application.checklistMarks.map((m) => [m.documentTypeId, m.given]));
 
     const items = await this.itemsFor(application.loanProductId, bucket);
 
@@ -88,7 +104,7 @@ export class ChecklistService {
       label: i.name,
       description: i.description,
       category: i.category,
-      status: uploadedCategories.has(i.category) ? ("GIVEN" as const) : ("PENDING" as const),
+      status: statusFor(i, marks, uploadedCategories),
     }));
 
     return {
@@ -97,5 +113,27 @@ export class ChecklistService {
       total: result.length,
       given: result.filter((i) => i.status === "GIVEN").length,
     };
+  }
+
+  /**
+   * Staff tick or un-tick one line of an application's list. Only a line that is actually on this application's list
+   * can be marked, and an adviser can only touch their own applications. Returns the whole list as it now stands.
+   */
+  async setGiven(applicationId: string, documentTypeId: string, given: boolean, user: AuthUser) {
+    const application = await this.prisma.application.findFirst({
+      where: { id: applicationId, ...this.scopeFor(user) },
+      select: { loanProductId: true, applicants: { where: { isPrimary: true }, take: 1 } },
+    });
+    if (!application) throw new NotFoundException("Application not found");
+
+    const onTheList = await this.itemsFor(application.loanProductId, resolveChecklistBucket(application.applicants[0]));
+    if (!onTheList.some((i) => i.id === documentTypeId)) throw new NotFoundException("That document is not on this application's list");
+
+    await this.prisma.applicationChecklistMark.upsert({
+      where: { applicationId_documentTypeId: { applicationId, documentTypeId } },
+      create: { applicationId, documentTypeId, given, markedById: user.id },
+      update: { given, markedById: user.id },
+    });
+    return this.forApplication(applicationId, user);
   }
 }

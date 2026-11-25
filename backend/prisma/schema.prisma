@@ -740,6 +740,7 @@ model Application {
   applicants          Applicant[]
   references          Reference[]
   documents           Document[]
+  checklistMarks      ApplicationChecklistMark[]
   sanction            Sanction?
   disbursements       Disbursement[]
   statementScans      BankStatementAnalysis[]
@@ -1163,12 +1164,29 @@ model DocumentType {
   description    String?
   loanProducts   LoanProduct[]
   applicantTypes ChecklistApplicantType[]
+  checklistMarks ApplicationChecklistMark[]
   sortOrder      Int                      @default(0)
   active         Boolean                  @default(true)
   createdAt      DateTime                 @default(now())
   updatedAt      DateTime                 @updatedAt
 
   @@unique([name, category])
+}
+
+/// Staff ticking a line of an application's required-documents list as received (or not). A tick or an un-tick here
+/// wins over the old guess ("some uploaded file sits in the same category"); a line nobody has touched keeps the guess.
+model ApplicationChecklistMark {
+  id             String       @id @default(cuid())
+  applicationId  String
+  application    Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documentTypeId String
+  documentType   DocumentType @relation(fields: [documentTypeId], references: [id], onDelete: Cascade)
+  given          Boolean
+  markedById     String?
+  markedAt       DateTime     @default(now()) @updatedAt
+
+  @@unique([applicationId, documentTypeId])
+  @@index([applicationId])
 }
 
 // ─── Credit evaluation ──────────────────────────────────────
