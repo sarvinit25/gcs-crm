@@ -1,4 +1,4 @@
-import { profileFromLead } from "./profile-from-lead";
+import { fillProfileFromCam, profileFromLead } from "./profile-from-lead";
 
 const rows = (o: Record<string, string>) => Object.entries(o).map(([label, value]) => ({ label, value }));
 
@@ -32,5 +32,16 @@ describe("a match profile built from everything known about a lead", () => {
 
   it("starts from the lead's own fields when there are no answers", () => {
     expect(profileFromLead({ amount: 1500000, city: "Pune", employmentType: "SALARIED", monthlyIncome: 85000 })).toEqual({ amount: 1500000, city: "Pune", employmentType: "SALARIED", monthlyIncome: 85000 });
+  });
+});
+
+describe("filling the profile from the CAM", () => {
+  const cam = { applicant: { dob: "1979-07-01" }, property: { agreementValue: 9_603_077 }, obligations: { cibilScore: 720, loans: [{ emi: 10_000, status: "Live", foir: "Yes" }, { emi: 50_000, status: "Closed" }] }, income: { constitution: "Proprietorship", vintageYears: 31 } };
+  it("fills only blanks", () => {
+    const p = fillProfileFromCam({ creditScore: 650, amount: 5_000_000 }, cam, new Date("2026-11-25T00:00:00Z"));
+    expect(p).toMatchObject({ creditScore: 650, propertyValue: 9_603_077, existingEmi: 10_000, age: 47, constitution: "Proprietorship", businessVintageMonths: 372, amount: 5_000_000 });
+  });
+  it("copes with no CAM", () => {
+    expect(fillProfileFromCam({ amount: 1 }, null)).toEqual({ amount: 1 });
   });
 });

@@ -5,7 +5,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { matchAll, type Band, type PolicyRule, type Profile } from "./policy-matcher";
-import { profileFromLead } from "./profile-from-lead";
+import { fillProfileFromCam, profileFromLead } from "./profile-from-lead";
 import { cleanCriteria, coerceValue, fieldKey, missingMandatory, type Criteria, type MatchFieldDef } from "./match-fields";
 import { cleanSheet, SHEET_FIELDS } from "./policy-sheet-schema";
 import type {
@@ -353,7 +353,8 @@ export class LenderPoliciesService {
       select: { amount: true, city: true, employmentType: true, monthlyIncome: true, answers: { select: { label: true, value: true }, take: 150 } },
     });
     if (!lead) throw new NotFoundException("Lead not found");
-    const profile = profileFromLead(lead);
+    const cam = await this.prisma.camCase.findUnique({ where: { leadId }, select: { data: true } });
+    const profile = fillProfileFromCam(profileFromLead(lead), cam?.data);
     const defs = await this.defs(true);
     const values: Record<string, string | number | boolean> = {};
     const rows = await this.prisma.matchField.findMany({ where: { active: true, answerLabel: { not: null } }, select: { key: true, answerLabel: true } });

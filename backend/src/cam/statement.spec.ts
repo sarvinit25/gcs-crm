@@ -206,3 +206,31 @@ describe("the headings banks use", () => {
     expect(u[0]).toMatchObject({ credit: 60_000 });
   });
 });
+
+describe("what counts as an instalment", () => {
+  const t = (day: number, month: number, text: string, debit: number) => ({ date: new Date(Date.UTC(2026, month - 1, day)), text, debit, credit: 0, balance: 1_000_000 });
+  const run = (rows: ReturnType<typeof t>[]) => analyseTxns(rows);
+  it("does not treat a one-off cheque to a finance company as a monthly EMI", () => {
+    const a = run([t(3, 6, "CHEQUE 58 CLG/IIFL HOME FINANCE LTD", 821_852), t(9, 7, "UPI shopping", 500)]);
+    expect(a.emis).toHaveLength(0);
+    expect(a.months.every((m) => m.emisSeen === 0)).toBe(true);
+  });
+  it("counts a lender paid every month, and any line that says EMI or NACH even once", () => {
+    const a = run([t(3, 5, "IIFL HOME FINANCE", 20_000), t(3, 6, "IIFL HOME FINANCE", 20_000), t(5, 6, "NACH HERO FINCORP", 9_000)]);
+    expect(a.emis.map((e) => e.amount).sort()).toEqual([20_000, 9_000].sort());
+  });
+});
+
+describe("block layout statements (date, narration lines, then amount and balance)", () => {
+  const text = [
+    "01-05-2026", "UPI/FIRST SHOP/abc", "FIRST BANK/123", "500.00 10,000.00",
+    "02-05-2026", "UPI/SECOND SHOP", "1,000.00 9,000.00",
+    "04-05-2026 CMS TRANSACTION CMS/ 556/ACME LTD 44,957.00 53,957.00",
+    "05-05-2026", "UPI/THIRD", "957.0053,000.00",
+  ].join("\n");
+  it("reads every block and one-line entry, working out credit or debit from the balance", () => {
+    const tx = settle(fromPdfText(text));
+    expect(tx.map((t) => [t.debit, t.credit, t.balance]).slice(-3)).toEqual([[1000, 0, 9000], [0, 44957, 53957], [957, 0, 53000]]);
+    expect(tx).toHaveLength(4);
+  });
+});

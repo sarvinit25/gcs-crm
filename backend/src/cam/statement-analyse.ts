@@ -7,6 +7,9 @@ import type { Txn } from "./statement-parse";
 const MONTH_NAME = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const EMI = /\b(EMI|ECS|NACH|ACH\s?D|ACH[-\s]?DR|LOAN|LN\s?A\/?C|INSTAL+MENT|BAJAJ\s?FIN\w*|CHOLA\w*|HDFC\s?LTD|TATA\s?CAP\w*|MAGMA|MUTHOOT|MAHINDRA\s?FIN\w*|HOME\s?FIN\w*|FINSERV|FULLERTON|IIFL|LIC\s?HFL|PNB\s?HOUSING|CAPITAL\s?FIRST|L&T\s?FIN\w*|CLIX|HERO\s?FIN\w*|AU\s?SMALL|AAVAS|POONAWALLA|KOTAK\s?MAHINDRA\s?PRIME)\b/i;
+/** Words that say by themselves a debit is a loan instalment. */
+const EMI_WORD = /\b(EMI|ECS|NACH|ACH\s?D|ACH[-\s]?DR|INSTAL+MENT|LN\s?A\/?C)\b/i;
+const CHEQUE = /\b(CHQ|CHEQUE|CLG|CLEARING)\b/i;
 const SALARY = /\b(SALARY|SAL\s?CR\w*|PAYROLL|WAGES|STIPEND)\b/i;
 /** The customer's own payment came back unpaid (an EMI or a cheque they issued). */
 const INWARD_RETURN = /(?:\bI\/?W\b|INWARD)[^A-Z]*(?:CHQ|CHEQUE|RET|RTN)|RETURN\s?CHARGES?|CHQ\s?RET\w*\s?CH(?:G|ARGES?)|INSUFF\w*|BOUNCE|DISHONOU?R|UNPAID|(?:ECS|NACH|ACH)[^A-Z]*(?:RET|RTN|RETURN|REJECT)/i;
@@ -79,6 +82,12 @@ export function analyseTxns(txnsIn: Txn[]): StatementAnalysis {
     return found;
   };
 
+  // A lender's name alone is not enough: a one-off payment to a finance company is usually a payoff or a fee, and a cheque to
+  // one is not an instalment. Such a debit counts only when the same payee is paid at least twice.
+  const lenderPayments = new Map<string, number>();
+  for (const t of txns) if (t.debit > 0 && EMI.test(t.text)) lenderPayments.set(signature(t.text) || "LOAN", (lenderPayments.get(signature(t.text) || "LOAN") ?? 0) + 1);
+  const isInstalment = (text: string) => EMI.test(text) && (EMI_WORD.test(text) || (!CHEQUE.test(text) && (lenderPayments.get(signature(text) || "LOAN") ?? 0) >= 2));
+
   const emiHits = new Map<string, { label: string; amounts: number[]; total: number }>();
   const salaryHits: number[] = [];
   const returnLines: string[] = [];
@@ -94,7 +103,7 @@ export function analyseTxns(txnsIn: Txn[]): StatementAnalysis {
       if (t.debit > 0) { debits += t.debit; debitCount += 1; }
       const isReturn = INWARD_RETURN.test(t.text) || OUTWARD_RETURN.test(t.text);
       if (t.credit > 0 && SALARY.test(t.text) && !isReturn) { salary += t.credit; salaryHits.push(t.credit); }
-      if (t.debit > 0 && EMI.test(t.text) && !isReturn) {
+      if (t.debit > 0 && isInstalment(t.text) && !isReturn) {
         emisSeen += t.debit;
         const sig = signature(t.text) || "LOAN";
         const hit = emiHits.get(sig) ?? { label: t.text.slice(0, 60), amounts: [], total: 0 };

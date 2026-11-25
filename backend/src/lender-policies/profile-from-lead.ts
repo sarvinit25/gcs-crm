@@ -34,6 +34,38 @@ function bandMonths(text: string): number | undefined {
   return Math.round(n[0]! * 12);
 }
 
+/**
+ * Fills what the lead's own fields and answers do not say from the CAM, where staff enter the credit figures. It only fills
+ * blanks: anything already known from the lead is kept.
+ */
+export function fillProfileFromCam(profile: Profile, cam: unknown, today: Date = new Date()): Profile {
+  const data = (cam && typeof cam === "object" ? cam : {}) as Record<string, Record<string, unknown> | undefined>;
+  const out: Profile = { ...profile };
+  const set = <K extends keyof Profile>(key: K, value: Profile[K] | undefined) => {
+    if (out[key] === undefined && value !== undefined) out[key] = value;
+  };
+  set("propertyValue", num(data.property?.marketValue) ?? num(data.property?.agreementValue));
+  set("agreementValue", num(data.property?.agreementValue));
+  set("creditScore", num(data.obligations?.cibilScore));
+  const loans = Array.isArray(data.obligations?.loans) ? (data.obligations!.loans as Record<string, unknown>[]) : [];
+  const running = loans.filter((l) => l && String(l.status ?? "Live") === "Live" && String(l.foir ?? "Yes") !== "No").reduce((s, l) => s + (num(l.emi) ?? 0), 0);
+  set("existingEmi", running > 0 ? running : undefined);
+  const dob = String(data.applicant?.dob ?? "");
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
+    const b = new Date(`${dob}T00:00:00Z`);
+    let age = today.getUTCFullYear() - b.getUTCFullYear();
+    if (today.getUTCMonth() < b.getUTCMonth() || (today.getUTCMonth() === b.getUTCMonth() && today.getUTCDate() < b.getUTCDate())) age -= 1;
+    set("age", age);
+  }
+  const constitution = String(data.income?.constitution ?? "").trim();
+  set("constitution", constitution || undefined);
+  const years = num(data.income?.vintageYears);
+  set("businessVintageMonths", years !== undefined ? Math.round(years * 12) : undefined);
+  const turnover = Array.isArray(data.income?.financials) ? num((data.income!.financials as Record<string, unknown>[])[0]?.turnover) : undefined;
+  set("annualTurnover", turnover);
+  return out;
+}
+
 export function profileFromLead(lead: LeadForProfile): Profile {
   const by = new Map<string, string>();
   for (const a of lead.answers ?? []) {

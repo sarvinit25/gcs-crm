@@ -166,6 +166,10 @@ export function obligationsWarning(profile: Pick<Profile, "monthlyIncome" | "exi
   return `Existing EMIs of ${rs(emis)} a month are ${Math.round(pct)}% of the monthly income of ${rs(income)}, before any new loan.`;
 }
 
+/** Towns of the Mumbai Metropolitan Region that lenders who list "Mumbai" usually serve. */
+const MUMBAI_REGION = /^(navi mumbai|thane|kalyan|dombivli|dombivali|mira road|mira[- ]bhayandar|bhayandar|vasai|virar|vasai[- ]virar|nalasopara|panvel|ulhasnagar|ambernath|badlapur|diva|mumbra|bhiwandi|kharghar|airoli|vashi|belapur|nerul|ghansoli)\b/i;
+export const inMumbaiRegion = (city: string) => MUMBAI_REGION.test(city.trim());
+
 export const emi = (principal: number, annualRatePct: number, months: number): number => {
   if (months <= 0) return 0;
   const r = annualRatePct / 12 / 100;
@@ -231,6 +235,10 @@ export function matchOne(profile: Profile, p: PolicyRule, now: Date = new Date()
       checks.push("Confirm the lender serves the customer's location.");
     } else if (!profile.city) {
       checks.push("Customer's city is needed to confirm serviceability.");
+    } else if (!inList(p.cities, profile.city) && inMumbaiRegion(profile.city) && p.cities.some((c) => /mumbai|\bmmr\b/i.test(c))) {
+      // A lender that lists Mumbai normally lends across the Mumbai region, but a person should confirm the branch.
+      note("LOCATION", true, `Lists Mumbai, and ${profile.city} is in the Mumbai region.`);
+      checks.push(`Confirm the lender's branch covers ${profile.city}.`);
     } else if (!inList(p.cities, profile.city)) {
       note("LOCATION", false, `Not recorded as serving ${profile.city}.`);
       return out("EXCLUDED", null);

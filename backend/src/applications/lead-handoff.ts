@@ -41,7 +41,8 @@ export function evaluationFromCam(cam: unknown, lead: { amount?: unknown; proper
   const credits = months.map((m) => num(m.credits)).filter((c): c is number => c !== null);
   if (credits.length) inputs.avgMonthlyBankCredits = Math.round(credits.reduce((s, c) => s + c, 0) / credits.length);
 
-  const value = num(data.property?.marketValue) ?? num(lead.propertyValue);
+  // A property still being built has an agreement value but no market value yet.
+  const value = num(data.property?.marketValue) ?? num(data.property?.agreementValue) ?? num(lead.propertyValue);
   if (value !== null && value > 0) inputs.propertyValue = value;
 
   const loans = rows(data.obligations?.loans)

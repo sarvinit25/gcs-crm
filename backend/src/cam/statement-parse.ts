@@ -188,8 +188,50 @@ const LEAD_DATE = /^\s*(\d{1,2}[\s/.-]+(?:\d{1,2}|[A-Za-z]{3})[A-Za-z]*[\s/.-]+\
 const TAIL_MONEY = /((?:\s*-?\d[\d,]*\.\d{2}(?:\s?(?:Cr|Dr)\b\.?)?){1,4})\s*$/i;
 const MONEY_TOKEN = /-?\d[\d,]*\.\d{2}(?:\s?(?:Cr|Dr)\b\.?)?/gi;
 
+/** A money figure with Indian or western commas, exactly two decimals. */
+const FIGURE = String.raw`\d{1,3}(?:,\d{2,3})*\.\d{2}`;
+const BARE_DATE = /^\d{2}[-/.]\d{2}[-/.]\d{4}$/;
+/** The amount and the running balance alone on a line, with or without a space between them: "334.65 1,06,865.60". */
+const GLUED = new RegExp(`^(${FIGURE}) ?(${FIGURE})$`);
+/** The same layout's one-line entries: date, a short narration, amount and balance. */
+const ONE_LINE = new RegExp(String.raw`^(\d{2}[-/.]\d{2}[-/.]\d{4}) (.*?) ?(${FIGURE}) (${FIGURE})$`);
+
+/**
+ * The layout where most transactions are blocks: the date on its own line, the narration over several lines, then the amount and
+ * balance on the last line; some entries sit on one line (ICICI savings statements print like this).
+ */
+function fromBlocks(lines: string[]): Raw[] {
+  const out: Raw[] = [];
+  let date: Date | null = null;
+  let words: string[] = [];
+  for (const line of lines) {
+    const whole = ONE_LINE.exec(line);
+    if (whole) {
+      const on = parseDate(whole[1]);
+      if (on) out.push({ date: on, text: whole[2]!.slice(0, 300), amounts: [parseMoney(whole[3])!], balance: parseMoney(whole[4])! });
+      date = null;
+      continue;
+    }
+    if (BARE_DATE.test(line)) {
+      date = parseDate(line);
+      words = [];
+      continue;
+    }
+    if (!date) continue;
+    const g = GLUED.exec(line);
+    if (g) {
+      out.push({ date, text: words.join(" ").slice(0, 300), amounts: [parseMoney(g[1])!], balance: parseMoney(g[2])! });
+      date = null;
+      continue;
+    }
+    if (words.join(" ").length < 300) words.push(line);
+  }
+  return out;
+}
+
 /** The text of a statement PDF, one transaction per line, with each transaction's wrapped narration joined on. */
 export function fromPdfText(text: string): Raw[] {
+  const blocks = fromBlocks(text.split(/\r?\n/).map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean));
   const out: Raw[] = [];
   let last: Raw | null = null;
   for (const lineRaw of text.split(/\r?\n/)) {
@@ -214,5 +256,6 @@ export function fromPdfText(text: string): Raw[] {
       last.text = `${last.text} ${line}`.slice(0, 300);
     }
   }
-  return out;
+  // Whichever layout explains more of the statement.
+  return blocks.length > out.length ? blocks : out;
 }

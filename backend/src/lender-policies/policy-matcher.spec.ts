@@ -239,3 +239,16 @@ describe("existing EMIs against income", () => {
     expect(matchAll({ ...customer, monthlyIncome: undefined }, [policy()], NOW)[0].reasons.some((x) => x.code === "OBLIGATIONS_HIGH")).toBe(false);
   });
 });
+
+describe("a lender that lists Mumbai and a customer in the Mumbai region", () => {
+  const rules = policy({ allIndia: false, cities: ["Mumbai", "Pune"] });
+  it("is not ruled out for Thane, but asks for the branch to be confirmed", () => {
+    const r = matchAll({ ...customer, city: "Thane" }, [rules], NOW)[0];
+    expect(r.category).not.toBe("NOT_MATCHED");
+    expect(r.checks.join(" ")).toContain("branch covers Thane");
+  });
+  it("still rules out a city outside the region, and a region town for a lender not in Mumbai", () => {
+    expect(matchAll({ ...customer, city: "Nagpur" }, [rules], NOW)[0].category).toBe("NOT_MATCHED");
+    expect(matchAll({ ...customer, city: "Thane" }, [policy({ allIndia: false, cities: ["Delhi"] })], NOW)[0].category).toBe("NOT_MATCHED");
+  });
+});
