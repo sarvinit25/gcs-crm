@@ -16,3 +16,7 @@ export class UpdateChecklistDocumentDto {
   @IsOptional() @IsInt() @Min(0) sortOrder?: number;
   @IsOptional() @IsBoolean() active?: boolean;
 }
+
+export class MarkChecklistItemDto {
+  @IsBoolean() given: boolean;
+}
