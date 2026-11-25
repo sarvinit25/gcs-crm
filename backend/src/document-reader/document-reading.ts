@@ -8,12 +8,12 @@ import { camFromExtraction } from "./cam-fill";
 /** Identity papers (Aadhaar, PAN, passport) are never sent to the AI. The customer types those numbers themselves. */
 export const NEVER_READ_CATEGORIES = ["KYC"];
 
-export const DOC_TYPES = ["SALARY_SLIP", "BANK_STATEMENT", "ITR", "FORM_16", "GST_RETURN", "BUSINESS_PROOF", "PROPERTY_PAPER", "LOAN_STATEMENT", "OTHER"] as const;
+export const DOC_TYPES = ["SALARY_SLIP", "BANK_STATEMENT", "ITR", "FORM_16", "GST_RETURN", "BUSINESS_PROOF", "PROPERTY_PAPER", "LOAN_STATEMENT", "SANCTION_LETTER", "OTHER"] as const;
 export type DocType = (typeof DOC_TYPES)[number];
 
 export type ReadField = { label: string; value: string };
 export type CamPatch = Record<string, Record<string, unknown>>;
-export type Reading = { docType: DocType | "IDENTITY_DOCUMENT"; summary: string | null; fields: ReadField[]; cam: CamPatch | null };
+export type Reading = { docType: DocType | "IDENTITY_DOCUMENT"; summary: string | null; fields: ReadField[]; cam: CamPatch | null; person?: string | null };
 
 export const DOC_TYPE_LABEL: Record<string, string> = {
   SALARY_SLIP: "Salary slip",
@@ -24,6 +24,7 @@ export const DOC_TYPE_LABEL: Record<string, string> = {
   BUSINESS_PROOF: "Business proof",
   PROPERTY_PAPER: "Property paper",
   LOAN_STATEMENT: "Existing loan statement",
+  SANCTION_LETTER: "Sanction or disbursal letter",
   IDENTITY_DOCUMENT: "Identity document",
   OTHER: "Other",
 };
@@ -34,6 +35,7 @@ export function readingPrompt(): string {
 {
  "docType": one of ${DOC_TYPES.map((d) => `"${d}"`).join(" | ")} | "IDENTITY_DOCUMENT",
  "summary": one plain sentence on what the document is and whose it is,
+ "person": the name of the one person or firm whose income, business or loan this document is about, or null,
  "fields": [ { "label": "...", "value": "..." } ],
  "salary": { "employer": text or null, "designation": text or null, "grossMonthly": number or null, "netMonthly": number or null },
  "business": { "businessName": text, "constitution": "Proprietorship" | "Partnership" | "Private Limited" | "LLP" | "Other", "gstin": text, "udyam": text },
@@ -51,7 +53,8 @@ Rules:
 - Bank statement: bank, account holder, account type, period covered, opening and closing balance, average monthly credits and debits if you can work them out, regular salary credits, loan EMIs seen, any returned or bounced entries. Leave "salary" with nulls.
 - Income tax return or Form 16: assessment year, name, gross total income, taxable income, tax paid, and business turnover and profit if shown.
 - GST return: period, turnover, tax paid.
-- Existing loan statement: lender, loan type, sanctioned amount, outstanding, EMI, rate, remaining tenure, any overdue.
+- Existing loan statement (LOAN_STATEMENT): a statement of account of a loan that is already running. Lender, loan type, sanctioned amount, outstanding, EMI, rate, remaining tenure, any overdue.
+- A sanction letter, key fact statement, disbursal advice, demand letter for a loan or in-principle approval is SANCTION_LETTER, never an existing loan statement: do not give "loans" for it.
 - Never include full account numbers or card numbers: show only the last 4 digits.
 - Amounts in rupees as plain numbers without commas or symbols inside "value" unless a unit is needed.`;
 }
@@ -109,7 +112,7 @@ export function normaliseReading(raw: unknown): Reading {
   }
   const parts = MAY_FILL[docType] ?? [];
   if (parts.length) cam = camFromExtraction(Object.fromEntries(parts.map((k) => [k, r[k]])));
-  return { docType, summary: clean(r.summary, 300), fields, cam };
+  return { docType, summary: clean(r.summary, 300), fields, cam, person: clean(r.person, 120) };
 }
 
 const inr = (n: number | null) => (n === null ? null : `₹${Math.round(n).toLocaleString("en-IN")}`);

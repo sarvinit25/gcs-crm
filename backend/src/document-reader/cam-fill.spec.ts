@@ -1,4 +1,4 @@
-import { camFromExtraction, onlyBlanks } from "./cam-fill";
+import { belongsToApplicant, camFromExtraction, isNewLoanPaper, onlyBlanks } from "./cam-fill";
 import { normaliseReading } from "./document-reading";
 
 describe("camFromExtraction", () => {
@@ -43,5 +43,30 @@ describe("what each kind of document may fill", () => {
   it("lets a property paper fill only the property, and an unknown paper nothing", () => {
     expect(Object.keys(normaliseReading({ docType: "PROPERTY_PAPER", ...raw }).cam!)).toEqual(["property"]);
     expect(normaliseReading({ docType: "OTHER", ...raw }).cam).toBeNull();
+  });
+});
+
+describe("whose document it is", () => {
+  const names = ["Pramod Manohar Padave"];
+  it("accepts the applicant and their firm, and a document with no name", () => {
+    expect(belongsToApplicant("Mr. Pramod M Padave", names, [])).toBe(true);
+    expect(belongsToApplicant("SHANTI STATIONERY & GENERAL STORE", ["Ramesh Jain"], ["Shanti Stationary & General Stores", "Shanti Stationery"])).toBe(true);
+    expect(belongsToApplicant(null, names, [])).toBe(true);
+  });
+  it("rejects a spouse who shares the middle name and surname, and the spouse's firm", () => {
+    expect(belongsToApplicant("Prerna Pramod Padave", names, ["G C Chemie Pharmie Ltd Co"])).toBe(false);
+    expect(belongsToApplicant("Prachi Beauty Parlour Classes", names, ["G C Chemie Pharmie Ltd Co"])).toBe(false);
+  });
+  it("knows a sanction letter from a loan statement by its name", () => {
+    expect(isNewLoanPaper("Bajaj HL SL 42 L - Pramod Padave .pdf")).toBe(true);
+    expect(isNewLoanPaper("Part Disbursement Details L&T.jpeg")).toBe(true);
+    expect(isNewLoanPaper("SOA IDFC Car Loan 7.65 L.pdf")).toBe(false);
+  });
+});
+
+describe("registration numbers", () => {
+  it("drops values that are not a GSTIN or Udyam number", () => {
+    expect(camFromExtraction({ business: { gstin: "No", udyam: "registered" } })).toBeNull();
+    expect(camFromExtraction({ business: { udyam: "UDYAM-MH-33-0689325" } })!.income!.udyam).toBe("UDYAM-MH-33-0689325");
   });
 });

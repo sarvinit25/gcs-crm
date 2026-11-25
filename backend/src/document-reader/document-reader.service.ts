@@ -1,7 +1,7 @@
 import { BadGatewayException, BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit, Optional } from "@nestjs/common";
 import { EventsService } from "../events/events.service";
 import { classifyDocument } from "../documents/document-kinds";
-import { onlyBlanks } from "./cam-fill";
+import { belongsToApplicant, isNewLoanPaper, onlyBlanks } from "./cam-fill";
 import { ConfigService } from "@nestjs/config";
 import { AuditAction, Prisma, Role } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
@@ -62,7 +62,23 @@ export class DocumentReaderService implements OnModuleInit {
     let patch: CamPatch | null = local ? (local.fill as unknown as CamPatch) : null;
     if (!local) {
       if (!this.aiEnabled) return skip("The reader is switched off");
-      patch = (await this.readWithAi(buffer, file.mimeType, file.fileName)).reading.cam;
+      const reading = (await this.readWithAi(buffer, file.mimeType, file.fileName)).reading;
+      patch = reading.cam;
+      // A letter about the loan being given is not a running loan, whatever the reader called it.
+      if (patch?.obligations && isNewLoanPaper(file.fileName)) delete patch.obligations;
+      // A co-applicant's income, business or loans are never entered as the applicant's own.
+      if (patch && (patch.income || patch.obligations)) {
+        const [lead, cam] = await Promise.all([
+          this.prisma.lead.findUnique({ where: { id: leadId }, select: { name: true, employerName: true } }),
+          this.prisma.camCase.findUnique({ where: { leadId }, select: { data: true } }),
+        ]);
+        const data = (cam?.data ?? {}) as { applicant?: { fullName?: string }; income?: { businessName?: string; employer?: string } };
+        if (!belongsToApplicant(reading.person, [data.applicant?.fullName, lead?.name], [data.income?.businessName, data.income?.employer, lead?.employerName])) {
+          delete patch.income;
+          delete patch.obligations;
+        }
+      }
+      if (patch && !Object.keys(patch).length) patch = null;
     }
     if (!patch) return skip("Nothing on it goes into the CAM");
     const current = await this.prisma.camCase.findUnique({ where: { leadId }, select: { data: true } });

@@ -34,6 +34,9 @@ export function camFromExtraction(raw: unknown): CamPatch | null {
   const r = obj(raw);
   const patch: CamPatch = {};
   const income = pick(obj(r.business), { businessName: "text", gstin: "text", udyam: "text" });
+  // Registration numbers have a fixed shape; "No" or a sentence is not one.
+  if (income.gstin && !/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z0-9]{3}$/i.test(String(income.gstin).replace(/\s/g, ""))) delete income.gstin;
+  if (income.udyam && !/^UDYAM-[A-Z]{2}-\d{2}-\d{7}$/i.test(String(income.udyam).replace(/\s/g, ""))) delete income.udyam;
   const constitution = oneOf(obj(r.business).constitution, CONSTITUTIONS);
   if (constitution) income.constitution = constitution;
 
@@ -62,6 +65,29 @@ export function camFromExtraction(raw: unknown): CamPatch | null {
     .slice(0, 6);
   if (loans.length) patch.obligations = { loans };
   return Object.keys(patch).length ? patch : null;
+}
+
+/** A file name that says it is a letter about a loan being given, not a statement of one already running. */
+export const isNewLoanPaper = (fileName: string) => /sanction|\bsl\b|disburs|key ?fact|\bkfs\b|in.?principle|demand letter|login/i.test(fileName.replace(/_/g, " "));
+
+const words = (v: string) =>
+  v.toLowerCase().replace(/\b(zz|test|mr|mrs|ms|miss|shri|smt|dr|m\/s)\b\.?/g, " ").replace(/[^a-z ]+/g, " ").split(/\s+/).filter((w) => w.length > 2);
+
+/**
+ * Whether a document is about the applicant and not a co-applicant or relative. The first name decides (a spouse often carries the
+ * applicant's name as a middle name and surname); a firm matches when it shares the applicant's business or employer words. With
+ * no name on the document there is nothing to judge by, so it is accepted.
+ */
+export function belongsToApplicant(person: string | null | undefined, applicantNames: (string | null | undefined)[], firms: (string | null | undefined)[]): boolean {
+  const who = words(person ?? "");
+  if (!who.length) return true;
+  const first = applicantNames.map((n) => words(n ?? "")[0]).filter(Boolean);
+  if (first.includes(who[0])) return true;
+  const generic = new Set(["and", "the", "general", "store", "stores", "enterprises", "enterprise", "services", "private", "limited", "ltd", "pvt", "company"]);
+  return firms.some((f) => {
+    const own = words(f ?? "").filter((w) => !generic.has(w));
+    return own.length > 0 && own.filter((w) => who.includes(w)).length >= Math.min(2, own.length);
+  });
 }
 
 const blank = (v: unknown) => v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0);
