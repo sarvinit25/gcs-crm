@@ -41,6 +41,7 @@ export class StepAlertsService implements OnModuleInit {
     const why = String(p.why ?? "");
     const reason: Record<string, string> = {
       "human-callback": "The caller asked for a team member to call back",
+      "whatsapp-human": "The customer needs a team member on WhatsApp (they asked for a person, or the assistant could not help)",
       "callback-later": "The caller asked to be called at another time",
       "ca-legal": "The caller asked about CA or legal services",
       "details-collected": "The phone assistant took the details; a team member should call to take it forward",

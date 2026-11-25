@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
+import { HttpException, Inject, Injectable, Logger, Optional } from "@nestjs/common";
 import { createHmac, timingSafeEqual } from "crypto";
 import { Role, WhatsAppContactKind, WhatsAppMessageStatus, WhatsAppSender } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
@@ -14,6 +14,7 @@ import { WHATSAPP_PROVIDER, type Interactive, type WhatsAppProvider } from "./wh
 import { contactKey, toWaId } from "./phone";
 import { STAGE_LABEL } from "./templates.util";
 import { LoanProfileService } from "../loan-profile/loan-profile.service";
+import { EventsService } from "../events/events.service";
 
 type Incoming = {
   id: string;
@@ -83,7 +84,20 @@ export class InboundService {
     private caLegal: CaLegalDesk,
     private profile: LoanProfileService,
     @Inject(WHATSAPP_PROVIDER) private provider: WhatsAppProvider,
+    @Optional() private events?: EventsService,
   ) {}
+
+  /**
+   * The chat needs a person: it shows as "Needs me" in the inbox, and the first time it does the team is emailed (the people set
+   * in Settings -> Alerts, and the officer handling the lead if there is one), so a customer who asks for help is not left waiting
+   * unseen. Said once per time the chat is handed over, not on every message.
+   */
+  private async flagForPerson(conversation: { id: string; leadId: string | null; needsHuman: boolean }, note: string) {
+    await this.prisma.whatsAppConversation.update({ where: { id: conversation.id }, data: { needsHuman: true } });
+    if (!conversation.needsHuman && conversation.leadId) {
+      this.events?.emit("FOLLOW_UP_NEEDED", { leadId: conversation.leadId, why: "whatsapp-human", note: `On WhatsApp: ${note.replace(/\s+/g, " ").trim().slice(0, 300)}` });
+    }
+  }
 
   idle() {
     return Promise.all([...this.pending]).then(() => undefined);
@@ -305,7 +319,7 @@ export class InboundService {
       const desk = await this.caLegal.handle(conversation.leadId, m.body ?? "");
       if (desk) {
         void this.provider.showTyping(m.id);
-        if (desk.handoff) await this.prisma.whatsAppConversation.update({ where: { id: conversation.id }, data: { needsHuman: true } });
+        if (desk.handoff) await this.flagForPerson(conversation, m.body ?? "");
         const sent = await this.say(phone, desk.reply);
         if (sent) await this.conversations.recordOutbound({ conversationId: conversation.id, sender: WhatsAppSender.BOT, type: "text", body: desk.reply, waMessageId: sent.waMessageId });
         return;
@@ -334,7 +348,7 @@ export class InboundService {
       const ai = await this.intake.reply({ id: conversation.id, leadId: conversation.leadId, name: conversation.name }, m.replyId);
       if (ai.silent) return;
       if (ai.text) {
-        if (ai.handoff) await this.prisma.whatsAppConversation.update({ where: { id: conversation.id }, data: { needsHuman: true } });
+        if (ai.handoff) await this.flagForPerson(conversation, m.body ?? "");
         const sent = ai.options ? await this.sayOptions(phone, ai.options) : await this.say(phone, ai.text);
         if (sent) {
           // staff see the choices that were offered under the message
@@ -381,7 +395,7 @@ export class InboundService {
       flag = true;
     }
 
-    if (flag) await this.prisma.whatsAppConversation.update({ where: { id: conversation.id }, data: { needsHuman: true } });
+    if (flag) await this.flagForPerson(conversation, m.body ?? (m.type ? `(a ${m.type})` : ""));
     if (reply) {
       const sent = await this.say(phone, reply);
       if (sent) {
