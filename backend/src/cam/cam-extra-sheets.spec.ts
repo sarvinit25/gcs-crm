@@ -39,13 +39,13 @@ const formulas = (ws: ExcelJS.Worksheet) => {
 
 describe("extra CAM sheets", () => {
   it("picks sheets by product and customer", () => {
-    expect(extraSheetsFor("BUSINESS", { profile: "SELF_EMPLOYED" })).toEqual(["Ratios", "Eligibility methods", "Repayment track", "Working capital MPBF", "Fund flow", "Repayment schedule"]);
-    expect(extraSheetsFor("HOME", { profile: "SALARIED" })).toEqual(["Repayment track", "Repayment schedule"]);
+    expect(extraSheetsFor("BUSINESS", { profile: "SELF_EMPLOYED" })).toEqual(["Ratios", "Eligibility methods", "Repayment track", "Working capital MPBF", "Fund flow", "Policy checks", "Repayment schedule", "Sources"]);
+    expect(extraSheetsFor("HOME", { profile: "SALARIED" })).toEqual(["Repayment track", "Policy checks", "Repayment schedule", "Sources"]);
     expect(extraSheetsFor("LAP", { profile: "SELF_EMPLOYED" })).not.toContain("Working capital MPBF");
   });
   it("builds a business CAM whose new sheets are all formulas that point at real cells", async () => {
     const wb = await book("BUSINESS");
-    for (const name of extraSheetsFor("BUSINESS", { profile: "SELF_EMPLOYED" })) {
+    for (const name of extraSheetsFor("BUSINESS", { profile: "SELF_EMPLOYED" }).filter((n) => n !== "Sources")) {
       const ws = wb.getWorksheet(name)!;
       expect(ws).toBeDefined();
       const f = formulas(ws);
