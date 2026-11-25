@@ -6,6 +6,7 @@ import { api, tokenStore } from "../lib/api";
 import { formatDateTime } from "../lib/format";
 import { CamForm } from "../components/cam-form";
 import { CamInsights, type CamAnalysis } from "../components/cam-insights";
+import { CamLenderMatch } from "../components/cam-lender-match";
 import { StatementReader } from "../components/statement-reader";
 import type { CamData, CamSection } from "../lib/cam";
 
@@ -154,6 +155,8 @@ export function LeadCamPage() {
       />
 
       <CamInsights a={cam.analysis} />
+
+      <CamLenderMatch leadId={leadId} savedAt={cam.updatedAt} unsaved={dirty} />
 
       {cam.missing.length > 0 && (
         <details className="card px-4 py-3 text-[13px]">

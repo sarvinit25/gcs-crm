@@ -15,6 +15,25 @@ export type ProgramRule = { label: string; value: string; status: RuleStatus };
 export const CORE_RULES = ["maxFoirPct", "maxLtvPct", "abbMultiple", "minBusinessVintageMonths", "minCreditScore"] as const;
 export type CoreRule = (typeof CORE_RULES)[number];
 
+/**
+ * How a lender works out the loan for one program, where that is known and confirmed. Without it a program only gets a fit
+ * check, never a figure.
+ *  - income: monthly income, with rent and other income counted at a percentage, at the program's FOIR
+ *  - turnover-margin: yearly turnover × a margin by type of business, at the program's FOIR
+ *  - purchase: the lower of a share of the agreement value (optionally with stamp duty) and a share of market value
+ *  - abb-emi: the EMI kept below the average monthly bank balance
+ */
+export type ProgramCalc = {
+  method: "income" | "turnover-margin" | "purchase" | "abb-emi";
+  rentalPct?: number;
+  otherPct?: number;
+  margins?: Record<string, number>;
+  agreementPct?: number;
+  marketPct?: number;
+  stampDutyInBase?: boolean;
+};
+export const CALC_METHODS: ProgramCalc["method"][] = ["income", "turnover-margin", "purchase", "abb-emi"];
+
 export type Program = {
   name: string;
   minAmount: number | null;
@@ -49,6 +68,8 @@ export type Program = {
   rules: ProgramRule[];
   /** Confirmed, pending or not applicable, for each structured number above; missing means not stated. */
   status: Partial<Record<CoreRule, RuleStatus>>;
+  /** How the loan amount is worked out for this program, when the lender's method is known. */
+  calc: ProgramCalc | null;
 };
 
 export type ConditionType = "text" | "longtext" | "number" | "percent";
@@ -120,6 +141,25 @@ export function cleanProgram(raw: unknown): Program | null {
     const value = text(o.value, 200);
     if (label && value && rules.length < 20) rules.push({ label, value, status: RULE_STATUSES.includes(o.status as RuleStatus) ? (o.status as RuleStatus) : "PENDING" });
   }
+  const rawCalc = (r.calc && typeof r.calc === "object" && !Array.isArray(r.calc) ? r.calc : null) as Record<string, unknown> | null;
+  let calc: ProgramCalc | null = null;
+  if (rawCalc && CALC_METHODS.includes(rawCalc.method as ProgramCalc["method"])) {
+    const margins: Record<string, number> = {};
+    for (const [k, v] of Object.entries((rawCalc.margins && typeof rawCalc.margins === "object" ? rawCalc.margins : {}) as Record<string, unknown>)) {
+      const n = num(v, 0, 100);
+      const key = text(k, 40);
+      if (n !== null && key) margins[key] = n;
+    }
+    calc = {
+      method: rawCalc.method as ProgramCalc["method"],
+      ...(num(rawCalc.rentalPct, 0, 100) !== null ? { rentalPct: num(rawCalc.rentalPct, 0, 100) as number } : {}),
+      ...(num(rawCalc.otherPct, 0, 100) !== null ? { otherPct: num(rawCalc.otherPct, 0, 100) as number } : {}),
+      ...(Object.keys(margins).length ? { margins } : {}),
+      ...(num(rawCalc.agreementPct, 0, 100) !== null ? { agreementPct: num(rawCalc.agreementPct, 0, 100) as number } : {}),
+      ...(num(rawCalc.marketPct, 0, 100) !== null ? { marketPct: num(rawCalc.marketPct, 0, 100) as number } : {}),
+      ...(rawCalc.stampDutyInBase === true ? { stampDutyInBase: true } : {}),
+    };
+  }
   const list = (v: unknown, allowed?: string[]) => (Array.isArray(v) ? v : []).map((x) => text(x, 60)).filter((x): x is string => Boolean(x) && (!allowed || allowed.includes(x as string))).slice(0, 10);
   return {
     name, minAmount, maxAmount, minRate, maxRate, minTenureMonths, maxTenureMonths,
@@ -139,6 +179,7 @@ export function cleanProgram(raw: unknown): Program | null {
     occupancy: text(r.occupancy, 80),
     rules,
     status,
+    calc,
   };
 }
 

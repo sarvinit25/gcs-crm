@@ -29,6 +29,7 @@ import {
 import { EventsService } from "../events/events.service";
 import { StorageService } from "../documents/storage.service";
 import { detectFile, safeFileName } from "../documents/file-sniff";
+import { classifyDocument } from "../documents/document-kinds";
 import { randomUUID } from "crypto";
 import { answersByKey, checkAnswer, loanFor } from "../whatsapp/intake/intake.engine";
 
@@ -681,32 +682,70 @@ export class LeadsService implements OnApplicationBootstrap {
 
     const fileName = safeFileName(file.originalname, detected.extension);
     const objectKey = `leads/${id}/${randomUUID()}${detected.extension}`;
-    await this.storage.put(objectKey, file.buffer, detected.mime);
+    const stored = await this.storage.put(objectKey, file.buffer, detected.mime);
     const created = await this.prisma.leadFile.create({
-      data: { leadId: id, fileName, objectKey, mimeType: detected.mime, sizeBytes: file.size, source: "staff", caption: caption?.trim().slice(0, 500) || null },
+      data: { leadId: id, fileName, objectKey, mimeType: detected.mime, sizeBytes: stored?.size ?? file.size, source: "staff", caption: caption?.trim().slice(0, 500) || null },
       select: { id: true, fileName: true, mimeType: true, sizeBytes: true, source: true, caption: true, createdAt: true },
     });
     await this.audit.record({ actor: user, action: AuditAction.CREATE, entity: "LeadFile", entityId: created.id, entityLabel: `${lead.name}: ${fileName}` });
-    return created;
+    // The first document in moves "Not received" to "Some received" by itself; staff still decide when it is complete.
+    const moved = await this.prisma.lead.updateMany({ where: { id, documentsStatus: "NONE" }, data: { documentsStatus: "PARTIAL" } });
+    if (moved.count) await this.refreshSegment(id);
+    return { ...created, category: classifyDocument(created.fileName, created.caption) };
   }
 
   /**
    * Deletes a lead for good, for junk and test leads. A lead that already became a loan file is refused: that file's
    * history must stay, so such a lead is archived instead. The phone-agent call that made it is kept, just unlinked.
    */
-  async remove(id: string, user: AuthUser, ip?: string) {
+  /**
+   * What deleting a lead would take with it, so the person is told before they confirm. A lead with a loan file takes the
+   * file with it: its applicants, documents, sanction, disbursements and commissions.
+   */
+  async deletePreview(id: string, user: AuthUser) {
     const lead = await this.findOne(id, user);
-    if (lead.application) {
-      throw new BadRequestException("This lead has a loan file, so it cannot be deleted. Archive it instead.");
+    const app = lead.application;
+    const [files, appDocs, disbursements, commissions, applicants, sanction] = await Promise.all([
+      this.prisma.leadFile.count({ where: { leadId: id } }),
+      app ? this.prisma.document.count({ where: { applicationId: app.id } }) : 0,
+      app ? this.prisma.disbursement.count({ where: { applicationId: app.id } }) : 0,
+      app ? this.prisma.commission.count({ where: { disbursement: { applicationId: app.id } } }) : 0,
+      app ? this.prisma.applicant.count({ where: { applicationId: app.id } }) : 0,
+      app ? this.prisma.sanction.count({ where: { applicationId: app.id } }) : 0,
+    ]);
+    return {
+      leadNo: lead.leadNo,
+      name: lead.name,
+      answers: lead.answers.length,
+      followUps: lead.followUps.length,
+      files,
+      application: app ? { id: app.id, status: app.status, applicationNo: app.applicationNo, applicants, documents: appDocs, sanction: sanction > 0, disbursements, commissions } : null,
+    };
+  }
+
+  /**
+   * Deletes a lead for good. A lead with a loan file is only deleted when `withFile` is confirmed: the file and everything on it
+   * (documents, sanction, disbursements, commissions) goes too, and the audit trail says exactly what went.
+   */
+  async remove(id: string, user: AuthUser, ip?: string, withFile = false) {
+    const lead = await this.findOne(id, user);
+    const app = lead.application;
+    if (app && !withFile) {
+      throw new BadRequestException(`This lead has a loan file (${app.applicationNo}). Confirm that the file should be deleted with it, or archive the lead instead.`);
     }
     const files = await this.prisma.leadFile.findMany({ where: { leadId: id }, select: { objectKey: true } });
+    const docs = app ? await this.prisma.document.findMany({ where: { applicationId: app.id }, select: { objectKey: true } }) : [];
+    const note = app ? await this.deletePreview(id, user) : null;
     await this.prisma.$transaction([
       this.prisma.voiceCall.updateMany({ where: { leadId: id }, data: { leadId: null } }),
+      ...(app ? [this.prisma.application.delete({ where: { id: app.id } })] : []),
       this.prisma.lead.delete({ where: { id } }),
     ]);
     // Rows first, then the stored files: a leftover file costs pennies, a row pointing at a missing file breaks downloads.
-    for (const f of files) await this.storage.remove(f.objectKey).catch(() => undefined);
-    await this.audit.record({ actor: user, action: AuditAction.DELETE, entity: "Lead", entityId: id, entityLabel: `#${lead.leadNo} ${lead.name}`, ip });
+    for (const f of [...files, ...docs]) await this.storage.remove(f.objectKey).catch(() => undefined);
+    const label = `#${lead.leadNo} ${lead.name}`;
+    const withNote = note?.application ? `${label} with loan file ${note.application.applicationNo} (${note.application.documents} documents, ${note.application.disbursements} disbursements, ${note.application.commissions} commissions)` : label;
+    await this.audit.record({ actor: user, action: AuditAction.DELETE, entity: "Lead", entityId: id, entityLabel: withNote, ip });
     return { ok: true };
   }
 
@@ -744,9 +783,11 @@ export class LeadsService implements OnApplicationBootstrap {
     });
     if (!lead) throw new NotFoundException("Lead not found");
 
-    const { application, ...rest } = lead;
+    const { application, files, ...rest } = lead;
     return {
       ...rest,
+      // Each file filed under the checklist's categories (KYC, Income proof, Bank statement ...), from its name and caption.
+      files: files.map((f) => ({ ...f, category: classifyDocument(f.fileName, f.caption) })),
       missingForMeeting: missingForMeeting(lead),
       application: application && {
         id: application.id,

@@ -1,4 +1,6 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, NotFoundException, Optional } from "@nestjs/common";
+import { LeadHandoff } from "./lead-handoff";
+import { DocumentReaderService } from "../document-reader/document-reader.service";
 import { ApplicationStatus, AuditAction, LeadStatus, Prisma, Role, SanctionStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import type { AuthUser } from "../auth/auth.decorators";
@@ -46,11 +48,16 @@ export async function markSanctioned(tx: Pick<Prisma.TransactionClient, "sanctio
 
 @Injectable()
 export class ApplicationsService {
+  private readonly log = new Logger(ApplicationsService.name);
+
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
     private settings: SettingsService,
     private events: EventsService,
+    // Optional so a service built without it (a unit test, a script) simply skips the carry-over.
+    @Optional() private handoff?: LeadHandoff,
+    @Optional() private reader?: DocumentReaderService,
   ) {}
 
   /** Adds the derived applicationNo the UI and lenders refer to. */
@@ -137,6 +144,18 @@ export class ApplicationsService {
       entityLabel: this.settings.applicationNo(created.seq, created.createdAt),
       changes: diff({}, { requestedAmount: dto.requestedAmount, leadId: dto.leadId }),
     });
+
+    // What the lead already holds comes across: its documents, and the figures from its CAM. A failure here never stops the file.
+    if (dto.leadId && this.handoff) {
+      try {
+        await this.handoff.copyDocuments(dto.leadId, created.id, user.id);
+        // The bank statements are read on our own server and their balances go into the CAM, before the evaluation takes its figures from it.
+        await this.reader?.readStatementsOnServer(created.id, user);
+        await this.handoff.seedEvaluation(dto.leadId, created.id);
+      } catch (e) {
+        this.log.warn(`Carrying the lead's documents and figures onto ${created.id} failed: ${(e as Error).message}`);
+      }
+    }
 
     this.events.emit("APPLICATION_CREATED", { applicationId: created.id });
     return this.decorate(created);

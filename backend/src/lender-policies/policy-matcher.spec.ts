@@ -68,12 +68,28 @@ describe("matchOne data-quality gates", () => {
     expect(matchOne(customer, policy({ effectiveTo: daysAgo(1) }), NOW).status).toBe("EXCLUDED");
     expect(matchOne(customer, policy({ effectiveFrom: new Date("2027-01-01") }), NOW).status).toBe("EXCLUDED");
   });
-  it("sends a stale or never-verified policy to a human and does not score it", () => {
+  it("never recommends a stale or never-verified policy, but still shows how well it fits", () => {
+    const verified = matchOne(customer, policy(), NOW);
+    expect(["STRONG", "POSSIBLE"]).toContain(verified.status);
+
     const stale = matchOne(customer, policy({ lastVerifiedAt: daysAgo(120) }), NOW);
-    expect(stale.status).toBe("EXPERT_REVIEW");
-    expect(stale.score).toBeNull();
+    expect(stale.status).toBe("EXPERT_REVIEW"); // never Strong or Possible on rules nobody has confirmed
+    expect(stale.score).toBe(verified.score); // but the analysis is not thrown away
     expect(stale.policyNeedsReview).toBe(true);
-    expect(matchOne(customer, policy({ lastVerifiedAt: null }), NOW).policyNeedsReview).toBe(true);
+    expect(stale.reasons.some((r) => r.code === "POLICY_STALE")).toBe(true);
+    expect(stale.checks.join(" ")).toMatch(/Confirm this lender's current rules/);
+
+    const never = matchOne(customer, policy({ lastVerifiedAt: null }), NOW);
+    expect(never.status).toBe("EXPERT_REVIEW");
+    expect(never.policyNeedsReview).toBe(true);
+    expect(never.reasons.find((r) => r.code === "POLICY_STALE")?.text).toMatch(/never been verified/);
+  });
+  it("does not rule a lender out on rules nobody has verified: it asks a person instead", () => {
+    const tooBig = matchOne({ ...customer, amount: 900_000_000 }, policy({ lastVerifiedAt: null }), NOW);
+    expect(tooBig.status).toBe("EXPERT_REVIEW");
+    expect(tooBig.reasons.some((r) => /above this lender's maximum/.test(r.text))).toBe(true);
+    // the same miss on a verified policy does rule the lender out
+    expect(matchOne({ ...customer, amount: 900_000_000 }, policy(), NOW).status).toBe("EXCLUDED");
   });
 });
 
@@ -82,6 +98,20 @@ describe("matchOne hard filters", () => {
     const p = policy({ allIndia: false, cities: ["Pune"] });
     expect(matchOne(customer, p, NOW).status).toBe("EXCLUDED");
     expect(matchOne({ ...customer, city: "pune" }, p, NOW).status).not.toBe("EXCLUDED");
+  });
+  it("still scores a lender whose service area is not recorded, but never calls it Strong or Possible", () => {
+    const r = matchOne(customer, policy({ allIndia: false, cities: [] }), NOW);
+    expect(r.status).toBe("EXPERT_REVIEW");
+    expect(r.score).not.toBeNull();
+    expect(r.reasons.some((x) => x.code === "LOCATION_UNKNOWN")).toBe(true);
+    expect(r.checks.join(" ")).toMatch(/serves the customer's location/);
+  });
+  it("puts the better-fitting of two unverified lenders first", () => {
+    const fits = policy({ lenderId: "a", lenderName: "Fits", lastVerifiedAt: null, id: "a" });
+    const misses = policy({ lenderId: "b", lenderName: "Misses", lastVerifiedAt: null, id: "b", minCreditScore: 900 });
+    const ranked = matchAll(customer, [misses, fits], NOW);
+    expect(ranked.every((r) => r.status === "EXPERT_REVIEW")).toBe(true);
+    expect(ranked[0]!.lenderName).toBe("Fits");
   });
   it("routes to a human when serviceability is not recorded at all", () => {
     expect(matchOne(customer, policy({ allIndia: false, cities: [] }), NOW).status).toBe("EXPERT_REVIEW");
@@ -151,5 +181,61 @@ describe("matchAll", () => {
       NOW,
     );
     expect(list[0]!.policyId).toBe("cheap");
+  });
+});
+
+describe("Eligible, Conditional and Not matched", () => {
+  const { categoryOf } = jest.requireActual("./policy-matcher");
+  const ok = { code: "A", ok: true, text: "fine" };
+  const bad = { code: "B", ok: false, text: "not met" };
+  it("calls a lender Eligible only when everything checked is met on confirmed rules", () => {
+    expect(categoryOf({ status: "STRONG", reasons: [ok], checks: [], policyNeedsReview: false })).toBe("ELIGIBLE");
+    expect(categoryOf({ status: "STRONG", reasons: [ok], checks: ["close to the limit"], policyNeedsReview: false })).toBe("CONDITIONAL");
+  });
+  it("rules a lender out only on a failed criterion of confirmed rules", () => {
+    expect(categoryOf({ status: "EXPERT_REVIEW", reasons: [ok, bad], checks: [], policyNeedsReview: false })).toBe("NOT_MATCHED");
+    expect(categoryOf({ status: "EXPERT_REVIEW", reasons: [ok, bad], checks: [], policyNeedsReview: true })).toBe("CONDITIONAL");
+    expect(categoryOf({ status: "EXPERT_REVIEW", reasons: [ok, bad], checks: [], policyNeedsReview: false, capped: true })).toBe("NOT_MATCHED");
+    expect(categoryOf({ status: "EXCLUDED", reasons: [], checks: [], policyNeedsReview: false })).toBe("NOT_MATCHED");
+  });
+  it("does not count the price comparison as a failure", () => {
+    expect(categoryOf({ status: "POSSIBLE", reasons: [ok, { code: "PRICING", ok: false, text: "higher" }], checks: [], policyNeedsReview: false })).toBe("CONDITIONAL");
+  });
+});
+
+describe("category when the service area is not recorded", () => {
+  it("still rules a lender out when the customer clearly fails a confirmed rule", () => {
+    const r = matchAll({ ...customer, monthlyIncome: 40_000, existingEmi: 30_000 }, [policy({ allIndia: false, cities: [] })], NOW)[0];
+    expect(r.category).toBe("NOT_MATCHED");
+  });
+  it("keeps it Conditional when the only gap is the unrecorded service area", () => {
+    const r = matchAll(customer, [policy({ allIndia: false, cities: [] })], NOW)[0];
+    expect(r.category).toBe("CONDITIONAL");
+  });
+});
+
+describe("employment wording on lender records", () => {
+  const selfEmployed: Profile = { ...customer, employmentType: "SELF_EMPLOYED" };
+  it.each([["Self-employed"], ["Self employed"], ["Professional"], ["Business"], ["SELF_EMPLOYED"]])("a self-employed customer fits a lender recorded as %s", (label) => {
+    const r = matchAll(selfEmployed, [policy({ employmentTypes: [label] })], NOW)[0];
+    expect(r.status).not.toBe("EXCLUDED");
+  });
+  it("still rules out a salaried-only lender", () => {
+    expect(matchAll(selfEmployed, [policy({ employmentTypes: ["Salaried"] })], NOW)[0].status).toBe("EXCLUDED");
+    expect(matchAll({ ...customer, employmentType: "SALARIED" }, [policy({ employmentTypes: ["Self-employed"] })], NOW)[0].status).toBe("EXCLUDED");
+  });
+});
+
+describe("existing EMIs against income", () => {
+  const heavy: Profile = { ...customer, monthlyIncome: 82_000, existingEmi: 167_000 };
+  it("warns on every lender but never rules one out or calls it Eligible", () => {
+    const r = matchAll(heavy, [policy()], NOW)[0];
+    expect(r.reasons.some((x) => x.code === "OBLIGATIONS_HIGH" && !x.ok)).toBe(true);
+    expect(r.category).not.toBe("ELIGIBLE");
+    expect(r.checks.join(" ")).toContain("Existing EMIs");
+  });
+  it("says nothing when the EMIs are comfortable or income is unknown", () => {
+    expect(matchAll(customer, [policy()], NOW)[0].reasons.some((x) => x.code === "OBLIGATIONS_HIGH")).toBe(false);
+    expect(matchAll({ ...customer, monthlyIncome: undefined }, [policy()], NOW)[0].reasons.some((x) => x.code === "OBLIGATIONS_HIGH")).toBe(false);
   });
 });

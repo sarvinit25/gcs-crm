@@ -1583,6 +1583,8 @@ model LenderPolicy {
   programs   Json?
   // Rules that are not amounts or rates (rating, DSCR, guarantee, security, moratorium, end use ...): { key: value }.
   conditions Json?
+  // Tests on admin-defined match fields: { fieldKey: { op: "gte"|"lte"|"eq"|"in"|"yes"|"no", value? } }. See MatchField.
+  criteria   Json?
 
   // Money rules. Each band is { upTo: number | null, value: number } in rupees / percent.
   foirBands             Json?
@@ -1777,6 +1779,7 @@ enum NotificationTrigger {
   DISBURSAL_COMPLETED
   MORNING_BRIEF
   EVENING_BRIEF
+  DOCS_PENDING
 }
 
 enum NotificationRecipient {
@@ -1985,4 +1988,33 @@ model ApiUsage {
 
   @@index([at])
   @@index([service, at])
+}
+
+
+/// A question the lender match can ask about a customer, defined by staff instead of in code. A lender policy can then carry a
+/// test on it (LenderPolicy.criteria). The customer's answer is read from the lead's answer whose label equals answerLabel,
+/// or typed in the match panel.
+model MatchField {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  label       String
+  // NUMBER, YESNO, CHOICE or TEXT.
+  type        String
+  options     String[]
+  unit        String?
+  hint        String?
+  // The label of the lead answer this is read from (blank = typed in the match panel only).
+  answerLabel String?
+  // Loan product slugs and applicant types it applies to; empty means all.
+  products    String[]
+  applicants  String[]
+  // A mandatory field with no answer keeps a lender at Conditional, never Eligible.
+  mandatory   Boolean  @default(false)
+  // Validation for NUMBER fields.
+  minValue    Float?
+  maxValue    Float?
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

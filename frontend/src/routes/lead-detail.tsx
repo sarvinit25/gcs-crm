@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, FileText, Loader2, Mail, MessageCircle, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, Mail, MessageCircle, MoreHorizontal, Pencil, Phone, Plus, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { SmartMatchPanel } from "../components/smart-match-panel";
-import { formatAmount, formatCompact, formatDate, formatDateTime, humanize } from "../lib/format";
+import { formatAmount, formatCompact, formatDate, formatDateTime, humanize, initials } from "../lib/format";
 import {
   DOCUMENTS_STATUS_LABEL,
   EMPLOYMENT_TYPE_LABEL,
@@ -26,7 +26,7 @@ import { LeadStatusBadge, SegmentBadge } from "../components/status-badge";
 import { NewApplicationWizard } from "../components/new-application-wizard";
 import { ChannelInput } from "../components/channel-field";
 import { Modal } from "../components/modal";
-import { DeleteConfirm } from "../components/delete-confirm";
+import { LeadDeleteDialog } from "../components/lead-delete";
 import { LeadSecondForm } from "../components/lead-second-form";
 import { LoanProfilePanel } from "../components/loan-profile-panel";
 import { LeadDocuments } from "../components/lead-documents";
@@ -44,6 +44,16 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
     <div>
       <p className="text-[11px] font-bold tracking-wide text-muted uppercase">{label}</p>
       <p className="mt-0.5 text-[13px] break-words text-ink">{value ?? "—"}</p>
+    </div>
+  );
+}
+
+/** A titled group of facts inside the Enquiry card; renders nothing when none of its facts are known. */
+function Group({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="mb-2.5 text-[12px] font-bold text-navy">{title}</h3>
+      <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">{children}</div>
     </div>
   );
 }
@@ -375,27 +385,14 @@ export function LeadDetailPage() {
         title={lead.name}
         subtitle={`Lead #${lead.leadNo} · added ${formatDate(lead.createdAt)}`}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to="/leads" className="btn-ghost">
+              <ArrowLeft className="h-4 w-4" /> All leads
+            </Link>
             {lead.phone && (
               <a className="btn-ghost" href={`/crm/whatsapp?search=${encodeURIComponent(lead.phone)}`} title="Open this customer's WhatsApp chat">
                 <MessageCircle className="h-4 w-4" /> WhatsApp chat
               </a>
-            )}
-            <ArchiveButton
-              kind="leads"
-              id={lead.id}
-              archived={lead.archivedAt !== null}
-              closed={lead.status === "CONVERTED" || lead.status === "LOST"}
-              refresh={[["lead", leadId], ["leads"]]}
-            />
-            {user?.role === "ADMIN" && !lead.application && (
-              <button
-                className="btn-ghost text-red-700"
-                title="Delete this lead for good (only for junk or test leads)"
-                onClick={() => setConfirmingDelete(true)}
-              >
-                <Trash2 className="h-4 w-4" /> Delete
-              </button>
             )}
             <select
               value={lead.status}
@@ -406,17 +403,34 @@ export function LeadDetailPage() {
                 if (next === "LOST") setAskingReason(true);
                 else setStatus.mutate({ status: next });
               }}
-              className="field w-44"
+              className="field w-44 font-semibold"
+              aria-label="Lead status"
             >
-              {LEAD_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {LEAD_STATUS_LABEL[s]}
+              {LEAD_STATUSES.map((st) => (
+                <option key={st} value={st}>
+                  {LEAD_STATUS_LABEL[st]}
                 </option>
               ))}
             </select>
-            <Link to="/leads" className="btn-ghost">
-              <ArrowLeft className="h-4 w-4" /> All leads
-            </Link>
+            <details className="relative">
+              <summary className="btn-ghost cursor-pointer list-none" aria-label="More actions" title="More actions">
+                <MoreHorizontal className="h-4 w-4" />
+              </summary>
+              <div className="absolute right-0 z-30 mt-2 w-56 space-y-1 rounded-xl border border-line bg-white p-2 shadow-lg">
+                <ArchiveButton
+                  kind="leads"
+                  id={lead.id}
+                  archived={lead.archivedAt !== null}
+                  closed={lead.status === "CONVERTED" || lead.status === "LOST"}
+                  refresh={[["lead", leadId], ["leads"]]}
+                />
+                {user?.role === "ADMIN" && (
+                  <button className="btn-ghost w-full justify-start text-red-700" title="Delete this lead for good" onClick={() => setConfirmingDelete(true)}>
+                    <Trash2 className="h-4 w-4" /> Delete lead
+                  </button>
+                )}
+              </div>
+            </details>
           </div>
         }
       />
@@ -468,6 +482,39 @@ export function LeadDetailPage() {
           </form>
         </Modal>
       )}
+
+      <div className="mx-6 mt-5 card flex flex-wrap items-center gap-x-8 gap-y-4 p-5">
+        <div className="flex items-center gap-3">
+          <span aria-hidden className="grid h-12 w-12 place-items-center rounded-full bg-navy text-[15px] font-bold text-white">
+            {initials(lead.name)}
+          </span>
+          <div>
+            <p className="text-[11px] font-semibold text-muted">Loan wanted</p>
+            <p className="text-xl leading-tight font-bold text-navy">{lead.amount ? formatAmount(lead.amount) : "Amount not given"}</p>
+            <p className="text-[12px] text-muted">{lead.loanProduct?.name ?? "Loan type not chosen"}</p>
+          </div>
+        </div>
+        <div>
+          <p className="text-[11px] font-semibold text-muted">Contact</p>
+          <p className="text-[13px] font-semibold text-navy">{lead.phone}</p>
+          <p className="text-[12px] text-muted">{[lead.city, lead.email].filter(Boolean).join(" · ") || "No city or email yet"}</p>
+        </div>
+        <div>
+          <p className="text-[11px] font-semibold text-muted">Owner</p>
+          <p className="text-[13px] font-semibold text-navy">{lead.assignedOfficer?.name ?? <span className="text-amber-600">Unassigned</span>}</p>
+          <p className="text-[12px] text-muted">{lead.sourcingPartner ? `via ${lead.sourcingPartner.name}` : "Direct"}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+          {lead.segment !== null && <SegmentBadge segment={lead.segment} note={lead.segmentNote} />}
+          <LeadStatusBadge status={lead.status} />
+          {lead.archivedAt && <ArchivedBadge />}
+          {lead.phone && (
+            <a href={`tel:${lead.phone}`} className="btn-primary" title="Call this customer">
+              <Phone className="h-4 w-4" /> Call
+            </a>
+          )}
+        </div>
+      </div>
 
       <div className="grid gap-5 px-6 py-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <div className="space-y-5">
@@ -537,41 +584,38 @@ export function LeadDetailPage() {
                 {lead.archivedAt && <ArchivedBadge />}
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-              <Field label="Phone" value={lead.phone} />
-              <Field label="Email" value={lead.email} />
-              <Field label="City" value={lead.city} />
-              <Field label="Product" value={lead.loanProduct?.name} />
-              <Field label="Amount" value={formatAmount(lead.amount)} />
-              <Field label="Source" value={humanize(lead.source)} />
-              <Field label="Channel" value={lead.channel ?? "Not tracked"} />
-              <Field label="Campaign" value={lead.campaign} />
-              {lead.status === "LOST" && <Field label="Lost because" value={lead.lostReason} />}
-              <Field
-                label="Employment"
-                value={lead.employmentType ? EMPLOYMENT_TYPE_LABEL[lead.employmentType] : null}
-              />
-              <Field label="Monthly income" value={lead.monthlyIncome ? formatAmount(lead.monthlyIncome) : null} />
-              <Field
-                label="Meeting"
-                value={[lead.meetingMode, lead.meetingPlace].filter(Boolean).join(" · ") || null}
-              />
-              {/* The details a lender asks for show once they are known, so the card stays short until then. */}
-              {lead.secondaryPhone && <Field label="Secondary phone" value={lead.secondaryPhone} />}
-              {lead.dateOfBirth && <Field label="Date of birth" value={formatDate(lead.dateOfBirth)} />}
-              {lead.pan && <Field label="PAN" value={<span className="font-mono">{lead.pan}</span>} />}
-              {lead.employerName && <Field label="Company" value={lead.employerName} />}
-              {lead.designation && <Field label="Designation" value={lead.designation} />}
-              {lead.currentExperienceYears && <Field label="Current experience" value={`${Number(lead.currentExperienceYears)} years`} />}
-              {lead.experienceYears && <Field label="Total experience" value={`${Number(lead.experienceYears)} years`} />}
-              {lead.workLocation && <Field label="Work location" value={lead.workLocation} />}
-              {lead.officialEmail && <Field label="Official email" value={lead.officialEmail} />}
-              {(lead.address || lead.pincode) && (
-                <Field label="Address" value={[lead.address, lead.pincode].filter(Boolean).join(" · ")} />
-              )}
+            <div className="space-y-5">
+              <Group title="Contact">
+                <Field label="Phone" value={lead.phone} />
+                <Field label="Email" value={lead.email} />
+                <Field label="City" value={lead.city} />
+                {lead.secondaryPhone && <Field label="Secondary phone" value={lead.secondaryPhone} />}
+                {(lead.address || lead.pincode) && <Field label="Address" value={[lead.address, lead.pincode].filter(Boolean).join(" · ")} />}
+              </Group>
+              <Group title="The loan">
+                <Field label="Product" value={lead.loanProduct?.name} />
+                <Field label="Amount" value={formatAmount(lead.amount)} />
+                <Field label="Source" value={humanize(lead.source)} />
+                <Field label="Meeting" value={[lead.meetingMode, lead.meetingPlace].filter(Boolean).join(" · ") || null} />
+                {lead.status === "LOST" && <Field label="Lost because" value={lead.lostReason} />}
+              </Group>
+              <Group title="Work and income">
+                <Field label="Employment" value={lead.employmentType ? EMPLOYMENT_TYPE_LABEL[lead.employmentType] : null} />
+                <Field label="Monthly income" value={lead.monthlyIncome ? formatAmount(lead.monthlyIncome) : null} />
+                {/* The details a lender asks for show once they are known, so the card stays short until then. */}
+                {lead.dateOfBirth && <Field label="Date of birth" value={formatDate(lead.dateOfBirth)} />}
+                {lead.pan && <Field label="PAN" value={<span className="font-mono">{lead.pan}</span>} />}
+                {lead.employerName && <Field label="Company" value={lead.employerName} />}
+                {lead.designation && <Field label="Designation" value={lead.designation} />}
+                {lead.currentExperienceYears && <Field label="Current experience" value={`${Number(lead.currentExperienceYears)} years`} />}
+                {lead.experienceYears && <Field label="Total experience" value={`${Number(lead.experienceYears)} years`} />}
+                {lead.workLocation && <Field label="Work location" value={lead.workLocation} />}
+                {lead.officialEmail && <Field label="Official email" value={lead.officialEmail} />}
+              </Group>
             </div>
 
-            <div className="mt-5 grid gap-3 border-t border-line pt-4 sm:grid-cols-3">
+            <h3 className="mt-6 border-t border-line pt-4 text-[12px] font-bold text-navy">Who is handling it</h3>
+            <div className="mt-2.5 grid gap-3 sm:grid-cols-3">
               <label className="text-[11px] font-bold tracking-wide text-muted uppercase">
                 Relationship Officer
                 <select
@@ -624,7 +668,8 @@ export function LeadDetailPage() {
                 </select>
               </label>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <h3 className="mt-6 text-[12px] font-bold text-navy">Where it came from</h3>
+            <div className="mt-2.5 grid gap-3 sm:grid-cols-2">
               <label className="text-[11px] font-bold tracking-wide text-muted uppercase">
                 Channel
                 <ChannelInput
@@ -659,9 +704,9 @@ export function LeadDetailPage() {
               </p>
             )}
             {lead.answers && lead.answers.length > 0 && (
-              <div className="mt-5">
-                <h3 className="text-[12px] font-bold tracking-wide text-muted uppercase">Form answers</h3>
-                <dl className="mt-2 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+              <details open={lead.answers.length <= 8} className="mt-6 border-t border-line pt-4">
+                <summary className="cursor-pointer text-[12px] font-bold text-navy">What the customer answered ({lead.answers.length})</summary>
+                <dl className="mt-3 grid gap-x-6 gap-y-3 rounded-lg bg-bg-light/60 p-4 sm:grid-cols-2">
                   {lead.answers.map((a) => (
                     <div key={a.key} className="min-w-0">
                       <dt className="text-[11px] text-muted">{a.label}</dt>
@@ -669,7 +714,7 @@ export function LeadDetailPage() {
                     </div>
                   ))}
                 </dl>
-              </div>
+              </details>
             )}
             {lead.notes && (
               <p className="mt-5 rounded-md bg-bg-light px-3 py-2.5 text-[13px] break-words whitespace-pre-wrap text-muted">
@@ -752,7 +797,6 @@ export function LeadDetailPage() {
         </div>
 
         <div className="space-y-5">
-        <SmartMatchPanel lead={lead} />
         <section id="followups" className="card p-5">
           <h2 className="text-sm font-bold text-navy">Follow-ups</h2>
 
@@ -806,25 +850,18 @@ export function LeadDetailPage() {
             ))}
           </ul>
         </section>
+        <SmartMatchPanel lead={lead} />
         </div>
       </div>
       {confirmingDelete && (
-        <DeleteConfirm
-          title={`Delete lead #${lead.leadNo}?`}
-          onDelete={() => api(`/leads/${leadId}`, { method: "DELETE" })}
+        <LeadDeleteDialog
+          lead={lead}
           onDone={() => {
             void queryClient.invalidateQueries({ queryKey: ["leads"] });
             void navigate({ to: "/leads" });
           }}
           onClose={() => setConfirmingDelete(false)}
-        >
-          <p>
-            <span className="font-semibold text-navy">
-              #{lead.leadNo} {lead.name}
-            </span>{" "}
-            will be deleted for good, together with its follow-ups, answers and uploaded files.
-          </p>
-        </DeleteConfirm>
+        />
       )}
     </>
   );

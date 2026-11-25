@@ -260,18 +260,12 @@ export class CamService {
     }
   }
 
-  async exportXlsx(leadId: string, user: AuthUser) {
-    const lead = await this.leadFor(leadId, user);
-    const c = await this.peek(leadId);
-    const stored = (c.data ?? {}) as CamData;
-    const family = this.familyOf(lead, stored);
-    const data = withPrefill(prefillFromLead(lead), stored);
-    const analysis = analyse(family, data);
-
+  /** The lenders whose recorded rules this customer's CAM meets, best fit first. Shared by the CAM screen and the Excel. */
+  private async matchLenders(lead: LeadRow, data: CamData, analysis: ReturnType<typeof analyse>) {
     let match: Awaited<ReturnType<LenderPoliciesService["previewMatch"]>> | null = null;
     let matchNote: string | null = null;
-    if (!lead.loanProductId) matchNote = "No loan type is set on this lead, so there is nothing to match against. Set the loan type and download again.";
-    else if (!analysis.requested) matchNote = "The loan amount is not known yet, so the lenders cannot be matched. Fill it in and download again.";
+    if (!lead.loanProductId) matchNote = "No loan type is set on this lead, so there is nothing to match against. Set the loan type and try again.";
+    else if (!analysis.requested) matchNote = "The loan amount is not known yet, so the lenders cannot be matched. Fill it in and try again.";
     else {
       match = await this.policies.previewMatch(lead.loanProductId, {
         amount: analysis.requested,
@@ -293,6 +287,35 @@ export class CamService {
       if (!match.length) matchNote = "No lender rules are recorded for this loan type yet.";
       else match = [...match].sort((x, y) => RANK[x.status] - RANK[y.status] || (y.score ?? -1) - (x.score ?? -1) || x.lenderName.localeCompare(y.lenderName));
     }
+    return { match, matchNote };
+  }
+
+  /** For the CAM screen: the saved answers matched against the lender rules, nothing written. */
+  async matchForScreen(leadId: string, user: AuthUser) {
+    const lead = await this.leadFor(leadId, user);
+    const c = await this.peek(leadId);
+    const stored = (c.data ?? {}) as CamData;
+    const family = this.familyOf(lead, stored);
+    const data = withPrefill(prefillFromLead(lead), stored);
+    const analysis = analyse(family, data);
+    const { match, matchNote } = await this.matchLenders(lead, data, analysis);
+    return {
+      note: matchNote,
+      requested: analysis.requested,
+      productName: lead.loanProduct?.name ?? null,
+      results: (match ?? []).map((m) => ({ lenderId: m.lenderId, lender: m.lenderName, status: m.status, score: m.score, reasons: m.reasons, checks: m.checks, policyNeedsReview: m.policyNeedsReview, programs: (m.programFit ?? []).length })),
+    };
+  }
+
+  async exportXlsx(leadId: string, user: AuthUser) {
+    const lead = await this.leadFor(leadId, user);
+    const c = await this.peek(leadId);
+    const stored = (c.data ?? {}) as CamData;
+    const family = this.familyOf(lead, stored);
+    const data = withPrefill(prefillFromLead(lead), stored);
+    const analysis = analyse(family, data);
+
+    const { match, matchNote } = await this.matchLenders(lead, data, analysis);
 
     const buffer = await buildCamWorkbook({
       lead: { leadNo: lead.leadNo, name: lead.name, phone: lead.phone, email: lead.email, city: lead.city, productName: lead.loanProduct?.name ?? null, source: lead.source },

@@ -3,7 +3,7 @@ import { MediaService } from "./media.service";
 const PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n");
 
 function build(data: Buffer | Error) {
-  const prisma = { leadFile: { create: jest.fn().mockResolvedValue({}) } };
+  const prisma = { leadFile: { create: jest.fn().mockResolvedValue({}) }, lead: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) } };
   const storage = { put: jest.fn().mockResolvedValue(undefined) };
   const provider = { downloadMedia: jest.fn(async () => { if (data instanceof Error) throw data; return { data, mimeType: "application/pdf" }; }) };
   return { prisma, storage, provider, service: new MediaService(prisma as never, storage as never, provider as never) };
@@ -18,6 +18,8 @@ describe("MediaService", () => {
     expect(key).toMatch(/^whatsapp\/L1\/[0-9a-f-]+\.pdf$/);
     expect(type).toBe("application/pdf");
     expect(prisma.leadFile.create.mock.calls[0][0].data).toMatchObject({ leadId: "L1", fileName: "salary slip.pdf", mimeType: "application/pdf", caption: "March" });
+    // the first document moves "Not received" to "Some received", and only from "Not received"
+    expect(prisma.lead.updateMany).toHaveBeenCalledWith({ where: { id: "L1", documentsStatus: "NONE" }, data: { documentsStatus: "PARTIAL" } });
   });
 
   it("judges by contents, so a renamed program is refused", async () => {

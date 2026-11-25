@@ -74,7 +74,7 @@ export function AskAi() {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label={open ? "Close the assistant" : "Ask the assistant"}
-        className="no-print fixed right-4 bottom-4 z-40 flex h-[60px] items-center gap-2.5 rounded-full bg-navy px-2 pr-5 text-white shadow-lg ring-1 ring-gold/50 transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+        className="group no-print fixed right-4 bottom-4 z-40 flex h-[60px] items-center rounded-full bg-navy p-1 text-white shadow-lg ring-1 ring-gold/50 transition-all duration-300 hover:-translate-y-0.5 hover:pr-5 focus-visible:pr-5 active:scale-95"
       >
         {open ? (
           <span className="grid h-[52px] w-[52px] place-items-center">
@@ -83,7 +83,7 @@ export function AskAi() {
         ) : (
           <GiaOrb mood={mood} tone="dark" className="h-[52px] w-[52px]" />
         )}
-        <span className="text-left">
+        <span className="max-w-0 overflow-hidden text-left whitespace-nowrap opacity-0 transition-all duration-300 group-hover:ml-2.5 group-hover:max-w-[8rem] group-hover:opacity-100 group-focus-visible:ml-2.5 group-focus-visible:max-w-[8rem] group-focus-visible:opacity-100">
           <span className="block text-sm leading-tight font-bold">{open ? "Close" : "Ask Ria"}</span>
           <span className="block text-[10px] text-white/70">{open ? "the assistant" : "AI assistant"}</span>
         </span>

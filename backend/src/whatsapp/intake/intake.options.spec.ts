@@ -35,7 +35,7 @@ describe("tap-to-choose options", () => {
   });
 });
 
-describe("reaching every one of the 28 loans by tap", () => {
+describe("reaching every one of the 29 loans by tap", () => {
   const { loanGroups } = jest.requireActual("./intake.engine");
   const { parseTap, groupOptions, groupLoanOptions, optionsFor } = jest.requireActual("./intake.options");
   it("offers 'More loan types' on the first list and the groups after it", () => {
@@ -45,7 +45,7 @@ describe("reaching every one of the 28 loans by tap", () => {
   });
   it("every loan sits in one group list that fits WhatsApp's 10 rows", () => {
     const groups = loanGroups();
-    expect(groups.reduce((n: number, g: { loans: unknown[] }) => n + g.loans.length, 0)).toBe(28);
+    expect(groups.reduce((n: number, g: { loans: unknown[] }) => n + g.loans.length, 0)).toBe(29);
     groups.forEach((g: { loans: { slug: string }[] }, i: number) => {
       const o = groupLoanOptions(i);
       expect(o.choices.length).toBeLessThanOrEqual(10);

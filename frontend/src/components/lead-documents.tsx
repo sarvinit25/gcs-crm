@@ -4,7 +4,10 @@ import { Download, Loader2, Trash2, Upload } from "lucide-react";
 import { api, tokenStore } from "../lib/api";
 import { formatDateTime, humanize } from "../lib/format";
 
-type LeadFile = { id: string; fileName: string; mimeType: string; sizeBytes: number; source: string; caption: string | null; createdAt: string };
+type LeadFile = { id: string; fileName: string; mimeType: string; sizeBytes: number; source: string; caption: string | null; createdAt: string; category?: string };
+
+/** The checklist's categories, in the order staff look for them. */
+const CATEGORY_ORDER = ["KYC", "Income proof", "Bank statement", "Business proof", "Property papers", "Sanction letter", "Asset proof", "Other"];
 
 const size = (b: number) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`);
 const from = (s: string) => (s === "whatsapp" ? "Sent on WhatsApp" : s === "staff" ? "Uploaded by team" : humanize(s));
@@ -18,6 +21,7 @@ export function LeadDocuments({ leadId, files }: { leadId: string; files: LeadFi
   const input = useRef<HTMLInputElement>(null);
   const [note, setNote] = useState("");
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["lead", leadId] });
+  const groups = CATEGORY_ORDER.map((c) => [c, files.filter((f) => (f.category ?? "Other") === c)] as const).filter(([, list]) => list.length > 0);
 
   const upload = useMutation({
     mutationFn: async (picked: File[]) => {
@@ -79,33 +83,53 @@ export function LeadDocuments({ leadId, files }: { leadId: string; files: LeadFi
       {files.length === 0 ? (
         <p className="mt-4 text-[13px] text-muted">No documents yet. Files the customer sends on WhatsApp land here too.</p>
       ) : (
-        <ul className="mt-4 divide-y divide-line rounded-md border border-line">
-          {files.map((f) => (
-            <li key={f.id} className="flex items-center justify-between gap-3 px-3 py-2">
-              <div className="min-w-0">
-                <p className="truncate text-[13px] font-semibold text-navy">{f.fileName}</p>
-                <p className="text-[11px] text-muted">
-                  {from(f.source)} · {size(f.sizeBytes)} · {formatDateTime(f.createdAt)}
-                  {f.caption ? ` · “${f.caption}”` : ""}
-                </p>
+        <>
+          {/* How many of each kind, so a missing kind is easy to see. */}
+          <p className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted">
+            <span className="font-semibold text-navy">{files.length} files</span>
+            {groups.map(([c, list]) => (
+              <span key={c}>
+                {c} <span className="font-semibold text-navy">{list.length}</span>
+              </span>
+            ))}
+          </p>
+          <div className="mt-3 space-y-4">
+            {groups.map(([category, list]) => (
+              <div key={category}>
+                <h3 className="mb-1.5 text-[12px] font-bold text-navy">
+                  {category} <span className="font-normal text-muted">({list.length})</span>
+                </h3>
+                <ul className="divide-y divide-line rounded-md border border-line">
+                  {list.map((f) => (
+                    <li key={f.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-semibold text-navy">{f.fileName}</p>
+                        <p className="text-[11px] text-muted">
+                          {from(f.source)} · {size(f.sizeBytes)} · {formatDateTime(f.createdAt)}
+                          {f.caption ? ` · “${f.caption}”` : ""}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <button type="button" className="btn-ghost inline-flex items-center gap-1.5 text-[12px]" onClick={() => open(f)}>
+                          <Download size={13} /> Download
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-ghost text-red-600"
+                          aria-label={`Delete ${f.fileName}`}
+                          disabled={remove.isPending}
+                          onClick={() => window.confirm(`Delete ${f.fileName}? This cannot be undone.`) && remove.mutate(f.id)}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <button type="button" className="btn-ghost inline-flex items-center gap-1.5 text-[12px]" onClick={() => open(f)}>
-                  <Download size={13} /> Download
-                </button>
-                <button
-                  type="button"
-                  className="btn-ghost text-red-600"
-                  aria-label={`Delete ${f.fileName}`}
-                  disabled={remove.isPending}
-                  onClick={() => window.confirm(`Delete ${f.fileName}? This cannot be undone.`) && remove.mutate(f.id)}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+            ))}
+          </div>
+        </>
       )}
     </section>
   );

@@ -6,6 +6,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { formatAmount, formatDate, humanize } from "../lib/format";
 import { ConditionsEditor, ProgramsEditor, programLine, type Conditions, type Program } from "./policy-extras-editor";
+import { CriteriaEditor, MatchFieldsManager, type Criteria } from "./match-fields-ui";
 import { Modal } from "./modal";
 import { PageHeader } from "./app-shell";
 import { TableSkeleton } from "./skeleton";
@@ -51,6 +52,7 @@ export type PolicyRow = {
   notes: string | null;
   programs?: Program[] | null;
   conditions?: Conditions | null;
+  criteria?: Criteria | null;
   freshness: Freshness;
   _count?: { exceptions: number };
 };
@@ -160,6 +162,7 @@ function PolicyEditor({ policy, onClose }: { policy?: PolicyRow; onClose: () => 
   const [allIndia, setAllIndia] = useState(policy?.allIndia ?? false);
   const [programs, setPrograms] = useState<Program[]>(policy?.programs ?? []);
   const [conditions, setConditions] = useState<Conditions>(policy?.conditions ?? {});
+  const [criteria, setCriteria] = useState<Criteria>(policy?.criteria ?? {});
 
   const save = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
@@ -210,6 +213,7 @@ function PolicyEditor({ policy, onClose }: { policy?: PolicyRow; onClose: () => 
       notes: text("notes") || null,
       programs: programs.filter((p) => p.name.trim()).length ? programs.filter((p) => p.name.trim()) : null,
       conditions: Object.keys(conditions).length ? conditions : null,
+      criteria: Object.keys(criteria).length ? criteria : null,
       ...(policy ? { reason: text("reason") || undefined } : {}),
     };
     save.mutate(body);
@@ -317,6 +321,9 @@ function PolicyEditor({ policy, onClose }: { policy?: PolicyRow; onClose: () => 
 
         <p className={section}>Programs</p>
         <ProgramsEditor value={programs} onChange={setPrograms} />
+
+        <p className={section}>Rules on your own match fields</p>
+        <CriteriaEditor value={criteria} onChange={setCriteria} />
 
         <p className={section}>Other conditions</p>
         <ConditionsEditor value={conditions} onChange={setConditions} />
@@ -590,7 +597,8 @@ export function LenderPoliciesPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const canEdit = user?.role === "ADMIN" || user?.role === "MANAGER";
-  const [tab, setTab] = useState<"policies" | "outcomes">("policies");
+  const [tab, setTab] = useState<"policies" | "outcomes" | "fields">("policies");
+  const products = useProducts();
   const [lenderId, setLenderId] = useState("");
   const [editing, setEditing] = useState<PolicyRow | "new" | null>(null);
   const [notesFor, setNotesFor] = useState<string | null>(null);
@@ -635,9 +643,9 @@ export function LenderPoliciesPage() {
       />
       <div className="space-y-5 px-6 py-5">
         <div className="flex flex-wrap items-center gap-2">
-          {(["policies", "outcomes"] as const).map((t) => (
+          {(canEdit ? (["policies", "outcomes", "fields"] as const) : (["policies", "outcomes"] as const)).map((t) => (
             <button key={t} onClick={() => setTab(t)} className={clsx("rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition", tab === t ? "border-navy bg-navy text-white" : "border-line bg-white text-navy hover:border-navy/40")}>
-              {t === "policies" ? "Policies" : "Case outcomes"}
+              {t === "policies" ? "Policies" : t === "outcomes" ? "Case outcomes" : "Match fields"}
             </button>
           ))}
           {tab === "policies" && (
@@ -648,7 +656,9 @@ export function LenderPoliciesPage() {
           )}
         </div>
 
-        {tab === "outcomes" ? (
+        {tab === "fields" ? (
+          <MatchFieldsManager products={(products.data ?? []).map((p) => ({ slug: p.slug, name: p.name }))} />
+        ) : tab === "outcomes" ? (
           <OutcomesTab canEdit={canEdit} />
         ) : (
           <>

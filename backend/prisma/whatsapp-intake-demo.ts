@@ -62,6 +62,12 @@ const PERSONAS = [
     about:
       "You are Sanjay Kulkarni, who owns a printing press in Thane (name: Sanjay). You do not know loan names. You own a commercial shop in Thane worth about 3 crore in your own name, with no loan on it. You need about 1 crore as working money and like the idea of paying interest only on what you use. Business turnover about 4 crore a year, 7 years old, proprietorship, GST registered, ITR filed 3 years, CIBIL 760. When shown a list, pick what fits best. Answer other things with small sensible figures.",
   },
+  {
+    phone: "9000000019",
+    opening: "I have a property worth 5 crore and need 2 crore for my business. Which bank would be the best for me, can you just tell me?",
+    about:
+      "You are Vinit, salaried, living in Mumbai. You write short and a little careless, the way people do on WhatsApp. Quirks you MUST follow: when asked your city say only: mum. Choose Salaried when asked. For the loan type pick the LAP top-up option. When asked the locality of where you live say only: same. When first asked the market value of the property, answer only the digit 1 (no unit); if the assistant then asks you to clarify, answer 5 crore. Your shop property is a commercial shop in Ghatkopar rented out at 50000 a month, in the joint names of you and your wife (she will sign). Two or three questions later, send exactly this as your answer instead of answering: Correction: the rent is 60000, not 50000. When asked about your CIBIL send exactly: My CIBIL is 650 and I had two EMI bounces. Can I get a loan? Otherwise answer small sensible figures.",
+  },
 ] as const;
 
 async function pretendCustomer(persona: string, transcript: { who: "gia" | "me"; text: string }[], offered: string[]) {

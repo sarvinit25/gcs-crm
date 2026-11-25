@@ -64,7 +64,7 @@ export class AdsService {
     const { startsAt, endsAt } = dayRange(dto.startsOn, dto.endsOn);
 
     const imageKey = `website-ads/${randomUUID()}${kind.extension}`;
-    await this.storage.put(imageKey, file.buffer, kind.mime);
+    await this.storage.put(imageKey, file.buffer, kind.mime, { compress: false });
     const ad = await this.prisma.websiteAd.create({
       data: {
         title: dto.title.trim(),

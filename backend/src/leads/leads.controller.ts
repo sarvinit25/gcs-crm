@@ -168,10 +168,18 @@ export class LeadsController {
     return this.leads.update(id, dto, user, ip);
   }
 
+  /** What deleting this lead would take with it. */
+  @Get(":id/delete-preview")
+  @Roles(Role.ADMIN)
+  deletePreview(@Param("id") id: string, @CurrentUser() user: AuthUser) {
+    return this.leads.deletePreview(id, user);
+  }
+
+  /** `?withFile=true` confirms that a loan file on the lead is deleted with it. */
   @Delete(":id")
   @Roles(Role.ADMIN)
-  remove(@Param("id") id: string, @CurrentUser() user: AuthUser, @Ip() ip: string) {
-    return this.leads.remove(id, user, ip);
+  remove(@Param("id") id: string, @Query("withFile") withFile: string | undefined, @CurrentUser() user: AuthUser, @Ip() ip: string) {
+    return this.leads.remove(id, user, ip, withFile === "true");
   }
 
   @Post(":id/archive")

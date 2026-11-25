@@ -182,7 +182,7 @@ describe("the Excel CAM", () => {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(buf as unknown as ArrayBuffer);
     const names = wb.worksheets.map((w) => w.name);
-    expect(names).toEqual(["Summary", "Applicant", "Income", "Income programs", "Obligations", "Eligibility", "Banking", "Property", "Assets & net worth", "Scorecard", "Checks & documents", "Lender match", "Risks & recommendation", "Missing information"]);
+    expect(names).toEqual(["Summary", "Applicant", "Income", "Income programs", "Obligations", "Eligibility", "Banking", "Property", "Assets & net worth", "Scorecard", "Checks & documents", "Repayment track", "Policy checks", "Repayment schedule", "Sources", "Lender match", "Risks & recommendation", "Missing information"]);
     expect(names).not.toContain("Education");
     const elig = wb.getWorksheet("Eligibility")!;
     const formulas: string[] = [];
@@ -381,5 +381,16 @@ describe("credit enquiries, the search report and the repayment structure", () =
     expect(text("Property")).toContain("Encumbrance / search report: years covered");
     expect(text("Risks & recommendation")).toContain("Moratorium, then EMI");
     expect(text("Risks & recommendation")).toContain("Rent starts after fit-out");
+  });
+});
+
+describe("a balance that has run down", () => {
+  it("is flagged and drives the EMI cover, instead of being averaged away", () => {
+    const months = [524, 3604, 8315, 28315, 267358, 744618, 601408, 481394, 489799, 155872, 22219].map((b) => ({ credits: 10_000, debits: 10_000, avgBalance: b, returns: 0 }));
+    const a = analyse("LAP", { income: { profile: "Self-employed business" }, loanRequest: { amount: 3_000_000, tenureYears: 10 }, banking: { months } } as never, new Date("2026-11-10T00:00:00Z"));
+    expect(a.banking.recentAvgBalance).toBe(4_148);
+    expect(a.banking.avgBalance).toBeGreaterThan(250_000);
+    expect(a.flags.some((f) => /run down/.test(f.text) && f.level === "risk")).toBe(true);
+    expect(a.banking.abbToEmi).toBeLessThan(0.2);
   });
 });

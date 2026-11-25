@@ -69,6 +69,8 @@ export type Analysis = {
     avgCredits12: number | null;
     avgDebits12: number | null;
     avgBalance: number | null;
+    /** The average balance over the latest three months, so a balance that has run down is not hidden by older, healthier months. */
+    recentAvgBalance: number | null;
     returns: number;
     abbToEmi: number | null;
     creditsTrendPct: number | null;
@@ -277,14 +279,18 @@ export function analyse(family: Family, data: CamData, today: Date = new Date())
   const avgBalance = avg(months.map((m) => num(m.avgBalance))) ?? abb;
   const c6 = avg(credits.slice(0, 6));
   const cPrior = credits.length >= 7 ? avg(credits.slice(6, 12)) : null;
+  const recentAvgBalance = months.length >= 4 ? avg(months.slice(0, 3).map((m) => num(m.avgBalance))) : null;
+  // The EMI cover is judged on the lower of the long average and the recent one: a balance that has run down is the real position.
+  const coverBalance = avgBalance !== null && recentAvgBalance !== null ? Math.min(avgBalance, recentAvgBalance) : avgBalance;
   const banking = {
     months: months.length,
     avgCredits6: rnd(c6),
     avgCredits12: rnd(avg(credits.slice(0, 12))),
     avgDebits12: rnd(avg(debits.slice(0, 12))),
     avgBalance: rnd(avgBalance),
+    recentAvgBalance: rnd(recentAvgBalance),
     returns: Math.max(returnsGiven, bouncesDeclared, inward + outward),
-    abbToEmi: avgBalance !== null && proposedEmi ? rnd(avgBalance / proposedEmi, 2) : null,
+    abbToEmi: coverBalance !== null && proposedEmi ? rnd(coverBalance / proposedEmi, 2) : null,
     creditsTrendPct: c6 !== null && cPrior ? rnd(((c6 - cPrior) / cPrior) * 100, 1) : null,
   };
 
@@ -422,6 +428,10 @@ export function analyse(family: Family, data: CamData, today: Date = new Date())
   if (banking.abbToEmi !== null && banking.abbToEmi < 1) add("watch", "Average bank balance is lower than the new EMI");
   if (bankingDetail.emisSeenAvg !== null && liveEmi > 0 ? bankingDetail.emisSeenAvg > liveEmi * 1.2 && bankingDetail.emisSeenAvg - liveEmi > 2000 : bankingDetail.emisSeenAvg !== null && bankingDetail.emisSeenAvg > 2000) {
     add("risk", `The statement shows about ${inr(bankingDetail.emisSeenAvg as number)} a month going out as EMIs, but the loans listed come to ${inr(liveEmi)}: a loan may be missing`);
+  }
+  if (banking.avgBalance !== null && banking.recentAvgBalance !== null && banking.avgBalance > 0 && banking.recentAvgBalance < banking.avgBalance * 0.4) {
+    const rs = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
+    add(banking.recentAvgBalance < banking.avgBalance * 0.2 ? "risk" : "watch", `Bank balances have run down: the latest three months average ${rs(banking.recentAvgBalance)} against ${rs(banking.avgBalance)} over ${banking.months} months`);
   }
   if (banking.creditsTrendPct !== null && banking.creditsTrendPct < -20) add("watch", `Bank credits fell ${Math.abs(banking.creditsTrendPct)}% over the latest six months`);
   if (gst.varianceVsDeclared !== null) {

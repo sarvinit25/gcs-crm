@@ -196,3 +196,40 @@ describe("what carries over to a second loan", () => {
     expect(sharedAnswers("personal-loan", "nonsense", { employerType: "x" })).toEqual([]);
   });
 });
+
+describe("an amount that cannot be rupees", () => {
+  const { checkAnswer } = jest.requireActual("./intake.engine");
+  const amt = { key: "v", label: "Value", kind: "amount" };
+  it("asks for lakh or crore instead of taking a bare small number", () => {
+    for (const t of ["1", "50", "999"]) {
+      const r = checkAnswer(amt, t);
+      expect(r.ok).toBe(false);
+      expect(r.hint).toMatch(/lakh or crore/);
+    }
+    expect(checkAnswer(amt, "1 crore")).toEqual({ ok: true, value: "₹1,00,00,000" });
+    expect(checkAnswer(amt, "1000")).toEqual({ ok: true, value: "₹1,000" });
+    expect(checkAnswer({ ...amt, allowZero: true }, "0")).toEqual({ ok: true, value: "₹0" });
+  });
+});
+
+describe("backing an answer with the customer's own words", () => {
+  const { supportedBy, sharesWordWith } = jest.requireActual("./intake.engine");
+  it("finds quoted words in the message, ignoring case and punctuation", () => {
+    expect(supportedBy("My CIBIL is 650, and I paid late twice!", "my cibil is 650")).toBe(true);
+    expect(supportedBy("Correction: My property is worth ₹2.5 crore, not ₹2 crore.", "Not sure")).toBe(false);
+    expect(supportedBy("anything", "")).toBe(false);
+    expect(supportedBy("anything", undefined)).toBe(false);
+  });
+  it("links a volunteered fact to a question only when a key word is shared", () => {
+    expect(sharesWordWith("Roughly what is your CIBIL score?", "my cibil is 650")).toBe(true);
+    expect(sharesWordWith("Approximate market value of the property", "the property is worth 5 crore")).toBe(true);
+    expect(sharesWordWith("Roughly what is your CIBIL score?", "I earn 80000 every month")).toBe(false);
+  });
+});
+
+describe("the checklist for a loan consolidation", () => {
+  const { checklistUrl } = jest.requireActual("./intake.engine");
+  it("is its own PDF", () => {
+    expect(checklistUrl("https://x.in", "loan-consolidation", null)).toBe("https://x.in/checklists/loan-consolidation-checklist.pdf");
+  });
+});

@@ -30,6 +30,7 @@ import {
   UserSquare,
 } from "lucide-react";
 import { BellRing, Gavel, Star, Headphones, MessageCircle, Phone, Plug, ScrollText } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
@@ -222,6 +223,25 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  // On a wide screen the sidebar can be tucked away with the arrow; it slides back when the pointer touches the left edge, or
+  // stays open once pinned. The choice is remembered on this computer.
+  const [hidden, setHidden] = useState(() => {
+    try {
+      return localStorage.getItem("crm-sidebar-hidden") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [peek, setPeek] = useState(false);
+  const setPinned = (hide: boolean) => {
+    setHidden(hide);
+    setPeek(false);
+    try {
+      localStorage.setItem("crm-sidebar-hidden", hide ? "1" : "0");
+    } catch {
+      /* private window: just not remembered */
+    }
+  };
   useScrollToHash();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -232,9 +252,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-full">
-      <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col bg-navy text-white lg:flex">
+      {/* The thin strip at the screen edge that brings a tucked-away sidebar back when the pointer touches it. */}
+      {hidden && !peek && <div className="fixed inset-y-0 left-0 z-40 hidden w-2.5 lg:block" onMouseEnter={() => setPeek(true)} aria-hidden />}
+      <aside
+        onMouseLeave={() => hidden && setPeek(false)}
+        className={clsx(
+          "no-print fixed inset-y-0 left-0 z-40 hidden w-60 flex-col bg-navy text-white transition-transform duration-200 lg:flex",
+          hidden && !peek ? "-translate-x-full" : "translate-x-0",
+          hidden && peek && "shadow-2xl",
+        )}
+      >
         <SidebarContent />
       </aside>
+      <button
+        onClick={() => setPinned(!hidden)}
+        aria-label={hidden ? "Show the menu" : "Hide the menu"}
+        title={hidden ? "Show the menu" : "Hide the menu"}
+        style={{ left: hidden ? (peek ? "calc(15rem - 14px)" : "6px") : "calc(15rem - 14px)" }}
+        className="no-print fixed top-24 z-[45] hidden h-7 w-7 place-items-center rounded-full border border-line bg-white text-navy shadow-md transition-all duration-200 hover:bg-gold hover:text-navy lg:grid"
+      >
+        {hidden && !peek ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+      </button>
 
       {menuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -254,7 +292,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* min-w-0: a flex item defaults to min-width:auto, so a wide table would
           push the whole page sideways instead of scrolling inside its own card. */}
-      <main className="min-w-0 flex-1 lg:pl-60">
+      <main className={clsx("min-w-0 flex-1 transition-[padding] duration-200", hidden ? "lg:pl-0" : "lg:pl-60")}>
         <div className="no-print sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-white/90 px-4 backdrop-blur lg:px-6">
           <button
             onClick={() => setMenuOpen(true)}

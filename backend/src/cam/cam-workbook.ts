@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import { loanForEmi } from "../credit-evaluation/credit-calcs";
 import { type Analysis } from "./cam-analysis";
+import { addExtraSheets } from "./cam-extra-sheets";
 import { FAMILY_LABEL, missingCore, sectionsFor, visible, type CamData, type Family, type Field, type Section } from "./cam-schema";
 
 // The Excel CAM: one sheet per part of the appraisal, so an analyst can read it top to bottom or jump to one sheet. The
@@ -702,6 +703,9 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
     r = heading(ws, r, "Deviations and what covers each", 4);
     schemaTable(ws, r, sec("remarks"), "deviationList", data, "No deviations noted.");
   }
+
+  // ── 10d. Ratios, income methods, repayment track, working capital, fund flow and the repayment schedule ──
+  addExtraSheets(wb, { sheet, heading, tableHeader }, family, data, a, sub);
 
   // ── 11. Lender match ──
   {

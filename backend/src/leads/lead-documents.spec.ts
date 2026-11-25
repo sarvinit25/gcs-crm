@@ -5,7 +5,7 @@ const admin = { id: "u1", role: "ADMIN" } as never;
 
 function build(found = true) {
   const prisma = {
-    lead: { findFirst: jest.fn().mockResolvedValue(found ? { id: "L1", name: "Asha" } : null) },
+    lead: { findFirst: jest.fn().mockResolvedValue(found ? { id: "L1", name: "Asha" } : null), updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
     leadFile: {
       create: jest.fn().mockResolvedValue({ id: "F1", fileName: "slip.pdf" }),
       findFirst: jest.fn().mockResolvedValue(found ? { id: "F1", fileName: "slip.pdf", objectKey: "leads/L1/x.pdf", lead: { name: "Asha" } } : null),
@@ -26,6 +26,7 @@ describe("documents uploaded to a lead by the team", () => {
     await service.uploadFile("L1", { originalname: "slip.pdf", size: PDF.length, buffer: PDF }, " Salary slip ", admin);
     expect(storage.put.mock.calls[0][0]).toMatch(/^leads\/L1\/[0-9a-f-]+\.pdf$/);
     expect(prisma.leadFile.create.mock.calls[0][0].data).toMatchObject({ leadId: "L1", source: "staff", caption: "Salary slip", mimeType: "application/pdf" });
+    expect(prisma.lead.updateMany).toHaveBeenCalledWith({ where: { id: "L1", documentsStatus: "NONE" }, data: { documentsStatus: "PARTIAL" } });
   });
   it("refuses a file that is not a PDF or image, whatever its name says", async () => {
     const { service, storage } = build();

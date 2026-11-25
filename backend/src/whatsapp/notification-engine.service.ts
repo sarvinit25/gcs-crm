@@ -1,3 +1,4 @@
+import { checklistUrl } from "./intake/intake.engine";
 import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import {
   NotificationRecipient,
@@ -53,6 +54,21 @@ export class NotificationEngine implements OnModuleInit {
     this.events.on("FILE_REJECTED", (p) => this.onFile("FILE_REJECTED", String(p.applicationId)));
     this.events.on("SANCTION_APPROVED", (p) => this.onSanction(String(p.applicationId)));
     this.events.on("DISBURSAL_COMPLETED", (p) => this.onDisbursal(String(p.applicationId), String(p.disbursementId)));
+    this.events.on("DOCS_STALLED", (p) => this.onDocsStalled(String(p.leadId)));
+  }
+
+  /** A lead stuck waiting for documents: the customer is reminded once, with the checklist for their loan. */
+  private async onDocsStalled(leadId: string) {
+    const lead = await this.prisma.lead.findUnique({ where: { id: leadId }, include: { loanProduct: { select: { name: true, slug: true } } } });
+    if (!lead) return;
+    const site = (process.env.PUBLIC_SITE_URL?.trim() || "https://growthcapitalservices.in").replace(/\/+$/, "");
+    await this.dispatch({
+      trigger: "DOCS_PENDING",
+      values: { name: lead.name, loanType: lead.loanProduct?.name ?? "loan", checklist: checklistUrl(site, lead.loanProduct?.slug, null) ?? `${site}/services`, company: this.company },
+      customer: { phone: lead.phone, name: lead.name },
+      entityType: "Lead",
+      entityId: lead.id,
+    });
   }
 
   get company() {

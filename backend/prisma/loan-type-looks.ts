@@ -20,6 +20,7 @@ export const LOAN_TYPE_ICONS: Record<string, string> = {
   "bill-discounting": "receipt",
   "unsecured-dod": "wallet",
   "personal-loan": "user",
+  "loan-consolidation": "percent",
   "education-loan": "graduation",
   "education-infrastructure-loan": "school",
   "new-car-loan": "car",
