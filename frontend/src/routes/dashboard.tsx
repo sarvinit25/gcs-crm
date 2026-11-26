@@ -16,6 +16,7 @@ import { useAuth } from "../lib/auth";
 import { PageHeader } from "../components/app-shell";
 import { PunchCard } from "../components/punch-card";
 import { HubCharts } from "./reports-hub";
+import { DetailedReportCards } from "../components/detailed-report-cards";
 import type { Hub } from "../lib/reports";
 import { CountUp } from "../components/count-up";
 import { TodayList } from "../components/today-list";
@@ -371,6 +372,16 @@ export function DashboardPage() {
             </div>
 
             <DashboardAnalytics range={range} staff={user?.role !== "ADVISOR"} />
+
+            {overview.data && (
+              <section className="mt-6">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h2 className="text-sm font-bold text-navy">Detailed reports</h2>
+                  <p className="text-[12px] text-muted">Open one for its filters, charts, records and export</p>
+                </div>
+                <DetailedReportCards reports={overview.data.reports} counts={overview.data.counts} />
+              </section>
+            )}
 
             {overview.data && (
               <section className="mt-6">
