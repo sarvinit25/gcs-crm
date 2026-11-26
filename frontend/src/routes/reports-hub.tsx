@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Minus, Banknote, BadgeCheck, FolderOpen, Loader2, LogIn, PhoneCall, Percent, RefreshCw, Table2, Users, XCircle } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Minus, FolderOpen, Loader2, RefreshCw, Table2 } from "lucide-react";
 import clsx from "clsx";
 import { api, qs } from "../lib/api";
 import { formatAmount, formatCompact } from "../lib/format";
@@ -11,20 +11,11 @@ import type { Hub } from "../lib/reports";
 import { useAuth } from "../lib/auth";
 import { PageHeader } from "../components/app-shell";
 import { ReportPanel } from "./report-detail";
+import { DetailedReportCards, REPORT_ICON } from "../components/detailed-report-cards";
 import { DatePicker } from "../components/date-picker";
 import { DashboardSkeleton } from "../components/skeleton";
 import { ChartCard, DonutChart, HBarChart, LineChart } from "../components/charts";
 
-const ICON: Record<string, typeof Users> = {
-  leads: Users,
-  callbacks: PhoneCall,
-  files: FolderOpen,
-  "login-files": LogIn,
-  sanctions: BadgeCheck,
-  disbursals: Banknote,
-  rejects: XCircle,
-  commissions: Percent,
-};
 
 /** "▲ 12% vs last month" — the arrow and the words carry the direction, not just the colour. */
 function Change({ value }: { value: number | null | undefined }) {
@@ -137,12 +128,6 @@ function HubBody({ hub, onOpen }: { hub: Hub; onOpen: (kind: string) => void }) 
   const lastKpi = fillLast(cards.length, [{ at: "", cols: 2 }]);
   const kpiCols = cards.length === 5 ? "xl:grid-cols-5" : "xl:grid-cols-4";
 
-  const cards2 = hub.reports;
-  const cardClass = fillLast(cards2.length, [
-    { at: "sm:", cols: 2 },
-    { at: "lg:", cols: 4 },
-  ]);
-
   return (
     <div className="space-y-5">
       <div className={clsx("grid grid-cols-2 gap-3", kpiCols)}>
@@ -155,29 +140,7 @@ function HubBody({ hub, onOpen }: { hub: Hub; onOpen: (kind: string) => void }) 
 
       <div>
         <h2 className="mb-3 text-sm font-bold text-navy">Detailed reports</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {cards2.map((r, i) => {
-            const Icon = ICON[r.kind] ?? FolderOpen;
-            return (
-              <button
-                key={r.kind}
-                type="button"
-                onClick={() => onOpen(r.kind)}
-                className={clsx("card lift group flex min-w-0 items-start gap-3 p-4 text-left", i === cards2.length - 1 && cardClass)}
-              >
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-pale/60 text-gold-dark">
-                  <Icon className="h-5 w-5" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold text-navy">{r.title}</span>
-                  <span className="mt-0.5 block text-[12px] text-muted">{r.blurb}</span>
-                  {hub.counts[r.kind] !== undefined && <span className="mt-1 block text-[12px] font-bold text-navy">{hub.counts[r.kind]} {hub.counts[r.kind] === 1 ? "record" : "records"}</span>}
-                </span>
-                <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted transition group-hover:translate-x-0.5 group-hover:text-navy" />
-              </button>
-            );
-          })}
-        </div>
+        <DetailedReportCards reports={hub.reports} counts={hub.counts} onOpen={onOpen} />
       </div>
     </div>
   );
@@ -190,7 +153,7 @@ function StageReports({ hub, kind, onKind }: { hub: Hub; kind: string; onKind: (
     <div className="space-y-5">
       <div className={"grid grid-cols-2 gap-2 sm:grid-cols-4"} role="group" aria-label="Choose a report">
         {hub.reports.map((r, i) => {
-          const Icon = ICON[r.kind] ?? FolderOpen;
+          const Icon = REPORT_ICON[r.kind] ?? FolderOpen;
           return (
             <button
               key={r.kind}

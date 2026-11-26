@@ -72,3 +72,17 @@ export const EXPORT_EXTRA: Record<string, Record<string, string>> = {
   "login-files": { loggedIn: "true", dateBy: "login" },
   rejects: { status: "REJECTED", dateBy: "updated" },
 };
+
+/** How each of the eight detailed reports is named and described on its card. The server's own title and blurb are the fallback for any other. */
+export const REPORT_CARD_TEXT: Record<string, { title: string; blurb: string }> = {
+  leads: { title: "Leads Report", blurb: "Lead pipeline and conversion analysis" },
+  callbacks: { title: "Callbacks Report", blurb: "Callback status and follow-up tracking" },
+  files: { title: "Files Report", blurb: "Loan files and stage-wise analysis" },
+  "login-files": { title: "Login Files Report", blurb: "Files logged in with lenders" },
+  sanctions: { title: "Sanctions Report", blurb: "Approved sanctions and amounts" },
+  disbursals: { title: "Disbursals Report", blurb: "Disbursement trends and amounts" },
+  rejects: { title: "Rejects Report", blurb: "Rejected files analysis" },
+  commissions: { title: "Commissions Report", blurb: "Commission earnings and payouts" },
+};
+
+export const reportCardText = (r: ReportCard): { title: string; blurb: string } => REPORT_CARD_TEXT[r.kind] ?? { title: r.title, blurb: r.blurb };
