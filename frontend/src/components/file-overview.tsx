@@ -196,6 +196,7 @@ export function FileAtAGlance({ app }: { app: ApplicationDetail }) {
 const SECTIONS = [
   ["loan", "Loan"],
   ["credit", "Credit evaluation"],
+  ["lender-match", "Lender match"],
   ["login", "Bank login"],
   ["customer-form", "Customer form"],
   ["sanction", "Sanction"],

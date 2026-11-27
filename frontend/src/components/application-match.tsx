@@ -8,5 +8,5 @@ export function ApplicationMatch({ applicationId, leadId }: { applicationId: str
   const lead = useQuery({ queryKey: ["lead", leadId], queryFn: () => api<LeadDetail>(`/leads/${leadId}`), enabled: Boolean(leadId) });
   if (!leadId) return <p className="card p-5 text-[13px] text-muted">Lender match needs the application to come from a lead.</p>;
   if (!lead.data) return null;
-  return <SmartMatchPanel lead={lead.data} applicationId={applicationId} />;
+  return <div id="lender-match"><SmartMatchPanel lead={lead.data} applicationId={applicationId} /></div>;
 }
