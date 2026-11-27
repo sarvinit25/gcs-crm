@@ -419,10 +419,11 @@ function finish(
   const known = parts.filter((x) => x.c.score !== null);
   const knownWeight = known.reduce((s, x) => s + x.w, 0);
   const anyFailed = parts.some((x) => x.c.failed);
-  const score = knownWeight ? Math.round((known.reduce((s, x) => s + x.w * (x.c.score as number), 0) / knownWeight) * 100) : null;
+  // No number from too little: one passed credit-score test must not read as 100 out of 100.
+  const score = knownWeight >= 35 ? Math.round((known.reduce((s, x) => s + x.w * (x.c.score as number), 0) / knownWeight) * 100) : null;
 
   let status: MatchStatus;
-  if (score === null || knownWeight < 35) {
+  if (score === null) {
     status = "EXPERT_REVIEW";
     base.checks.push("Not enough about the customer or the lender's rules to score this properly.");
   } else if (anyFailed) {
