@@ -26,7 +26,7 @@ type Open = {
   form: ServerForm;
   checklist: { label: string; description?: string | null; category: string; received: boolean }[];
   categories: string[];
-  documents: { id: string; category: string; fileName: string; sizeBytes: number }[];
+  documents: { id: string; category: string; item?: string | null; fileName: string; sizeBytes: number }[];
   limits: { maxFileMb: number; maxFiles: number; referencesRequired: number };
 };
 type CodeGate = { state: "code"; company: Company; applicationNo: string; emailHint: string; validMinutes: number };
@@ -606,16 +606,17 @@ function DocumentsStep({ token, view, onChanged }: { token: string; view: Open; 
   const [other, setOther] = useState(view.categories[0] ?? "Other");
   const full = view.documents.length >= view.limits.maxFiles;
 
-  const upload = async (file: File, category: string) => {
+  const upload = async (file: File, category: string, item?: string) => {
     setError(null);
     if (file.size > view.limits.maxFileMb * 1024 * 1024) {
       setError(`"${file.name}" is larger than ${view.limits.maxFileMb} MB. Please upload a smaller file or a photo of it.`);
       return;
     }
-    setBusy(category);
+    setBusy(item ?? category);
     try {
       const body = new FormData();
       body.append("category", category);
+      if (item) body.append("item", item);
       body.append("file", file);
       await formApi(token, "/documents", { method: "POST", body });
       onChanged();
@@ -635,9 +636,9 @@ function DocumentsStep({ token, view, onChanged }: { token: string; view: Open; 
     }
   };
 
-  const picker = (category: string, label: string) => (
+  const picker = (category: string, label: string, item?: string) => (
     <label className={clsx("btn-ghost cursor-pointer", (full || busy !== null) && "pointer-events-none opacity-60")}>
-      {busy === category ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />} {label}
+      {busy === (item ?? category) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />} {label}
       <input
         type="file"
         className="sr-only"
@@ -646,7 +647,7 @@ function DocumentsStep({ token, view, onChanged }: { token: string; view: Open; 
         onChange={(e) => {
           const f = e.target.files?.[0];
           e.target.value = "";
-          if (f) void upload(f, category);
+          if (f) void upload(f, category, item);
         }}
       />
     </label>
@@ -670,7 +671,8 @@ function DocumentsStep({ token, view, onChanged }: { token: string; view: Open; 
   const [tab, setTab] = useState<string>(() => view.checklist.find((i) => !i.received)?.category ?? kinds[0] ?? "Anything else");
   const active = tabs.includes(tab) ? tab : tabs[0]!;
   const complete = (category: string) => view.checklist.filter((i) => i.category === category).every((i) => i.received);
-  const seen = new Set<string>();
+  // Files of the open kind that belong to no particular line are listed under the lines.
+  const loose = view.documents.filter((d) => d.category === active && !view.checklist.some((i) => i.category === active && i.label === d.item));
 
   return (
     <>
@@ -689,8 +691,7 @@ function DocumentsStep({ token, view, onChanged }: { token: string; view: Open; 
       {active !== "Anything else" && view.checklist.some((i) => i.category === active) && (
         <ul className="space-y-3">
           {view.checklist.filter((i) => i.category === active).map((item, i) => {
-            const mine = seen.has(item.category) ? [] : view.documents.filter((d) => d.category === item.category);
-            seen.add(item.category);
+            const mine = view.documents.filter((d) => d.category === item.category && d.item === item.label);
             return (
               <li key={`${item.category}-${i}`} className="rounded-lg border border-line p-3">
                 <div className="flex items-start justify-between gap-3">
@@ -699,13 +700,19 @@ function DocumentsStep({ token, view, onChanged }: { token: string; view: Open; 
                     {item.description && <p className="mt-0.5 text-[12px] text-muted">{item.description}</p>}
                     {item.received && <p className="mt-0.5 flex items-center gap-1 text-[12px] font-semibold text-emerald-700"><Check className="h-3 w-3" /> Received</p>}
                   </div>
-                  {picker(item.category, mine.length || item.received ? "Add more" : "Upload")}
+                  {picker(item.category, mine.length || item.received ? "Add more" : "Upload", item.label)}
                 </div>
                 {mine.length > 0 && <ul className="mt-2 space-y-1.5">{mine.map(fileRow)}</ul>}
               </li>
             );
           })}
         </ul>
+      )}
+      {active !== "Anything else" && loose.length > 0 && (
+        <div className="rounded-lg border border-line p-3">
+          <p className="text-[13px] font-semibold text-navy">Other files here</p>
+          <ul className="mt-2 space-y-1.5">{loose.map(fileRow)}</ul>
+        </div>
       )}
       {active === "Anything else" && (
       <div className="rounded-lg border border-dashed border-line p-3">

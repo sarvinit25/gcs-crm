@@ -15,6 +15,7 @@ import { istToday } from "../common/date.util";
 import { PROFILE_STAGE, answerKey, fieldsFor, parseAnswer, type Answers, type Field } from "../loan-profile/profile-schema";
 import { LoanProfileService } from "../loan-profile/loan-profile.service";
 import { DocumentReaderService } from "../document-reader/document-reader.service";
+import { placeDocuments } from "./checklist-files";
 import { checkFormSession, generateFormCode, generateFormToken, hashFormCode, hashFormToken, looksLikeFormToken, maskEmail, signFormSession } from "./form-token";
 import { completeReferences, formProblems, mergeForm, type FormData } from "./form-rules";
 import type { SaveFormDto } from "./dto/customer-form.dto";
@@ -401,10 +402,12 @@ export class CustomerFormService {
     });
     const [items, allDocs, categories] = await Promise.all([
       this.checklist.itemsFor(app.loanProductId, bucket),
-      this.prisma.document.findMany({ where: { applicationId: app.id }, select: { category: true } }),
+      this.prisma.document.findMany({ where: { applicationId: app.id }, select: { id: true, category: true, fileName: true, checklistItem: true } }),
       Promise.resolve(this.settings.get<string[]>("documents.categories")),
     ]);
-    const have = new Set(allDocs.map((d) => d.category));
+    const lines = items.map((i) => ({ label: i.name, category: i.category }));
+    const placed = placeDocuments(lines, allDocs);
+    const have = new Set(allDocs.map((d) => `${d.category}|${placed.get(d.id) ?? ""}`));
 
     return {
       ...base,
@@ -413,9 +416,9 @@ export class CustomerFormService {
       product: app.loanProduct.name,
       phone: app.applicants[0]?.phone ?? null,
       form,
-      checklist: items.map((i) => ({ label: i.name, description: i.description, category: i.category, received: have.has(i.category) })),
+      checklist: items.map((i) => ({ label: i.name, description: i.description, category: i.category, received: have.has(`${i.category}|${i.name}`) })),
       categories,
-      documents: invite.documents.map((d) => ({ id: d.id, category: d.category, fileName: d.fileName, sizeBytes: d.sizeBytes })),
+      documents: invite.documents.map((d) => ({ id: d.id, category: d.category, item: placed.get(d.id) ?? null, fileName: d.fileName, sizeBytes: d.sizeBytes })),
       limits: {
         maxFileMb: this.settings.get<number>("documents.maxUploadMb"),
         maxFiles: this.settings.get<number>("forms.maxFilesPerLink"),
@@ -436,7 +439,7 @@ export class CustomerFormService {
     return { saved: true };
   }
 
-  async upload(token: string, file: { originalname: string; size: number; buffer: Buffer } | undefined, category: string | undefined, session?: string) {
+  async upload(token: string, file: { originalname: string; size: number; buffer: Buffer } | undefined, category: string | undefined, session?: string, item?: string) {
     const invite = await this.openInvite(token);
     this.requireSession(invite, session);
     if (!file) throw new BadRequestException("Choose a file to upload");
@@ -453,13 +456,13 @@ export class CustomerFormService {
       employmentType: form.employmentType ?? null,
       constitution: form.constitution ?? null,
     });
-    const known = new Set([
-      ...this.settings.get<string[]>("documents.categories"),
-      ...(await this.checklist.itemsFor(invite.application.loanProductId, bucket)).map((i) => i.category),
-    ]);
+    const lines = await this.checklist.itemsFor(invite.application.loanProductId, bucket);
+    const known = new Set([...this.settings.get<string[]>("documents.categories"), ...lines.map((i) => i.category)]);
     const filed = category && known.has(category) ? category : "Other";
 
-    const doc = await this.documents.storeFile(invite.application.id, file, filed, { inviteId: invite.id });
+    // The line is kept only when it is a real line of that kind.
+    const checklistItem = lines.find((l) => l.category === filed && l.name === item)?.name;
+    const doc = await this.documents.storeFile(invite.application.id, file, filed, { inviteId: invite.id, checklistItem });
     await this.prisma.applicationInvite.update({ where: { id: invite.id }, data: { lastSavedAt: new Date() } });
     await this.audit.record({
       actor: { id: invite.application.id, name: this.appNo(invite.application) },
@@ -470,7 +473,7 @@ export class CustomerFormService {
       entityLabel: doc.fileName,
       changes: { category: { from: null, to: filed } },
     });
-    return { id: doc.id, category: doc.category, fileName: doc.fileName, sizeBytes: doc.sizeBytes };
+    return { id: doc.id, category: doc.category, item: doc.checklistItem, fileName: doc.fileName, sizeBytes: doc.sizeBytes };
   }
 
   async removeDocument(token: string, documentId: string, session?: string) {

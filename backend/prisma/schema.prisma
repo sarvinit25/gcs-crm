@@ -830,6 +830,8 @@ model Document {
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   category     String
+  // The checklist line it was uploaded under on the customer form; blank for other uploads.
+  checklistItem String?
   fileName     String
   objectKey    String             @unique
   mimeType     String

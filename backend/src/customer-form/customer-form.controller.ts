@@ -83,8 +83,8 @@ export class CustomerFormPublicController {
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post("documents")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_FILE_BYTES, files: 1 } }))
-  upload(@Param("token") token: string, @UploadedFile() file: Express.Multer.File, @Body("category") category?: string, @Headers("x-form-session") session?: string) {
-    return this.forms.upload(token, file, category, session);
+  upload(@Param("token") token: string, @UploadedFile() file: Express.Multer.File, @Body("category") category?: string, @Headers("x-form-session") session?: string, @Body("item") item?: string) {
+    return this.forms.upload(token, file, category, session, item);
   }
 
   @Throttle({ default: { limit: 30, ttl: 60_000 } })

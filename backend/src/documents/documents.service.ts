@@ -80,7 +80,7 @@ export class DocumentsService {
     applicationId: string,
     file: { originalname: string; size: number; buffer: Buffer },
     category: string,
-    by: { uploadedById?: string; inviteId?: string },
+    by: { uploadedById?: string; inviteId?: string; checklistItem?: string },
   ) {
     // Judge the file by its contents, not by what the browser or the filename claims.
     const detected = detectFile(file.buffer);
@@ -110,6 +110,7 @@ export class DocumentsService {
         sizeBytes: stored?.size ?? file.size,
         uploadedById: by.uploadedById,
         inviteId: by.inviteId,
+        checklistItem: by.checklistItem,
       },
       include: { uploadedBy: { select: { id: true, name: true } } },
     });
