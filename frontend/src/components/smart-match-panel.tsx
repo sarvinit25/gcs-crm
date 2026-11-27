@@ -134,7 +134,7 @@ const FIELDS: { key: keyof ReturnType<typeof prefill>; label: string; type?: "se
  * anything, run it, and see which lenders' recorded rules the profile appears to fit and why.
  * It is a shortlist for a person to check, never an approval.
  */
-export function SmartMatchPanel({ lead }: { lead: Lead }) {
+export function SmartMatchPanel({ lead, applicationId }: { lead: Lead; applicationId?: string }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const canReview = user?.role === "ADMIN" || user?.role === "MANAGER";
@@ -176,7 +176,7 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
         industry: form.industry.trim() || undefined,
         fields: Object.fromEntries(Object.entries(extra).filter(([, v]) => v.trim() !== "")),
       };
-      return api<Run>("/lender-policies/match", { method: "POST", body: JSON.stringify({ loanProductId: productId, leadId: lead.id, profile }) });
+      return api<Run>("/lender-policies/match", { method: "POST", body: JSON.stringify({ loanProductId: productId, leadId: lead.id, applicationId, profile }) });
     },
     onSuccess: (r) => {
       setRun(r);
@@ -187,8 +187,8 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
   // What is already known about the lead (its own details, and what the customer said in the chat or the form) fills the blanks,
   // and the first time the panel opens the match runs by itself so the lenders show straight away.
   const known = useQuery({
-    queryKey: ["match-profile", lead.id],
-    queryFn: () => api<Record<string, unknown>>(`/lender-policies/match/profile?leadId=${lead.id}`),
+    queryKey: ["match-profile", lead.id, applicationId],
+    queryFn: () => api<Record<string, unknown>>(`/lender-policies/match/profile?leadId=${lead.id}${applicationId ? `&applicationId=${applicationId}` : ""}`),
     enabled: open && Boolean(productId),
   });
   useEffect(() => {
@@ -198,7 +198,7 @@ export function SmartMatchPanel({ lead }: { lead: Lead }) {
     if (answered) setExtra(Object.fromEntries(Object.entries(answered).map(([k, v]) => [k, v === true ? "Yes" : v === false ? "No" : String(v)])));
     setForm((f) => {
       const next = { ...f } as Record<string, string>;
-      for (const [k, v] of Object.entries(known.data)) if (k in next && (next[k] ?? "") === "" && v !== undefined && v !== null) next[k] = String(v);
+      for (const [k, v] of Object.entries(known.data)) if (k in next && (applicationId || (next[k] ?? "") === "") && v !== undefined && v !== null) next[k] = String(v);
       return next as typeof f;
     });
   }, [known.data]);

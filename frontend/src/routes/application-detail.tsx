@@ -27,6 +27,7 @@ import { DocumentsPanel } from "../components/documents-panel";
 import { DisbursementPanel } from "../components/disbursement-panel";
 import { MoneyTrailStrip } from "../components/money-trail";
 import { ChecklistPanel } from "../components/checklist-panel";
+import { ApplicationMatch } from "../components/application-match";
 import { ArchiveButton } from "../components/archive-button";
 import { CreditEvaluationPanel } from "../components/credit-evaluation-panel";
 import { FileAtAGlance, FileSummary, NextStepBar, SectionNav, StageTracker, emi } from "../components/file-overview";
@@ -239,6 +240,7 @@ export function ApplicationDetailPage() {
             </section>
 
             <CreditEvaluationPanel applicationId={applicationId} />
+            <ApplicationMatch applicationId={applicationId} leadId={app.lead?.id} />
 
             <div id="login"><LoginStatusPanel applicationId={applicationId} /></div>
 

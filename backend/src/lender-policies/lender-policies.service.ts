@@ -7,6 +7,7 @@ import type { AuthUser } from "../auth/auth.decorators";
 import { matchAll, type Band, type PolicyRule, type Profile } from "./policy-matcher";
 import { fillProfileFromCam, profileFromLead } from "./profile-from-lead";
 import { rulesFromFlyers } from "./flyer-fill";
+import { profileFromApplication } from "./profile-from-application";
 import { cleanCriteria, coerceValue, fieldKey, missingMandatory, type Criteria, type MatchFieldDef } from "./match-fields";
 import { cleanSheet, SHEET_FIELDS } from "./policy-sheet-schema";
 import type {
@@ -392,10 +393,22 @@ export class LenderPoliciesService {
     return Object.keys(values).length ? { ...profile, fields: values } : profile;
   }
 
+  /** The match profile of an application: what is on the file now, over what the enquiry said. */
+  async profileForApplication(applicationId: string, actor: AuthUser): Promise<Profile> {
+    const app = await this.prisma.application.findFirst({
+      where: { id: applicationId, ...(actor.role === Role.ADVISOR ? { ownerId: actor.id } : {}) },
+      include: { applicants: true, creditEvaluation: true, existingLoans: true },
+    });
+    if (!app) throw new NotFoundException("Application not found");
+    // The enquiry fills whatever the application does not say. An adviser without that lead simply starts from the application.
+    const base = app.leadId ? await this.profileForLead(app.leadId, actor).catch(() => ({}) as Profile) : {};
+    return profileFromApplication(app, base);
+  }
+
   async runMatch(dto: RunMatchDto, actor: AuthUser) {
     // What the person typed wins; whatever they left blank is filled from what is known about the lead.
     const typed = Object.fromEntries(Object.entries(dto.profile ?? {}).filter(([, v]) => v !== undefined && v !== null && v !== "" && !(typeof v === "number" && Number.isNaN(v)))) as Profile;
-    const fromLead = dto.leadId ? await this.profileForLead(dto.leadId, actor) : {};
+    const fromLead: Profile = dto.applicationId ? await this.profileForApplication(dto.applicationId, actor) : dto.leadId ? await this.profileForLead(dto.leadId, actor) : {};
     const product = await this.prisma.loanProduct.findUnique({ where: { id: dto.loanProductId }, select: { slug: true } });
     const profile: Profile = { ...fromLead, ...typed, fields: { ...(fromLead.fields ?? {}), ...(typed.fields ?? {}) }, product: product?.slug };
     const defs = await this.defs(true);

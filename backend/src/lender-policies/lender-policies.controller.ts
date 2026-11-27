@@ -50,8 +50,8 @@ export class LenderPoliciesController {
   // Fixed paths come before ":id", so they are not read as a policy id.
   /** What is already known about a lead, as a match profile, so the form can start filled in. */
   @Get("match/profile")
-  matchProfile(@Query("leadId") leadId: string, @CurrentUser() user: AuthUser) {
-    return this.policies.profileForLead(leadId, user);
+  matchProfile(@Query("leadId") leadId: string, @CurrentUser() user: AuthUser, @Query("applicationId") applicationId?: string) {
+    return applicationId ? this.policies.profileForApplication(applicationId, user) : this.policies.profileForLead(leadId, user);
   }
 
   // Staff-defined match fields (the questions a lender policy can test).

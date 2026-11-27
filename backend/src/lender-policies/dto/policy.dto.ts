@@ -134,6 +134,8 @@ export class MatchProfileDto {
 export class RunMatchDto {
   @IsString() loanProductId: string;
   @IsOptional() @IsString() leadId?: string;
+  /** Match from what is on this application. */
+  @IsOptional() @IsString() applicationId?: string;
   @IsObject() @ValidateNested() @Type(() => MatchProfileDto) profile: MatchProfileDto;
 }
 
