@@ -27,6 +27,17 @@ const KINDS: RegExp[] = [
   /tax receipt|property tax|maintenance/,
 ];
 
+const CIBIL = {
+  name: "CIBIL report (if you have one)",
+  category: "CIBIL report",
+  description: "Optional. A recent credit report you already have, as a PDF or photo.",
+};
+
+/** Every customer is also offered a place for their own credit report, unless the product's checklist already asks for it. */
+export function withCibilLine<T extends { name: string; category: string; description?: string | null }>(items: T[]) {
+  return items.some((i) => i.category === CIBIL.category || /cibil|credit report/i.test(i.name)) ? items : [...items, CIBIL];
+}
+
 const clean = (s: string) => s.toLowerCase().replace(/[_]+/g, " ");
 
 /** For each file id, the label of its line, or null when it cannot honestly be placed. */
