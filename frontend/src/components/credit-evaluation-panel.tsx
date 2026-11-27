@@ -8,6 +8,7 @@ import { useAuth } from "../lib/auth";
 import { formatAmount, formatCompact, formatDate } from "../lib/format";
 import { EMPLOYMENT_TYPE_LABEL, CONSTITUTION_LABEL, type ApplicantConstitution, type EmploymentType } from "../lib/types";
 import { HistoryModal, RecordModal, type ScorePerson } from "./credit-score-modals";
+import { ask } from "./confirm";
 
 type CheckStatus = "OK" | "WATCH" | "FAIL" | "UNKNOWN";
 type Check = { key: string; label: string; status: CheckStatus; detail: string };
@@ -362,7 +363,7 @@ function Loans({
                   </td>
                   <td className="px-3 py-2.5 text-right">
                     <button
-                      onClick={() => window.confirm(`Remove ${l.lenderName} from this file?`) && remove.mutate(l.id)}
+                      onClick={async () => (await ask(`Remove ${l.lenderName} from this file?`)) && remove.mutate(l.id)}
                       className="rounded p-1.5 text-muted transition hover:bg-red-50 hover:text-red-600"
                       aria-label={`Remove ${l.lenderName}`}
                     >

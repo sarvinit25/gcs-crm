@@ -7,6 +7,7 @@ import { todayIST } from "../lib/date";
 import { AD_STATUS, MAX_AD_MB, adFileProblem, type WebsiteAd } from "../lib/website";
 import { Modal } from "./modal";
 import { DatePicker, formatPickerDate } from "./date-picker";
+import { ask } from "./confirm";
 
 /** The poster is only reachable with a login, so fetch it with the token and show it from memory. */
 function useAdImage(id: string | null) {
@@ -232,7 +233,7 @@ export function WebsiteAds() {
                   <button
                     className="btn-ghost text-red-600"
                     disabled={remove.isPending}
-                    onClick={() => window.confirm(`Delete "${ad.title}"? The poster is removed for good.`) && remove.mutate(ad)}
+                    onClick={async () => (await ask(`Delete "${ad.title}"? The poster is removed for good.`)) && remove.mutate(ad)}
                   >
                     <Trash2 className="h-4 w-4" /> Delete
                   </button>

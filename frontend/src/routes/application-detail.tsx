@@ -31,6 +31,7 @@ import { ApplicationMatch } from "../components/application-match";
 import { ArchiveButton } from "../components/archive-button";
 import { CreditEvaluationPanel } from "../components/credit-evaluation-panel";
 import { FileAtAGlance, FileSummary, NextStepBar, SectionNav, StageTracker, emi } from "../components/file-overview";
+import { ask } from "../components/confirm";
 
 const EMPLOYMENT_TYPES = Object.keys(EMPLOYMENT_TYPE_LABEL) as EmploymentType[];
 const CONSTITUTIONS = Object.keys(CONSTITUTION_LABEL) as ApplicantConstitution[];
@@ -182,7 +183,7 @@ export function ApplicationDetailPage() {
 
         <div className="mb-5 space-y-4">
           <FileSummary app={app} />
-          <NextStepBar app={app} busy={patch.isPending} onMove={(status, question) => { if (window.confirm(question)) patch.mutate({ status }); }} />
+          <NextStepBar app={app} busy={patch.isPending} onMove={async (status, question) => { if (await ask(question)) patch.mutate({ status }); }} />
           <FileAtAGlance app={app} />
           <StageTracker status={app.status} />
           <SectionNav />

@@ -6,6 +6,7 @@ import { api } from "../lib/api";
 import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
 import { TableSkeleton } from "../components/skeleton";
+import { ask } from "../components/confirm";
 
 type LeadSource = {
   id: string;
@@ -148,8 +149,8 @@ export function LeadSourcesPage() {
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() =>
-                              window.confirm(`Delete the lead source "${s.name}"?`) &&
+                            onClick={async () =>
+                              (await ask(`Delete the lead source "${s.name}"?`)) &&
                               remove.mutate(s.id)
                             }
                             className="rounded p-1.5 text-muted transition hover:bg-red-50 hover:text-red-600"

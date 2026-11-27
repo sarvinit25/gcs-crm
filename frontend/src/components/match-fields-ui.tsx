@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
+import { ask } from "./confirm";
 
 // Staff-defined match fields: the questions a lender policy can test (mirrors backend/src/lender-policies/match-fields.ts).
 
@@ -71,7 +72,7 @@ export function MatchFieldsManager({ products }: { products: { slug: string; nam
             </div>
             <div className="flex shrink-0 gap-2">
               <button className="text-navy" title="Edit" onClick={() => setEditing(f)}><Pencil className="h-4 w-4" /></button>
-              <button className="text-red-600" title="Delete" disabled={del.isPending} onClick={() => { if (confirm(`Delete "${f.label}"? Every lender rule that uses it is removed too.`)) del.mutate(f.id); }}><Trash2 className="h-4 w-4" /></button>
+              <button className="text-red-600" title="Delete" disabled={del.isPending} onClick={async () => { if ((await ask(`Delete "${f.label}"? Every lender rule that uses it is removed too.`))) del.mutate(f.id); }}><Trash2 className="h-4 w-4" /></button>
             </div>
           </li>
         ))}

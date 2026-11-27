@@ -10,6 +10,7 @@ import { CriteriaEditor, MatchFieldsManager, type Criteria } from "./match-field
 import { Modal } from "./modal";
 import { PageHeader } from "./app-shell";
 import { TableSkeleton } from "./skeleton";
+import { ask } from "./confirm";
 
 type Freshness = "OK" | "DUE" | "STALE" | "NEVER";
 type Band = { upTo: number | null; value: number };
@@ -629,9 +630,9 @@ export function LenderPoliciesPage() {
   const rows = show === "attention" ? all.filter(needsCheck) : show === "ocr" ? all.filter(fromOcr) : all;
   const allShownPicked = rows.length > 0 && rows.every((r) => picked.has(r.id));
   const togglePick = (id: string) => setPicked((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
-  const confirmPicked = () => {
+  const confirmPicked = async () => {
     const ids = [...picked];
-    if (window.confirm(`You are confirming that you have checked these ${ids.length} polic${ids.length === 1 ? "y" : "ies"} against each lender's current rules today. It is recorded under your name, and the matcher will start trusting ${ids.length === 1 ? "it" : "them"}.\n\nContinue?`)) verifyMany.mutate(ids);
+    if ((await ask(`You are confirming that you have checked these ${ids.length} polic${ids.length === 1 ? "y" : "ies"} against each lender's current rules today. It is recorded under your name, and the matcher will start trusting ${ids.length === 1 ? "it" : "them"}.\n\nContinue?`))) verifyMany.mutate(ids);
   };
 
   return (

@@ -6,6 +6,7 @@ import { AuthProvider } from "./lib/auth";
 import { PartnerAuthProvider } from "./lib/partner-auth";
 import { BorrowerAuthProvider } from "./lib/borrower-auth";
 import { router } from "./router";
+import { ConfirmHost } from "./components/confirm";
 import "./styles.css";
 
 const queryClient = new QueryClient({
@@ -19,6 +20,7 @@ createRoot(document.getElementById("root")!).render(
         <PartnerAuthProvider>
           <BorrowerAuthProvider>
             <RouterProvider router={router} />
+            <ConfirmHost />
           </BorrowerAuthProvider>
         </PartnerAuthProvider>
       </AuthProvider>

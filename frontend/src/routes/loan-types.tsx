@@ -8,6 +8,7 @@ import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
 import { TableSkeleton } from "../components/skeleton";
 import { LOAN_TYPE_ICONS, loanTypeIcon } from "../lib/loan-type-icons";
+import { ask } from "../components/confirm";
 
 type LoanType = {
   id: string;
@@ -217,8 +218,8 @@ export function LoanTypesPage() {
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() =>
-                              window.confirm(`Delete the loan type "${t.name}"?`) &&
+                            onClick={async () =>
+                              (await ask(`Delete the loan type "${t.name}"?`)) &&
                               remove.mutate(t.id)
                             }
                             className="rounded p-1.5 text-muted transition hover:bg-red-50 hover:text-red-600"

@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, Copy, Download, Eye, EyeOff, Inbox, Link2,
 import clsx from "clsx";
 import { api, tokenStore } from "../lib/api";
 import { Modal } from "./modal";
+import { ask } from "./confirm";
 
 export type Consent = { given?: boolean; photoOk?: boolean; how?: string; date?: string; note?: string };
 export type Testimonial = {
@@ -247,7 +248,7 @@ function ClientForm({ locked }: { locked: boolean }) {
                   <button type="button" className="btn-primary" disabled={locked || approve.isPending || reject.isPending} onClick={() => approve.mutate(s.id)} title={locked ? "Save your other changes below first" : undefined}>
                     {approve.isPending && approve.variables === s.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Add as a story
                   </button>
-                  <button type="button" className="btn-ghost text-red-600" disabled={approve.isPending || reject.isPending} onClick={() => { if (window.confirm(`Not use the message from ${s.name}? Their photo will be deleted.`)) reject.mutate(s.id); }}><X className="h-4 w-4" /> Not used</button>
+                  <button type="button" className="btn-ghost text-red-600" disabled={approve.isPending || reject.isPending} onClick={async () => { if ((await ask(`Not use the message from ${s.name}? Their photo will be deleted.`))) reject.mutate(s.id); }}><X className="h-4 w-4" /> Not used</button>
                   {locked && <span className="text-[11px] text-amber-700">Save your other changes below first.</span>}
                 </div>
               </li>
@@ -287,7 +288,7 @@ export function TestimonialsEditor({ value, onChange, dirty = false }: { value: 
             <Card key={i} t={t}
               onEdit={() => setEditing({ index: i, story: t })}
               onToggle={() => onChange(list.map((x, j) => (j === i ? { ...x, visible: x.visible === false } : x)))}
-              onDelete={() => { if (window.confirm(`Delete the story from ${t.name || "this client"}? This cannot be undone.`)) onChange(list.filter((_, j) => j !== i)); }} />
+              onDelete={async () => { if ((await ask(`Delete the story from ${t.name || "this client"}? This cannot be undone.`))) onChange(list.filter((_, j) => j !== i)); }} />
           ))}
         </ul>
       )}

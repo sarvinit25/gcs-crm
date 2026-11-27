@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { api, tokenStore } from "../lib/api";
 import { SITE_ICONS } from "./site-icons";
 import { TestimonialsEditor, type Testimonial } from "./testimonials-editor";
+import { ask } from "./confirm";
 
 type Faq = { q: string; a: string };
 type Fact = { label: string; value: string };
@@ -911,11 +912,11 @@ function Editor({ section, seoPages, listSpecs, homeSpec, faqPages, initial, bui
         </button>
         {canReset && (
           <button
-            onClick={() => {
+            onClick={async () => {
               if (
-                window.confirm(
+                (await ask(
                   "Go back to the copy built into the website? Your edits to this section will be lost.",
-                )
+                ))
               ) {
                 onReset();
               }
@@ -1266,8 +1267,8 @@ function CaseStudyEditor({
         </button>
         {c && (
           <button
-            onClick={() => {
-              if (window.confirm("Delete this case study?")) {
+            onClick={async () => {
+              if ((await ask("Delete this case study?"))) {
                 onChange(value.filter((_, i) => i !== index));
                 setIndex(0);
               }
@@ -1518,8 +1519,8 @@ function HistoryPanel({
                   </span>
                   {i > 0 && (
                     <button
-                      onClick={() => {
-                        if (window.confirm("Put this version back? It goes live straight away.")) {
+                      onClick={async () => {
+                        if ((await ask("Put this version back? It goes live straight away."))) {
                           restore.mutate(v.id);
                         }
                       }}
@@ -1821,8 +1822,8 @@ function PagesEditor({ value, onChange }: { value: CustomPage[]; onChange: (v: u
         </button>
         {p && (
           <button
-            onClick={() => {
-              if (window.confirm("Delete this page for good?")) {
+            onClick={async () => {
+              if ((await ask("Delete this page for good?"))) {
                 onChange(value.filter((_, i) => i !== index));
                 setIndex(0);
               }

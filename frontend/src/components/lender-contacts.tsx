@@ -8,6 +8,7 @@ import { whatsappLink } from "../lib/customer-form";
 import { whereLine, type LenderContact, type Paged } from "../lib/lender-contacts";
 import { Modal } from "./modal";
 import { TableSkeleton } from "./skeleton";
+import { ask } from "./confirm";
 
 export const useContactSegments = () =>
   useQuery({ queryKey: ["lender-contact-segments"], queryFn: () => api<string[]>("/lender-contacts/segments"), staleTime: 5 * 60_000 });
@@ -342,7 +343,7 @@ function ContactRows({
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                     <button
-                      onClick={() => window.confirm(`Remove ${c.name} from the directory?`) && remove.mutate(c.id)}
+                      onClick={async () => (await ask(`Remove ${c.name} from the directory?`)) && remove.mutate(c.id)}
                       className="rounded p-1.5 text-muted hover:bg-bg-light hover:text-red-600"
                       title="Remove"
                       aria-label={`Remove ${c.name}`}

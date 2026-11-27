@@ -18,6 +18,7 @@ import {
 } from "../lib/report-columns";
 import type { ReportTemplate } from "../lib/reports";
 import { Modal } from "./modal";
+import { ask } from "./confirm";
 
 type Filters = Record<string, string | number | undefined>;
 
@@ -131,7 +132,7 @@ export function ExportMenu({
                     aria-label={`Delete template ${t.name}`}
                     title="Delete template"
                     className="mr-2 rounded p-1.5 text-muted transition hover:bg-white hover:text-red-600"
-                    onClick={() => window.confirm(`Delete the template “${t.name}”?`) && remove.mutate(t.id)}
+                    onClick={async () => (await ask(`Delete the template “${t.name}”?`)) && remove.mutate(t.id)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

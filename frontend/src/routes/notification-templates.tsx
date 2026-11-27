@@ -18,6 +18,7 @@ import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
 import { Switch } from "../components/switch";
 import { TableSkeleton } from "../components/skeleton";
+import { ask } from "../components/confirm";
 
 const META_TONE: Record<MetaStatus, string> = {
   NOT_SUBMITTED: "bg-slate-100 text-slate-600",
@@ -228,7 +229,7 @@ export function NotificationTemplatesPage() {
               <RefreshCw className={clsx("h-4 w-4", refresh.isPending && "animate-spin")} /> Refresh from Meta
             </button>
             <button
-              onClick={() => window.confirm("Put the standard wording back on any template that has been changed, and add any that were deleted?") && reset.mutate()}
+              onClick={async () => (await ask("Put the standard wording back on any template that has been changed, and add any that were deleted?")) && reset.mutate()}
               disabled={reset.isPending}
               className="btn-ghost"
             >
@@ -301,7 +302,7 @@ export function NotificationTemplatesPage() {
                         <button onClick={() => setEditing(t)} title="Edit" className="rounded p-1.5 text-muted hover:bg-bg-light hover:text-navy">
                           <Pencil className="h-4 w-4" />
                         </button>
-                        <button onClick={() => window.confirm(`Delete "${t.name}"?`) && remove.mutate(t)} title="Delete" className="rounded p-1.5 text-muted hover:bg-red-50 hover:text-red-600">
+                        <button onClick={async () => (await ask(`Delete "${t.name}"?`)) && remove.mutate(t)} title="Delete" className="rounded p-1.5 text-muted hover:bg-red-50 hover:text-red-600">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>

@@ -7,6 +7,7 @@ import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
 import { TableSkeleton } from "../components/skeleton";
 import { CHECKLIST_APPLICANT_TYPE_LABEL, type ChecklistApplicantType } from "../lib/types";
+import { ask } from "../components/confirm";
 
 type DocumentType = {
   id: string;
@@ -228,8 +229,8 @@ export function DocumentTypesPage() {
                           <Pencil className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() =>
-                            window.confirm(`Delete the document type "${d.name}"?`) && remove.mutate(d.id)
+                          onClick={async () =>
+                            (await ask(`Delete the document type "${d.name}"?`)) && remove.mutate(d.id)
                           }
                           className="rounded p-1.5 text-muted transition hover:bg-red-50 hover:text-red-600"
                           title="Delete"

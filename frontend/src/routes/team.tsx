@@ -11,6 +11,7 @@ import { Modal } from "../components/modal";
 import { todayIST } from "../lib/date";
 import { DatePicker } from "../components/date-picker";
 import { TableSkeleton } from "../components/skeleton";
+import { ask } from "../components/confirm";
 
 type Staff = {
   id: string;
@@ -199,8 +200,8 @@ export function TeamPage() {
                         </button>
                         {s.totpEnabledAt && s.id !== user?.id && (
                           <button
-                            onClick={() => {
-                              if (window.confirm(`Turn off two-step login for ${s.name}? Use this when they've lost or replaced their phone.`)) resetTwoFactor.mutate(s.id);
+                            onClick={async () => {
+                              if (await ask(`Turn off two-step login for ${s.name}? Use this when they've lost or replaced their phone.`)) resetTwoFactor.mutate(s.id);
                             }}
                             className="text-[12px] font-semibold text-muted hover:text-red-600"
                           >

@@ -4,6 +4,7 @@ import { KeyRound, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import clsx from "clsx";
 import { api } from "../lib/api";
 import { Modal } from "./modal";
+import { ask } from "./confirm";
 
 export type LenderCodeRow = {
   id: string;
@@ -163,7 +164,7 @@ export function LenderCodes({ lenderId, codes, canEdit, showPayout }: { lenderId
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => window.confirm(`Remove the ${c.product} code?`) && remove.mutate(c.id)}
+                        onClick={async () => (await ask(`Remove the ${c.product} code?`)) && remove.mutate(c.id)}
                         className="rounded p-1.5 text-muted hover:bg-bg-light hover:text-red-600"
                         title="Remove"
                         aria-label={`Remove ${c.product} code`}

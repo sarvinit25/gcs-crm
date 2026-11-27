@@ -6,6 +6,7 @@ import { api } from "../lib/api";
 import { formLink, whatsappLink } from "../lib/customer-form";
 import { formatDate, formatDateTime } from "../lib/format";
 import type { ApplicationDetail } from "../lib/types";
+import { ask } from "./confirm";
 
 type FormStatus =
   | { sent: false; canSend: boolean }
@@ -166,8 +167,8 @@ export function CustomerFormPanel({ applicationId }: { applicationId: string }) 
               <button
                 className="btn-ghost"
                 disabled={create.isPending}
-                onClick={() => {
-                  if (!live || window.confirm("Sending a new link stops the current one from working. Continue?")) create.mutate();
+                onClick={async () => {
+                  if (!live || (await ask("Sending a new link stops the current one from working. Continue?"))) create.mutate();
                 }}
               >
                 {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
@@ -175,7 +176,7 @@ export function CustomerFormPanel({ applicationId }: { applicationId: string }) 
               </button>
             )}
             {s.state === "open" && (
-              <button className="btn-ghost" disabled={revoke.isPending} onClick={() => window.confirm("Withdraw this link? The customer won't be able to open it any more.") && revoke.mutate()}>
+              <button className="btn-ghost" disabled={revoke.isPending} onClick={async () => (await ask("Withdraw this link? The customer won't be able to open it any more.")) && revoke.mutate()}>
                 {revoke.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />} Withdraw link
               </button>
             )}

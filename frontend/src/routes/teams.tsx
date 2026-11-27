@@ -6,6 +6,7 @@ import { api } from "../lib/api";
 import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
 import { TableSkeleton } from "../components/skeleton";
+import { ask } from "../components/confirm";
 
 type Team = {
   id: string;
@@ -240,8 +241,8 @@ export function TeamsPage() {
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() =>
-                              window.confirm(`Delete the team "${t.name}"? Its members stay on staff, just without a team.`) &&
+                            onClick={async () =>
+                              (await ask(`Delete the team "${t.name}"? Its members stay on staff, just without a team.`)) &&
                               remove.mutate(t.id)
                             }
                             className="rounded p-1.5 text-muted transition hover:bg-red-50 hover:text-red-600"

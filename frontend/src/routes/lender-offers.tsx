@@ -8,6 +8,7 @@ import { formatDateTime } from "../lib/format";
 import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
 import { OfferOriginal } from "../components/offer-original";
+import { ask } from "../components/confirm";
 
 type Kind = "LENDER_OFFER" | "SERVICE_PROVIDER" | "OTHER";
 type Contact = { name: string | null; designation: string | null; phone: string | null; email: string | null };
@@ -299,7 +300,7 @@ export function ReviewModal({ id, onClose }: { id: string; onClose: () => void }
 
           {editable ? (
             <div className="flex flex-wrap justify-end gap-2">
-              <button type="button" className="btn-ghost text-red-600" disabled={discard.isPending} onClick={() => window.confirm("Throw this reading away?") && discard.mutate()}>Discard</button>
+              <button type="button" className="btn-ghost text-red-600" disabled={discard.isPending} onClick={async () => (await ask("Throw this reading away?")) && discard.mutate()}>Discard</button>
               {draft && <button type="button" className="btn-ghost" disabled={save.isPending} onClick={() => save.mutate()}>{save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Save changes</button>}
               {x.kind === "LENDER_OFFER" && (
                 <button type="button" className="btn-primary" disabled={apply.isPending || (!matchId && !(x.lenderName ?? "").trim())} onClick={() => apply.mutate()}>

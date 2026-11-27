@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download, Loader2, Trash2, Upload } from "lucide-react";
 import { api, tokenStore } from "../lib/api";
 import { formatDateTime, humanize } from "../lib/format";
+import { ask } from "./confirm";
 
 type LeadFile = { id: string; fileName: string; mimeType: string; sizeBytes: number; source: string; caption: string | null; createdAt: string; category?: string };
 
@@ -118,7 +119,7 @@ export function LeadDocuments({ leadId, files }: { leadId: string; files: LeadFi
                           className="btn-ghost text-red-600"
                           aria-label={`Delete ${f.fileName}`}
                           disabled={remove.isPending}
-                          onClick={() => window.confirm(`Delete ${f.fileName}? This cannot be undone.`) && remove.mutate(f.id)}
+                          onClick={async () => (await ask(`Delete ${f.fileName}? This cannot be undone.`)) && remove.mutate(f.id)}
                         >
                           <Trash2 size={14} />
                         </button>

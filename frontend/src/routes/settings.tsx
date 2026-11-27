@@ -7,6 +7,7 @@ import { api } from "../lib/api";
 import { PageHeader } from "../components/app-shell";
 import { Modal } from "../components/modal";
 import { WebsiteContent } from "../components/website-content";
+import { ask } from "../components/confirm";
 type SettingType = "string" | "text" | "number" | "boolean" | "list" | "email" | "phone" | "time";
 
 type Setting = {
@@ -822,8 +823,8 @@ function ArchivePanel() {
       {run.isError && <p className="mt-3 text-[13px] text-red-600">{(run.error as Error).message}</p>}
 
       <button
-        onClick={() => {
-          if (window.confirm(`Archive ${total} file${total === 1 ? "" : "s"}? You can restore any of them later.`)) run.mutate();
+        onClick={async () => {
+          if (await ask(`Archive ${total} file${total === 1 ? "" : "s"}? You can restore any of them later.`)) run.mutate();
         }}
         disabled={run.isPending || total === 0 || months < 3}
         className="btn-primary mt-4"

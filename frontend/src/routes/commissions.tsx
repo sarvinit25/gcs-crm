@@ -18,6 +18,7 @@ import { STATUS_STYLE } from "../components/commission-block";
 import { PageHeader } from "../components/app-shell";
 import { DatePicker } from "../components/date-picker";
 import { TableSkeleton } from "../components/skeleton";
+import { ask } from "../components/confirm";
 
 type Result = Paginated<CommissionRow> & { totalAmount: string | number; summary: CommissionSummary };
 
@@ -222,11 +223,11 @@ export function CommissionsPage() {
                             )}
                             {(c.status === "CLAIMED" || c.status === "PARTIAL") && (
                               <button
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.stopPropagation();
                                   const left =
                                     Number(c.grossAmount) - Number(c.receivedAmount ?? 0);
-                                  if (window.confirm(`Mark ${formatAmount(left)} as received in full?`))
+                                  if (await ask(`Mark ${formatAmount(left)} as received in full?`))
                                     receive.mutate(c.id);
                                 }}
                                 title="Record the whole outstanding amount as received — use the application page for a part payment"
