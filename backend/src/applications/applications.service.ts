@@ -84,24 +84,31 @@ export class ApplicationsService {
       if (lead.application) {
         throw new BadRequestException("This lead already has an application");
       }
-      // Seed the primary applicant from the lead so nothing is retyped.
+      // The primary applicant starts from the lead, so nothing is retyped: whether none was sent, or a screen sent only the name
+      // and contact, every detail the lead holds fills the blanks. What was sent always wins.
+      const fromLead = {
+        name: lead.name,
+        phone: lead.phone,
+        email: lead.email ?? undefined,
+        city: lead.city ?? undefined,
+        address: lead.address ?? undefined,
+        pincode: lead.pincode ?? undefined,
+        pan: lead.pan ?? undefined,
+        dateOfBirth: lead.dateOfBirth ? lead.dateOfBirth.toISOString() : undefined,
+        employmentType: lead.employmentType ?? undefined,
+        employerName: lead.employerName ?? undefined,
+        monthlyIncome: lead.monthlyIncome ? lead.monthlyIncome.toNumber() : undefined,
+      };
       if (!applicants.length) {
-        applicants = [
-          {
-            name: lead.name,
-            phone: lead.phone,
-            email: lead.email ?? undefined,
-            city: lead.city ?? undefined,
-            address: lead.address ?? undefined,
-            pincode: lead.pincode ?? undefined,
-            pan: lead.pan ?? undefined,
-            dateOfBirth: lead.dateOfBirth ? lead.dateOfBirth.toISOString() : undefined,
-            employmentType: lead.employmentType ?? undefined,
-            employerName: lead.employerName ?? undefined,
-            monthlyIncome: lead.monthlyIncome ? lead.monthlyIncome.toNumber() : undefined,
-            isPrimary: true,
-          },
-        ];
+        applicants = [{ ...fromLead, isPrimary: true }];
+      } else {
+        const marked = applicants.findIndex((a) => a.isPrimary);
+        const primary = marked === -1 ? 0 : marked;
+        applicants = applicants.map((a, i) => {
+          if (i !== primary) return a;
+          const sent = Object.fromEntries(Object.entries(a).filter(([, v]) => v !== undefined && v !== null && v !== ""));
+          return { ...fromLead, ...sent } as typeof a;
+        });
       }
     }
 
