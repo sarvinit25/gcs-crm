@@ -32,6 +32,7 @@ import { ArchiveButton } from "../components/archive-button";
 import { CreditEvaluationPanel } from "../components/credit-evaluation-panel";
 import { FileAtAGlance, FileSummary, NextStepBar, SectionNav, StageTracker, emi } from "../components/file-overview";
 import { ask } from "../components/confirm";
+import { FileDownload } from "../components/file-download";
 
 const EMPLOYMENT_TYPES = Object.keys(EMPLOYMENT_TYPE_LABEL) as EmploymentType[];
 const CONSTITUTIONS = Object.keys(CONSTITUTION_LABEL) as ApplicantConstitution[];
@@ -185,6 +186,7 @@ export function ApplicationDetailPage() {
           <FileSummary app={app} />
           <NextStepBar app={app} busy={patch.isPending} onMove={async (status, question) => { if (await ask(question)) patch.mutate({ status }); }} />
           <FileAtAGlance app={app} />
+          <FileDownload applicationId={applicationId} applicationNo={app.applicationNo} />
           <StageTracker status={app.status} />
           <SectionNav />
         </div>
