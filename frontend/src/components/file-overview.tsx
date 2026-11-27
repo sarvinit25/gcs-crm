@@ -110,7 +110,11 @@ const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavio
 export function NextStepBar({ app, busy, onMove }: { app: ApplicationDetail; busy: boolean; onMove: (status: ApplicationStatus, label: string) => void }) {
   const steps: Partial<Record<ApplicationStatus, { text: string; label: string; act: () => void }>> = {
     DRAFT: { text: "The customer has been sent the form, or you have filled it in. When the details are complete, submit the application.", label: "Submit application", act: () => onMove("SUBMITTED", "Submit this application?") },
-    SUBMITTED: { text: "Next: log the file in at the lender, and record the login date, the bank's application ID and the banker.", label: "Record bank login", act: () => go("login") },
+    // Once the login details are saved, the button moves the file on instead of asking for them again.
+    SUBMITTED:
+      app.bankLoginAt || app.bankReferenceNo
+        ? { text: "The bank login details are saved. Move the file to Bank login.", label: "Move to Bank login", act: () => onMove("BANK_LOGIN", "Move this file to Bank login?") }
+        : { text: "Next: log the file in at the lender, and record the login date, the bank's application ID and the banker.", label: "Record bank login", act: () => go("login") },
     BANK_LOGIN: { text: "The file is with the lender. When they start assessing it, move it to Under review.", label: "Mark under review", act: () => onMove("UNDER_REVIEW", "Move this file to Under review?") },
     UNDER_REVIEW: { text: "Waiting for the lender's decision. Record the sanction when it comes.", label: "Record sanction", act: () => go("sanction") },
     SANCTIONED: { text: "Sanctioned. Record each payout as the lender releases money.", label: "Record disbursement", act: () => go("disbursement") },
