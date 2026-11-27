@@ -49,10 +49,11 @@ export type CheckRecord = {
   consentAt: string | null;
   createdAt: string;
   requestedBy: { name: string } | null;
+  document?: { id: string; fileName: string } | null;
   applied?: boolean;
 };
 
-export type CheckHistory = { applicant: { id: string; name: string; score: number | null; band: BandKey | null; scoreDate: string | null }; checks: CheckRecord[] };
+export type CheckHistory = { applicant: { id: string; applicationId: string; name: string; score: number | null; band: BandKey | null; scoreDate: string | null }; checks: CheckRecord[] };
 
 /** Colours for each band — a quick scan aid, always shown next to the number itself. */
 export const BAND_STYLE: Record<BandKey, { chip: string; text: string; label: string }> = {

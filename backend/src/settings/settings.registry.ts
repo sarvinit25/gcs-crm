@@ -439,6 +439,7 @@ export const SETTINGS: SettingDef[] = [
       "Business proof",
       "Asset proof",
       "Sanction letter",
+      "CIBIL report",
       "Other",
     ],
   },

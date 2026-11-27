@@ -1,4 +1,6 @@
-import { Body, Controller, Get, Ip, Param, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Ip, Param, Post, Query, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { MAX_FILE_BYTES } from "../documents/documents.service";
 import { Throttle } from "@nestjs/throttler";
 import { CurrentUser, type AuthUser } from "../auth/auth.decorators";
 import { CreditService } from "./credit.service";
@@ -32,7 +34,14 @@ export class CreditController {
   }
 
   @Post("applicants/:id/record")
-  record(@Param("id") id: string, @Body() dto: RecordScoreDto, @CurrentUser() user: AuthUser, @Ip() ip: string) {
-    return this.credit.record(id, dto, user, ip);
+  @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_FILE_BYTES } }))
+  record(
+    @Param("id") id: string,
+    @Body() dto: RecordScoreDto,
+    @CurrentUser() user: AuthUser,
+    @Ip() ip: string,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.credit.record(id, dto, user, ip, file);
   }
 }

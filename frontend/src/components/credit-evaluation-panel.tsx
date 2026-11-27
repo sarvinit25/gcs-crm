@@ -7,6 +7,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { formatAmount, formatCompact, formatDate } from "../lib/format";
 import { EMPLOYMENT_TYPE_LABEL, CONSTITUTION_LABEL, type ApplicantConstitution, type EmploymentType } from "../lib/types";
+import { HistoryModal, RecordModal, type ScorePerson } from "./credit-score-modals";
 
 type CheckStatus = "OK" | "WATCH" | "FAIL" | "UNKNOWN";
 type Check = { key: string; label: string; status: CheckStatus; detail: string };
@@ -175,6 +176,7 @@ export function CreditEvaluationPanel({ applicationId }: { applicationId: string
 }
 
 function Overview({ ev }: { ev: Evaluation }) {
+  const [score, setScore] = useState<{ what: "record" | "history"; person: ScorePerson } | null>(null);
   const primary = ev.applicants.find((a) => a.isPrimary) ?? ev.applicants[0];
   return (
     <div>
@@ -192,12 +194,21 @@ function Overview({ ev }: { ev: Evaluation }) {
             <Tile label="Email">{a.email}</Tile>
             <Tile label="Employment">{a.employmentType ? EMPLOYMENT_TYPE_LABEL[a.employmentType] : null}</Tile>
             <Tile label="Monthly income">{a.monthlyIncome ? formatAmount(a.monthlyIncome) : null}</Tile>
+            <div className="col-span-2 flex flex-wrap gap-2 xl:col-span-4">
+              {(["record", "history"] as const).map((what) => (
+                <button key={what} type="button" className="btn-ghost" onClick={() => setScore({ what, person: { id: a.id, name: a.name, applicationNo: ev.application.applicationNo } })}>
+                  {what === "record" ? "Record CIBIL score" : "Scores and reports"}
+                </button>
+              ))}
+            </div>
           </div>
         ))}
       </div>
       <p className="mt-2 text-[12px] text-muted">
-        CIBIL scores are pulled or recorded on the <Link to="/cibil" className="font-semibold text-navy underline">CIBIL page</Link>.
+        To pull a score from the bureau, use the <Link to="/cibil" className="font-semibold text-navy underline">CIBIL page</Link>.
       </p>
+      {score?.what === "record" && <RecordModal person={score.person} onClose={() => setScore(null)} />}
+      {score?.what === "history" && <HistoryModal person={score.person} onClose={() => setScore(null)} />}
 
       <Heading>Loan</Heading>
       <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">

@@ -843,6 +843,7 @@ model Document {
   invite       ApplicationInvite? @relation(fields: [inviteId], references: [id], onDelete: SetNull)
   createdAt    DateTime           @default(now())
   reading      DocumentReading?
+  creditChecks CreditCheck[]
 
   @@index([applicationId])
   @@index([inviteId])
@@ -1371,6 +1372,9 @@ model CreditCheck {
   reference   String?
   note        String?
   error       String?
+  // The report itself, filed with the application's documents.
+  documentId  String?
+  document    Document?         @relation(fields: [documentId], references: [id], onDelete: SetNull)
 
   // Credit reports may only be pulled with the person's consent; how it was given is kept with the pull.
   consentAt     DateTime?

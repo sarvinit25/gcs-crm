@@ -21,7 +21,8 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: {
-      "Content-Type": "application/json",
+      // A file upload sets its own type, with the boundary between the parts.
+      ...(!(init.body instanceof FormData) && { "Content-Type": "application/json" }),
       ...(token && { Authorization: `Bearer ${token}` }),
       ...init.headers,
     },

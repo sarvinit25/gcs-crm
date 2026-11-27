@@ -4,6 +4,7 @@ import { AuditAction, CreditCheckKind, CreditCheckStatus, Prisma, Role } from "@
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { SettingsService } from "../settings/settings.service";
+import { DocumentsService } from "../documents/documents.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { istDayStart, istParts, istToday } from "../common/date.util";
 import { BANDS, CONSENT_METHODS, bandOf, rangeOfBand } from "./credit-bands";
@@ -21,6 +22,7 @@ export class CreditService {
     private prisma: PrismaService,
     private audit: AuditService,
     private settings: SettingsService,
+    private documents: DocumentsService,
     private events?: EventsService,
   ) {}
 
@@ -168,10 +170,10 @@ export class CreditService {
       where: { applicantId },
       orderBy: { createdAt: "desc" },
       take: 50,
-      include: { requestedBy: { select: { name: true } } },
+      include: { requestedBy: { select: { name: true } }, document: { select: { id: true, fileName: true } } },
     });
     return {
-      applicant: { id: a.id, name: a.name, score: a.cibilScore, band: bandOf(a.cibilScore), scoreDate: a.cibilScoreDate },
+      applicant: { id: a.id, applicationId: a.application.id, name: a.name, score: a.cibilScore, band: bandOf(a.cibilScore), scoreDate: a.cibilScoreDate },
       checks: checks.map((c) => ({ ...c, band: bandOf(c.score) })),
     };
   }
@@ -251,10 +253,13 @@ export class CreditService {
   }
 
   /** A score typed in from a report obtained elsewhere. */
-  async record(applicantId: string, dto: RecordScoreDto, user: AuthUser, ip?: string) {
+  async record(applicantId: string, dto: RecordScoreDto, user: AuthUser, ip?: string, file?: { originalname: string; size: number; buffer: Buffer }) {
     const applicant = await this.applicantFor(applicantId, user);
     const reportDate = new Date(`${dto.reportDate.slice(0, 10)}T00:00:00.000Z`);
     if (dto.reportDate.slice(0, 10) > istToday()) throw new BadRequestException("The report date cannot be in the future");
+
+    // Filed first, so a file that is refused leaves nothing half recorded.
+    const report = file ? await this.documents.storeFile(applicant.application.id, file, "CIBIL report", { uploadedById: user.id }) : null;
 
     const check = await this.prisma.creditCheck.create({
       data: {
@@ -264,7 +269,8 @@ export class CreditService {
         score: dto.score,
         reportDate,
         reference: dto.reference || null,
-        note: dto.note || null,
+        note: dto.note?.trim() || null,
+        documentId: report?.id ?? null,
         requestedById: user.id,
       },
     });

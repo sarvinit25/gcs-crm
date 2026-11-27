@@ -12,11 +12,12 @@ export class RunCheckDto {
 }
 
 export class RecordScoreDto {
-  @IsInt() @Min(MIN_SCORE) @Max(MAX_SCORE) score: number;
+  // Arrives as text when a report file comes with it.
+  @Type(() => Number) @IsInt() @Min(MIN_SCORE) @Max(MAX_SCORE) score: number;
   /** The date on the report the score came from. */
   @DateInput() reportDate: string;
   @IsOptional() @Transform(({ value }) => (typeof value === "string" ? value.trim() : value)) @IsString() @Length(0, 80) reference?: string;
-  @IsOptional() @IsString() @Length(0, 300) note?: string;
+  @IsOptional() @IsString() @Length(0, 1000) note?: string;
 }
 
 export class ListCreditQuery {
