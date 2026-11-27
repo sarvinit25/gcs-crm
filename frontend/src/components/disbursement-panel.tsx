@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Trash2 } from "lucide-react";
+import { ask } from "./confirm";
 import clsx from "clsx";
 import { api } from "../lib/api";
 import { formatAmount, formatDate } from "../lib/format";
@@ -74,6 +75,9 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
   const error = [create, remove].find((m) => m.isError)?.error;
   const s = query.data;
   const fullyDrawn = s ? s.undrawn === 0 && s.drawn > 0 : false;
+  // The sanction's processing fee is taken once: it is offered only until some payout has had it deducted.
+  const feeTaken = s?.items.some((d) => Number(d.processingFee) > 0) ?? false;
+  const feeDue = !feeTaken && sanction.data?.processingFee ? String(Number(sanction.data.processingFee)) : "";
 
   return (
     <section className="card p-5">
@@ -216,9 +220,7 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
                     placeholder={label}
                     value={
                       deductionText[name] ??
-                      (name === "processingFee" && sanction.data?.processingFee
-                        ? String(Number(sanction.data.processingFee))
-                        : "")
+                      (name === "processingFee" ? feeDue : "")
                     }
                     onChange={(e) => setDeductionText((d) => ({ ...d, [name]: e.target.value }))}
                     // five fields in two columns: the last one takes the full row so nothing is left hanging
@@ -241,9 +243,7 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
                           ].map((k) =>
                             numberOrNaN(
                               deductionText[k] ??
-                                (k === "processingFee" && sanction.data?.processingFee
-                                  ? String(Number(sanction.data.processingFee))
-                                  : ""),
+                                (k === "processingFee" ? feeDue : ""),
                             ),
                           ),
                         ),
@@ -342,7 +342,7 @@ export function DisbursementPanel({ applicationId }: { applicationId: string }) 
                     </div>
                     {!d.commission && (
                       <button
-                        onClick={() => remove.mutate(d.id)}
+                        onClick={async () => (await ask("Remove this payout? The file goes back to Sanctioned until the full amount is recorded again.")) && remove.mutate(d.id)}
                         title="Reverse this payout"
                         className="rounded p-1.5 text-muted transition hover:bg-red-50 hover:text-red-600"
                       >
