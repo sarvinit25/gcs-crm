@@ -1,6 +1,8 @@
 import { BadGatewayException, BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit, Optional } from "@nestjs/common";
 import { EventsService } from "../events/events.service";
 import { classifyDocument } from "../documents/document-kinds";
+import { parseId, whoseCard } from "./id-parse";
+import { readIdText } from "./id-ocr";
 import { belongsToApplicant, isNewLoanPaper, limitToFileKind, onlyBlanks } from "./cam-fill";
 import { ConfigService } from "@nestjs/config";
 import { AuditAction, Prisma, Role } from "@prisma/client";
@@ -68,7 +70,8 @@ export class DocumentReaderService implements OnModuleInit {
   /** One file, wherever it is kept, into the blank boxes of the lead's CAM. */
   private async fillFrom(leadId: string, file: { fileName: string; objectKey: string; mimeType: string; category: string }, user: AuthUser): Promise<{ fileName: string; filled: string[]; skipped?: string }> {
     const skip = (skipped: string) => ({ fileName: file.fileName, filled: [] as string[], skipped });
-    if (NEVER_READ_CATEGORIES.includes(file.category)) return skip("Identity papers are not read");
+    // Identity papers never go to the AI: they are read on our own server and fill only the lead's own details.
+    if (NEVER_READ_CATEGORIES.includes(file.category)) return this.idIntoLead(leadId, file, user);
     const buffer = await this.storage.get(file.objectKey);
     const local = await this.tryStatement(buffer, file.fileName);
     let patch: CamPatch | null = local ? (local.fill as unknown as CamPatch) : null;
@@ -109,7 +112,7 @@ export class DocumentReaderService implements OnModuleInit {
     const lead = await this.prisma.lead.findFirst({ where: { id: leadId, ...(user.role === Role.ADVISOR ? { assignedOfficerId: user.id } : {}) }, select: { id: true } });
     if (!lead) throw new NotFoundException("Lead not found");
     const all = await this.prisma.leadFile.findMany({ where: { leadId }, orderBy: { createdAt: "asc" }, take: 40, select: { id: true, fileName: true, caption: true } });
-    const files = all.filter((f) => !NEVER_READ_CATEGORIES.includes(classifyDocument(f.fileName, f.caption)));
+    const files = all;
     for (const f of files)
       void this.inTurn(leadId, () => this.readLeadFile(leadId, f.id, user)).catch((e: Error) => this.log.warn(`Could not read ${f.fileName} into the CAM: ${e.message}`));
     return { started: files.length };
@@ -119,15 +122,62 @@ export class DocumentReaderService implements OnModuleInit {
   async readApplicationIntoCam(applicationId: string, user: AuthUser): Promise<{ started: number }> {
     const app = await this.applicationFor(applicationId, user);
     if (!app.leadId) throw new BadRequestException("This application has no lead, so there is no CAM to put it in.");
-    const docs = await this.prisma.document.findMany({ where: { applicationId, category: { notIn: NEVER_READ_CATEGORIES } }, orderBy: { createdAt: "asc" }, take: 40 });
-    for (const d of docs) this.queueDocument(app.leadId, d, user);
+    const docs = await this.prisma.document.findMany({ where: { applicationId }, orderBy: { createdAt: "asc" }, take: 60 });
+    for (const d of docs) this.queueDocument(app.leadId, { ...d, applicationId }, user);
     return { started: docs.length };
   }
 
-  private queueDocument(leadId: string, d: { fileName: string; objectKey: string; mimeType: string; category: string }, user: AuthUser) {
+  /** A PAN or Aadhaar on an application fills that person's blank details. Nothing already entered is replaced. */
+  private async idIntoApplicant(applicationId: string, file: { fileName: string; objectKey: string; mimeType: string }) {
+    const text = await readIdText(await this.storage.get(file.objectKey), file.mimeType);
+    const found = parseId(text);
+    if (!Object.keys(found).length) return [];
+    const people = await this.prisma.applicant.findMany({ where: { applicationId } });
+    const person = whoseCard(people, text, file.fileName);
+    if (!person) return [];
+    const data: Prisma.ApplicantUpdateInput = {
+      ...(found.pan && !person.pan && { pan: found.pan }),
+      ...(found.aadhaarLast4 && !person.aadhaarLast4 && { aadhaarLast4: found.aadhaarLast4 }),
+      ...(found.dob && !person.dateOfBirth && { dateOfBirth: new Date(`${found.dob}T00:00:00Z`) }),
+      ...(found.address && !person.address && { address: found.address }),
+      ...(found.pincode && !person.pincode && !person.address && { pincode: found.pincode }),
+    };
+    const filled = Object.keys(data);
+    if (filled.length) await this.prisma.applicant.update({ where: { id: person.id }, data });
+    return filled;
+  }
+
+  /** The same for a file on a lead: the lead's own blank details only. */
+  private async idIntoLead(leadId: string, file: { fileName: string; objectKey: string; mimeType: string }, user: AuthUser) {
+    const result = (filled: string[], skipped?: string) => ({ fileName: file.fileName, filled, ...(skipped && { skipped }) });
+    const lead = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { name: true, pan: true, dateOfBirth: true, address: true, pincode: true } });
+    if (!lead) return result([], "Lead not found");
+    const text = await readIdText(await this.storage.get(file.objectKey), file.mimeType);
+    const found = parseId(text);
+    if (!whoseCard([lead], text, file.fileName)) return result([], "Could not tell that this identity paper is the customer's own");
+    const data: Prisma.LeadUpdateInput = {
+      ...(found.pan && !lead.pan && { pan: found.pan }),
+      ...(found.dob && !lead.dateOfBirth && { dateOfBirth: new Date(`${found.dob}T00:00:00Z`) }),
+      ...(found.address && !lead.address && { address: found.address }),
+      ...(found.pincode && !lead.pincode && !lead.address && { pincode: found.pincode }),
+    };
+    const filled = Object.keys(data);
+    if (!filled.length) return result([], "Nothing new was read from it");
+    await this.prisma.lead.update({ where: { id: leadId }, data });
+    // The audit names the boxes filled, never the numbers.
+    await this.audit.record({ actor: user, action: AuditAction.UPDATE, entity: "Lead", entityId: leadId, entityLabel: `Details read on our server from ${file.fileName}: ${filled.join(", ")}`.slice(0, 190) });
+    return result(filled);
+  }
+
+  private queueDocument(leadId: string, d: { fileName: string; objectKey: string; mimeType: string; category: string; applicationId: string }, user: AuthUser) {
     // An identity paper filed under another kind is still recognised by its name, and never sent to the reader.
     const file = NEVER_READ_CATEGORIES.includes(classifyDocument(d.fileName, null)) ? { ...d, category: classifyDocument(d.fileName, null) } : d;
-    void this.inTurn(leadId, () => this.fillFrom(leadId, file, user)).catch((e: Error) => this.log.warn(`Could not read ${d.fileName} into the CAM: ${e.message}`));
+    const job = async () => {
+      if (!NEVER_READ_CATEGORIES.includes(file.category)) return void (await this.fillFrom(leadId, file, user));
+      const filled = await this.idIntoApplicant(d.applicationId, file);
+      if (filled.length) await this.audit.record({ actor: user, action: AuditAction.UPDATE, entity: "Document", entityId: d.applicationId, entityLabel: `Applicant details read on our server from ${d.fileName}: ${filled.join(", ")}`.slice(0, 190) });
+    };
+    void this.inTurn(leadId, job).catch((e: Error) => this.log.warn(`Could not read ${d.fileName}: ${e.message}`));
   }
 
   get aiEnabled() {
@@ -169,6 +219,10 @@ export class DocumentReaderService implements OnModuleInit {
    */
   async readAfterSubmit(applicationId: string): Promise<void> {
     try {
+      // The customer's identity papers fill their blank details, on our own server.
+      for (const d of (await this.prisma.document.findMany({ where: { applicationId, category: { in: NEVER_READ_CATEGORIES } }, orderBy: { createdAt: "asc" }, take: 12 })) ?? []) {
+        await this.idIntoApplicant(applicationId, d).catch((e: Error) => this.log.warn(`Could not read ${d.fileName}: ${e.message}`));
+      }
       const docs = await this.prisma.document.findMany({ where: { applicationId, category: { notIn: NEVER_READ_CATEGORIES }, reading: null }, orderBy: { createdAt: "asc" }, take: MAX_AT_ONCE });
       for (const d of docs) {
         try {

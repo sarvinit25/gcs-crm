@@ -134,7 +134,7 @@ export function DocumentsPanel({ applicationId }: { applicationId: string }) {
   // Every document into the CAM's blank boxes: runs in the background, a few minutes for a full file.
   const intoCam = useMutation({
     mutationFn: () => api<{ started: number }>(`/applications/${applicationId}/read-into-cam`, { method: "POST" }),
-    onSuccess: () => [30, 90, 180, 300].forEach((s) => setTimeout(() => void queryClient.invalidateQueries({ queryKey: ["cam"] }), s * 1000)),
+    onSuccess: () => [30, 90, 180, 300].forEach((s) => setTimeout(() => { for (const k of ["cam", "application", "credit-evaluation"]) void queryClient.invalidateQueries({ queryKey: [k] }); }, s * 1000)),
   });
 
   // One tab per kind of document, so a long file stays easy to look through.
@@ -153,7 +153,7 @@ export function DocumentsPanel({ applicationId }: { applicationId: string }) {
         </h2>
         <div className="flex flex-wrap justify-end gap-2">
         {(query.data?.length ?? 0) > 0 && (
-          <button className="btn-ghost" disabled={intoCam.isPending} onClick={() => intoCam.mutate()} title="Fills the CAM's blank boxes from these documents: income, balance sheet, bank and GST months, property. Identity papers are skipped.">
+          <button className="btn-ghost" disabled={intoCam.isPending} onClick={() => intoCam.mutate()} title="Fills the CAM's blank boxes from these documents: income, balance sheet, bank and GST months, property. PAN and Aadhaar are read only on our own server, into the applicant's blank details.">
             {intoCam.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Fill the CAM from documents
           </button>
         )}
