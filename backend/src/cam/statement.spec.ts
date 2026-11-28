@@ -284,3 +284,24 @@ describe("more column layouts", () => {
     expect(read(["03-04-2026 ATM 100.00 11,400.00", "02-04-2026 NEFT 2,000.00 11,500.00", "01-04-2026 UPI 500.00 9,500.00"])).toEqual([[500, 0, 9500], [0, 2000, 11500], [100, 0, 11400]]);
   });
 });
+
+// Rows made up to the shape each bank's statement takes once turned into text, as documented by open-source statement readers.
+describe("bank by bank shapes", () => {
+  const read = (lines: string[]) => settleAny(fromAnyBank(lines.join("\n"))).map((x) => [x.debit, x.credit, x.balance]);
+  const want = [[500, 0, 9500], [0, 2000, 11500]];
+  it("HDFC net banking: reference and value date before the figures, narration running on", () => {
+    expect(read(["OpeningBalance : 10,000.00", "01/04/26 UPI-SHOP-PAY 0000123456789 01/04/26 500.00 9,500.00", "MENT FOR GOODS", "02/04/26 NEFT CR 0000987654321 02/04/26 2,000.00 11,500.00"])).toEqual(want);
+  });
+  it("SBI: a lone 0 or a dash in the unused column", () => {
+    expect(read(["Balance as on 1 Apr 2026 : 10,000.00", "01-04-26 WDL TFR - 0 500.00 9,500.00", "02/04/2026 02/04/2026 DEP TFR 2,000.00 - 11,500.00"])).toEqual(want);
+  });
+  it("Kotak: serial numbers and an opening row full of dashes", () => {
+    expect(read(["- - Opening Balance - - - 10,000.00", "1 01 Apr 2026 UPI/SHOP UPI-1 500.00 9,500.00", "2 02 Apr 2026 NEFT ONBF-2 2,000.00 11,500.00"])).toEqual(want);
+  });
+  it("IDFC First: two-digit year, the time on the next line, CR on the balance", () => {
+    expect(read(["Opening Balance 10,000.00 CR", "01 Apr 26", "22:38 01 Apr 26 UPI SHOP 500.00 9,500.00 CR", "02 Apr 26", "10:05 02 Apr 26 NEFT 2,000.00 11,500.00 CR"])).toEqual(want);
+  });
+  it("IndusInd and Union Bank: brought forward, dashed months", () => {
+    expect(read(["Brought Forward 10,000.00", "01-Apr-2026 CHQ 000012 500.00 9,500.00", "2 02-04-2026 NEFT 2,000.00 11,500.00 Cr"])).toEqual(want);
+  });
+});

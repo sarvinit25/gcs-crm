@@ -243,7 +243,7 @@ const BEFORE_ZERO = new RegExp(String.raw`^(.*?)(?<![\d,.])(${LOOSE})$`);
 
 /** The amount and the balance at the end of a line. A dash or "0.00" standing in the unused debit or credit column is passed over. */
 function pairAtEnd(rest: string): { text: string; amount: number; balance: number } | null {
-  const m = PAIR_SPACED.exec(rest.replace(/(^|\s)-(?=\s)/g, "$1").replace(/\s+/g, " ").trim());
+  const m = PAIR_SPACED.exec(rest.replace(/(^|\s)(?:-|0)(?=\s)/g, "$1").replace(/\s+/g, " ").trim());
   if (!m) return null;
   let text = m[1]!.trim();
   let amount = Math.abs(parseMoney(m[2])!);
@@ -262,7 +262,8 @@ function pairAtEnd(rest: string): { text: string; amount: number; balance: numbe
  * stuck to the front of it.
  */
 function fromRunning(lines: string[], text: string, starts: RegExp[] = RUNNING_START): Raw[] {
-  const opening = new RegExp(String.raw`(?:Opening Balance|Balance Brought Forward|Brought Forward|\bB\/F\b)\s*:?\s*(?:INR|Rs\.?)?\s*(${FIGURE})`, "i").exec(text);
+  // Banks word the carried-in balance differently, and some print it in a row with dashes in the other columns.
+  const opening = new RegExp(String.raw`(?:Opening\s*Balance|Balance\s*Brought\s*Forward|Brought\s*Forward|\bB\/F\b|Balance\s+as\s+on\s+\d{1,2}[-/ ](?:\d{1,2}|[A-Za-z]{3,9})[-/ ,]+\d{2,4})[\s:\-]*(?:INR|Rs\.?)?\s*(${LOOSE})`, "i").exec(text);
   let prev: number | null = opening ? parseMoney(opening[1])! : null;
   const out: Raw[] = [];
   let date: Date | null = null;
