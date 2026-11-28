@@ -45,7 +45,7 @@ export type StatementAnalysis = {
   months: MonthRow[];
   openingBalance: number | null;
   closingBalance: number | null;
-  emis: { label: string; amount: number; times: number; total: number }[];
+  emis: { label: string; amount: number; times: number; total: number; last?: string }[];
   salary: { times: number; total: number; averagePerMonth: number | null };
   returns: { inward: number; outward: number; lines: string[] };
   warnings: string[];
@@ -87,10 +87,10 @@ export function analyseTxns(txnsIn: Txn[]): StatementAnalysis {
   const lenderPayments = new Map<string, number>();
   for (const t of txns) if (t.debit > 0 && EMI.test(t.text)) lenderPayments.set(signature(t.text) || "LOAN", (lenderPayments.get(signature(t.text) || "LOAN") ?? 0) + 1);
   // Mutual-fund instalments go out by the same bank debit as loan EMIs, but they are savings and not a loan.
-  const saving = /\b(MUT|MUTUAL|SIP|INDIAN CLEARING|BSE LIMITED|INVEST\w*)\b/i;
+  const saving = /\b(MUT|MUTUAL|SIP|INDIAN CLEARING|BSE LIMITED|INVEST\w*|INSURANCE|PREMIUM)\b/i;
   const isInstalment = (text: string) => !saving.test(text) && EMI.test(text) && (EMI_WORD.test(text) || (!CHEQUE.test(text) && (lenderPayments.get(signature(text) || "LOAN") ?? 0) >= 2));
 
-  const emiHits = new Map<string, { label: string; amounts: number[]; total: number }>();
+  const emiHits = new Map<string, { label: string; amounts: number[]; total: number; last: string }>();
   const salaryHits: number[] = [];
   const returnLines: string[] = [];
   let inwardTotal = 0;
@@ -109,7 +109,8 @@ export function analyseTxns(txnsIn: Txn[]): StatementAnalysis {
         emisSeen += t.debit;
         // Two loans from one lender are told apart by their instalment.
         const sig = `${signature(t.text) || "LOAN"}|${Math.round(t.debit)}`;
-        const hit = emiHits.get(sig) ?? { label: t.text.slice(0, 60), amounts: [], total: 0 };
+        const hit = emiHits.get(sig) ?? { label: t.text.slice(0, 120), amounts: [], total: 0, last: "" };
+        hit.last = iso(t.date);
         hit.amounts.push(t.debit);
         hit.total += t.debit;
         emiHits.set(sig, hit);
@@ -139,7 +140,7 @@ export function analyseTxns(txnsIn: Txn[]): StatementAnalysis {
   });
 
   const emis = [...emiHits.values()]
-    .map((h) => ({ label: h.label, amount: r0(h.amounts.sort((a, b) => a - b)[Math.floor(h.amounts.length / 2)]!), times: h.amounts.length, total: r0(h.total) }))
+    .map((h) => ({ label: h.label, amount: r0(h.amounts.sort((a, b) => a - b)[Math.floor(h.amounts.length / 2)]!), times: h.amounts.length, total: r0(h.total), last: h.last }))
     .sort((a, b) => b.total - a.total)
     .slice(0, 12);
 
@@ -169,9 +170,30 @@ export function analyseTxns(txnsIn: Txn[]): StatementAnalysis {
   };
 }
 
+const LENDERS: [RegExp, string][] = [
+  [/\bAXIS/i, "Axis Bank"], [/\bHDFC/i, "HDFC"], [/\bICICI/i, "ICICI"], [/\bSBI\b|STATE BANK/i, "SBI"], [/\bKOTAK/i, "Kotak"], [/L ?& ?T ?FIN|\bL ?T ?FINANCE/i, "L&T Finance"],
+  [/\bBAJAJ/i, "Bajaj Finance"], [/\bTATA/i, "Tata Capital"], [/\bCHOLA/i, "Cholamandalam"], [/\bCOSMOS/i, "Cosmos Bank"], [/\bTJSB/i, "TJSB Bank"], [/\bSARASWAT/i, "Saraswat Bank"],
+  [/\bNJ CAPITAL/i, "NJ Capital"], [/\bIDFC/i, "IDFC First"], [/\bINDUSIND/i, "IndusInd"], [/\bYES BANK/i, "Yes Bank"], [/\bPNB/i, "PNB"], [/\bPOONAWALLA/i, "Poonawalla"], [/\bMAHINDRA/i, "Mahindra Finance"], [/\bHERO ?FIN/i, "Hero FinCorp"],
+];
+const lenderName = (label: string) => LENDERS.find(([r]) => r.test(label))?.[1] ?? (label.replace(/\b(ACH|NACH|ECS|DR|EMI|FIN)\b|[-\/:]|\S*\d\S*/gi, " ").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" ") || "Lender not named");
+
+/**
+ * Instalments that are clearly still running, as rows for the CAM's loan table: paid at least three times (or in every month of
+ * a shorter statement) and last paid within seven weeks of the statement's end. Each is marked for a person to confirm.
+ */
+export function loansSeen(a: Pick<StatementAnalysis, "emis" | "to" | "monthsFound">) {
+  const end = new Date(`${a.to}T00:00:00Z`).getTime();
+  const need = Math.min(3, Math.max(2, a.monthsFound));
+  return a.emis
+    .filter((e) => e.times >= need && e.amount >= 1000 && e.last && end - new Date(`${e.last}T00:00:00Z`).getTime() <= 49 * 86_400_000)
+    .map((e) => ({ lender: `${lenderName(e.label)} (from bank statement, confirm)`, emi: e.amount, status: "Live", paid: e.times }));
+}
+
 /** What goes into the CAM's two bank tables, newest month first: the detailed table and the simple month-by-month one. */
 export function camFill(a: StatementAnalysis) {
+  const loans = loansSeen(a);
   return {
+    ...(loans.length && { obligations: { loans } }),
     bankingDetail: {
       detail: a.months.map((m) => ({ month: m.label, creditCount: m.creditCount, debitCount: m.debitCount, salary: m.salary || null, emisSeen: m.emisSeen || null, bal5: m.bal5, bal10: m.bal10, bal15: m.bal15, bal25: m.bal25, inward: m.inward, outward: m.outward })),
     },

@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import { fillFormulaResults } from "./formula-results";
 import { loanForEmi } from "../credit-evaluation/credit-calcs";
 import { type Analysis } from "./cam-analysis";
 import { addExtraSheets } from "./cam-extra-sheets";
@@ -825,6 +826,7 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
     }
   }
 
+  fillFormulaResults(wb);
   return Buffer.from(await wb.xlsx.writeBuffer());
 }
 

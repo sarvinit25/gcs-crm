@@ -93,7 +93,7 @@ export function camFromExtraction(raw: unknown): CamPatch | null {
     .slice(0, 12);
   if (gst.length) patch.gst = { months: gst };
 
-  const property = pick(obj(r.property), { agreementValue: "amount", marketValue: "amount", address: "text", builderName: "text", areaSqft: "amount", ownerName: "text" });
+  const property = pick(obj(r.property), { agreementValue: "amount", address: "text", builderName: "text", areaSqft: "amount", ownerName: "text" });
   if (Object.keys(property).length) patch.property = property;
 
   const loans = (Array.isArray(r.loans) ? r.loans : [])
@@ -205,6 +205,9 @@ export function onlyBlanks(existing: unknown, patch: CamPatch): { patch: CamPatc
     const placed = bankingByAccount(obj(data.banking), patch.banking!, patch.bankingDetail, obj(data.bankingDetail));
     Object.assign(out, placed.patch);
     filled.push(...placed.filled);
+    // Instalments from a second account (often the firm's) are not listed as the applicant's own loans.
+    const secondAccount = placed.patch.banking && "months2" in placed.patch.banking;
+    if (secondAccount) delete (patch = { ...patch }).obligations;
   }
   for (const [section, fields] of Object.entries(patch)) {
     if (byAccount && (section === "banking" || section === "bankingDetail")) continue;
@@ -234,7 +237,9 @@ export function onlyBlanks(existing: unknown, patch: CamPatch): { patch: CamPatc
         if (changed) put(section, key, rows.sort((a, b) => String(b.year ?? "").localeCompare(String(a.year ?? ""))).slice(0, 3));
       } else if (key === "loans" && Array.isArray(value)) {
         const rows = (Array.isArray(current) ? (current as Row[]) : []).filter((x) => x && !blank(x.lender));
-        const added = (value as Row[]).filter((n) => !rows.some((x) => same(x.lender, n.lender) && Number(x.emi) === Number(n.emi)));
+        // A loan seen in a bank statement is the same loan as one already listed with that instalment, whatever it is called.
+        const seen = (n: Row) => /from bank statement/i.test(String(n.lender));
+        const added = (value as Row[]).filter((n) => !rows.some((x) => Number(x.emi) === Number(n.emi) && (seen(n) || seen(x) || same(x.lender, n.lender))));
         if (added.length) put(section, key, [...rows, ...added].slice(0, 12));
       } else if (blank(current) && !blank(value)) put(section, key, value);
     }

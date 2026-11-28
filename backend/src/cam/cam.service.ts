@@ -13,6 +13,7 @@ import type { AuthUser } from "../auth/auth.decorators";
 import { analyse } from "./cam-analysis";
 import { buildCamWorkbook } from "./cam-workbook";
 import { camFromApplication } from "./cam-from-application";
+import { camFromProfile } from "./cam-from-profile";
 import { readStatement } from "./statement-read";
 import { StatementError } from "./statement-parse";
 import {
@@ -55,14 +56,14 @@ const LEAD_SELECT = {
   loanProductId: true,
   loanProduct: { select: { id: true, slug: true, name: true } },
   // what the customer said on WhatsApp or in the website's second form: lays out the CAM so nobody is asked twice
-  answers: { select: { label: true, value: true }, take: 120 },
+  answers: { select: { key: true, label: true, value: true }, take: 200 },
 } satisfies Prisma.LeadSelect;
 type LeadRow = Prisma.LeadGetPayload<{ select: typeof LEAD_SELECT }>;
 
 const blank = (v: unknown) => v === null || v === undefined || v === "" || (Array.isArray(v) && v.length === 0);
 
 /** What the lead already knows, laid out as CAM answers, so nobody is asked twice. */
-export function prefillFromLead(l: Omit<LeadRow, "answers"> & { answers?: { label: string; value: string }[] }): CamData {
+export function prefillFromLead(l: Omit<LeadRow, "answers"> & { answers?: { key?: string; label: string; value: string }[] }): CamData {
   const profile = l.employmentType === "SALARIED" ? "Salaried" : l.employmentType === "PROFESSIONAL" ? "Self-employed professional" : l.employmentType === "BUSINESS" || l.employmentType === "SELF_EMPLOYED" ? "Self-employed business" : null;
   const dob = l.dateOfBirth ? l.dateOfBirth.toISOString().slice(0, 10) : null;
   const own: CamData = {
@@ -147,7 +148,13 @@ export class CamService {
   private async dataFor(lead: LeadRow, stored: CamData) {
     const base = withPrefill(prefillFromLead(lead), stored);
     const application = (await this.applicationOf(lead.id)) ?? null;
-    return { data: application ? camFromApplication(base, application) : base, application };
+    const fromFile = application ? camFromApplication(base, application) : base;
+    // The lead's loan-profile answers, with anything newer the customer typed on the application form over them.
+    const answers = Object.fromEntries((lead.answers ?? []).flatMap((x) => (x.key?.startsWith("lp-") ? [[x.key.slice(3), x.value]] : [])));
+    const invite = application ? await this.prisma.applicationInvite?.findFirst({ where: { applicationId: application.id, submittedAt: { not: null } }, orderBy: { submittedAt: "desc" }, select: { profileDraft: true } }) : null;
+    for (const [k, v] of Object.entries((invite?.profileDraft ?? {}) as Record<string, unknown>)) if (k.startsWith("lp-") && typeof v === "string") answers[k.slice(3)] = v;
+    const place = (lead.answers ?? []).find((x) => x.key === "location")?.value;
+    return { data: camFromProfile(fromFile, answers, place), application };
   }
 
   private familyOf(lead: LeadRow, stored: CamData): Family {
