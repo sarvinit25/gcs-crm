@@ -40,6 +40,10 @@ export type CallExtra = {
   propertyHasLoan: string | null;
   coApplicant: string | null;
   callbackTime: string | null;
+  /** A separate number the caller gave for work: kept on the lead as its second number. */
+  workPhone: string | null;
+  /** A number the caller asked to be called back on, when it is not the one they called from. */
+  callbackNumber: string | null;
   /** What the caller wants help with: a loan, CA and legal services, or both. */
   serviceInterest: "loan" | "ca_legal" | "both" | null;
   /** The CA or legal service they asked about, and what they need, in the agent's words. */
@@ -137,6 +141,12 @@ function serviceInterest(v: unknown): CallExtra["serviceInterest"] {
   return loan ? "loan" : null;
 }
 
+/** Ten digits for any phone number a caller gives, mobile or a landline with its area code ("022 6987 0988"), else null. */
+function tenDigits(v: unknown): string | null {
+  const d = normalisePhone(v);
+  return d && /^\d{10}$/.test(d) ? d : null;
+}
+
 export function readExtra(payload: unknown): CallExtra {
   const email = text(find(payload, ["email", "email_id", "customer_email"]), 120);
   const cibil = num(find(payload, ["cibil_score", "cibil", "credit_score"]));
@@ -159,6 +169,8 @@ export function readExtra(payload: unknown): CallExtra {
     propertyHasLoan: text(find(payload, ["property_has_existing_loan"]), 10),
     coApplicant: text(find(payload, ["co_applicant", "coapplicant"]), 120),
     callbackTime: text(find(payload, ["callback_time_preference", "callback_time", "preferred_time"]), 80),
+    workPhone: tenDigits(find(payload, ["work_phone_number", "work_number", "office_phone_number", "office_number", "alternate_phone_number", "alternate_number", "secondary_phone"])),
+    callbackNumber: tenDigits(find(payload, ["callback_phone_number", "callback_number", "preferred_callback_number", "call_back_number"])),
     serviceInterest: serviceInterest(find(payload, ["service_interest", "service_needed", "service_type"])),
     caLegalService: text(find(payload, ["ca_legal_service", "ca_service", "legal_service"]), 120),
     caLegalNeed: text(find(payload, ["ca_legal_need", "ca_legal_requirement", "service_details"]), 400),

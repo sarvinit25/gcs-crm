@@ -35,7 +35,9 @@ export type VoiceOutcome = "LEAD_CREATED" | "LEAD_UPDATED" | "NO_LEAD" | "ERROR"
 
 /** What the lead's notes say about the call: the agent's own summary first, then what it picked up. */
 export function callNote(c: CallDetails, when = new Date()): string {
-  const lines = [`AI phone call, ${when.toISOString().slice(0, 16).replace("T", " ")} UTC${c.durationSec ? `, ${c.durationSec}s` : ""}.`];
+  // The person's own name comes first: everything below is about them.
+  const lines = c.name ? [`Name given on the call: ${c.name}`] : [];
+  lines.push(`AI phone call, ${when.toISOString().slice(0, 16).replace("T", " ")} UTC${c.durationSec ? `, ${c.durationSec}s` : ""}.`);
   if (c.summary) lines.push(c.summary);
   if (c.loanType) lines.push(`Loan type: ${c.loanType}`);
   if (c.amount) lines.push(`Amount: ${c.amount}`);
@@ -43,6 +45,8 @@ export function callNote(c: CallDetails, when = new Date()): string {
   if (x.doNotCall) lines.push("DO NOT CALL: the person asked not to be called again.");
   if (x.humanCallback) lines.push("CALL BACK: the person asked for a team member to call.");
   if (x.callbackTime) lines.push(`Best time to call: ${x.callbackTime}`);
+  if (x.workPhone && x.workPhone !== c.phone) lines.push(`Work number given: ${x.workPhone}`);
+  if (x.callbackNumber && x.callbackNumber !== c.phone) lines.push(`CALL BACK ON ${x.callbackNumber} (the number they asked for; they called from ${c.phone ?? "another number"})`);
   const legal = caLegalOf(c);
   if (legal) lines.push(`CA & LEGAL: the caller asked about ${legal.services.join(", ")}${legal.need ? ` (${legal.need})` : ""}. For the CA and legal team to call back.`);
   const more: [string, unknown][] = [
@@ -74,10 +78,14 @@ export class VoiceService {
   private async fillBlanks(leadId: string, c: CallDetails) {
     try {
       const x = c.extra;
-      const now = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { email: true, employmentType: true, monthlyIncome: true, employerName: true, experienceYears: true, currentExperienceYears: true } });
+      const now = await this.prisma.lead.findUnique({ where: { id: leadId }, select: { phone: true, secondaryPhone: true, email: true, employmentType: true, monthlyIncome: true, employerName: true, experienceYears: true, currentExperienceYears: true } });
       if (!now) return;
       const data: Prisma.LeadUpdateInput = {};
       if (!now.email && x.email) data.email = x.email;
+      // A separate work number, or a number they asked to be called on, is registered as the lead's second number. The number
+      // they called from stays the main one unless staff change it, and a number staff entered is never replaced.
+      const other = [x.workPhone, x.callbackNumber].find((n) => n && n !== now.phone && n !== c.phone);
+      if (!now.secondaryPhone && other) data.secondaryPhone = other;
       if (!now.employmentType && x.employmentType) data.employmentType = x.employmentType;
       if (!now.monthlyIncome && x.monthlyIncome && x.monthlyIncome < 1e8) data.monthlyIncome = x.monthlyIncome;
       if (!now.employerName && x.employer) data.employerName = x.employer;
@@ -136,7 +144,7 @@ export class VoiceService {
         await this.saveCaLegal(lead.id, call);
         outcome = "isNew" in lead && lead.isNew ? "LEAD_CREATED" : "LEAD_UPDATED";
         const why = followUpReason(call);
-        if (why) this.events?.emit("FOLLOW_UP_NEEDED", { leadId: lead.id, why, callbackTime: call.extra.callbackTime, note: call.summary });
+        if (why) this.events?.emit("FOLLOW_UP_NEEDED", { leadId: lead.id, why, callbackTime: call.extra.callbackTime, callbackNumber: call.extra.callbackNumber && call.extra.callbackNumber !== call.phone ? call.extra.callbackNumber : null, note: call.summary });
       } catch (err) {
         outcome = "ERROR";
         error = (err as Error).message.slice(0, 500);

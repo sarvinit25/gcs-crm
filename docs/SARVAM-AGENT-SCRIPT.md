@@ -360,6 +360,8 @@ Return a JSON object with these fields. Use null if the person did not say. Do n
 {
   "full_name": "",
   "phone_number": "",
+  "work_phone_number": "a separate number the person gave for work, digits only, else null",
+  "callback_phone_number": "a number they asked to be called back on, if not the number they called from, digits only, else null",
   "is_whatsapp_same_number": true/false/null,
   "email": "",
   "preferred_language": "",

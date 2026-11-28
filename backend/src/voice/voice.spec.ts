@@ -1,5 +1,5 @@
 import { callNote, caLegalOf, followUpReason, VoiceService } from "./voice.service";
-import { readCall } from "./voice-payload";
+import { readCall, readExtra } from "./voice-payload";
 
 const campaignStyle = {
   interaction_id: "int_123",
@@ -239,5 +239,69 @@ describe("who needs a call back after a call", () => {
     expect(followUpReason(c({ outcome: "not_interested" }))).toBeNull();
     expect(followUpReason(c({ outcome: "wrong_number" }))).toBeNull();
     expect(followUpReason(c({ outcome: "do_not_call", callback_time_preference: "evening" }))).toBeNull();
+  });
+});
+
+describe("a separate work number, and a number to call back on", () => {
+  const call = (extra: Record<string, unknown>) => ({ ...campaignStyle, final_agent_variables: { ...campaignStyle.final_agent_variables, ...extra } });
+
+  it("reads a work number or a call-back number, mobile or landline, as ten digits", () => {
+    expect(readExtra(call({ work_phone_number: "+91 98765 43210" })).workPhone).toBe("9876543210");
+    expect(readExtra(call({ work_phone_number: "022 6987 0988" })).workPhone).toBe("2269870988");
+    expect(readExtra(call({ callback_phone_number: "98765-43210" })).callbackNumber).toBe("9876543210");
+    expect(readExtra(call({ alternate_number: "9123456780" })).workPhone).toBe("9123456780");
+  });
+  it("ignores anything that is not a phone number, and says nothing when none was given", () => {
+    expect(readExtra(call({ work_phone_number: "12345", callback_phone_number: "not given" }))).toMatchObject({ workPhone: null, callbackNumber: null });
+    expect(readExtra(campaignStyle)).toMatchObject({ workPhone: null, callbackNumber: null });
+  });
+
+  function build(lead: { phone: string; secondaryPhone: string | null }) {
+    const update = jest.fn(async () => ({}));
+    const emit = jest.fn();
+    const prisma = {
+      voiceCall: { findUnique: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue({}) },
+      lead: { findUnique: jest.fn(async () => ({ ...lead, email: null, employmentType: null, monthlyIncome: null, employerName: null, experienceYears: null, currentExperienceYears: null })), update },
+      leadAnswer: { upsert: jest.fn(async () => ({})) },
+    };
+    const leads = { intake: jest.fn().mockResolvedValue({ id: "L1", leadNo: 1, isNew: true }) };
+    return { service: new VoiceService(prisma as never, leads as never, { emit } as never), update, emit };
+  }
+
+  it("registers a separate work number as the lead's second number, and keeps the number they called from as the main one", async () => {
+    const { service, update } = build({ phone: "9820592765", secondaryPhone: null });
+    await service.accept(call({ work_phone_number: "9876543210" }));
+    expect(update).toHaveBeenCalledWith({ where: { id: "L1" }, data: expect.objectContaining({ secondaryPhone: "9876543210" }) });
+    expect(JSON.stringify(update.mock.calls)).not.toContain('"phone"');
+  });
+  it("registers a number they asked to be called on, and tells the team to ring it", async () => {
+    const { service, update, emit } = build({ phone: "9820592765", secondaryPhone: null });
+    await service.accept(call({ callback_phone_number: "9123456780", callback_time_preference: "after 6 pm" }));
+    expect(update).toHaveBeenCalledWith({ where: { id: "L1" }, data: expect.objectContaining({ secondaryPhone: "9123456780" }) });
+    expect(emit).toHaveBeenCalledWith("FOLLOW_UP_NEEDED", expect.objectContaining({ callbackNumber: "9123456780" }));
+  });
+  it("uses the number they called from when they give no other, and never repeats it as a second number", async () => {
+    const { service, update, emit } = build({ phone: "9820592765", secondaryPhone: null });
+    await service.accept(call({ work_phone_number: "98205 92765" }));
+    expect(JSON.stringify(update.mock.calls)).not.toContain("secondaryPhone");
+    const none = build({ phone: "9820592765", secondaryPhone: null });
+    await none.service.accept(campaignStyle);
+    expect(none.emit.mock.calls[0]?.[1]).toMatchObject({ callbackNumber: null });
+  });
+  it("never replaces a second number that staff or an earlier call already put there", async () => {
+    const { service, update } = build({ phone: "9820592765", secondaryPhone: "9000000001" });
+    await service.accept(call({ work_phone_number: "9876543210" }));
+    expect(JSON.stringify(update.mock.calls)).not.toContain("9876543210");
+  });
+  it("writes them in the lead's note, under the name the caller gave", () => {
+    const note = callNote(readCall(call({ work_phone_number: "9876543210", callback_phone_number: "9123456780" })), new Date("2026-11-13T10:05:00Z"));
+    const lines = note.split("\n");
+    expect(lines[0]).toBe("Name given on the call: Ravi Kumar");
+    expect(note).toContain("Work number given: 9876543210");
+    expect(note).toContain("CALL BACK ON 9123456780");
+    expect(note).toContain("they called from 9820592765");
+  });
+  it("starts the note with the summary when no name was given", () => {
+    expect(callNote(readCall({ interaction_id: "x", from: "9820592765", duration: 30, summary: "Asked about rates" }), new Date("2026-11-13T10:05:00Z")).split("\n")[0]).toMatch(/^AI phone call/);
   });
 });
