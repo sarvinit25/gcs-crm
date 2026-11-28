@@ -1,5 +1,5 @@
 import { INTAKE_GUIDE } from "./intake-guide";
-import { answerKey, answersByKey, checkAnswer, loanFor, nextQuestions, parseMoney, rupees, withSeeds } from "./intake.engine";
+import { answerKey, answersByKey, checkAnswer, equivalentKeys, incomeTypeSeed, loanFor, nextQuestions, parseMoney, rupees, withSeeds } from "./intake.engine";
 
 const field = (loan: string, key: string) => {
   const f = INTAKE_GUIDE[loan]!.fields.find((x) => x.key === key);
@@ -16,8 +16,39 @@ describe("parseMoney", () => {
     expect(parseMoney("75k")).toBe(75_000);
     expect(parseMoney("about a lot")).toBeNull();
   });
+  it("understands crore, lakh, Cr and L in every spelling people use", () => {
+    const cases: [string, number][] = [
+      ["1.5Cr", 15_000_000], ["2 Cr.", 20_000_000], ["2 crs", 20_000_000], ["1 crore", 10_000_000], ["3 Crores", 30_000_000],
+      ["25L", 2_500_000], ["25 L", 2_500_000], ["40 lacs", 4_000_000], ["40 lakhs", 4_000_000], ["Rs. 50 lakh", 5_000_000], ["₹1,20,000/-", 120_000],
+      ["5 lakh rupees", 500_000], ["50K", 50_000], ["10 thousand", 10_000], ["2 karod", 20_000_000],
+      ["1 crore 20 lakh", 12_000_000], ["2cr 50L", 25_000_000], ["1 cr and 5 lakh", 10_500_000], ["10 L 50 K", 1_050_000], ["1 cr 5 thousand", 10_005_000],
+    ];
+    for (const [text, value] of cases) expect([text, parseMoney(text)]).toEqual([text, value]);
+  });
+  it("does not make an amount out of something that is not one", () => {
+    for (const t of ["20 lakh 1 crore", "1 2 3", "lakh", "abc", "", "1 crore 20", "forty lakh"]) expect([t, parseMoney(t)]).toEqual([t, null]);
+  });
   it("writes amounts with Indian grouping, as the website does", () => {
     expect(rupees(4_000_000)).toBe("₹40,00,000");
+  });
+});
+
+describe("amounts written inside a sentence", () => {
+  const field = { key: "amt", label: "How much", kind: "amount" } as Parameters<typeof checkAnswer>[0];
+  const value = (text: string) => { const r = checkAnswer(field, text); return r.ok ? r.value : null; };
+  it("takes the one amount in a message, in whatever form", () => {
+    expect(value("I need about 40 lakh")).toBe("₹40,00,000");
+    expect(value("around 1.5 Cr please")).toBe("₹1,50,00,000");
+    expect(value("approx 25L")).toBe("₹25,00,000");
+    expect(value("it is 1 crore 20 lakh")).toBe("₹1,20,00,000");
+    expect(value("Rs 2 cr 50 L total")).toBe("₹2,50,00,000");
+  });
+  it("does not guess when a message holds two different amounts", () => {
+    expect(value("property is 80 lakh and I need 50 lakh")).toBeNull();
+  });
+  it("still asks for the unit when the figure is too small to be rupees", () => {
+    const r = checkAnswer(field, "25");
+    expect(r.ok).toBe(false);
   });
 });
 
@@ -231,5 +262,49 @@ describe("the checklist for a loan consolidation", () => {
   const { checklistUrl } = jest.requireActual("./intake.engine");
   it("is its own PDF", () => {
     expect(checklistUrl("https://x.in", "loan-consolidation", null)).toBe("https://x.in/checklists/loan-consolidation-checklist.pdf");
+  });
+});
+
+describe("never asking the same thing twice", () => {
+  it("knows two questions that ask the same thing under different keys, and never confuses a numbered series with them", () => {
+    const home = loanFor("home-loan")!;
+    expect(equivalentKeys(home, "plotOwned")).toEqual(["constructionPlotOwned"]);
+    expect(equivalentKeys(home, "constructionPlotOwned")).toEqual(["plotOwned"]);
+    // loan 1 and loan 2, and the co-applicant and the other earner, read alike but are different questions
+    expect(equivalentKeys(home, "loan1Type")).toEqual([]);
+    expect(equivalentKeys(home, "loan2Emi")).toEqual([]);
+    expect(equivalentKeys(home, "coApplicantRelation")).toEqual([]);
+    expect(equivalentKeys(home, "extraEarnerRelation")).toEqual([]);
+  });
+
+  it("counts a question as answered when its twin is", () => {
+    const home = loanFor("home-loan")!;
+    const both = withSeeds(home, { constructionPlotOwned: "Yes, it is in my name" });
+    expect(both["plotOwned"]).toBe("Yes, it is in my name");
+    // and so it is not asked: even with the other one showing
+    const asked = nextQuestions("home-loan", { homeLoanType: "Home Construction Loan", purpose: "Self-construction", constructionPlotOwned: "No, I am yet to buy it" }, 30).fields.map((f) => f.key);
+    expect(asked).not.toContain("plotOwned");
+    expect(asked).not.toContain("constructionPlotOwned");
+  });
+
+  it("works out the loan's 'type of income' question from what the customer said they are", () => {
+    const home = loanFor("home-loan")!;
+    expect(incomeTypeSeed(home, "Salaried")).toEqual({ key: "applicantCategory", value: "Salaried" });
+    expect(incomeTypeSeed(home, "Proprietor")).toEqual({ key: "applicantCategory", value: "Self-Employed" });
+    expect(incomeTypeSeed(home, "Professional")).toEqual({ key: "applicantCategory", value: "Self-Employed" });
+    expect(incomeTypeSeed(home, "NRI")).toEqual({ key: "applicantCategory", value: "NRI" });
+    expect(incomeTypeSeed(home, "Other")).toBeNull();
+    expect(incomeTypeSeed(home, null)).toBeNull();
+    // a loan with its own set of choices gets the matching one, and never a choice it does not have
+    for (const [slug, loan] of Object.entries(INTAKE_GUIDE)) {
+      for (const who of ["Salaried", "Proprietor", "Partner", "Director", "Professional", "NRI"]) {
+        const seed = incomeTypeSeed(loan, who);
+        if (!seed) continue;
+        expect([slug, loan.fields.find((f) => f.key === seed.key)!.options]).toEqual([slug, expect.arrayContaining([seed.value])]);
+      }
+    }
+    const pvt = Object.values(INTAKE_GUIDE).find((l) => l.fields.some((f) => f.key === "applicantType" && f.options?.includes("Pvt Ltd Co")))!;
+    expect(incomeTypeSeed(pvt, "Director")?.value).toBe("Pvt Ltd Co");
+    expect(incomeTypeSeed(pvt, "Partner")?.value).toBe("Partnership");
   });
 });

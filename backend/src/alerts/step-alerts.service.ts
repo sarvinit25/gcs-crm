@@ -36,7 +36,7 @@ export class StepAlertsService implements OnModuleInit {
   }
 
   private async followUp(p: Record<string, unknown>) {
-    const l = await this.prisma.lead.findUnique({ where: { id: String(p.leadId) }, select: { id: true, leadNo: true, name: true, phone: true, city: true, amount: true, loanProduct: { select: { slug: true } }, assignedOfficer: { select: { name: true, email: true } } } });
+    const l = await this.prisma.lead.findUnique({ where: { id: String(p.leadId) }, select: { id: true, leadNo: true, name: true, phone: true, secondaryPhone: true, city: true, amount: true, loanProduct: { select: { slug: true } }, assignedOfficer: { select: { name: true, email: true } } } });
     if (!l) return;
     const why = String(p.why ?? "");
     const reason: Record<string, string> = {
@@ -54,6 +54,8 @@ export class StepAlertsService implements OnModuleInit {
       ["Call back", when],
       ["Customer", l.name],
       ["Phone", l.phone ?? ""],
+      ...(l.secondaryPhone ? ([["Second number (work)", l.secondaryPhone]] as [string, string][]) : []),
+      ...(p.callbackNumber ? ([["Call back on", String(p.callbackNumber)]] as [string, string][]) : []),
       ["City", l.city ?? ""],
       ["Loan size", l.amount ? rupees(l.amount) : ""],
       ["Note", String(p.note ?? "").slice(0, 400)],
