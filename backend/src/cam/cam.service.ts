@@ -12,6 +12,7 @@ import { formatDateTimeIST } from "../common/date.util";
 import type { AuthUser } from "../auth/auth.decorators";
 import { analyse } from "./cam-analysis";
 import { buildCamWorkbook } from "./cam-workbook";
+import { camFromApplication } from "./cam-from-application";
 import { readStatement } from "./statement-read";
 import { StatementError } from "./statement-parse";
 import {
@@ -69,6 +70,7 @@ export function prefillFromLead(l: Omit<LeadRow, "answers"> & { answers?: { labe
     loanRequest: { amount: l.amount ? Number(l.amount) : null },
     income: {
       profile,
+      declaredMonthly: profile && profile !== "Salaried" && l.monthlyIncome ? Number(l.monthlyIncome) : null,
       employer: profile === "Salaried" ? l.employerName : null,
       designation: profile === "Salaried" ? l.designation : null,
       netMonthly: profile === "Salaried" && l.monthlyIncome ? Number(l.monthlyIncome) : null,
@@ -125,6 +127,29 @@ export class CamService {
     return found ?? { data: {} as Prisma.JsonValue, tokenHash: null, tokenEnc: null, tokenExpiresAt: null, tokenRevokedAt: null, linkCreatedAt: null, customerOpenedAt: null, customerSavedAt: null, customerSubmittedAt: null, updatedAt: new Date(0), updatedByName: null };
   }
 
+  /** The application raised from this lead, if any, whose newer details fill the CAM's blank boxes. */
+  private applicationOf(leadId: string) {
+    return this.prisma.application?.findUnique({
+      where: { leadId },
+      include: {
+        applicants: { orderBy: { isPrimary: "desc" } },
+        existingLoans: { orderBy: { createdAt: "asc" } },
+        references: true,
+        documents: { select: { category: true, fileName: true }, orderBy: [{ category: "asc" }, { createdAt: "asc" }] },
+        sanction: true,
+        disbursements: { orderBy: { disbursedAt: "asc" } },
+        lender: { select: { name: true } },
+      },
+    });
+  }
+
+  /** The CAM as it reads: what was saved, over what the lead knows, with blanks filled from the application. */
+  private async dataFor(lead: LeadRow, stored: CamData) {
+    const base = withPrefill(prefillFromLead(lead), stored);
+    const application = (await this.applicationOf(lead.id)) ?? null;
+    return { data: application ? camFromApplication(base, application) : base, application };
+  }
+
   private familyOf(lead: LeadRow, stored: CamData): Family {
     const chosen = String(stored._meta?.family ?? "");
     return (FAMILIES as string[]).includes(chosen) ? (chosen as Family) : familyOfSlug(lead.loanProduct?.slug);
@@ -179,7 +204,7 @@ export class CamService {
     const c = await this.peek(leadId);
     const stored = (c.data ?? {}) as CamData;
     const family = this.familyOf(lead, stored);
-    const data = withPrefill(prefillFromLead(lead), stored);
+    const { data } = await this.dataFor(lead, stored);
     const state = this.linkState(c);
     return {
       lead: { id: lead.id, leadNo: lead.leadNo, name: lead.name, phone: lead.phone, productName: lead.loanProduct?.name ?? null },
@@ -296,7 +321,7 @@ export class CamService {
     const c = await this.peek(leadId);
     const stored = (c.data ?? {}) as CamData;
     const family = this.familyOf(lead, stored);
-    const data = withPrefill(prefillFromLead(lead), stored);
+    const { data } = await this.dataFor(lead, stored);
     const analysis = analyse(family, data);
     const { match, matchNote } = await this.matchLenders(lead, data, analysis);
     return {
@@ -312,12 +337,21 @@ export class CamService {
     const c = await this.peek(leadId);
     const stored = (c.data ?? {}) as CamData;
     const family = this.familyOf(lead, stored);
-    const data = withPrefill(prefillFromLead(lead), stored);
+    const { data, application } = await this.dataFor(lead, stored);
     const analysis = analyse(family, data);
 
     const { match, matchNote } = await this.matchLenders(lead, data, analysis);
 
     const buffer = await buildCamWorkbook({
+      application: application && {
+        applicationNo: this.settings.applicationNo(application.seq, application.createdAt),
+        status: application.status,
+        lender: application.lender?.name ?? null,
+        bankReferenceNo: application.bankReferenceNo,
+        bankLoginAt: application.bankLoginAt,
+        sanction: application.sanction,
+        disbursements: application.disbursements,
+      },
       lead: { leadNo: lead.leadNo, name: lead.name, phone: lead.phone, email: lead.email, city: lead.city, productName: lead.loanProduct?.name ?? null, source: lead.source },
       family,
       data,

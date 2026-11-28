@@ -21,6 +21,16 @@ const RUPEE = '[>=10000000]"₹"##\\,##\\,##\\,##0;[>=100000]"₹"##\\,##\\,##0;
 const PCT = '0.0"%"';
 
 export type CamBookInput = {
+  /** The application raised from this lead: where it stands, and what the lender has sanctioned and paid. */
+  application?: {
+    applicationNo: string;
+    status: string;
+    lender: string | null;
+    bankReferenceNo: string | null;
+    bankLoginAt: Date | null;
+    sanction: { sanctionedAmount?: unknown; interestRate?: unknown; tenureMonths?: number | null; emiAmount?: unknown; sanctionLetterNo?: string | null; sanctionDate?: Date | null; firstEmiDate?: Date | null; processingFee?: unknown } | null;
+    disbursements: { disbursedAt: Date; amount: unknown; netAmount?: unknown; loanAccountNo?: string | null }[];
+  } | null;
   lead: { leadNo: number; name: string; phone: string; email: string | null; city: string | null; productName: string | null; source: string | null };
   family: Family;
   data: CamData;
@@ -67,13 +77,14 @@ function heading(ws: WS, row: number, text: string, cols = 2) {
   return row + 1;
 }
 
-type Fmt = "money" | "percent" | "text" | "number";
+type Fmt = "money" | "percent" | "text" | "number" | "date";
 function put(cell: ExcelJS.Cell, value: unknown, fmt: Fmt = "text") {
   if (value === null || value === undefined || value === "") { cell.value = null; return; }
   cell.value = value as ExcelJS.CellValue;
   if (fmt === "money") cell.numFmt = RUPEE;
   else if (fmt === "percent") cell.numFmt = PCT;
   else if (fmt === "number") cell.numFmt = "#,##0.##";
+  else if (fmt === "date") cell.numFmt = "d mmm yyyy";
 }
 
 /** Label / value rows. Returns the next free row. */
@@ -238,6 +249,33 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
       ["Lenders to approach", data.remarks?.recommendedLenders],
       ["Recommended amount", data.remarks?.recommendedAmount, "money"],
     ]);
+  }
+
+  // ── Application, sanction and disbursal ──
+  if (b.application) {
+    const x = b.application;
+    const ws = sheet(wb, "Application status", "APPLICATION, SANCTION AND DISBURSAL", sub, [34, 24, 24, 30]);
+    const n = (v: unknown) => (v === null || v === undefined ? null : Number(v));
+    const words = x.status.replace(/_/g, " ").toLowerCase().replace(/^./, (c) => c.toUpperCase());
+    heading(ws, 4, "The file", 4);
+    let r = pairs(ws, 5, [["Application number", x.applicationNo], ["Stage", words], ["Lender", x.lender], ["Bank application ID", x.bankReferenceNo], ["Login date", x.bankLoginAt, "date"]]);
+    const s = x.sanction;
+    if (s) {
+      heading(ws, r + 1, "Sanction", 4);
+      r = pairs(ws, r + 2, [["Sanctioned amount", n(s.sanctionedAmount), "money"], ["Interest rate a year, %", n(s.interestRate), "number"], ["Tenure (months)", s.tenureMonths ?? null, "number"], ["EMI", n(s.emiAmount), "money"], ["Sanction letter number", s.sanctionLetterNo ?? null], ["Sanction date", s.sanctionDate ?? null, "date"], ["First EMI date", s.firstEmiDate ?? null, "date"], ["Processing fee", n(s.processingFee), "money"]]);
+    }
+    if (x.disbursements.length) {
+      heading(ws, r + 1, "Disbursals", 4);
+      tableHeader(ws, r + 2, ["Date", "Amount", "Net paid", "Loan account number"]);
+      r += 3;
+      for (const d of x.disbursements) {
+        put2(ws, r, 1, d.disbursedAt, "date");
+        put2(ws, r, 2, n(d.amount), "money");
+        put2(ws, r, 3, n(d.netAmount ?? d.amount), "money");
+        put2(ws, r, 4, d.loanAccountNo ?? null);
+        r += 1;
+      }
+    }
   }
 
   // ── 2. Applicant ──

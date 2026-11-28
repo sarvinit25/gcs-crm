@@ -133,6 +133,7 @@ export const SECTIONS: Section[] = [
       { key: "otherIncome", label: "Other monthly income: rent, interest, bonus averaged (₹)", type: "money", show: { path: "income.profile", in: ["Salaried"] } },
       { key: "salaryMode", label: "How is the salary paid?", type: "select", options: ["Bank transfer", "Part bank, part cash", "Cash", "Cheque"], show: { path: "income.profile", in: ["Salaried"] } },
       // self-employed
+      { key: "declaredMonthly", label: "Your own income a month, as in your income tax return (₹)", type: "money", hint: "Your personal income, not the firm's profit.", show: { path: "income.profile", in: SELF } },
       { key: "businessName", label: "Business / practice name", type: "text", core: true, show: { path: "income.profile", in: SELF } },
       { key: "constitution", label: "Type of firm", type: "select", options: ["Proprietorship", "Partnership", "Private Limited", "LLP", "Other"], core: true, show: { path: "income.profile", in: SELF } },
       { key: "nature", label: "What the business does", type: "text", core: true, show: { path: "income.profile", in: SELF } },
@@ -528,7 +529,7 @@ export const SECTIONS: Section[] = [
       { key: "assumedRate", label: "Rate to assume for the calculations (% a year)", type: "percent", hint: "Leave blank to use the default for this loan type" },
       { key: "foirCeiling", label: "Repayment ceiling to assume (% of income)", type: "percent", hint: "Leave blank to use the default for this loan type" },
       { key: "conditions", label: "Conditions / notes for the lender", type: "longtext" },
-      { key: "incomeProgram", label: "Which income to use for the repayment capacity", type: "select", options: ["Cash profit (default)", "Net profit program", "Gross margin program", "Highest of the programs"], hint: "Lenders use different programs. The Income programs sheet shows all of them side by side." },
+      { key: "incomeProgram", label: "Which income to use for the repayment capacity", type: "select", options: ["Cash profit (default)", "Applicant's own income tax return", "Net profit program", "Gross margin program", "Highest of the programs"], hint: "Lenders use different programs. The Income programs sheet shows all of them side by side." },
     ],
     tables: [
       {

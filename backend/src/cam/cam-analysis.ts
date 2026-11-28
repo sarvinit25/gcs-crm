@@ -184,7 +184,12 @@ export function analyse(family: Family, data: CamData, today: Date = new Date())
   if (profile === "SALARIED") {
     const net = num(inc.netMonthly);
     if (net !== null) programs.push({ key: "salary", label: "Salaried income", annual: (net + (num(inc.otherIncome) ?? 0) * 0.5) * 12, note: "Net monthly salary plus half of other income, for 12 months" });
-  } else if (profile === "SELF_EMPLOYED" && latestRaw && latestIdx >= 0) {
+  }
+  // What the applicant's own return shows. For a company, LLP or partnership this, not the firm's profit, is their income.
+  const declared = profile === "SELF_EMPLOYED" ? num(inc.declaredMonthly) : null;
+  const separateFirm = ["Partnership", "Private Limited", "LLP"].includes(String(inc.constitution ?? ""));
+  if (declared !== null) programs.push({ key: "declared", label: "Applicant's own income tax return", annual: declared * 12, note: "The applicant's own income a month, for 12 months" });
+  if (profile === "SELF_EMPLOYED" && latestRaw && latestIdx >= 0) {
     const cash = financials[latestIdx]!.cashProfit;
     programs.push({ key: "cash", label: "Cash profit (default)", annual: cash, note: `Net profit + depreciation + interest + remuneration of ${financials[latestIdx]!.year}` });
     const np = considered(num(latestRaw.netProfit), num(priorRaw?.netProfit));
@@ -202,7 +207,7 @@ export function analyse(family: Family, data: CamData, today: Date = new Date())
   const valid = programs.filter((p) => p.annual !== null);
   const best = valid.length ? valid.reduce((m, p) => ((p.annual as number) > (m.annual as number) ? p : m)) : null;
   const wanted = String(rem.incomeProgram ?? "");
-  const pick = wanted === "Net profit program" ? valid.find((p) => p.key === "net") : wanted === "Gross margin program" ? valid.find((p) => p.key === "gross") : wanted === "Highest of the programs" ? best : valid.find((p) => p.key === "cash" || p.key === "salary");
+  const pick = wanted === "Net profit program" ? valid.find((p) => p.key === "net") : wanted === "Gross margin program" ? valid.find((p) => p.key === "gross") : wanted === "Highest of the programs" ? best : wanted === "Applicant's own income tax return" ? valid.find((p) => p.key === "declared") : wanted === "Cash profit (default)" && !separateFirm ? valid.find((p) => p.key === "cash") : valid.find((p) => p.key === "salary" || p.key === (separateFirm || !valid.some((x) => x.key === "cash") ? "declared" : "cash"));
   const chosen = pick ?? valid[0] ?? null;
 
   // monthly income considered
@@ -320,11 +325,13 @@ export function analyse(family: Family, data: CamData, today: Date = new Date())
   const v1 = num(val.valuer1Value);
   const v2 = num(val.valuer2Value);
   const valuer = v1 !== null && v2 !== null ? Math.min(v1, v2) : (v1 ?? v2);
-  const value = valuer !== null ? (agreement !== null ? Math.min(agreement, valuer) : valuer) : agreement !== null && market !== null ? Math.min(agreement, market) : (agreement ?? market);
+  // A "market value" far under the price agreed is usually a government or stamp figure, or a typing slip: it is not used.
+  const doubtful = valuer === null && agreement !== null && market !== null && market < agreement * 0.8;
+  const value = valuer !== null ? (agreement !== null ? Math.min(agreement, valuer) : valuer) : doubtful ? agreement : agreement !== null && market !== null ? Math.min(agreement, market) : (agreement ?? market);
   const marketValue = valuer ?? market;
   const property = {
     value,
-    basis: valuer !== null ? (v1 !== null && v2 !== null ? "Lower of the two valuers' values" : "The valuer's value") + (agreement !== null ? ", against the agreement value" : "") : agreement !== null && market !== null ? "Lower of agreement value and your estimate of market value" : agreement !== null ? "Agreement value" : market !== null ? "Estimated market value" : "Not given",
+    basis: valuer !== null ? (v1 !== null && v2 !== null ? "Lower of the two valuers' values" : "The valuer's value") + (agreement !== null ? ", against the agreement value" : "") : doubtful ? "Agreement value (the market value entered is far lower and needs checking)" : agreement !== null && market !== null ? "Lower of agreement value and your estimate of market value" : agreement !== null ? "Agreement value" : market !== null ? "Estimated market value" : "Not given",
     ltv: requested && value ? rnd(ltv(requested, value), 1) : null,
     ltvOnCost: requested && agreement ? rnd(ltv(requested, agreement), 1) : null,
     ltvOnMarket: requested && marketValue ? rnd(ltv(requested, marketValue), 1) : null,
@@ -406,6 +413,8 @@ export function analyse(family: Family, data: CamData, today: Date = new Date())
   // flags
   const flags: Flag[] = [];
   const add = (level: Flag["level"], text: string) => flags.push({ level, text });
+  if (doubtful) add("watch", `The market value entered, ${inr(market!)}, is ${Math.round((1 - market! / agreement!) * 100)}% below the agreement value of ${inr(agreement!)}. Check it: the agreement value is used until a valuer's figure is entered.`);
+  if (separateFirm && declared === null && chosen && chosen.key !== "salary") add("watch", "The income shown is the firm's profit. Enter the applicant's own income from their tax return: a partner or director does not receive all of it.");
   if (cibil !== null) {
     if (cibil < 650) add("risk", `CIBIL score ${cibil} is below 650`);
     else if (cibil < 700) add("watch", `CIBIL score ${cibil} is below 700, some lenders will not go ahead`);
