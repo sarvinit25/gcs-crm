@@ -27,10 +27,51 @@ export const loanChoices = () => Object.entries(INTAKE_GUIDE).map(([loanSlug, l]
 /** "Other (my reason)" counts as "Other" when deciding which later questions to show. */
 const asChoice = (v: string | undefined) => (v && v.startsWith("Other (") ? "Other" : v);
 
-/** What a chosen kind of loan already answers, as part of the answers so far. */
+const answered = (answers: Answers, key: string) => (answers[key] ?? "").trim() !== "";
+
+/**
+ * Questions that ask the very same thing under two keys ("Do you already own the plot?" on a construction loan and on a
+ * self-construction purchase). Numbered or per-person series (loan 1 and loan 2, the co-applicant and the other earner) are
+ * different questions that merely read alike, so they never count.
+ */
+const inSeries = (key: string) => /\d/.test(key) || /^(coApplicant|extraEarner)/.test(key);
+const norm = (t: string) => t.toLowerCase().replace(/[^a-z0-9\u0900-\u097f ]+/g, " ").replace(/\s+/g, " ").trim();
+export function equivalentKeys(loan: IntakeLoan, key: string): string[] {
+  const field = loan.fields.find((f) => f.key === key);
+  if (!field || inSeries(key)) return [];
+  const same = (f: IntakeField) => norm(f.label) === norm(field.label) && f.kind === field.kind && JSON.stringify(f.options ?? []) === JSON.stringify(field.options ?? []);
+  return loan.fields.filter((f) => f.key !== key && !inSeries(f.key) && same(f)).map((f) => f.key);
+}
+
+/**
+ * What the opening question "what describes you best" already answers about the loan's own "type of income" question, so it
+ * is not asked a second time. Only where the loan's choices have a clear match.
+ */
+export function incomeTypeSeed(loan: IntakeLoan, applicant: string | null | undefined): { key: string; value: string } | null {
+  const field = loan.fields.find((f) => f.key === "applicantType" || f.key === "applicantCategory");
+  if (!field || !applicant) return null;
+  const options = field.options ?? [];
+  const has = (o: string) => options.find((x) => x.toLowerCase() === o.toLowerCase());
+  const who = applicant.trim().toLowerCase();
+  const value =
+    who === "salaried" ? has("Salaried")
+    : who === "nri" ? has("NRI")
+    : who === "partner" ? (has("Partnership") ?? has("Self-Employed"))
+    : who === "director" ? (has("Pvt Ltd Co") ?? has("Self-Employed"))
+    : who === "proprietor" || who === "professional" ? has("Self-Employed")
+    : undefined;
+  return value ? { key: field.key, value } : null;
+}
+
+/** What a chosen kind of loan already answers, and what a question already answered under another key answers, as part of the answers so far. */
 export function withSeeds(loan: IntakeLoan, answers: Answers): Answers {
   const seeds = answers["loanKind"] ? (loan.kindSeeds[answers["loanKind"]] ?? {}) : {};
-  return { ...seeds, ...answers };
+  const all: Answers = { ...seeds, ...answers };
+  for (const f of loan.fields) {
+    if (!answered(all, f.key)) continue;
+    for (const other of equivalentKeys(loan, f.key)) if (!answered(all, other)) all[other] = all[f.key]!;
+  }
+  return all;
 }
 
 /** Is this question showing, given the answers so far? A question shown only after another is itself only shown if that one is. */
@@ -41,8 +82,6 @@ function showing(loan: IntakeLoan, field: IntakeField, answers: Answers, depth =
   if (controller && !showing(loan, controller, answers, depth + 1)) return false;
   return field.showWhen.values.includes(asChoice(answers[field.showWhen.key]) ?? "");
 }
-
-const answered = (answers: Answers, key: string) => (answers[key] ?? "").trim() !== "";
 
 /** A follow-up text question to an "Other" choice ("Please say what it is for") is answered by "Other (what it is)". */
 function coveredByOther(loan: IntakeLoan, field: IntakeField, answers: Answers) {
@@ -75,23 +114,72 @@ const STOP = new Set(["the", "of", "or", "and", "a", "an", "to", "in", "is", "it
 const lakh = 100_000;
 const crore = 10_000_000;
 
-/** "40 lakh", "1.5 cr", "4000000", "40,00,000" -> a number, or null. */
+/** What each unit word is worth: crore / cr / crs, lakh / lac / lks / l, thousand / k / hazaar (Latin and Devanagari). */
+const UNIT_VALUE: [RegExp, number][] = [
+  [/^(crore|crores|crs|cr|karod|karodh|करोड़|करोड)$/, crore],
+  [/^(lakh|lakhs|lac|lacs|lks|lk|l|लाख)$/, lakh],
+  [/^(thousand|thousands|hazaar|hazar|hajar|k|हजार|हज़ार)$/, 1000],
+];
+const unitValue = (u: string | undefined): number => (u ? (UNIT_VALUE.find(([re]) => re.test(u))?.[1] ?? 0) : 1);
+const UNIT_WORDS = "crores?|crs?|karodh?|करोड़|करोड|lakhs?|lacs?|lks?|lk|l|लाख|thousands?|hazaa?r|hajar|k|हजार|हज़ार";
+
+/** Takes currency words and marks off: "Rs. 25 L", "₹1,20,000/-", "5 lakh rupees". */
+const stripCurrency = (raw: string) =>
+  raw
+    .toLowerCase()
+    .replace(/(?<=\d),(?=\d)/g, "") // "40,00,000" is one number
+    .replace(/\b(half|aadha|adha)\s+(a\s+)?(?=(crores?|crs?|lakhs?|lacs?|lks?|l)\b)/g, "0.5 ") // "half a crore"
+    .replace(/₹|\brs\.?(?=\s|\d|$)|\binr\b|\brupees?\b|\bonly\b|\/-|,/g, " ")
+    .replace(/[.;!]+\s*$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+/**
+ * "40 lakh", "1.5 Cr", "25L", "2 cr 50 L", "1 crore 20 lakh", "40,00,000", "4000000" -> rupees, or null. A sum of parts must
+ * go from the larger unit to the smaller ("1 crore 20 lakh", never "20 lakh 1 crore").
+ */
 export function parseMoney(raw: string): number | null {
-  const text = raw.toLowerCase().replace(/[₹,\s]|rs\.?|inr/g, "");
-  const m = text.match(/^(\d+(?:\.\d+)?)(crore|crores|cr|lakh|lakhs|lac|lacs|l|k|thousand)?$/);
-  if (!m) return null;
-  const n = Number(m[1]);
-  const unit = m[2];
-  const times = !unit ? 1 : /^(crore|crores|cr)$/.test(unit) ? crore : /^(lakh|lakhs|lac|lacs|l)$/.test(unit) ? lakh : 1000;
-  const value = Math.round(n * times);
-  return Number.isFinite(value) ? value : null;
+  const text = stripCurrency(String(raw ?? ""));
+  if (!text) return null;
+  const part = new RegExp(`(\\d+(?:\\.\\d+)?)\\s*(${UNIT_WORDS})?(?![\\p{L}\\d])\\s*(?:and\\s+)?`, "uy");
+  let total = 0;
+  let last = Infinity;
+  let parts = 0;
+  let pos = 0;
+  while (pos < text.length) {
+    part.lastIndex = pos;
+    const m = part.exec(text);
+    if (!m) return null;
+    const times = unitValue(m[2]);
+    // a bare number is only an amount on its own; after a unit it is not a smaller unit we can trust
+    if (!m[2] && parts > 0) return null;
+    if (times >= last) return null;
+    total += Number(m[1]) * times;
+    last = times;
+    parts += 1;
+    pos = part.lastIndex;
+  }
+  const value = Math.round(total);
+  return parts > 0 && Number.isFinite(value) ? value : null;
 }
 
-/** An amount inside a sentence ("about 1.5 lakh a month"): used only when the sentence holds exactly one figure. */
+/** An amount inside a sentence ("about 1.5 lakh a month", "around 1 cr 20 L"): used only when the sentence holds exactly one amount. */
 function looseMoney(raw: string): number | null {
-  const found = [...raw.matchAll(/(\d[\d,]*(?:\.\d+)?)\s*(crore|crores|cr|lakh|lakhs|lac|lacs|l|k|thousand)?(?![a-z])/gi)];
-  if (found.length !== 1) return null;
-  return parseMoney(`${found[0]![1]}${found[0]![2] ?? ""}`);
+  const text = stripCurrency(raw);
+  const piece = new RegExp(`(\\d+(?:\\.\\d+)?)\\s*(${UNIT_WORDS})?(?![\\p{L}\\d])`, "giu");
+  const found = [...text.matchAll(piece)];
+  const groups: string[] = [];
+  let prevEnd = -1;
+  let prevHadUnit = false;
+  for (const m of found) {
+    const gap = prevEnd >= 0 ? text.slice(prevEnd, m.index) : "";
+    // a part with a unit followed straight by another part ("1 cr 20 L", "1 crore and 20 lakh") belongs to the same amount
+    if (groups.length && prevHadUnit && /^\s*(and\s+)?$/.test(gap) && m[2]) groups[groups.length - 1] += ` ${m[0]}`;
+    else groups.push(m[0]);
+    prevEnd = m.index! + m[0].length;
+    prevHadUnit = Boolean(m[2]);
+  }
+  return groups.length === 1 ? parseMoney(groups[0]!) : null;
 }
 
 /** Does the customer's own message carry a figure (digits, or a number word in English, Hindi or Marathi)? The AI must never turn "Rent" into 0. */
