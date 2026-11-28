@@ -65,6 +65,8 @@ export function camFromExtraction(raw: unknown): CamPatch | null {
       return year && Object.keys(row).length ? { year, ...row } : null;
     })
     .filter((x): x is Row & { year: string } => x !== null)
+    // A profit larger than the whole turnover is a person's salary-and-share return, not a business year.
+    .filter((x) => !(Number(x.turnover) > 0 && Number(x.netProfit) > Number(x.turnover)))
     .slice(0, 3);
   if (years.length) income.financials = years;
   const sheets = (Array.isArray(r.balanceSheet) ? r.balanceSheet : [])

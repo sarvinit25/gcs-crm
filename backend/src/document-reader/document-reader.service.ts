@@ -94,7 +94,17 @@ export class DocumentReaderService implements OnModuleInit {
           delete patch.gst;
         }
         // A person's own total income is taken only from a paper in their own name, never from the firm's.
-        if (patch.income && !(reading.person && belongsToApplicant(reading.person, [data.applicant?.fullName, lead?.name], []))) delete patch.income.declaredMonthly;
+        const own = Boolean(reading.person && belongsToApplicant(reading.person, [data.applicant?.fullName, lead?.name], []));
+        if (patch.income && !own) delete patch.income.declaredMonthly;
+        // When the business is a firm of its own (partnership, LLP, company), a partner's personal return is not its accounts.
+        if (patch.income && own && (patch.income.financials || patch.income.balanceSheet)) {
+          const applicant = await this.prisma.applicant?.findFirst({ where: { isPrimary: true, application: { leadId } }, select: { constitution: true } });
+          const kind = String((data.income as { constitution?: string } | undefined)?.constitution ?? applicant?.constitution ?? "");
+          if (/partnership|private.?limited|llp/i.test(kind)) {
+            delete patch.income.financials;
+            delete patch.income.balanceSheet;
+          }
+        }
       }
       if (patch && !Object.keys(patch).length) patch = null;
     }

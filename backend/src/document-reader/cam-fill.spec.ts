@@ -97,3 +97,9 @@ describe("accounts, a personal return and GST months", () => {
     expect(r.patch.income!.balanceSheet).toEqual([{ year: "2024-25", netWorth: 5, debtors: 2 }]);
   });
 });
+
+describe("a person's return read as a business year", () => {
+  it("is dropped when the profit is more than the turnover", () => {
+    expect(camFromExtraction({ financials: [{ year: "2025-26", turnover: 100, netProfit: 200 }] })).toBeNull();
+  });
+});
