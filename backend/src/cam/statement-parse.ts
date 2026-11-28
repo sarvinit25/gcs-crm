@@ -236,7 +236,25 @@ const PAIR_FIRST = new RegExp(`^(${FIGURE}) ?(${FIGURE})`);
  * two separate figures, each maybe marked Cr or Dr: HDFC, SBI, Kotak, Bank of Baroda and most others. */
 const ANY_START = /^(?:\d{1,4}[ .)]+)?(\d{1,2}[-/. ](?:\d{1,2}|[A-Za-z]{3,9})[-/. ,]+\d{2,4})(?![\d,.])/;
 const SIGN = String.raw`(?:\s?\(?(?:CR|Cr|DR|Dr|cr|dr)\b\.?\)?)?`;
-const PAIR_SPACED = new RegExp(String.raw`^(.*?)(?<![\d,.])(-?${FIGURE}${SIGN})\s+(-?${FIGURE}${SIGN})$`);
+/** A figure with or without commas: several banks print "10000.00". */
+const LOOSE = String.raw`(?:\d{1,3}(?:,\d{2,3})+|\d+)\.\d{2}`;
+const PAIR_SPACED = new RegExp(String.raw`^(.*?)(?<![\d,.])(-?${LOOSE}${SIGN})\s+(-?${LOOSE}${SIGN})$`);
+const BEFORE_ZERO = new RegExp(String.raw`^(.*?)(?<![\d,.])(${LOOSE})$`);
+
+/** The amount and the balance at the end of a line. A dash or "0.00" standing in the unused debit or credit column is passed over. */
+function pairAtEnd(rest: string): { text: string; amount: number; balance: number } | null {
+  const m = PAIR_SPACED.exec(rest.replace(/(^|\s)-(?=\s)/g, "$1").replace(/\s+/g, " ").trim());
+  if (!m) return null;
+  let text = m[1]!.trim();
+  let amount = Math.abs(parseMoney(m[2])!);
+  if (amount === 0) {
+    const other = BEFORE_ZERO.exec(text);
+    if (!other) return null;
+    text = other[1]!.trim();
+    amount = Math.abs(parseMoney(other[2])!);
+  }
+  return { text, amount, balance: parseMoney(m[3])! };
+}
 
 /**
  * Statements where an entry starts with its dates and ends, some lines later, with the amount and the running balance run
@@ -258,13 +276,12 @@ function fromRunning(lines: string[], text: string, starts: RegExp[] = RUNNING_S
       rest = line.slice(start[0].length).trim();
     }
     if (!date) continue;
-    const spaced = PAIR_SPACED.exec(rest);
+    const spaced = pairAtEnd(rest);
     if (spaced) {
-      const amount = Math.abs(parseMoney(spaced[2])!);
-      const after = parseMoney(spaced[3])!;
+      const { amount, balance: after } = spaced;
       const change = prev === null ? null : Math.round((after - prev) * 100) / 100;
       if (change === null || Math.abs(Math.abs(change) - amount) < 0.011) {
-        const body = [...words, spaced[1]].join(" ").trim().slice(0, 300);
+        const body = [...words, spaced.text].join(" ").trim().slice(0, 300);
         if (change === null) out.push({ date, text: body, amounts: [amount], balance: after });
         else out.push({ date, text: body, debit: change < 0 ? amount : 0, credit: change > 0 ? amount : 0, amounts: [], balance: after });
         prev = after;
@@ -299,9 +316,45 @@ function fromRunning(lines: string[], text: string, starts: RegExp[] = RUNNING_S
 
 const splitLines = (text: string) => text.split(/\r?\n/).map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean);
 
+/** For statements printed newest first: every dated entry is gathered, turned round, and then held to the same proof. */
+function fromNewestFirst(lines: string[]): Raw[] {
+  const found: { date: Date; text: string; amount: number; balance: number }[] = [];
+  let date: Date | null = null;
+  let words: string[] = [];
+  for (const line of lines) {
+    const start = ANY_START.exec(line);
+    let rest = line;
+    if (start && parseDate(start[1])) {
+      date = parseDate(start[1]);
+      words = [];
+      rest = line.slice(start[0].length).trim();
+    }
+    if (!date) continue;
+    const pair = pairAtEnd(rest);
+    if (pair) {
+      found.push({ date, text: [...words, pair.text].join(" ").trim().slice(0, 300), amount: pair.amount, balance: pair.balance });
+      date = null;
+    } else if (rest && words.join(" ").length < 300) words.push(rest);
+  }
+  found.reverse();
+  const out: Raw[] = [];
+  for (let i = 1; i < found.length; i++) {
+    const f = found[i]!;
+    const change = Math.round((f.balance - found[i - 1]!.balance) * 100) / 100;
+    if (Math.abs(Math.abs(change) - f.amount) < 0.011) out.push({ date: f.date, text: f.text, debit: change < 0 ? f.amount : 0, credit: change > 0 ? f.amount : 0, amounts: [], balance: f.balance });
+  }
+  // The oldest entry has nothing before it to prove it, so it joins only when the rest have proved the layout.
+  const oldest = found[0];
+  if (oldest && out.length) out.unshift({ date: oldest.date, text: oldest.text, amounts: [oldest.amount], balance: oldest.balance });
+  return out;
+}
+
 /** The general reading, for any bank: only entries the running balance proves are taken. */
 export function fromAnyBank(text: string): Raw[] {
-  return fromRunning(splitLines(text), text, [ANY_START]);
+  const lines = splitLines(text);
+  const oldestFirst = fromRunning(lines, text, [ANY_START]);
+  const newestFirst = fromNewestFirst(lines);
+  return newestFirst.length > oldestFirst.length ? newestFirst : oldestFirst;
 }
 
 /** The same reading for the library's own rendering of a page, which keeps this layout's pieces together. */

@@ -155,6 +155,38 @@ const blank = (v: unknown) => v === undefined || v === null || v === "" || (Arra
 const same = (a: unknown, b: unknown) => String(a ?? "").trim().toLowerCase() === String(b ?? "").trim().toLowerCase();
 
 /**
+ * A statement's months go to the account they belong to: the first table, or the second when the first is another account's.
+ * Months of the same account arrive one file at a time and are gathered, newest first; a month already there is left alone.
+ * A third account is not taken.
+ */
+function bankingByAccount(have: Row, banking: Row, detail: Row | undefined, haveDetail: Row): { patch: CamPatch; filled: string[] } {
+  const ref = String(banking.accountRef);
+  const list = (v: unknown) => (Array.isArray(v) ? (v as Row[]) : []).filter((x) => x && Object.values(x).some((c) => !blank(c)));
+  const merge = (now: unknown, more: unknown) => {
+    const rows = list(now);
+    const added = list(more).filter((n) => !rows.some((x) => monthOf(x.month) === monthOf(n.month)));
+    return added.length ? [...rows, ...added].sort((a, b) => monthOrder(monthOf(b.month)) - monthOrder(monthOf(a.month))).slice(0, 12) : null;
+  };
+  const patch: CamPatch = {};
+  const filled: string[] = [];
+  const first = !list(have.months).length || have.accountRef === ref;
+  const second = !first && (!list(have.months2).length || have.accountRef2 === ref);
+  if (!first && !second) return { patch, filled };
+  const [table, label] = first ? ["months", "accountRef"] : ["months2", "accountRef2"];
+  const rows = merge(have[table], banking.months);
+  if (rows) {
+    patch.banking = { [table]: rows, [label]: ref };
+    filled.push(`banking.${table}`);
+  }
+  const more = first && detail ? merge(haveDetail.detail, detail.detail) : null;
+  if (more) {
+    patch.bankingDetail = { detail: more };
+    filled.push("bankingDetail.detail");
+  }
+  return { patch, filled };
+}
+
+/**
  * What to save so that only blanks are filled. Financial years merge by year (missing cells of a known year are filled, new
  * years added, newest first); a loan is added only when no loan from that lender with that EMI is listed. Other tables, such as
  * bank months, are filled only while empty. Returns the patch and the names of what it fills.
@@ -167,7 +199,15 @@ export function onlyBlanks(existing: unknown, patch: CamPatch): { patch: CamPatc
     (out[section] ||= {})[key] = value;
     filled.push(`${section}.${key}`);
   };
+  // A statement that says which account it is for is placed by account.
+  const byAccount = Boolean(patch.banking?.accountRef);
+  if (byAccount) {
+    const placed = bankingByAccount(obj(data.banking), patch.banking!, patch.bankingDetail, obj(data.bankingDetail));
+    Object.assign(out, placed.patch);
+    filled.push(...placed.filled);
+  }
   for (const [section, fields] of Object.entries(patch)) {
+    if (byAccount && (section === "banking" || section === "bankingDetail")) continue;
     const have = obj(data[section]);
     for (const [key, value] of Object.entries(fields)) {
       const current = have[key];

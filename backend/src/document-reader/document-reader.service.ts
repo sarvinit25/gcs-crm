@@ -257,7 +257,7 @@ export class DocumentReaderService implements OnModuleInit {
     try {
       const app = await this.prisma.application.findUnique({ where: { id: applicationId }, select: { leadId: true } });
       const docs = await this.prisma.document.findMany({ where: { applicationId, category: "Bank statement", reading: null }, orderBy: { createdAt: "asc" }, take: 12 });
-      let best: { documentId: string; fileName: string; months: number; fill: CamPatch } | null = null;
+      const found: { documentId: string; months: number; fill: CamPatch }[] = [];
       for (const d of docs) {
         try {
           const local = await this.tryStatement(await this.storage.get(d.objectKey), d.fileName);
@@ -269,17 +269,19 @@ export class DocumentReaderService implements OnModuleInit {
             update: {},
           });
           read++;
-          if (!best || local.analysis.monthsFound > best.months) best = { documentId: d.id, fileName: d.fileName, months: local.analysis.monthsFound, fill: local.fill as unknown as CamPatch };
+          found.push({ documentId: d.id, months: local.analysis.monthsFound, fill: local.fill as unknown as CamPatch });
         } catch (e) {
           this.log.warn(`Could not read the statement ${d.fileName} on our server: ${(e as Error).message}`);
         }
       }
-      if (best && app?.leadId) {
-        const cam = await this.prisma.camCase.findUnique({ where: { leadId: app.leadId }, select: { data: true } });
-        const banking = ((cam?.data ?? {}) as { banking?: { months?: unknown[] } }).banking;
-        if (!banking?.months?.length) {
-          await this.cam.save(app.leadId, { data: best.fill }, user);
-          await this.prisma.documentReading.update({ where: { documentId: best.documentId }, data: { appliedToCamAt: new Date() } });
+      // The longest statement first, so its account takes the first table; the other account's months follow into the second.
+      if (app?.leadId) {
+        for (const one of found.sort((x, y) => y.months - x.months)) {
+          const cam = await this.prisma.camCase.findUnique({ where: { leadId: app.leadId }, select: { data: true } });
+          const fill = onlyBlanks(cam?.data, one.fill);
+          if (!fill.filled.length) continue;
+          await this.cam.save(app.leadId, { data: fill.patch }, user);
+          await this.prisma.documentReading.update({ where: { documentId: one.documentId }, data: { appliedToCamAt: new Date() } });
           appliedToCam = true;
         }
       }
@@ -339,7 +341,10 @@ export class DocumentReaderService implements OnModuleInit {
     const doc = await this.documentFor(applicationId, documentId);
     const reading = await this.prisma.documentReading.findUnique({ where: { documentId } });
     if (!reading?.cam) throw new BadRequestException("Nothing from this document can go into the CAM.");
-    await this.cam.save(app.leadId, { data: reading.cam }, user, ip);
+    // A statement is added beside what is there, to its own account's table, and never over another account's months.
+    const patch = reading.cam as unknown as CamPatch;
+    const data = patch.banking?.accountRef ? onlyBlanks((await this.prisma.camCase.findUnique({ where: { leadId: app.leadId }, select: { data: true } }))?.data, patch).patch : patch;
+    await this.cam.save(app.leadId, { data }, user, ip);
     await this.prisma.documentReading.update({ where: { documentId }, data: { appliedToCamAt: new Date() } });
     await this.audit.record({ actor: user, action: AuditAction.UPDATE, entity: "Document", entityId: documentId, entityLabel: `${doc.fileName} · added to the CAM`, ip });
     return { ok: true };

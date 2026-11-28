@@ -560,6 +560,31 @@ export async function buildCamWorkbook(b: CamBookInput): Promise<Buffer> {
       put2(ws, r, 6, { formula: `SUM(F${first}:F${last})`, result: sum(months.map((m) => (typeof m.returns === "number" ? m.returns : 0))) } as never, "number", true);
       r += 2;
     }
+    const months2 = tableRows(data, "banking", "months2");
+    if (months2.length) {
+      r = heading(ws, r, `Second account${data.banking?.accountRef2 ? `: ${data.banking.accountRef2}` : ""}`, 6);
+      tableHeader(ws, r, ["Month", "Credits", "Debits", "Average balance", "Lowest balance", "Returns"]);
+      r += 1;
+      const from = r;
+      for (const m of months2) {
+        put2(ws, r, 1, m.month ?? null); put2(ws, r, 2, m.credits ?? null, "money"); put2(ws, r, 3, m.debits ?? null, "money");
+        put2(ws, r, 4, m.avgBalance ?? null, "money"); put2(ws, r, 5, m.minBalance ?? null, "money"); put2(ws, r, 6, m.returns ?? null, "number");
+        r += 1;
+      }
+      const to = r - 1;
+      put2(ws, r, 1, "Average a month", "text", true).fill = solid(PALE);
+      const means = [a.banking.second?.avgCredits ?? 0, 0, a.banking.second?.avgBalance ?? 0];
+      const debitsOf = months2.map((m) => (typeof m.debits === "number" ? m.debits : 0));
+      means[1] = debitsOf.reduce((p, c) => p + c, 0) / debitsOf.length;
+      ["B", "C", "D"].forEach((c, i) => put2(ws, r, i + 2, { formula: `IFERROR(AVERAGE(${c}${from}:${c}${to}),0)`, result: means[i] } as never, "money", true));
+      r += 2;
+      r = heading(ws, r, "Both accounts together, average a month", 6);
+      r = pairs(ws, r, [
+        ["Credits (money moved between the two accounts is counted in both)", (a.banking.avgCredits12 ?? 0) + (a.banking.second?.avgCredits ?? 0), "money"],
+        ["Average balance", (a.banking.avgBalance ?? 0) + (a.banking.second?.avgBalance ?? 0), "money"],
+      ]);
+      r += 1;
+    }
     const detail = tableRows(data, "bankingDetail", "detail");
     if (detail.length) {
       r = heading(ws, r, `From the statement, in detail${data.bankingDetail?.bankName ? `: ${data.bankingDetail.bankName}` : ""}`, 12);

@@ -1,3 +1,4 @@
+import { settle as settleAny } from "./statement-parse";
 import { fromAnyBank } from "./statement-parse";
 import ExcelJS from "exceljs";
 import { analyseTxns } from "./statement-analyse";
@@ -271,5 +272,15 @@ describe("other banks' column layouts", () => {
   });
   it("leaves out a line the balance does not prove", () => {
     expect(read(["Opening Balance 10,000.00", "01/04/2026 TOTAL 7.00 8.00", "01/04/2026 CHQ 500.00 9,500.00"])).toEqual([[500, 0, 9500]]);
+  });
+});
+
+describe("more column layouts", () => {
+  const read = (lines: string[]) => settleAny(fromAnyBank(lines.join("\n"))).map((x) => [x.debit, x.credit, x.balance]);
+  it("reads figures without commas, and a zero or dash in the unused column", () => {
+    expect(read(["Opening Balance 10000.00", "01/04/2026 CHQ 500.00 0.00 9500.00", "02/04/2026 NEFT 0.00 2000.00 11500.00", "03/04/2026 ATM 100.00 - 11400.00", "04/04/2026 CASH - 100.00 11500.00"])).toEqual([[500, 0, 9500], [0, 2000, 11500], [100, 0, 11400], [0, 100, 11500]]);
+  });
+  it("reads a statement printed newest first", () => {
+    expect(read(["03-04-2026 ATM 100.00 11,400.00", "02-04-2026 NEFT 2,000.00 11,500.00", "01-04-2026 UPI 500.00 9,500.00"])).toEqual([[500, 0, 9500], [0, 2000, 11500], [100, 0, 11400]]);
   });
 });

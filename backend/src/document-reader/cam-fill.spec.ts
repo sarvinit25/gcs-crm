@@ -103,3 +103,18 @@ describe("a person's return read as a business year", () => {
     expect(camFromExtraction({ financials: [{ year: "2025-26", turnover: 100, netProfit: 200 }] })).toBeNull();
   });
 });
+
+describe("two bank accounts", () => {
+  const stmt = (ref: string, month: string) => ({ banking: { accountRef: ref, months: [{ month, credits: 1 }] }, bankingDetail: { detail: [{ month }] } });
+  it("gathers one account month by month, newest first", () => {
+    const r = onlyBlanks({ banking: { accountRef: "Yes 1160", months: [{ month: "Aug 2026" }] } }, stmt("Yes 1160", "Sep 2026"));
+    expect((r.patch.banking!.months as { month: string }[]).map((m) => m.month)).toEqual(["Sep 2026", "Aug 2026"]);
+  });
+  it("puts another account in the second table and leaves a third out", () => {
+    const have = { banking: { accountRef: "Yes 1160", months: [{ month: "Aug 2026" }] } };
+    const r = onlyBlanks(have, stmt("Axis 8307", "Aug 2026"));
+    expect(r.patch).toEqual({ banking: { accountRef2: "Axis 8307", months2: [{ month: "Aug 2026", credits: 1 }] } });
+    const full = { banking: { ...have.banking, accountRef2: "Axis 8307", months2: [{ month: "Aug 2026" }] } };
+    expect(onlyBlanks(full, stmt("HDFC 1", "Sep 2026")).filled).toEqual([]);
+  });
+});

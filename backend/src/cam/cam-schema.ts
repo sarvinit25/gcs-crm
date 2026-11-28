@@ -240,6 +240,8 @@ export const SECTIONS: Section[] = [
     families: "all",
     fields: [
       { key: "mainBank", label: "Main bank", type: "text", core: true },
+      { key: "accountRef", label: "Account the first table is from", type: "text", hint: "Bank and last 4 digits" },
+      { key: "accountRef2", label: "Second account (for example the firm's)", type: "text", hint: "Bank and last 4 digits" },
       { key: "accountType", label: "Account type", type: "select", options: ["Savings", "Current", "Overdraft / cash credit"] },
       { key: "accountSince", label: "Account open since (year)", type: "number" },
       { key: "otherAccounts", label: "Other bank accounts you use (bank and type)", type: "longtext" },
@@ -251,6 +253,20 @@ export const SECTIONS: Section[] = [
         label: "Month-wise banking",
         maxRows: 12,
         startRows: 6,
+        columns: [
+          { key: "month", label: "Month (e.g. Oct 2026)", type: "text" },
+          { key: "credits", label: "Total credits (₹)", type: "money" },
+          { key: "debits", label: "Total debits (₹)", type: "money" },
+          { key: "avgBalance", label: "Average balance (₹)", type: "money" },
+          { key: "minBalance", label: "Lowest balance (₹)", type: "money" },
+          { key: "returns", label: "Cheque / EMI returns", type: "number" },
+        ],
+      },
+      {
+        key: "months2",
+        label: "Month-wise banking, second account",
+        maxRows: 12,
+        startRows: 0,
         columns: [
           { key: "month", label: "Month (e.g. Oct 2026)", type: "text" },
           { key: "credits", label: "Total credits (₹)", type: "money" },

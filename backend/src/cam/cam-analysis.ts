@@ -74,6 +74,8 @@ export type Analysis = {
     returns: number;
     abbToEmi: number | null;
     creditsTrendPct: number | null;
+    /** A second account, shown beside the first. The eligibility figures stay on the first. */
+    second: { months: number; avgCredits: number | null; avgBalance: number | null } | null;
   };
   /** The statement worked out in detail: balances on four dates a month, EMIs seen, return rates. */
   bankingDetail: { months: number; abb: number | null; emisSeenAvg: number | null; declaredEmi: number; inwardPct: number | null; outwardPct: number | null };
@@ -287,7 +289,10 @@ export function analyse(family: Family, data: CamData, today: Date = new Date())
   const recentAvgBalance = months.length >= 4 ? avg(months.slice(0, 3).map((m) => num(m.avgBalance))) : null;
   // The EMI cover is judged on the lower of the long average and the recent one: a balance that has run down is the real position.
   const coverBalance = avgBalance !== null && recentAvgBalance !== null ? Math.min(avgBalance, recentAvgBalance) : avgBalance;
+  const months2 = rows(data, "banking", "months2");
+  const second = months2.length ? { months: months2.length, avgCredits: rnd(avg(months2.map((m) => num(m.credits)))), avgBalance: rnd(avg(months2.map((m) => num(m.avgBalance)))) } : null;
   const banking = {
+    second,
     months: months.length,
     avgCredits6: rnd(c6),
     avgCredits12: rnd(avg(credits.slice(0, 12))),

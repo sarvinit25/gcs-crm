@@ -81,11 +81,28 @@ export function unreconciled(txns: Txn[]): number {
   return n;
 }
 
+const BANKS: [RegExp, string][] = [
+  [/\bYESB0|\bYES BANK/i, "Yes Bank"], [/\bUTIB0|\bAXIS BANK/i, "Axis Bank"], [/\bHDFC0|\bHDFC BANK/i, "HDFC Bank"], [/\bSBIN0|STATE BANK OF INDIA/i, "SBI"],
+  [/\bICIC0|\bICICI BANK/i, "ICICI Bank"], [/\bKKBK0|KOTAK MAHINDRA/i, "Kotak"], [/\bBARB0|BANK OF BARODA/i, "Bank of Baroda"], [/\bPUNB0|PUNJAB NATIONAL/i, "PNB"],
+  [/\bCNRB0|CANARA BANK/i, "Canara Bank"], [/\bUBIN0|UNION BANK/i, "Union Bank"], [/\bIDFB0|IDFC FIRST/i, "IDFC First"], [/\bINDB0|INDUSIND/i, "IndusInd"],
+  [/\bTJSB0|TJSB/i, "TJSB"], [/\bSRCB0|SARASWAT/i, "Saraswat"], [/\bBKID0|BANK OF INDIA/i, "Bank of India"], [/\bFDRL0|FEDERAL BANK/i, "Federal Bank"],
+];
+
+/** Which account a statement is for, as "Axis Bank 8307": the bank named at the top and the account number's last four digits. */
+export function accountRef(text: string, fileName: string): string | null {
+  const head = text.slice(0, 4000);
+  // The statement's own bank is the one named first; later names belong to the people paid.
+  const bank = BANKS.map(([r, name]) => ({ name, at: head.search(r) })).filter((x) => x.at >= 0).sort((a, b) => a.at - b.at)[0]?.name;
+  const number = /(?:account|a\/c)\s*(?:no|number|#)?\.?\s*(?:of)?\s*[:\-]?\s*[X*\d]*?(\d{4})(?!\d)/i.exec(head)?.[1] ?? /(?<!\d)(\d{4})(?!\d)(?=[ _-])/.exec(fileName.replace(/\b(19|20)\d{2}\b/g, ""))?.[1];
+  return number ? `${bank ?? "Account"} ${number}` : null;
+}
+
 export async function readStatement(buf: Buffer, fileName: string): Promise<{ analysis: StatementAnalysis; fill: ReturnType<typeof camFill>; kind: string }> {
   if (buf.length > MAX_STATEMENT_BYTES) throw new StatementError("That file is too big. Statements up to 15 MB can be read.");
   const name = fileName.toLowerCase();
   let txns: Txn[] = [];
   let kind = "";
+  let heading = "";
 
   if (buf.subarray(0, 4).toString("latin1") === "%PDF") {
     kind = "PDF";
@@ -93,6 +110,7 @@ export async function readStatement(buf: Buffer, fileName: string): Promise<{ an
     if (text.replace(/\s/g, "").length < 200) {
       throw new StatementError("This PDF has no readable text: it looks like a scan or a photo. Upload the Excel or CSV statement from net banking instead.");
     }
+    heading = asRendered;
     txns = settle(fromPdfText(text));
     // Whichever way of reading explains the most entries.
     for (const raw of [fromRunningText(asRendered), fromAnyBank(text), fromAnyBank(asRendered)]) {
@@ -107,10 +125,12 @@ export async function readStatement(buf: Buffer, fileName: string): Promise<{ an
       if (got.length > best.length) best = got;
     }
     txns = best;
+    heading = (await xlsxRows(buf)).flat().slice(0, 40).map((r) => r.join(" ")).join("\n");
   } else if (buf.readUInt32LE(0) === 0xe011cfd0) {
     throw new StatementError("That is an old .xls file. Open it in Excel and save it as .xlsx or CSV, then upload it again.");
   } else if (/\.(csv|txt)$/.test(name) || !buf.subarray(0, 2000).includes(0)) {
     kind = "CSV";
+    heading = buf.toString("utf8").slice(0, 4000);
     txns = settle(fromRows(csvRows(buf.toString("utf8").replace(/^﻿/, ""))));
   } else {
     throw new StatementError("Upload a statement as a PDF with text, an Excel (.xlsx) file or a CSV.");
@@ -124,5 +144,8 @@ export async function readStatement(buf: Buffer, fileName: string): Promise<{ an
   const analysis = analyseTxns(txns);
   const broken = unreconciled(txns);
   if (broken) analysis.warnings.unshift(`${broken} of ${txns.length} entries do not agree with the running balance, so some rows may be missing or misread. Check the figures against the statement.`);
-  return { analysis, fill: camFill(analysis), kind };
+  const fill = camFill(analysis);
+  const ref = accountRef(heading, fileName);
+  if (ref) Object.assign(fill.banking, { accountRef: ref });
+  return { analysis, fill, kind };
 }
