@@ -15,6 +15,18 @@ export class LeadDocumentReaderController {
   }
 }
 
+/** Reads every document on an application into the lead's CAM (blank boxes only). */
+@Controller("applications/:applicationId/read-into-cam")
+export class ApplicationCamReaderController {
+  constructor(private reader: DocumentReaderService) {}
+
+  @Throttle({ default: { limit: 4, ttl: 60_000 } })
+  @Post()
+  read(@Param("applicationId") id: string, @CurrentUser() user: AuthUser) {
+    return this.reader.readApplicationIntoCam(id, user);
+  }
+}
+
 /** What the documents on an application say, read by our statement reader or the AI, for staff to check. */
 @Controller("applications/:applicationId/document-readings")
 export class DocumentReaderController {

@@ -45,6 +45,13 @@ export class DocumentReaderService implements OnModuleInit {
   }
 
   onModuleInit() {
+    this.events?.on("APPLICATION_FILE_ADDED", async (p) => {
+      const [user, doc] = await Promise.all([
+        this.prisma.user.findUnique({ where: { id: String(p.userId) }, select: { id: true, name: true, email: true, role: true } }),
+        this.prisma.document.findUnique({ where: { id: String(p.documentId) }, include: { application: { select: { leadId: true } } } }),
+      ]);
+      if (user && doc?.application.leadId) this.queueDocument(doc.application.leadId, doc, user as unknown as AuthUser);
+    });
     this.events?.on("LEAD_FILE_ADDED", async (p) => {
       const user = await this.prisma.user.findUnique({ where: { id: String(p.userId) }, select: { id: true, name: true, email: true, role: true } });
       if (user) await this.inTurn(String(p.leadId), () => this.readLeadFile(String(p.leadId), String(p.fileId), user as unknown as AuthUser));
@@ -55,19 +62,24 @@ export class DocumentReaderService implements OnModuleInit {
   async readLeadFile(leadId: string, fileId: string, user: AuthUser): Promise<{ fileName: string; filled: string[]; skipped?: string }> {
     const file = await this.prisma.leadFile.findFirst({ where: { id: fileId, leadId } });
     if (!file) throw new NotFoundException("File not found");
+    return this.fillFrom(leadId, { ...file, category: classifyDocument(file.fileName, file.caption) }, user);
+  }
+
+  /** One file, wherever it is kept, into the blank boxes of the lead's CAM. */
+  private async fillFrom(leadId: string, file: { fileName: string; objectKey: string; mimeType: string; category: string }, user: AuthUser): Promise<{ fileName: string; filled: string[]; skipped?: string }> {
     const skip = (skipped: string) => ({ fileName: file.fileName, filled: [] as string[], skipped });
-    if (NEVER_READ_CATEGORIES.includes(classifyDocument(file.fileName, file.caption))) return skip("Identity papers are not read");
+    if (NEVER_READ_CATEGORIES.includes(file.category)) return skip("Identity papers are not read");
     const buffer = await this.storage.get(file.objectKey);
     const local = await this.tryStatement(buffer, file.fileName);
     let patch: CamPatch | null = local ? (local.fill as unknown as CamPatch) : null;
     if (!local) {
       if (!this.aiEnabled) return skip("The reader is switched off");
       const reading = (await this.readWithAi(buffer, file.mimeType, file.fileName)).reading;
-      patch = reading.cam ? limitToFileKind(reading.cam, classifyDocument(file.fileName, file.caption)) : null;
+      patch = reading.cam ? limitToFileKind(reading.cam, file.category) : null;
       // A letter about the loan being given is not a running loan, whatever the reader called it.
       if (patch?.obligations && isNewLoanPaper(file.fileName)) delete patch.obligations;
       // A co-applicant's income, business or loans are never entered as the applicant's own.
-      if (patch && (patch.income || patch.obligations)) {
+      if (patch && (patch.income || patch.obligations || patch.gst)) {
         const [lead, cam] = await Promise.all([
           this.prisma.lead.findUnique({ where: { id: leadId }, select: { name: true, employerName: true } }),
           this.prisma.camCase.findUnique({ where: { leadId }, select: { data: true } }),
@@ -76,7 +88,10 @@ export class DocumentReaderService implements OnModuleInit {
         if (!belongsToApplicant(reading.person, [data.applicant?.fullName, lead?.name], [data.income?.businessName, data.income?.employer, lead?.employerName])) {
           delete patch.income;
           delete patch.obligations;
+          delete patch.gst;
         }
+        // A person's own total income is taken only from a paper in their own name, never from the firm's.
+        if (patch.income && !(reading.person && belongsToApplicant(reading.person, [data.applicant?.fullName, lead?.name], []))) delete patch.income.declaredMonthly;
       }
       if (patch && !Object.keys(patch).length) patch = null;
     }
@@ -98,6 +113,21 @@ export class DocumentReaderService implements OnModuleInit {
     for (const f of files)
       void this.inTurn(leadId, () => this.readLeadFile(leadId, f.id, user)).catch((e: Error) => this.log.warn(`Could not read ${f.fileName} into the CAM: ${e.message}`));
     return { started: files.length };
+  }
+
+  /** "Read documents into CAM" on an application: every document on it, in the background, into the lead's CAM. */
+  async readApplicationIntoCam(applicationId: string, user: AuthUser): Promise<{ started: number }> {
+    const app = await this.applicationFor(applicationId, user);
+    if (!app.leadId) throw new BadRequestException("This application has no lead, so there is no CAM to put it in.");
+    const docs = await this.prisma.document.findMany({ where: { applicationId, category: { notIn: NEVER_READ_CATEGORIES } }, orderBy: { createdAt: "asc" }, take: 40 });
+    for (const d of docs) this.queueDocument(app.leadId, d, user);
+    return { started: docs.length };
+  }
+
+  private queueDocument(leadId: string, d: { fileName: string; objectKey: string; mimeType: string; category: string }, user: AuthUser) {
+    // An identity paper filed under another kind is still recognised by its name, and never sent to the reader.
+    const file = NEVER_READ_CATEGORIES.includes(classifyDocument(d.fileName, null)) ? { ...d, category: classifyDocument(d.fileName, null) } : d;
+    void this.inTurn(leadId, () => this.fillFrom(leadId, file, user)).catch((e: Error) => this.log.warn(`Could not read ${d.fileName} into the CAM: ${e.message}`));
   }
 
   get aiEnabled() {

@@ -131,13 +131,19 @@ export function DocumentsPanel({ applicationId }: { applicationId: string }) {
     },
   });
 
+  // Every document into the CAM's blank boxes: runs in the background, a few minutes for a full file.
+  const intoCam = useMutation({
+    mutationFn: () => api<{ started: number }>(`/applications/${applicationId}/read-into-cam`, { method: "POST" }),
+    onSuccess: () => [30, 90, 180, 300].forEach((s) => setTimeout(() => void queryClient.invalidateQueries({ queryKey: ["cam"] }), s * 1000)),
+  });
+
   // One tab per kind of document, so a long file stays easy to look through.
   const [tab, setTab] = useState<string>("All");
   const counts = new Map<string, number>();
   for (const d of query.data ?? []) counts.set(d.category, (counts.get(d.category) ?? 0) + 1);
   const shown = (query.data ?? []).filter((d) => tab === "All" || d.category === tab);
   const readable = (query.data ?? []).filter((d) => !NEVER_READ.includes(d.category) && !found.has(d.id)).length;
-  const readError = (readOne.error ?? readAll.error ?? addToCam.error) as Error | null;
+  const readError = (readOne.error ?? readAll.error ?? addToCam.error ?? intoCam.error) as Error | null;
 
   return (
     <section className="card p-5">
@@ -145,12 +151,20 @@ export function DocumentsPanel({ applicationId }: { applicationId: string }) {
         <h2 className="text-sm font-bold text-navy">
           Documents <span className="text-muted">({query.data?.length ?? 0})</span>
         </h2>
+        <div className="flex flex-wrap justify-end gap-2">
+        {(query.data?.length ?? 0) > 0 && (
+          <button className="btn-ghost" disabled={intoCam.isPending} onClick={() => intoCam.mutate()} title="Fills the CAM's blank boxes from these documents: income, balance sheet, bank and GST months, property. Identity papers are skipped.">
+            {intoCam.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Fill the CAM from documents
+          </button>
+        )}
         {readings.data?.aiEnabled && readable > 0 && (
           <button className="btn-ghost" disabled={readAll.isPending} onClick={() => readAll.mutate()} title="Reads the documents not yet read. Identity papers (KYC) are skipped.">
             {readAll.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Read all with AI ({readable})
           </button>
         )}
+        </div>
       </div>
+      {intoCam.data && <p className="mb-3 rounded-md bg-sky-50 px-3 py-2 text-[12px] text-sky-800">Reading {intoCam.data.started} document{intoCam.data.started === 1 ? "" : "s"} into the CAM. Give it a few minutes, then open or download the CAM.</p>}
       {readError && <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-700">{readError.message}</p>}
       {readAll.data && (readAll.data.failed.length > 0 || readAll.data.left > 0) && (
         <p className="mb-3 rounded-md bg-amber-50 px-3 py-2 text-[12px] text-amber-900">

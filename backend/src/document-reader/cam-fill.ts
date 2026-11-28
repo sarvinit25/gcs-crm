@@ -26,6 +26,23 @@ const pick = (source: Row, spec: Record<string, "text" | "amount" | "signed">): 
 const obj = (v: unknown): Row => (v && typeof v === "object" && !Array.isArray(v) ? (v as Row) : {});
 const oneOf = (v: unknown, options: string[]) => options.find((o) => o.toLowerCase() === String(v ?? "").trim().toLowerCase()) ?? null;
 
+/** "2024-2025" and "2024-25" are the same financial year; anything else is not one. */
+const yearOf = (v: unknown): string | null => {
+  const m = /^(\d{4})\s*-\s*(\d{2}|\d{4})$/.exec(String(v ?? "").trim());
+  return m ? `${m[1]}-${m[2]!.slice(-2)}` : null;
+};
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** A month as "Oct 2026", from "October 2026", "Oct-26" and the like. */
+export const monthOf = (v: unknown): string | null => {
+  const m = /^([A-Za-z]{3,9})[\s\-'/,]*(\d{4}|\d{2})$/.exec(String(v ?? "").trim());
+  const i = m ? MONTHS.findIndex((x) => x.toLowerCase() === m[1]!.slice(0, 3).toLowerCase()) : -1;
+  return m && i >= 0 ? `${MONTHS[i]} ${m[2]!.length === 2 ? `20${m[2]}` : m[2]}` : null;
+};
+const monthOrder = (v: unknown) => {
+  const [m, y] = String(v ?? "").split(" ");
+  return Number(y) * 12 + MONTHS.indexOf(m ?? "");
+};
+
 const LOAN_TYPES = ["Home loan", "Loan against property", "Car loan", "Personal loan", "Business loan", "Gold loan", "Education loan", "Two-wheeler / consumer", "Other"];
 const CONSTITUTIONS = ["Proprietorship", "Partnership", "Private Limited", "LLP", "Other"];
 
@@ -44,13 +61,35 @@ export function camFromExtraction(raw: unknown): CamPatch | null {
   const years = (Array.isArray(r.financials) ? r.financials : [])
     .map((y) => {
       const row = pick(obj(y), { turnover: "amount", grossProfit: "signed", netProfit: "signed", depreciation: "amount", interestPaid: "amount", remuneration: "amount", tax: "amount" });
-      const year = /^(\d{4})\s*-\s*(\d{2}|\d{4})$/.exec(String(obj(y).year ?? "").trim());
-      return year && Object.keys(row).length ? { year: `${year[1]}-${year[2]!.slice(-2)}`, ...row } : null;
+      const year = yearOf(obj(y).year);
+      return year && Object.keys(row).length ? { year, ...row } : null;
     })
     .filter((x): x is Row & { year: string } => x !== null)
     .slice(0, 3);
   if (years.length) income.financials = years;
+  const sheets = (Array.isArray(r.balanceSheet) ? r.balanceSheet : [])
+    .map((y) => {
+      const row = pick(obj(y), { netWorth: "signed", bankDebt: "amount", highCostDebt: "amount", promoterLoans: "amount", currentAssets: "amount", currentLiabilities: "amount", debtors: "amount", inventory: "amount", creditors: "amount" });
+      const year = yearOf(obj(y).year);
+      return year && Object.keys(row).length ? { year, ...row } : null;
+    })
+    .filter((x): x is Row & { year: string } => x !== null)
+    .slice(0, 3);
+  if (sheets.length) income.balanceSheet = sheets;
+  // The total income on an individual's own return, as a month's figure.
+  const own = amount(obj(r.personal).totalIncome);
+  if (own) income.declaredMonthly = Math.round(own / 12);
   if (Object.keys(income).length) patch.income = income;
+
+  const gst = (Array.isArray(r.gstMonths) ? r.gstMonths : [])
+    .map((m) => {
+      const row = pick(obj(m), { sales: "amount", purchases: "amount", taxPaid: "amount" });
+      const month = monthOf(obj(m).month);
+      return month && Object.keys(row).length ? { month, ...row } : null;
+    })
+    .filter((x): x is Row & { month: string } => x !== null)
+    .slice(0, 12);
+  if (gst.length) patch.gst = { months: gst };
 
   const property = pick(obj(r.property), { agreementValue: "amount", marketValue: "amount", address: "text", builderName: "text", areaSqft: "amount", ownerName: "text" });
   if (Object.keys(property).length) patch.property = property;
@@ -100,10 +139,11 @@ export function limitToFileKind(patch: CamPatch, category: string): CamPatch {
   if (patch.obligations && category !== "Property papers" && category !== "Business proof") out.obligations = patch.obligations;
   if (patch.income && ["Income proof", "Business proof", "Other"].includes(category)) {
     const income = { ...patch.income };
-    if (category !== "Income proof") delete income.financials;
+    if (category !== "Income proof") for (const k of ["financials", "balanceSheet", "declaredMonthly"]) delete income[k];
     if (category === "Other") for (const k of ["businessName", "constitution", "gstin", "udyam"]) delete income[k];
     if (Object.keys(income).length) out.income = income;
   }
+  if (patch.gst && category !== "Property papers") out.gst = patch.gst;
   if (patch.banking) out.banking = patch.banking;
   if (patch.bankingDetail) out.bankingDetail = patch.bankingDetail;
   return out;
@@ -129,7 +169,12 @@ export function onlyBlanks(existing: unknown, patch: CamPatch): { patch: CamPatc
     const have = obj(data[section]);
     for (const [key, value] of Object.entries(fields)) {
       const current = have[key];
-      if (key === "financials" && Array.isArray(value)) {
+      // GST returns come one month at a time, so months are gathered from many files, newest first.
+      if (section === "gst" && key === "months" && Array.isArray(value)) {
+        const rows = (Array.isArray(current) ? (current as Row[]) : []).filter((x) => x && Object.values(x).some((v) => !blank(v)));
+        const added = (value as Row[]).filter((n) => !rows.some((x) => monthOf(x.month) === n.month));
+        if (added.length) put(section, key, [...rows, ...added].sort((a, b) => monthOrder(monthOf(b.month)) - monthOrder(monthOf(a.month))).slice(0, 12));
+      } else if ((key === "financials" || key === "balanceSheet") && Array.isArray(value)) {
         const rows = (Array.isArray(current) ? (current as Row[]) : []).filter((x) => x && Object.values(x).some((v) => !blank(v))).map((x) => ({ ...x }));
         let changed = false;
         for (const y of value as Row[]) {

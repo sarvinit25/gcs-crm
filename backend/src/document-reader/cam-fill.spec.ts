@@ -82,3 +82,18 @@ describe("what a file's own kind allows", () => {
     expect(limitToFileKind(patch, "Other").income).toEqual({ netMonthly: 5 });
   });
 });
+
+describe("accounts, a personal return and GST months", () => {
+  it("cleans them from the AI's answer", () => {
+    const r = camFromExtraction({ balanceSheet: [{ year: "2024-2025", netWorth: "10,00,000", debtors: "n/a" }], personal: { totalIncome: 2_096_930 }, gstMonths: [{ month: "October-26", sales: 5 }, { month: "FY 2026", sales: 9 }] });
+    expect(r).toEqual({ income: { balanceSheet: [{ year: "2024-25", netWorth: 1_000_000 }], declaredMonthly: 174_744 }, gst: { months: [{ month: "Oct 2026", sales: 5 }] } });
+  });
+  it("gathers GST months from many returns, newest first, without repeating one", () => {
+    const r = onlyBlanks({ gst: { months: [{ month: "Sept 2026", sales: 1 }] } }, { gst: { months: [{ month: "Oct 2026", sales: 2 }, { month: "Sep 2026", sales: 9 }] } });
+    expect(r.patch.gst!.months).toEqual([{ month: "Oct 2026", sales: 2 }, { month: "Sept 2026", sales: 1 }]);
+  });
+  it("fills balance sheet years like financial years", () => {
+    const r = onlyBlanks({ income: { balanceSheet: [{ year: "2024-25", netWorth: 5 }] } }, { income: { balanceSheet: [{ year: "2024-25", netWorth: 9, debtors: 2 }] } });
+    expect(r.patch.income!.balanceSheet).toEqual([{ year: "2024-25", netWorth: 5, debtors: 2 }]);
+  });
+});

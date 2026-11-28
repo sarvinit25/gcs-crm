@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { StorageService } from "./storage.service";
+import { EventsService } from "../events/events.service";
 import { SettingsService } from "../settings/settings.service";
 import type { AuthUser } from "../auth/auth.decorators";
 import { detectFile, safeFileName } from "./file-sniff";
@@ -18,6 +19,7 @@ export class DocumentsService {
     private storage: StorageService,
     private audit: AuditService,
     private settings: SettingsService,
+    private events?: EventsService,
   ) {}
 
   categories() {
@@ -67,6 +69,8 @@ export class DocumentsService {
       changes: { category: { from: null, to: category } },
       ip,
     });
+    // Read straight into the CAM, as a file added to a lead is.
+    this.events?.emit("APPLICATION_FILE_ADDED", { documentId: document.id, userId: user.id });
 
     return document;
   }

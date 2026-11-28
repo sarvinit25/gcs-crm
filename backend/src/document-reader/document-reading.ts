@@ -40,13 +40,19 @@ export function readingPrompt(): string {
  "salary": { "employer": text or null, "designation": text or null, "grossMonthly": number or null, "netMonthly": number or null },
  "business": { "businessName": text, "constitution": "Proprietorship" | "Partnership" | "Private Limited" | "LLP" | "Other", "gstin": text, "udyam": text },
  "financials": [ { "year": "2024-25", "turnover": number, "grossProfit": number, "netProfit": number, "depreciation": number, "interestPaid": number, "remuneration": number, "tax": number } ],
+ "balanceSheet": [ { "year": "2024-25", "netWorth": number, "bankDebt": number, "highCostDebt": number, "promoterLoans": number, "currentAssets": number, "currentLiabilities": number, "debtors": number, "inventory": number, "creditors": number } ],
+ "personal": { "totalIncome": number },
+ "gstMonths": [ { "month": "Oct 2026", "sales": number, "purchases": number, "taxPaid": number } ],
  "property": { "agreementValue": number, "marketValue": number, "address": text, "builderName": text, "areaSqft": number, "ownerName": text },
  "loans": [ { "lender": text, "type": "Home loan" | "Loan against property" | "Car loan" | "Personal loan" | "Business loan" | "Gold loan" | "Education loan" | "Two-wheeler / consumer" | "Other", "sanctioned": number, "outstanding": number, "emi": number, "monthsLeft": number } ]
 }
 
-Leave out any of "business", "financials", "property" and "loans" that the document does not state. "year" is the financial year (the year before the assessment year). "netProfit" is the business profit; use a negative number for a loss.
+Leave out any of "business", "financials", "balanceSheet", "personal", "gstMonths", "property" and "loans" that the document does not state. "year" is the financial year (the year before the assessment year). "netProfit" is the business profit; use a negative number for a loss.
 
 Rules:
+- Audited accounts, a balance sheet, a profit and loss account or a tax audit report have docType "ITR". "balanceSheet": "netWorth" is capital plus reserves, "bankDebt" secured loans from banks and NBFCs, "highCostDebt" unsecured business loans, "promoterLoans" loans from partners, directors or family.
+- "personal.totalIncome": only on the income tax return, computation or Form 16 of an individual person: that person's total income for the year. Never from a firm's, company's or LLP's return.
+- GST return: "gstMonths" has the return's month with outward taxable supplies as "sales", input purchases only if stated, and tax paid in cash. Leave it out for a yearly or quarterly return.
 - If the document is an Aadhaar card, PAN card, passport, voter ID or driving licence: set docType to "IDENTITY_DOCUMENT", fields to [] and do not copy any number from it.
 - "fields" holds only what is printed, as printed, 4 to 20 short items. Never guess a figure; leave it out when it is not there.
 - Salary slip: name, employer, designation, month, gross and net pay, deductions, PF. Fill "salary" from it (monthly rupees as numbers; null when not stated).
@@ -73,8 +79,9 @@ export const maskLongNumbers = (s: string) => s.replace(/\b\d[\d -]{8,}\d\b/g, (
 
 /** Which structured parts each kind of document may fill: a bank statement or an unknown paper fills nothing this way. */
 const MAY_FILL: Partial<Record<DocType, string[]>> = {
-  ITR: ["business", "financials"],
-  GST_RETURN: ["business"],
+  ITR: ["business", "financials", "balanceSheet", "personal"],
+  FORM_16: ["personal"],
+  GST_RETURN: ["business", "gstMonths"],
   BUSINESS_PROOF: ["business"],
   PROPERTY_PAPER: ["property"],
   LOAN_STATEMENT: ["loans"],
