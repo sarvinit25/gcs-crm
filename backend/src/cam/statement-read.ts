@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { analyseTxns, camFill, type StatementAnalysis } from "./statement-analyse";
-import { csvRows, fromPdfText, fromRows, settle, StatementError, type Txn } from "./statement-parse";
+import { csvRows, fromAnyBank, fromPdfText, fromRows, fromRunningText, settle, StatementError, type Txn } from "./statement-parse";
 
 // Takes an uploaded statement (text PDF, Excel .xlsx or CSV), reads it on our own server and returns the figures. The file is
 // not kept and nothing is sent to any outside service: a statement carries account numbers and personal spending.
@@ -25,12 +25,13 @@ const pageToLines = (pageData: { getTextContent: (o: object) => Promise<{ items:
     return lines.join("\n");
   });
 
-async function pdfText(buf: Buffer): Promise<string> {
+/** The page text twice over: row by row, and as the library itself renders it. Banks differ in which one keeps a row whole. */
+async function pdfText(buf: Buffer): Promise<{ rows: string; plain: string }> {
   // the library's index runs a self-test when imported on its own, so its inner file is imported
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const pdfParse = require("pdf-parse/lib/pdf-parse.js") as (b: Buffer, o?: object) => Promise<{ text: string }>;
   try {
-    return (await pdfParse(buf, { pagerender: pageToLines })).text;
+    return { rows: (await pdfParse(buf, { pagerender: pageToLines })).text, plain: (await pdfParse(buf)).text };
   } catch (e) {
     if (/password/i.test(String((e as Error)?.message ?? e)) || (e as { name?: string })?.name === "PasswordException") {
       throw new StatementError("This PDF is locked with a password. Open it, enter the password, print it to a new PDF (or download the Excel version from net banking) and upload that.");
@@ -70,6 +71,16 @@ async function xlsxRows(buf: Buffer): Promise<unknown[][][]> {
   });
 }
 
+/** Entries whose balance is not the one before it, plus what came in, less what went out. */
+export function unreconciled(txns: Txn[]): number {
+  let n = 0;
+  for (let i = 1; i < txns.length; i++) {
+    const [a, b] = [txns[i - 1]!, txns[i]!];
+    if (a.balance !== null && b.balance !== null && Math.abs(a.balance + b.credit - b.debit - b.balance) > 1) n++;
+  }
+  return n;
+}
+
 export async function readStatement(buf: Buffer, fileName: string): Promise<{ analysis: StatementAnalysis; fill: ReturnType<typeof camFill>; kind: string }> {
   if (buf.length > MAX_STATEMENT_BYTES) throw new StatementError("That file is too big. Statements up to 15 MB can be read.");
   const name = fileName.toLowerCase();
@@ -78,11 +89,16 @@ export async function readStatement(buf: Buffer, fileName: string): Promise<{ an
 
   if (buf.subarray(0, 4).toString("latin1") === "%PDF") {
     kind = "PDF";
-    const text = await pdfText(buf);
+    const { rows: text, plain: asRendered } = await pdfText(buf);
     if (text.replace(/\s/g, "").length < 200) {
       throw new StatementError("This PDF has no readable text: it looks like a scan or a photo. Upload the Excel or CSV statement from net banking instead.");
     }
     txns = settle(fromPdfText(text));
+    // Whichever way of reading explains the most entries.
+    for (const raw of [fromRunningText(asRendered), fromAnyBank(text), fromAnyBank(asRendered)]) {
+      const got = settle(raw);
+      if (got.length > txns.length) txns = got;
+    }
   } else if (buf.readUInt32LE(0) === 0x04034b50) {
     kind = "Excel";
     let best: Txn[] = [];
@@ -106,5 +122,7 @@ export async function readStatement(buf: Buffer, fileName: string): Promise<{ an
       : "I could not find the transaction table. It needs columns for the date, the narration or description, the debit and credit (or amount) and the balance.");
   }
   const analysis = analyseTxns(txns);
+  const broken = unreconciled(txns);
+  if (broken) analysis.warnings.unshift(`${broken} of ${txns.length} entries do not agree with the running balance, so some rows may be missing or misread. Check the figures against the statement.`);
   return { analysis, fill: camFill(analysis), kind };
 }

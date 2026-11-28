@@ -1,3 +1,4 @@
+import { fromAnyBank } from "./statement-parse";
 import ExcelJS from "exceljs";
 import { analyseTxns } from "./statement-analyse";
 import { csvRows, fromPdfText, fromRows, parseDate, parseMoney, settle } from "./statement-parse";
@@ -232,5 +233,43 @@ describe("block layout statements (date, narration lines, then amount and balanc
     const tx = settle(fromPdfText(text));
     expect(tx.map((t) => [t.debit, t.credit, t.balance]).slice(-3)).toEqual([[1000, 0, 9000], [0, 44957, 53957], [957, 0, 53000]]);
     expect(tx).toHaveLength(4);
+  });
+});
+
+describe("statements with the amount and balance run together", () => {
+  it("reads a Yes Bank layout, proving each amount by the balance", () => {
+    const text = [
+      "03 Apr 202603 Apr 2026000001ACH DR SOME LENDER", "SOME NAME 10", "69,595.00586,849.37",
+      "13 Jul 202613 Jul 2026000000000001CHQ DEP BRANCH50,000.00636,849.37",
+      "29 Jul 202629 Jul 202610001ACH CR INSURER 41084023", "1,560.00638,409.37",
+      "30 Jul 202630 Jul 202610002ACH DR LENDER 99598,000.0040,409.37",
+      "Opening Balance: 656,444.37Total Withdrawals: 69,595.00",
+    ].join("\n");
+    const t = fromPdfText(text);
+    expect(t.map((x) => [x.debit, x.credit])).toEqual([[69595, 0], [0, 50000], [0, 1560], [598000, 0]]);
+    expect(settle(t)).toHaveLength(4);
+  });
+  it("reads an Axis layout from its opening balance", () => {
+    const text = [
+      "Opening Balance: INR 2,21,910.13",
+      "203/08/202603/08/2026", "NEFT/SOMEONE", "1,00,000.003,21,910.13BRANCH", "MH (248)",
+      "707/08/202607/08/2026CLG/000526/PAYEE", "3,00,000.0021,910.13000526BRANCH",
+      "86TRANSACTION TOTAL DR/CR", "3,00,000.001,00,000.00BRANCH",
+    ].join("\n");
+    expect(fromPdfText(text).map((x) => [x.debit, x.credit, x.balance])).toEqual([[0, 100000, 321910.13], [300000, 0, 21910.13]]);
+  });
+});
+
+describe("other banks' column layouts", () => {
+  const read = (lines: string[]) => fromAnyBank(lines.join("\n")).map((x) => [x.debit, x.credit, x.balance]);
+  const want = [[500, 0, 9500], [0, 2000, 11500]];
+  it("reads amount-then-balance rows, wrapped or not (HDFC and SBI style)", () => {
+    expect(read(["Opening Balance 10,000.00", "01/04/26 UPI-SHOP 000123 01/04/26 500.00 9,500.00", "2 Apr 2026 2 Apr 2026 BY TRANSFER", "NEFT SOMEONE 2,000.00 11,500.00"])).toEqual(want);
+  });
+  it("reads rows with a serial number and Dr or Cr marks (Kotak and Bank of Baroda style)", () => {
+    expect(read(["B/F 10,000.00 Cr", "1 01-04-2026 ATM CASH 500.00(Dr) 9,500.00(Cr)", "2 02-Apr-2026 SALARY 2,000.00 Cr 11,500.00 Cr"])).toEqual(want);
+  });
+  it("leaves out a line the balance does not prove", () => {
+    expect(read(["Opening Balance 10,000.00", "01/04/2026 TOTAL 7.00 8.00", "01/04/2026 CHQ 500.00 9,500.00"])).toEqual([[500, 0, 9500]]);
   });
 });

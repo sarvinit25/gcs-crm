@@ -53,7 +53,7 @@ export type StatementAnalysis = {
 
 const r0 = (n: number) => Math.round(n);
 const iso = (d: Date) => d.toISOString().slice(0, 10);
-const signature = (t: string) => t.toUpperCase().replace(/[0-9]+/g, "").replace(/[^A-Z& ]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 40);
+const signature = (t: string) => t.toUpperCase().replace(/\b(?=[A-Z]*\d)[A-Z0-9]{12,}\b/g, "").replace(/[0-9]+/g, "").replace(/[^A-Z& ]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 40);
 
 export function analyseTxns(txnsIn: Txn[]): StatementAnalysis {
   const txns = [...txnsIn].sort((a, b) => a.date.getTime() - b.date.getTime()); // stable: same-day order is kept
@@ -86,7 +86,9 @@ export function analyseTxns(txnsIn: Txn[]): StatementAnalysis {
   // one is not an instalment. Such a debit counts only when the same payee is paid at least twice.
   const lenderPayments = new Map<string, number>();
   for (const t of txns) if (t.debit > 0 && EMI.test(t.text)) lenderPayments.set(signature(t.text) || "LOAN", (lenderPayments.get(signature(t.text) || "LOAN") ?? 0) + 1);
-  const isInstalment = (text: string) => EMI.test(text) && (EMI_WORD.test(text) || (!CHEQUE.test(text) && (lenderPayments.get(signature(text) || "LOAN") ?? 0) >= 2));
+  // Mutual-fund instalments go out by the same bank debit as loan EMIs, but they are savings and not a loan.
+  const saving = /\b(MUT|MUTUAL|SIP|INDIAN CLEARING|BSE LIMITED|INVEST\w*)\b/i;
+  const isInstalment = (text: string) => !saving.test(text) && EMI.test(text) && (EMI_WORD.test(text) || (!CHEQUE.test(text) && (lenderPayments.get(signature(text) || "LOAN") ?? 0) >= 2));
 
   const emiHits = new Map<string, { label: string; amounts: number[]; total: number }>();
   const salaryHits: number[] = [];
@@ -105,14 +107,16 @@ export function analyseTxns(txnsIn: Txn[]): StatementAnalysis {
       if (t.credit > 0 && SALARY.test(t.text) && !isReturn) { salary += t.credit; salaryHits.push(t.credit); }
       if (t.debit > 0 && isInstalment(t.text) && !isReturn) {
         emisSeen += t.debit;
-        const sig = signature(t.text) || "LOAN";
+        // Two loans from one lender are told apart by their instalment.
+        const sig = `${signature(t.text) || "LOAN"}|${Math.round(t.debit)}`;
         const hit = emiHits.get(sig) ?? { label: t.text.slice(0, 60), amounts: [], total: 0 };
         hit.amounts.push(t.debit);
         hit.total += t.debit;
         emiHits.set(sig, hit);
       }
       if (OUTWARD_RETURN.test(t.text)) { outward += 1; outwardTotal += 1; if (returnLines.length < 10) returnLines.push(`${iso(t.date)}: ${t.text.slice(0, 70)}`); }
-      else if (INWARD_RETURN.test(t.text)) { inward += 1; inwardTotal += 1; if (returnLines.length < 10) returnLines.push(`${iso(t.date)}: ${t.text.slice(0, 70)}`); }
+      // The tax on a return charge is a second line about the same bounce.
+      else if (INWARD_RETURN.test(t.text) && !/\bGST\b/i.test(t.text)) { inward += 1; inwardTotal += 1; if (returnLines.length < 10) returnLines.push(`${iso(t.date)}: ${t.text.slice(0, 70)}`); }
     }
     const at = (day: number) => balanceOn(new Date(Date.UTC(y, m - 1, day)));
     const bal = [at(5), at(10), at(15), at(25)];

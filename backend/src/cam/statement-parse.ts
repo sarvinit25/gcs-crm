@@ -229,9 +229,91 @@ function fromBlocks(lines: string[]): Raw[] {
   return out;
 }
 
+/** Yes Bank: "03 Apr 202603 Apr 2026..." (date and value date run together). Axis: serial number, then both dates. */
+const RUNNING_START = [/^(\d{2} [A-Za-z]{3} \d{4})\d{2} [A-Za-z]{3} ?(?:20\d{2})?/, /^\d{1,4}?(\d{2}\/\d{2}\/\d{4})\s?\d{2}\/\d{2}\/\d{4}/];
+const PAIR_FIRST = new RegExp(`^(${FIGURE}) ?(${FIGURE})`);
+/** Any bank that prints an entry's date first (after a serial number, perhaps) and ends it with the amount and the balance as
+ * two separate figures, each maybe marked Cr or Dr: HDFC, SBI, Kotak, Bank of Baroda and most others. */
+const ANY_START = /^(?:\d{1,4}[ .)]+)?(\d{1,2}[-/. ](?:\d{1,2}|[A-Za-z]{3,9})[-/. ,]+\d{2,4})(?![\d,.])/;
+const SIGN = String.raw`(?:\s?\(?(?:CR|Cr|DR|Dr|cr|dr)\b\.?\)?)?`;
+const PAIR_SPACED = new RegExp(String.raw`^(.*?)(?<![\d,.])(-?${FIGURE}${SIGN})\s+(-?${FIGURE}${SIGN})$`);
+
+/**
+ * Statements where an entry starts with its dates and ends, some lines later, with the amount and the running balance run
+ * together. The change in the balance says which way the money went, and proves the amount even when a reference number is
+ * stuck to the front of it.
+ */
+function fromRunning(lines: string[], text: string, starts: RegExp[] = RUNNING_START): Raw[] {
+  const opening = new RegExp(String.raw`(?:Opening Balance|Balance Brought Forward|Brought Forward|\bB\/F\b)\s*:?\s*(?:INR|Rs\.?)?\s*(${FIGURE})`, "i").exec(text);
+  let prev: number | null = opening ? parseMoney(opening[1])! : null;
+  const out: Raw[] = [];
+  let date: Date | null = null;
+  let words: string[] = [];
+  for (const line of lines) {
+    const start = starts.map((r) => r.exec(line)).find(Boolean);
+    let rest = line;
+    if (start && parseDate(start[1])) {
+      date = parseDate(start[1]);
+      words = [];
+      rest = line.slice(start[0].length).trim();
+    }
+    if (!date) continue;
+    const spaced = PAIR_SPACED.exec(rest);
+    if (spaced) {
+      const amount = Math.abs(parseMoney(spaced[2])!);
+      const after = parseMoney(spaced[3])!;
+      const change = prev === null ? null : Math.round((after - prev) * 100) / 100;
+      if (change === null || Math.abs(Math.abs(change) - amount) < 0.011) {
+        const body = [...words, spaced[1]].join(" ").trim().slice(0, 300);
+        if (change === null) out.push({ date, text: body, amounts: [amount], balance: after });
+        else out.push({ date, text: body, debit: change < 0 ? amount : 0, credit: change > 0 ? amount : 0, amounts: [], balance: after });
+        prev = after;
+        date = null;
+        continue;
+      }
+    }
+    const first = PAIR_FIRST.exec(rest);
+    // At the end of a line the two figures are split at the first one's decimals, once the commas are out of the way: a balance
+    // is never confused with the paise before it.
+    const end = first || !/\.\d{2}$/.test(rest) ? null : /^(.*\.\d{2}) ?(\d+\.\d{2})$/.exec(rest.replace(/(\d),(?=\d)/g, "$1"));
+    const balance = first ? parseMoney(first[2])! : end ? Number(end[2]) : null;
+    if (balance !== null) {
+      const before = first ? first[1]! : end![1]!;
+      const delta = prev === null ? null : Math.round((balance - prev) * 100) / 100;
+      const proven = delta !== null && delta !== 0 && before.replace(/,/g, "").endsWith(Math.abs(delta).toFixed(2));
+      if (proven || (first && prev === null)) {
+        const note = first ? "" : before.slice(0, before.length - Math.abs(delta!).toFixed(2).length);
+        // A reference number stuck to the first word would hide it ("000123ACH DR").
+        const body = [...words, note].join(" ").replace(/(\d)(?=(?:ACH|NACH|ECS|NEFT|IMPS|RTGS|UPI|CHQ|EMI)\b)/g, "$1 ").trim().slice(0, 300);
+        if (delta === null) out.push({ date, text: body, amounts: [parseMoney(first![1])!], balance });
+        else out.push({ date, text: body, debit: delta < 0 ? -delta : 0, credit: delta > 0 ? delta : 0, amounts: [], balance });
+        prev = balance;
+        date = null;
+        continue;
+      }
+    }
+    if (rest && words.join(" ").length < 300) words.push(rest);
+  }
+  return out;
+}
+
+const splitLines = (text: string) => text.split(/\r?\n/).map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean);
+
+/** The general reading, for any bank: only entries the running balance proves are taken. */
+export function fromAnyBank(text: string): Raw[] {
+  return fromRunning(splitLines(text), text, [ANY_START]);
+}
+
+/** The same reading for the library's own rendering of a page, which keeps this layout's pieces together. */
+export function fromRunningText(text: string): Raw[] {
+  return fromRunning(text.split(/\r?\n/).map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean), text);
+}
+
 /** The text of a statement PDF, one transaction per line, with each transaction's wrapped narration joined on. */
 export function fromPdfText(text: string): Raw[] {
-  const blocks = fromBlocks(text.split(/\r?\n/).map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean));
+  const lines = text.split(/\r?\n/).map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean);
+  const blocks = fromBlocks(lines);
+  const running = fromRunning(lines, text);
   const out: Raw[] = [];
   let last: Raw | null = null;
   for (const lineRaw of text.split(/\r?\n/)) {
@@ -257,5 +339,5 @@ export function fromPdfText(text: string): Raw[] {
     }
   }
   // Whichever layout explains more of the statement.
-  return blocks.length > out.length ? blocks : out;
+  return [out, blocks, running].reduce((best, next) => (next.length > best.length ? next : best));
 }
